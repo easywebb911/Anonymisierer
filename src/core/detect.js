@@ -7,6 +7,8 @@ import * as lex from './lexicon.js';
 import { findContacts } from './patterns.js';
 
 const TOKEN_RE = /[\p{L}\p{M}]+(?:['’][\p{L}\p{M}]+)*(?:-[\p{L}\p{M}]+(?:['’][\p{L}\p{M}]+)*)*|\p{N}+|\S/gu;
+// Arabische Namenspräfixe mit Bindestrich: al-Hassan, el-Masri, Abd-ar-…
+const HYPHEN_PREFIX = new Set(['al', 'el', 'ul', 'ad', 'ar', 'as', 'ash', 'at', 'az', 'abd', 'abu', 'ben', 'bin', 'ibn']);
 const ACADEMIC = new Set(['med', 'dent', 'vet', 'rer', 'nat', 'phil', 'jur', 'oec', 'pol', 'hc', 'ing', 'habil']);
 
 export const CONTACT_LABELS = { email: '[E-MAIL]', phone: '[TELEFON]', iban: '[IBAN]', address: '[ADRESSE]' };
@@ -48,19 +50,20 @@ function info(tok, exceptions) {
   const key = lk.key;
   const r = {
     key, suffix: lk.suffix, stemEnd: tok.s + lk.stemLen,
-    F: lex.isFirst(key), L: lex.isLast(key), A: lex.isAmbiguous(key), stop: lex.isStop(key),
+    F: lex.isFirst(key), L: lex.isLast(key), A: lex.isAmbiguous(key), stop: lex.isStopWord(tok.t),
     shaped: lex.isShaped(key), title: lex.isTitle(key), strong: lex.isStrongTitle(key),
-    particle: lex.PARTICLES.has(key), exception: exceptions.has(key) || exceptions.has(fold(tok.t)),
+    particle: lex.PARTICLES.has(tok.t.toLowerCase()), exception: exceptions.has(key) || exceptions.has(fold(tok.t)),
     hyCommon: false, hy: false,
   };
   const parts = tok.t.split('-');
   if (parts.length > 1 && !r.F && !r.L) {
     const lastLk = lex.lookupWord(parts[parts.length - 1]);
     const pk = parts.slice(0, -1).map((p) => fold(p)).concat(lastLk.key);
-    const known = pk.filter((k) => lex.inLists(k) && !lex.isAmbiguous(k));
+    const known = pk.filter((k) => [...k].length >= 2 && lex.inLists(k) && !lex.isAmbiguous(k));
+    const tiny = pk.some((k) => [...k].length < 2);
     const common = pk.filter((k) => (lex.isAmbiguous(k) || lex.isStop(k)) && !lex.PARTICLES.has(k));
-    if (lex.PARTICLES.has(pk[0]) && pk.length === 2 && isCap(parts[1])) { r.L = true; r.hy = true; }
-    else if (known.length && !common.length) {
+    if (HYPHEN_PREFIX.has(pk[0]) && pk.length === 2 && isCap(parts[1])) { r.L = true; r.hy = true; }
+    else if (known.length && !common.length && !tiny) {
       if (pk.every((k) => lex.isFirst(k))) r.F = true; else r.L = true;
       r.hy = true;
     } else if (common.length) r.hyCommon = true;
@@ -77,15 +80,17 @@ function gapHasBreak(text, base, a, b) {
   return /[\n\r\t\u2028\u2029]/.test(text.slice(a - base, b - base));
 }
 
-// Steht vor Token i ein Artikel/Begleiter (ggf. mit Adjektiv dazwischen)? -> eher Substantiv
-function nounContext(toks, i) {
-  for (let k = i - 1, n = 0; k >= 0 && n < 3; k--, n++) {
+// Steht vor Token i ein Artikel/Begleiter oder eine Präposition (ggf. mit Adjektiv dazwischen)?
+// -> mehrdeutiges Wort ist dann eher ein Substantiv ("die Rose", "im Winter", "mit voller Kraft", "nach Paris")
+function nounContext(toks, i, withPrep = true) {
+  let adj = 0;
+  for (let k = i - 1; k >= 0; k--) {
     const tk = toks[k];
     if (!tk.word) return false;
     const key = fold(tk.t);
-    if (lex.DETERMINERS.has(key)) return true;
-    if (tk.cap && k !== i - 1) return false;
-    if (tk.cap) return false;
+    if (lex.DETERMINERS.has(key) || (withPrep && lex.PREPOSITIONS.has(key))) return true;
+    if (!tk.cap && /(?:e|en|er|es|em)$/.test(key) && adj < 2) { adj++; continue; }
+    return false;
   }
   return false;
 }
@@ -111,12 +116,15 @@ function parseSeq(toks, j, ctx, text, base, covered, exceptions) {
       continue;
     }
     const inf = info(tk, exceptions);
+    // Partikel nur ohne Diakritika ("Văn" ist kein "van")
     if (inf.particle && !tk.allcaps && !inf.F && !inf.L) {
       // Namenszusatz (von, van der, al, bin …) nur vor einem großgeschriebenen Wort
       let m = k;
       while (m < toks.length && toks[m].word && lex.PARTICLES.has(fold(toks[m].t)) && !gapHasBreak(text, base, toks[m - 1 >= 0 ? m - 1 : m].e, toks[m].s)) m++;
       const nx = toks[m];
-      const leadOk = comps.length > 0 || ctx.strong || ctx.weak || lex.LEADING_PARTICLES.has(inf.key);
+      // Am Anfang nur mit Anrede ("Frau von Bodelschwingh") oder großgeschrieben ("Van Gogh", "Al Hassan");
+      // sonst ist "von"/"de" meist eine Präposition ("Bericht von Anna Müller")
+      const leadOk = comps.length > 0 || ctx.strong || ctx.weak || (tk.cap && lex.LEADING_PARTICLES.has(inf.key));
       if (nx && nx.word && nx.cap && !covered[m] && leadOk && m - k <= 3) {
         const ni = info(nx, exceptions);
         if (!ni.stop && !ni.title && !ni.exception && (comps.length > 0 || ctx.strong || ni.known || ni.shaped)) {
@@ -127,10 +135,12 @@ function parseSeq(toks, j, ctx, text, base, covered, exceptions) {
       }
       break;
     }
-    if (!tk.cap) break;
+    if (!tk.cap && !(inf.hy && inf.L)) break; // klein nur bei "al-Hassan" o. ä.
     if (inf.title || inf.stop || inf.exception) break;
     if (inf.hyCommon && !ctx.strong) break;
     if (tk.allcaps && !inf.known && !ctx.strong) break;
+    // Kurze Wörter in GROSSBUCHSTABEN sind meist Abkürzungen (TOP, IBAN, GMBH) – nur mit Namenskontext
+    if (tk.allcaps && [...tk.t].length <= 4 && !ctx.strong && !ctx.weak && !comps.length) break;
     const lastW = [...comps].reverse().find((c) => c.type === 'W');
     const prev = comps[comps.length - 1];
     let accept;
@@ -138,7 +148,7 @@ function parseSeq(toks, j, ctx, text, base, covered, exceptions) {
       if (ctx.strong) accept = true;
       else if (prev && (prev.type === 'I' || prev.type === 'P')) accept = true;
       else if (ctx.weak) accept = inf.known || inf.shaped || !inf.A;
-      else accept = inf.known || inf.shaped;
+      else accept = inf.known || inf.shaped || (!inf.A && !tk.allcaps && nextIsSurname(toks, k, text, base, covered, exceptions));
     } else {
       accept = (inf.known && (!inf.A || lastW.F)) || inf.shaped || inf.hy
         || (prev.type === 'I' || prev.type === 'P') || (lastW.F && !lastW.A && !inf.A)
@@ -156,6 +166,24 @@ function parseSeq(toks, j, ctx, text, base, covered, exceptions) {
   return { comps, next: Math.max(k, j + 1) };
 }
 
+// Steht Token k am Satz- oder Zeilenanfang?
+function atSentenceStart(toks, k, text, base) {
+  const pv = toks[k - 1];
+  if (!pv) return true;
+  if (/[\n\r]/.test(text.slice(pv.e - base, toks[k].s - base))) return true;
+  return /^[.!?:;•–—]$/.test(pv.t) && !(toks[k - 2] && lex.isTitle(fold(toks[k - 2].t)));
+}
+
+// Folgt direkt (gleiche Zeile, nur Leerzeichen) ein bekannter, eindeutiger Nachname? ("Jolanthe Kowalczyk")
+function nextIsSurname(toks, k, text, base, covered, exceptions) {
+  if (atSentenceStart(toks, k, text, base)) return false;
+  const nx = toks[k + 1];
+  if (!nx || !nx.word || !nx.cap || covered[k + 1] || nx.allcaps) return false;
+  if (!/^[ \u00a0]+$/.test(text.slice(toks[k].e - base, nx.s - base))) return false;
+  const ni = info(nx, exceptions);
+  return !ni.stop && !ni.title && !ni.exception && ((ni.L && !ni.A && !ni.F) || ni.shaped);
+}
+
 function evaluate(comps, ctx) {
   const W = comps.filter((c) => c.type === 'W');
   const I = comps.some((c) => c.type === 'I');
@@ -164,6 +192,8 @@ function evaluate(comps, ctx) {
   if (ctx.strong || ctx.post) return 'sicher';
   if (ctx.weak) return (W.some((c) => c.known || c.shaped)) ? 'sicher' : 'unsicher';
   if (W.length >= 2) {
+    // Erstes Wort unbekannt (nur wegen folgendem Nachnamen angenommen) -> unsicher
+    if (!W[0].known && !W[0].shaped && comps[0].type === 'W') return 'unsicher';
     if (strongKnown) return 'sicher';
     if (W[0].F && W[W.length - 1].L) return 'sicher';
     return 'unsicher';
@@ -244,7 +274,7 @@ export function analyze(units, state) {
         if (!toks[j].cap && !(ctx.strong && ACADEMIC.has(inf.key))) break;
         if (j > i && gapHasBreak(u.text, base, toks[j - 1].e, toks[j].s)) break;
         // "die Frau", "der Herr", "ein Kollege" -> Substantiv, kein Anredekontext
-        if (j === i && nounContext(toks, j)) break;
+        if (j === i && nounContext(toks, j, false)) break;
         if (inf.strong) ctx.strong = true; else ctx.weak = true;
         j++;
         if (j < toks.length && toks[j].t === '.' && toks[j].s === toks[j - 1].e) j++;
@@ -388,7 +418,8 @@ export function analyze(units, state) {
     if (h.type !== 'person') continue;
     for (const c of h.comps || []) {
       if (c.type !== 'W') continue;
-      if (h.origin !== 'manual' && ([...c.key].length < 3 || lex.isStop(c.key))) continue;
+      const raw = fullText.slice(c.s, c.stemEnd || c.e);
+      if (h.origin !== 'manual' && ([...c.key].length < 3 || lex.isStopWord(raw) || lex.PARTICLES.has(raw.toLowerCase()))) continue;
       if (h.cert !== 'sicher' && h.origin === 'auto') continue;
       if (!partToEntities.has(c.key)) partToEntities.set(c.key, new Set());
       partToEntities.get(c.key).add(h.entity);
@@ -403,7 +434,7 @@ export function analyze(units, state) {
       const stm = lex.stemFor(tk.t, partKeys);
       if (!stm) return;
       if (exceptions.has(stm.key) && !manualParts.has(stm.key)) return;
-      if (lex.isTitle(stm.key) || lex.PARTICLES.has(stm.key)) return;
+      if (lex.isTitle(stm.key) || lex.PARTICLES.has(tk.t.toLowerCase()) || lex.isStopWord(tk.t)) return;
       const ent = [...partToEntities.get(stm.key)][0];
       const amb = lex.isAmbiguous(stm.key);
       const manual = manualParts.has(stm.key);
@@ -412,6 +443,17 @@ export function analyze(units, state) {
       const h = { s: tk.s, e: tk.e, type: 'person', cert, origin: manual ? 'manual' : 'propagated', unit: ui, suffix: stm.suffix,
         entity: ent, comps: [{ type: 'W', s: tk.s, e: tk.e, key: stm.key }],
         defaultOff: cert === 'unsicher' && amb && nounContext(toks, k) };
+      // Unbekanntes großgeschriebenes Wort direkt davor (z. B. Vorname vor bekanntem Nachnamen) -> mit ersetzen, unsicher
+      const pv = toks[k - 1];
+      if (!amb && tk.cap && pv && pv.word && pv.cap && !pv.allcaps && !covered[ui][k - 1] && /^[ \u00a0]+$/.test(fullText.slice(pv.e, tk.s))) {
+        const pi = info(pv, exceptions);
+        if (!pi.known && !pi.A && !pi.stop && !pi.title && !pi.exception && !pi.particle && !nounContext(toks, k - 1)) {
+          h.s = pv.s;
+          h.comps.unshift({ type: 'W', s: pv.s, e: pv.e, key: pi.key });
+          h.cert = 'unsicher';
+          covered[ui][k - 1] = true;
+        }
+      }
       hits.push(h);
       covered[ui][k] = true;
     });

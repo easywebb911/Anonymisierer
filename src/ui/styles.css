@@ -88,3 +88,10 @@ mark.off { background: var(--off); text-decoration: line-through; text-decoratio
 .offscreen { position: fixed; left: -9999px; top: 0; }
 .foot { text-align: center; color: var(--muted); font-size: .85rem; padding: 1rem; }
 [hidden] { display: none !important; }
+@media (max-width: 520px) {
+  .top { padding: .5rem 1rem; }
+  h1 { font-size: 1.1rem; }
+  .offline { font-size: .85rem; }
+  main { padding: .75rem; }
+  .card { padding: .75rem; }
+}

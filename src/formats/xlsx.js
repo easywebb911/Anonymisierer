@@ -403,8 +403,8 @@ export async function writeXlsx(bytes, repsPerUnit, generic) {
   }
   for (const n of d.names) {
     if (/^docProps\/thumbnail\./i.test(n)) d.zip.remove(n);
-    else if (/^xl\/embeddings\//.test(n)) d.zip.file(n, new Uint8Array(0), { date: FIXED_DATE });
+    else if (/^xl\/embeddings\//.test(n)) d.zip.file(n, new Uint8Array(0), { date: FIXED_DATE, createFolders: false });
   }
-  for (const n of changed) if (d.docs.has(n)) d.zip.file(n, serializeXml(d.docs.get(n)), { date: FIXED_DATE });
+  for (const n of changed) if (d.docs.has(n)) d.zip.file(n, serializeXml(d.docs.get(n)), { date: FIXED_DATE, createFolders: false });
   return d.zip.generateAsync({ ...ZIP_OPTS, mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 }

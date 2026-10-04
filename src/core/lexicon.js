@@ -1,11 +1,14 @@
 // Nachschlagen in den eingebetteten Namenslisten.
-import { FIRST, LAST, AMBIGUOUS, STOP } from '../generated/names.js';
+import { FIRST, LAST, AMBIGUOUS, STOP, STOP_RAW } from '../generated/names.js';
 import { fold } from './fold.js';
 
 const F = new Set(FIRST.split('|'));
 const L = new Set(LAST.split('|'));
 const A = new Set(AMBIGUOUS.split('|'));
 const S = new Set(STOP.split('|'));
+const SR = new Set(STOP_RAW.split('|'));
+// Funktionswort in genau dieser Schreibweise ("Văn" ist nicht "van")
+export function isStopWord(word) { return SR.has(word.normalize('NFC').toLowerCase()); }
 
 export const PARTICLES = new Set(['von', 'van', 'de', 'der', 'den', 'del', 'della', 'delle', 'dei', 'di', 'da', 'dos', 'das', 'do',
   'du', 'le', 'la', 'al', 'el', 'bin', 'ibn', 'ben', 'bint', 'abu', 'ter', 'ten', 'zu', 'zur', 'vom', 'y', 'e', 'mac', 'ap']);
@@ -42,6 +45,9 @@ export const DETERMINERS = new Set(['der', 'die', 'das', 'den', 'dem', 'des', 'e
   'unser', 'unsere', 'euer', 'eure', 'jeder', 'jede', 'jedes', 'jeden', 'jedem', 'dieser', 'diese', 'dieses', 'diesen', 'diesem',
   'jener', 'jene', 'welche', 'welcher', 'alle', 'viele', 'the', 'a', 'an', 'this', 'that', 'these', 'those', 'my', 'your', 'his',
   'her', 'its', 'our', 'their', 'no', 'every', 'each', 'some', 'any']);
+export const PREPOSITIONS = new Set(['ab', 'an', 'auf', 'aus', 'bei', 'bis', 'durch', 'fur', 'gegen', 'hinter', 'in', 'mit', 'nach',
+  'neben', 'ohne', 'seit', 'uber', 'um', 'unter', 'von', 'vor', 'wahrend', 'wegen', 'zu', 'zwischen', 'trotz', 'statt', 'gegenuber',
+  'innerhalb', 'ausserhalb', 'in', 'into', 'from', 'to', 'at', 'on', 'of', 'for', 'with', 'by', 'about', 'during', 'since', 'until']);
 export const CLOSINGS = /(?:grüßen|grüße|gruß|grussen|gruss|regards|sincerely|cheers|best|mfg|lg|vg|i\. ?a\.|i\. ?v\.|gez\.)[\s,.!]*$/i;
 
 // Typische Namensendungen (für Namen, die in keiner Liste stehen)

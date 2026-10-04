@@ -127,6 +127,7 @@ export const FIRST = ${JSON.stringify(F.join('|'))};
 export const LAST = ${JSON.stringify(L.join('|'))};
 export const AMBIGUOUS = ${JSON.stringify([...amb].sort().join('|'))};
 export const STOP = ${JSON.stringify([...stop].sort().join('|'))};
+export const STOP_RAW = ${JSON.stringify([...new Set(readWords('src/data/stopwords.txt').map((w) => w.normalize('NFC').toLowerCase()))].sort().join('|'))};
 `;
 fs.mkdirSync(path.join(root, 'src/generated'), { recursive: true });
 fs.writeFileSync(path.join(root, 'src/generated/names.js'), out);

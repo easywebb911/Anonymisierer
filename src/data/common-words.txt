@@ -99,7 +99,7 @@ heide kai mark ernst frank rosa linde reiner sonne hans august
 bill will hope grace joy may june april
 
 # --- Ergänzungen nach Abgleich mit den Namenslisten (Wörter, die dort als Name stehen) ---
-silvester pfingsten kante job kasse klima strom reis kloß kloss wunsch pech general baron kerl cousin baby ferne länder tuba schaden
+name vorname nachname silvester pfingsten kante job kasse klima strom reis kloß kloss wunsch pech general baron kerl cousin baby ferne länder tuba schaden
 man idea care son easter judge sir princess prince angel heaven tin bay garden abbey gang fletcher gunner fine hardy tall pie berry
 laurel myrtle
 # Orte, Flüsse, Regionen (in Namenslisten enthalten)

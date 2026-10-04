@@ -1,4 +1,5 @@
 // Oberfläche des Anonymisierers. Kein Netzwerk, kein Speichern ohne ausdrücklichen Schalter.
+import './lockdown.js';
 import JSZip from 'jszip';
 import {
   analyze, defaultState, replacementsByUnit, applyReplacements, leakForms, findLeaks, makeGenericReplacer,
@@ -10,8 +11,8 @@ import { readXlsx, writeXlsx } from '../formats/xlsx.js';
 import { collectZipTexts } from '../formats/xmlutil.js';
 import { readPdf } from '../formats/pdf.js';
 
-const MAX_BYTES = 50 * 1024 * 1024;
-const WARN_BYTES = 15 * 1024 * 1024;
+const MAX_BYTES = 20 * 1024 * 1024;
+const WARN_BYTES = 5 * 1024 * 1024;
 const STORE_KEY = 'anonymisierer.merkliste.v1';
 
 const $ = (sel) => document.querySelector(sel);
@@ -116,11 +117,13 @@ function newUnitTexts() {
 function plainTextExport() {
   const texts = newUnitTexts();
   const d = app.doc;
+  // Beschriftungen können Namen enthalten (z. B. Blattname "Müller!A1") -> ebenfalls ersetzen
+  const generic = makeGenericReplacer(app.result, app.state.settings);
   if (d.kind === 'txt') return writeTxt(d.raw, texts);
   if (d.kind === 'csv') return writeCsv(d.raw, texts);
   if (d.kind === 'pdf') return d.units.map((u, i) => `--- ${u.label} ---\n${texts[i]}`).join('\n\n');
   const main = /^(Text|Tabelle|Textfeld)$/;
-  return d.units.map((u, i) => (d.kind === 'docx' && main.test(u.label) ? texts[i] : `[${u.label}] ${texts[i]}`)).join('\n');
+  return d.units.map((u, i) => (d.kind === 'docx' && main.test(u.label) ? texts[i] : `[${generic(u.label)}] ${texts[i]}`)).join('\n');
 }
 function docxSections() {
   const texts = newUnitTexts();
@@ -231,12 +234,7 @@ function render() {
     h('input', { type: 'checkbox', checked: app.ackWarnings.has(w), onchange: (e) => { if (e.target.checked) app.ackWarnings.add(w); else app.ackWarnings.delete(w); } }),
     ' ', w)));
   $('#doc-warnings-wrap').hidden = !app.doc.warnings.length;
-  // Zusammenfassung
-  const persons = r.hits.filter((x) => x.type === 'person');
-  const sure = persons.filter((x) => x.cert === 'sicher').length;
-  const unsure = persons.length - sure;
-  const contacts = r.hits.length - persons.length;
-  $('#summary').textContent = `${r.entities.size} Person(en) · ${persons.length} Namens-Treffer (${sure} sicher, ${unsure} unsicher) · ${contacts} Kontaktdaten · aktiv: ${r.hits.filter((x) => x.on).length}` + (app.doc.info ? ' · ' + app.doc.info : '');
+  renderSummary();
   renderDoc();
   renderEntities();
   // Exportknöpfe
@@ -246,6 +244,33 @@ function render() {
   $('#btn-docx').hidden = k === 'xlsx';
   $('#pdf-note').hidden = k !== 'pdf';
   $('#leaks').hidden = true;
+}
+
+function renderSummary() {
+  const r = app.result;
+  const persons = r.hits.filter((x) => x.type === 'person');
+  const sure = persons.filter((x) => x.cert === 'sicher').length;
+  const unsure = persons.length - sure;
+  const contacts = r.hits.length - persons.length;
+  $('#summary').textContent = `${r.entities.size} Person(en) · ${persons.length} Namens-Treffer (${sure} sicher, ${unsure} unsicher) · ${contacts} Kontaktdaten · aktiv: ${r.hits.filter((x) => x.on).length}` + (app.doc.info ? ' · ' + app.doc.info : '');
+}
+
+function hitTitle(x) {
+  return (x.on ? 'wird ersetzt durch: ' + x.label : 'bleibt stehen (aus)') + (x.cert === 'unsicher' ? ' · unsicherer Treffer' : '') + (x.link ? ' · zugeordnet über ' + x.link : '') + ' · Tippen = an/aus';
+}
+
+// Schnelles Umschalten ohne Neuberechnung (Treffer bleiben gleich, nur an/aus ändert sich)
+function setHits(list, on) {
+  for (const x of list) {
+    x.on = on;
+    app.state.overrides[x.key] = on;
+    const m = document.querySelector(`mark[data-h="${x.id}"]`);
+    if (m) { m.classList.toggle('on', on); m.classList.toggle('off', !on); m.title = hitTitle(x); }
+  }
+  app.leakAck = false;
+  $('#leaks').hidden = true;
+  renderSummary();
+  renderEntities();
 }
 
 function renderDoc() {
@@ -268,7 +293,7 @@ function renderDoc() {
       const e = x.e - base;
       if (s > pos) tx.append(document.createTextNode(u.text.slice(pos, s)));
       const cls = ['hit', x.type === 'person' ? (x.cert === 'sicher' ? 'sure' : 'unsure') : 'contact', x.on ? 'on' : 'off'].join(' ');
-      const title = (x.on ? 'wird ersetzt durch: ' + x.label : 'bleibt stehen (aus)') + (x.cert === 'unsicher' ? ' · unsicherer Treffer' : '') + (x.link ? ' · zugeordnet über ' + x.link : '') + ' · Tippen = an/aus';
+      const title = hitTitle(x);
       tx.append(h('mark', { class: cls, 'data-h': x.id, 'data-l': x.type === 'person' ? (app.state.settings.mode === 'name' ? 'NAME' : r.entities.get(x.entity).letter) : x.label.replace(/[[\]]/g, ''), title }, u.text.slice(s, e)));
       pos = e;
       hi++;
@@ -296,7 +321,7 @@ function renderEntities() {
       ...ents.filter((o) => o !== en).map((o) => h('option', { value: o.key }, `${o.label}: ${o.display}`)));
     return h('div', { class: 'entity' + (active ? '' : ' muted') },
       h('div', { class: 'erow' },
-        h('label', { class: 'switch' }, h('input', { type: 'checkbox', checked: active > 0, onchange: (e) => { for (const x of en.hits) app.state.overrides[x.key] = e.target.checked; runAnalysis(); } })),
+        h('label', { class: 'switch' }, h('input', { type: 'checkbox', checked: active > 0, onchange: (e) => setHits(en.hits, e.target.checked) })),
         h('strong', {}, en.label), ' ', h('span', { class: 'ename', text: en.display }),
         h('span', { class: 'count', title: 'Treffer (aktiv / gesamt)' }, `${active}/${en.count}`),
         unsure ? h('span', { class: 'tag unsure-tag' }, `${unsure} unsicher`) : null,
@@ -481,8 +506,7 @@ function init() {
     const m = e.target.closest('mark.hit');
     if (m) {
       const x = app.result.hits[Number(m.dataset.h)];
-      app.state.overrides[x.key] = !x.on;
-      runAnalysis();
+      setHits([x], !x.on);
       return;
     }
     const sel = window.getSelection();

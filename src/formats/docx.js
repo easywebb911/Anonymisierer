@@ -177,14 +177,14 @@ export async function writeDocx(bytes, repsPerUnit, generic) {
         if (nt !== target) { rel.setAttribute('Target', nt); mod = true; }
       }
     }
-    if (mod) d.zip.file(n, serializeXml(doc), { date: FIXED_DATE });
+    if (mod) d.zip.file(n, serializeXml(doc), { date: FIXED_DATE, createFolders: false });
   }
   for (const n of d.names) {
     if (/^docProps\/thumbnail\./i.test(n)) d.zip.remove(n);
     // Eingebettete Objekte werden geleert (Inhalt nicht prüfbar); die Beziehung bleibt, damit das Dokument gültig bleibt
-    else if (/^word\/embeddings\//.test(n)) d.zip.file(n, new Uint8Array(0), { date: FIXED_DATE });
+    else if (/^word\/embeddings\//.test(n)) d.zip.file(n, new Uint8Array(0), { date: FIXED_DATE, createFolders: false });
   }
-  for (const n of changed) d.zip.file(n, serializeXml(d.docs.get(n)), { date: FIXED_DATE });
+  for (const n of changed) d.zip.file(n, serializeXml(d.docs.get(n)), { date: FIXED_DATE, createFolders: false });
   return d.zip.generateAsync({ ...ZIP_OPTS, mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
 }
 
@@ -215,6 +215,6 @@ export async function buildDocx(sections) {
     'docProps/app.xml': '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Application>Anonymisierer</Application></Properties>',
   };
   const zip = new JSZip();
-  for (const [n, c] of Object.entries(files)) zip.file(n, c, { date: FIXED_DATE });
+  for (const [n, c] of Object.entries(files)) zip.file(n, c, { date: FIXED_DATE, createFolders: false });
   return zip.generateAsync({ ...ZIP_OPTS, mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
 }
