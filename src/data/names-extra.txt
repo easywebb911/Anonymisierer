@@ -1,0 +1,179 @@
+# Ergänzende Namenslisten – SELBST ERSTELLT für dieses Projekt (keine fremde Quelle).
+# Grund: Für diese Gruppen gibt es in den genutzten Paketquellen keine Liste in
+# lateinischer Schrift (z. B. Arabisch, Chinesisch, Japanisch, Koreanisch) oder
+# die vorhandenen Listen sind lückenhaft (ältere deutsche Vornamen).
+# Inhalt: verbreitete Namen aus allgemeinem Wissen, ohne Anspruch auf Vollständigkeit.
+# Format: Zeile "[F]" = Vornamen, "[L]" = Nachnamen, "[FL]" = beides.
+
+[F] # Deutsch (ältere und häufige Vornamen)
+Ursula Helga Gisela Monika Renate Karin Brigitte Petra Sabine Gabriele Elke Ingrid Christa Erika Hildegard Gertrud Irmgard
+Waltraud Edeltraud Rosemarie Marianne Margarete Margret Ilse Inge Ingeborg Hannelore Heike Silke Birgit Anke Kerstin Ute Uta
+Doris Dagmar Bärbel Beate Gudrun Sigrid Annegret Elfriede Lieselotte Liselotte Herta Hertha Käthe Hedwig Elisabeth Johanna
+Susanne Claudia Martina Andrea Nicole Stefanie Simone Manuela Sandra Tanja Katrin Kathrin Nadine Jessica Corinna Antje Astrid
+Wolfgang Klaus Claus Jürgen Günter Günther Gerhard Helmut Helmuth Horst Dieter Manfred Werner Heinz Hans Peter Uwe Rainer
+Reinhard Bernd Joachim Rolf Norbert Siegfried Gerd Gert Herbert Hermann Karl-Heinz Hans-Peter Hans-Jürgen Heinrich Wilhelm
+Friedrich Ernst Erich Walter Kurt Rudolf Otto Alfred Willi Willy Fritz Paul Gustav Ludwig Heribert Detlef Detlev Lothar
+Hartmut Volker Ulrich Ralf Ralph Thorsten Torsten Sven Holger Jörg Jens Frank Dirk Matthias Thomas Michael Andreas Stefan
+Steffen Uwe Markus Marcus Christian Oliver Sebastian Tobias Florian Johannes Benedikt Maximilian Konstantin Leopold Egon
+Eberhard Gottfried Adalbert Arnold Berthold Burkhard Ekkehard Engelbert Gebhard Gerold Hubert Hubertus Ingo Kai Knut Lutz
+Malte Nils Olaf Ortwin Rüdiger Sigmund Theo Theodor Ulf Volkmar Waldemar Winfried Wilfried Wulf Lena Mia Emma Hannah
+# Türkisch (Ergänzung)
+[F]
+Mehmet Mustafa Ahmet Ali Hüseyin Hasan İbrahim Ibrahim İsmail Ismail Osman Yusuf Murat Ömer Ramazan Halil Süleyman Abdullah
+Mahmut Recep Salih Fatih Kadir Emre Hakan Adem Kemal Yaşar Yasar Bülent Burak Serkan Volkan Tolga Cem Can Deniz Ercan Erkan
+Gökhan Gokhan Kerem Levent Metin Orhan Selim Sinan Tuncay Uğur Ugur Yavuz Yılmaz Zeki Ayşe Ayse Fatma Emine Hatice Zeynep
+Elif Meryem Şerife Serife Zehra Sultan Hanife Merve Esra Özlem Ozlem Gül Gul Gülsüm Hülya Hulya Sevgi Songül Derya Ebru Aylin
+Nur Dilek Filiz Funda Leyla Pınar Pinar Sibel Tuğba Tugba Yasemin Zübeyde Büşra Busra Kübra Kubra Rabia Sema Seda Selin
+[L]
+Yılmaz Yilmaz Kaya Demir Şahin Sahin Çelik Celik Yıldız Yildiz Yıldırım Yildirim Öztürk Ozturk Aydın Aydin Özdemir Ozdemir
+Arslan Doğan Dogan Kılıç Kilic Aslan Çetin Cetin Kara Koç Koc Kurt Özkan Ozkan Şimşek Simsek Polat Özcan Ozcan Korkmaz
+Karakaya Erdoğan Erdogan Güler Guler Yavuz Can Acar Aktaş Aktas Kaplan Bulut Güneş Gunes Kalkan Keskin Tekin Ateş Ates
+Bozkurt Uçar Ucar Avcı Avci Tunç Tunc Akın Akin Özer Ozer Turan Duman Aksoy Karaca Tuncer Erdem Ünal Unal Bayram Altun
+Kocabaş Coşkun Coskun Uysal Sarı Sari Taş Tas Gündoğdu Akbulut Yalçın Yalcin Türk Turk Çakır Cakir Balcı Balci Ekinci Kocaman
+Abalıoğlu Karaoğlu Kahramanoğlu Hacıoğlu Osmanoğlu Topçuoğlu Yazıcıoğlu Gürsoy Gursoy Kahraman Karataş Karatas Sönmez Sonmez
+# Arabisch / muslimisch geprägt (lateinische Umschrift, mehrere Schreibweisen)
+[F]
+Mohammed Mohammad Muhammad Muhammed Mohamed Mohamad Mehmed Ahmed Ahmad Achmed Ali Omar Umar Omer Hassan Hasan Hussein Husein
+Hussain Husain Hossein Ibrahim Ebrahim Youssef Yousef Yusuf Youssouf Josef Khaled Khalid Chalid Mahmoud Mahmud Mustafa Mostafa
+Abdallah Abdullah Abdel Abdelaziz Abdulaziz Abdelkader Abdulkadir Abdulrahman Abderrahmane Abdul Abdo Said Saeed Sayed Saleh
+Salih Salah Karim Kareem Rashid Rachid Raschid Samir Samer Sami Tarek Tariq Tarik Walid Waleed Yasin Yassin Yassine Yaser
+Yasser Jasser Nabil Nader Nasser Naser Faisal Faysal Fahd Fahad Hamid Hamza Hamsa Hisham Hicham Jamal Djamal Jamil Djamel
+Majid Madjid Malik Mansour Mansur Marwan Mazen Moussa Musa Nour Nur Osama Usama Qasim Kassem Rami Riad Riyad Reda Ridha Sharif
+Cherif Sufian Sofiane Suleiman Sulaiman Soliman Taha Talal Tamer Wael Wassim Ziad Zyad Zakaria Zakariya Zaid Zeid Zayed Anas
+Ayman Aiman Bilal Bassam Basel Bashar Fadi Fares Faris Firas Ghassan Haitham Haytham Imad Emad Ismail Ismael Issa Jalal
+Kamal Kemal Laith Louay Luay Maher Mohsen Muhsin Munir Mounir Nidal Rafik Rafiq Ramzi Rida Saad Sabri Sadiq Sadek Samih
+Fatima Fatma Fatimah Aisha Aischa Ayesha Aïcha Aicha Khadija Chadidja Maryam Mariam Meryem Zainab Zeinab Zaynab Amina Aminah
+Amira Asma Aya Dalia Dina Doaa Duaa Farah Hala Hana Hanan Hayat Heba Hiba Huda Iman Imane Jamila Djamila Layla Leila Lina
+Lubna Malak Manal Mona Muna Nadia Nadja Najat Nawal Nisrin Nesrin Nour Nura Rana Randa Rania Rasha Reem Rim Ruqayya Safa
+Sahar Salma Samira Sana Sara Sarah Shaima Shaimaa Suha Sumaya Somaya Wafa Yasmin Yasmina Jasmin Zahra Zahraa Zeynab Zineb
+Souad Soad Siham Nabila Latifa Karima Khadija Ghada Rahma Rahaf Rawan Ranim Batoul Bushra Dunya Esraa Israa Ilham
+[L]
+Al-Ahmad Ahmadi Ahmed Ali Alawi Abbas Abdallah Abdullah Aziz Azizi Bakr Barakat Darwish Darwisch Haddad Hamdan Hamdi Hammoud
+Hassan Hussein Ibrahim Ismail Jaber Jabbar Kassem Khalil Khoury Khouri Mahmoud Mansour Masri Mohammed Mustafa Najjar Nasser
+Omar Othman Osman Qureshi Rahman Rashid Saleh Salem Shaker Sharif Suleiman Taha Yassin Youssef Zayed Zaher Zaidi Haidar Haider
+Hamadi Jaafar Farouk Faruk Kanaan Saad Sabbagh Shahin Tamimi Tahir Hakimi Karimi Hashemi Hosseini Rahimi Rezaei Mohammadi
+Sadeghi Moradi Jafari Mousavi Musawi Alizadeh Hosseinzadeh Ahmadzadeh Nouri Amini Ghorbani Kazemi Akbari Rostami Azizi
+Haidari Noorzai Popal Sultani Wardak Stanekzai Ahmadzai Yousufzai Durrani Rahmani Hamidi Safi Mirzaei Mirza Baig Chaudhry
+Chaudhary Butt Malik Iqbal Hussain Khan Sheikh Siddiqui Ansari Qadri Javed Akhtar Aslam Anwar Bashir Farooq Hameed Hanif
+Jamil Latif Majeed Nawaz Rafiq Raza Riaz Saeed Shah Tariq Usman Yaqoob Zafar
+# Polnisch / slawisch (Ergänzung, lateinische Schrift)
+[F]
+Agnieszka Anna Barbara Beata Bożena Bozena Dorota Ewa Grażyna Grazyna Halina Irena Jadwiga Joanna Katarzyna Krystyna Małgorzata
+Malgorzata Maria Marta Monika Renata Teresa Wanda Zofia Aleksandra Magdalena Natalia Paulina Weronika Zuzanna Kinga Iwona
+Andrzej Jan Józef Jozef Krzysztof Marek Michał Michal Piotr Paweł Pawel Stanisław Stanislaw Tomasz Tadeusz Wojciech Zbigniew
+Grzegorz Jerzy Kazimierz Łukasz Lukasz Mariusz Mateusz Rafał Rafal Robert Ryszard Sławomir Slawomir Waldemar Zdzisław Dariusz
+Jarosław Jaroslaw Mirosław Miroslaw Przemysław Przemyslaw Bartosz Bartłomiej Kamil Dawid Jakub Szymon Wiktor Witold Leszek
+Olga Svetlana Swetlana Tatjana Tatiana Natalja Natalya Jelena Elena Irina Ljudmila Lyudmila Galina Nadeschda Nadezhda Oksana
+Walentina Valentina Wiktoria Viktoria Ekaterina Jekaterina Anastassija Anastasia Darja Daria Ksenia Xenia Polina Sofja Alina
+Wladimir Vladimir Sergej Sergei Sergey Alexej Alexei Aleksey Dmitri Dmitrij Dmitry Iwan Ivan Nikolai Nikolaj Andrej Andrei
+Andrey Michail Mikhail Jewgeni Evgeny Yevgeny Juri Yuri Igor Oleg Pawel Pavel Viktor Wiktor Anatoli Anatoly Boris Gennadi
+Konstantin Maxim Maksim Roman Ruslan Stanislaw Wassili Vasily Wjatscheslaw Vyacheslav Artjom Artem Denis Kirill Ilja Ilya
+Milan Dragan Zoran Goran Nenad Dejan Marko Stefan Nikola Ivana Jelena Snežana Snezana Mirjana Dragana Vesna Branka Jasna
+[L]
+Nowak Kowalski Kowalska Wiśniewski Wisniewski Wiśniewska Wójcik Wojcik Kowalczyk Kamiński Kaminski Kamińska Lewandowski
+Lewandowska Zieliński Zielinski Szymański Szymanski Woźniak Wozniak Dąbrowski Dabrowski Kozłowski Kozlowski Jankowski
+Mazur Kwiatkowski Krawczyk Piotrowski Grabowski Nowakowski Pawłowski Pawlowski Michalski Nowicki Adamczyk Dudek Zając Zajac
+Wieczorek Jabłoński Jablonski Król Krol Majewski Olszewski Jaworski Wróbel Wrobel Malinowski Pawlak Witkowski Walczak Stępień
+Stepien Górski Gorski Rutkowski Michalak Sikora Ostrowski Baran Duda Szewczyk Tomaszewski Pietrzak Marciniak Wróblewski
+Wroblewski Zalewski Jakubowski Jasiński Jasinski Zawadzki Sadowski Bąk Bak Chmielewski Włodarczyk Wlodarczyk Borkowski
+Czarnecki Sawicki Sokołowski Sokolowski Urbański Urbanski Kubiak Maciejewski Szczepański Szczepanski Kucharski Wilk Kalinowski
+Lis Mazurek Wysocki Adamski Kaźmierczak Kazmierczak Wasilewski Sobczak Czerwiński Czerwinski Andrzejewski Cieślak Cieslak
+Iwanow Ivanov Iwanowa Ivanova Smirnow Smirnov Smirnowa Smirnova Kusnezow Kuznetsov Kusnezowa Kuznetsova Popow Popov Popowa
+Popova Petrow Petrov Petrowa Petrova Wassiljew Vasiliev Sokolow Sokolov Michailow Mikhailov Nowikow Novikov Fjodorow Fedorov
+Morosow Morozov Wolkow Volkov Alexejew Alekseev Lebedew Lebedev Semjonow Semenov Jegorow Egorov Pawlow Pavlov Kozlow Kozlov
+Stepanow Stepanov Nikolajew Nikolaev Orlow Orlov Andrejew Andreev Makarow Makarov Sacharow Zakharov Sajzew Zaitsev Solowjow
+Soloviev Borissow Borisov Jakowlew Yakovlev Grigorjew Grigoriev Romanow Romanov Worobjow Vorobyov Sergejew Sergeev Frolow
+Frolov Alexandrow Alexandrov Dmitrijew Dmitriev Koroljow Korolev Gusew Gusev Kisseljow Kiselev Iljin Ilyin Maximow Maksimov
+Poljakow Polyakov Sorokin Winogradow Vinogradov Kowaljow Kovalev Below Belov Medwedew Medvedev Antonow Antonov Tarassow
+Tarasov Schukow Zhukov Baranow Baranov Filippow Filippov Komarow Komarov Dawydow Davydov Beljajew Belyaev Gerassimow
+Gerasimov Bogdanow Bogdanov Ossipow Osipov Sidorow Sidorov Matwejew Matveev Titow Titov Markow Markov Mironow Mironov
+Krylow Krylov Kulikow Kulikov Karpow Karpov Wlassow Vlasov Melnikow Melnikov Denissow Denisov Gawrilow Gavrilov
+Tichonow Tikhonov Kasakow Kazakov Afanassjew Afanasiev Danilow Danilov Ponomarjow Ponomarev Schewtschenko Shevchenko
+Kowalenko Kovalenko Bondarenko Tkatschenko Tkachenko Kowaltschuk Kovalchuk Kravtschenko Kravchenko Oliynyk Melnyk
+Jovanović Jovanovic Petrović Petrovic Nikolić Nikolic Marković Markovic Đorđević Djordjevic Stojanović Stojanovic Ilić
+Ilic Stanković Stankovic Pavlović Pavlovic Milošević Milosevic Popović Popovic Horvat Kovačević Kovacevic Babić Babic Marić
+Maric Jurić Juric Novak Knežević Knezevic Vuković Vukovic Hodžić Hodzic Hadžić Hadzic Begić Begic Delić Delic Mujić Mujic
+Dvořák Dvorak Novotný Novotny Svoboda Černý Cerny Procházka Prochazka Kučera Kucera Veselý Vesely Horák Horak Němec Nemec
+Nagy Kovács Kovacs Tóth Toth Szabó Szabo Horváth Horvath Varga Kiss Molnár Molnar Németh Nemeth Farkas Balogh Papp
+Popescu Ionescu Popa Pop Radu Dumitru Stan Stoica Gheorghe Matei Ciobanu Constantin Rusu Munteanu Georgescu Moldovan Dumitrescu
+# Romanisch (Spanisch, Portugiesisch, Italienisch, Französisch – Ergänzung)
+[F]
+José Jose Juan Carlos Luis Javier Miguel Antonio Manuel Francisco Jesús Jesus Pedro Alejandro Rafael Fernando Pablo Sergio
+Jorge Alberto Diego Raúl Raul Andrés Andres Enrique Ramón Ramon Vicente Joaquín Joaquin Santiago Gonzalo Álvaro Alvaro Ignacio
+María Maria Carmen Josefa Isabel Ana Dolores Pilar Teresa Rosario Mercedes Lucía Lucia Paula Laura Marta Cristina Elena Raquel
+Beatriz Rocío Rocio Inmaculada Montserrat Concepción Nuria Silvia Sofía Sofia Valentina Camila Gabriela Daniela Ximena
+João Joao Tiago Rui Nuno Gonçalo Goncalo Afonso Conceição Fernanda Graça Graca Inês Ines
+Giuseppe Giovanni Francesco Mario Luigi Salvatore Vincenzo Pietro Paolo Massimo Roberto Stefano Marco Andrea Alessandro Lorenzo
+Giulia Francesca Chiara Federica Sara Martina Alessia Giorgia Valentina Elisa Silvia Rosa Angela Giovanna Anna Lucia
+Jean Pierre Michel Philippe Alain Patrick Nicolas Christophe Laurent Frédéric Frederic Stéphane Stephane Olivier Éric Thierry
+Marie Nathalie Isabelle Sylvie Catherine Françoise Francoise Valérie Valerie Christine Monique Sophie Sandrine Céline Celine
+[L]
+García Garcia González Gonzalez Rodríguez Rodriguez Fernández Fernandez López Lopez Martínez Martinez Sánchez Sanchez Pérez
+Perez Gómez Gomez Martín Jiménez Jimenez Ruiz Hernández Hernandez Díaz Diaz Moreno Muñoz Munoz Álvarez Alvarez Romero Alonso
+Gutiérrez Gutierrez Navarro Torres Domínguez Dominguez Vázquez Vazquez Ramos Gil Ramírez Ramirez Serrano Blanco Molina Morales
+Suárez Suarez Ortega Delgado Castro Ortiz Rubio Marín Marin Sanz Núñez Nunez Iglesias Medina Garrido Cortés Cortes Castillo
+Santos Lozano Guerrero Cano Prieto Méndez Mendez Cruz Calvo Gallego Vidal León Leon Márquez Marquez Herrera Peña Pena Flores
+Cabrera Campos Vega Fuentes Carrasco Diez Caballero Reyes Nieto Aguilar Pascual Santana Herrero Montero Lorenzo Hidalgo
+Silva Santos Ferreira Pereira Oliveira Costa Rodrigues Martins Jesus Sousa Fernandes Gonçalves Goncalves Gomes Lopes Marques
+Alves Almeida Ribeiro Pinto Carvalho Teixeira Moreira Correia Mendes Nunes Soares Vieira Monteiro Cardoso Rocha Raposo
+Rossi Russo Ferrari Esposito Bianchi Romano Colombo Ricci Marino Greco Bruno Gallo Conti De Luca Mancini Costa Giordano
+Rizzo Lombardi Moretti Barbieri Fontana Santoro Mariani Rinaldi Caruso Ferrara Galli Martini Leone Longo Gentile Martinelli
+Vitale Lombardo Serra Coppola De Santis D'Angelo Marchetti Parisi Villa Conte Ferraro Ferri Fabbri Bianco Marini Grasso
+Martin Bernard Dubois Thomas Robert Richard Petit Durand Leroy Moreau Simon Laurent Lefebvre Michel Garcia David Bertrand Roux
+Vincent Fournier Morel Girard André Andre Lefèvre Lefevre Mercier Dupont Lambert Bonnet François Francois Martinez Legrand
+# Vietnamesisch (Familiennamen und häufige Namensbestandteile, mit und ohne Diakritika)
+[L]
+Nguyễn Nguyen Trần Tran Lê Phạm Pham Hoàng Hoang Huỳnh Huynh Phan Vũ Võ Vo Đặng Dang Bùi Bui Đỗ Hồ Ngô Ngo Dương Duong
+Lý Ly Trương Truong Đinh Dinh Mai Lâm Lam Châu Chau Tô To Hà Ha Thái Thai Lương Luong Trịnh Trinh Quách Quach Văn Van
+[F]
+Thị Thi Văn Hữu Huu Đức Duc Minh Anh Thanh Hương Huong Lan Linh Hùng Hung Dũng Dung Tuấn Tuan Hải Hai Hoa Hằng Hang Hạnh
+Hanh Hiền Hien Hiếu Hieu Hòa Hoa Hồng Hong Huy Khánh Khanh Khoa Long Mạnh Manh Nam Ngọc Ngoc Nhung Phong Phúc Phuc Phương
+Phuong Quang Quân Quan Quốc Quoc Quỳnh Quynh Sơn Son Tâm Tam Thắng Thang Thảo Thao Thành Thanh Thu Thủy Thuy Tiến Tien
+Toàn Toan Trang Trung Tú Tu Tùng Tung Vân Van Việt Viet Vinh Xuân Xuan Yến Yen Bảo Bao Châu Chau Diệp Diep Giang Hà Ha
+# Chinesisch (Pinyin), Japanisch (Rōmaji), Koreanisch (lateinische Umschrift)
+[L]
+Wang Li Zhang Liu Chen Yang Huang Zhao Wu Zhou Xu Sun Ma Zhu Hu Guo He Lin Gao Luo Zheng Liang Xie Song Tang Han Feng Deng
+Cao Peng Zeng Xiao Tian Dong Pan Yuan Cai Jiang Yu Du Ye Cheng Wei Su Lu Ding Ren Shen Yao Lu Jiang Cui Zhong Tan Lu Fan
+Wong Chan Cheung Leung Ng Ho Lam Chow Tsang Chiu Yeung Kwok Lau Lee Tse Fung Yip Chu Kwan
+Sato Satō Suzuki Takahashi Tanaka Watanabe Ito Itō Yamamoto Nakamura Kobayashi Kato Katō Yoshida Yamada Sasaki Yamaguchi
+Matsumoto Inoue Kimura Hayashi Shimizu Yamazaki Mori Abe Ikeda Hashimoto Yamashita Ishikawa Nakajima Maeda Fujita Ogawa
+Goto Gotō Okada Hasegawa Murakami Kondo Kondō Ishii Saito Saitō Sakamoto Endo Endō Aoki Fujii Nishimura Fukuda Ota Ōta Miura
+Kim Lee Park Choi Jung Jeong Kang Cho Jo Yoon Yun Jang Lim Han Oh Seo Shin Kwon Hwang Ahn Song Jeon Hong Yoo Ko Moon Yang
+[F]
+Wei Jing Li Na Lei Jun Yan Yong Jie Tao Ming Chao Hui Xin Ying Hong Ping Hua Fang Juan Qiang Gang Xiaoming Xiaohong
+Xiaoli Xiaoyan Jian Bin Bo Hao Yi Yu Lan Mei Ling Qing Zhen Feng Yun Hai Long Peng
+Hiroshi Takashi Kenji Akira Satoshi Makoto Kazuo Haruto Yuto Sota Ren Yuki Yuko Yoko Keiko Kazuko Akiko Tomoko Naoko Sakura
+Hina Yui Aoi Haruka Ayumi Kenta Daiki Shota Takumi Ryota Yusuke Kenichi Koji Hideo Hiroko Megumi Emi Mai Rin Riko
+Min-jun Minjun Seo-yeon Seoyeon Ji-hoon Jihoon Ji-woo Jiwoo Hyun Hyun-woo Hyunwoo Sung-min Sungmin Eun-ji Eunji Soo-jin
+Soojin Young-ho Youngho Jae-hyun Jaehyun Dong-hyun Donghyun Mi-young Miyoung Hye-jin Hyejin Seung-hoon Seunghoon
+# Indisch / südasiatisch (Ergänzung)
+[F]
+Aarav Arjun Rahul Rohit Amit Anil Sunil Vijay Rajesh Ramesh Suresh Mahesh Ganesh Sanjay Ajay Vikram Ravi Raj Deepak Manoj
+Pooja Priya Neha Anjali Sunita Anita Kavita Lakshmi Deepika Divya Shreya Ananya Aditi Kiran Meera Sita Gita Radha Parvati
+[L]
+Sharma Verma Gupta Singh Kumar Patel Shah Mehta Joshi Reddy Rao Nair Iyer Menon Pillai Chopra Kapoor Malhotra Agarwal
+Bansal Mishra Pandey Tiwari Yadav Chauhan Thakur Desai Banerjee Chatterjee Mukherjee Das Bose Ghosh Sen
+# Afrikanisch: Nigeria (Igbo, Yoruba, Hausa), Ghana, Ostafrika (Ergänzung)
+[F]
+Chukwuemeka Chidi Chidinma Chinedu Chinonso Chiamaka Chioma Ngozi Nkechi Obinna Ifeanyi Ikenna Emeka Uchenna Uche Nnamdi
+Adaeze Adaugo Amaka Ebere Ifeoma Kelechi Nneka Obiageli Onyeka Somto Tochukwu Chukwudi Chibuike Ugochukwu Oluchi Chisom
+Adebayo Adewale Ayodele Babatunde Folake Funmilayo Funmi Kehinde Taiwo Olumide Oluwaseun Seun Tunde Yetunde Bukola Damilola
+Femi Kunle Olusegun Segun Tolulope Temitope Titilayo Wale Yemi Abiodun Adeola Abimbola Bolanle Ronke Tope Dayo
+Abubakar Aliyu Aminu Bello Garba Ibrahim Musa Sani Umaru Usman Yakubu Hauwa Zainab Aisha Amina Halima Hadiza Fatima Bilkisu
+Kwame Kofi Kwabena Kwaku Yaw Kojo Kwesi Ama Akosua Abena Adwoa Efua Esi Yaa Akua Afia Afua Kweku Nana
+Wanjiru Wambui Njeri Achieng Akinyi Atieno Kamau Kipchoge Otieno Odhiambo Ochieng Mwangi Juma Baraka Neema Zawadi Amani
+[L]
+Okafor Okonkwo Okeke Okoro Okoye Nwosu Nwachukwu Eze Obi Onyeka Uzor Chukwu Nnadi Ugwu Ibe Okpara Anyanwu Onuoha Ekwueme
+Adeyemi Adebayo Adewale Ogunleye Olawale Oyelaran Afolabi Akinola Balogun Bankole Fashola Ogunbanjo Oladipo Olaniyan Oyewole
+Bello Abubakar Aliyu Danjuma Ibrahim Lawal Mohammed Musa Sani Suleiman Usman Yusuf Garba Shehu Tanko Dikko
+Mensah Asante Owusu Boateng Osei Agyeman Appiah Ansah Darko Amoah Opoku Acheampong Addo Annan Frimpong Gyasi Nkrumah
+Kamau Mwangi Otieno Odhiambo Ochieng Wanjiku Kiprono Kiprop Chebet Njoroge Mutua Onyango Omondi Kariuki Ndungu
+Diallo Traoré Traore Koné Kone Coulibaly Diop Ndiaye Fall Sow Ba Cissé Cisse Touré Toure Camara Keita Konaté Konate Sylla
+Tesfaye Haile Bekele Tadesse Girma Mekonnen Alemu Abebe Desta Gebre Kebede Wolde
+# Englisch (Ergänzung, häufige britische/US-Nachnamen)
+[L]
+Smith Johnson Williams Brown Jones Garcia Miller Davis Wilson Anderson Taylor Thomas Moore Jackson Martin Lee Thompson White
+Harris Clark Lewis Robinson Walker Young Allen King Wright Scott Hill Green Adams Baker Nelson Carter Mitchell Roberts
+Turner Phillips Campbell Parker Evans Edwards Collins Stewart Morris Murphy Cook Rogers Morgan Cooper Peterson Reed Bailey
+Bell Kelly Howard Ward Cox Richardson Wood Watson Brooks Bennett Gray Hughes Price Sanders Myers Long Ross Foster
+O'Brien O'Connor O'Neill O'Sullivan McCarthy McDonald MacDonald McLean MacLeod Fitzgerald Fitzpatrick

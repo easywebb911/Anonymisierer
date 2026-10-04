@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="__CSP__">
+<meta name="referrer" content="no-referrer">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Anonymisierer</title>
+<style>__STYLE__</style>
+</head>
+<body>
+<header class="top">
+  <h1>Anonymisierer</h1>
+  <p class="offline" role="status"><span class="dot" aria-hidden="true"></span> Offline-Modus, nichts wird gesendet</p>
+</header>
+<main>
+  <section class="notice">
+    <strong>Wichtig:</strong> Das Tool findet nie 100 % der Namen. <strong>Die Prüfansicht vor dem Export ist Pflicht.</strong>
+    Alles läuft nur in diesem Browser auf Ihrem Gerät; es gibt keine Internetverbindung.
+  </section>
+
+  <section class="card" id="input">
+    <h2>1. Eingabe</h2>
+    <div id="drop" class="drop" tabindex="0">
+      <p><strong>Datei hierher ziehen</strong> oder</p>
+      <button type="button" id="btn-file" class="primary">Datei auswählen</button>
+      <input type="file" id="file" accept=".txt,.text,.pdf,.docx,.xlsx,.csv,.tsv,text/plain,text/csv,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
+      <p class="hint">Unterstützt: .txt, .pdf (nur mit Textebene), .docx, .xlsx, .csv · Nicht unterstützt: .doc, .xls, gescannte PDFs · max. 50 MB</p>
+    </div>
+    <div class="pastebox">
+      <p><strong>… oder Text einfügen:</strong></p>
+      <textarea id="paste" rows="7" placeholder="Text hier einfügen (Kopieren/Einfügen)"></textarea>
+      <button type="button" id="btn-text" class="primary">Text prüfen</button>
+    </div>
+    <p id="load-status" class="status" aria-live="polite"></p>
+  </section>
+
+  <section class="card">
+    <details>
+      <summary><h2 class="inline">Einstellungen</h2></summary>
+      <fieldset>
+        <legend>Ersetzen durch</legend>
+        <label><input type="radio" name="mode" value="person"> Person A, Person B, …</label>
+        <label><input type="radio" name="mode" value="name"> [NAME]</label>
+      </fieldset>
+      <fieldset>
+        <legend>Zusätzlich ersetzen</legend>
+        <label><input type="checkbox" id="opt-email"> E-Mail-Adressen</label>
+        <label><input type="checkbox" id="opt-phone"> Telefonnummern</label>
+        <label><input type="checkbox" id="opt-iban"> IBAN</label>
+        <label><input type="checkbox" id="opt-address"> Adressen/PLZ</label>
+      </fieldset>
+      <fieldset>
+        <legend>Unsichere Treffer</legend>
+        <label><input type="checkbox" id="opt-unsureOn"> unsichere Treffer standardmäßig ersetzen (außer z. B. „die Rose“, „im Winter“)</label>
+      </fieldset>
+    </details>
+  </section>
+
+  <section class="card" id="review" hidden>
+    <h2>2. Prüfansicht <span class="req">(Pflicht)</span></h2>
+    <div id="doc-warnings-wrap" class="warnbox" hidden>
+      <h3>Hinweise zu dieser Datei – bitte lesen und abhaken</h3>
+      <div id="doc-warnings"></div>
+    </div>
+    <p id="summary" class="summary"></p>
+    <p class="legend">
+      <mark class="hit sure on" data-l="A">sicher</mark>
+      <mark class="hit unsure on" data-l="A">unsicher</mark>
+      <mark class="hit contact on" data-l="E-MAIL">Kontakt</mark>
+      <mark class="hit sure off" data-l="A">aus</mark>
+      · Treffer antippen = an/aus · Nicht erkannten Namen antippen oder markieren → „Als Name markieren“
+    </p>
+    <div class="cols">
+      <div id="docview" class="docview" lang="de"></div>
+      <aside class="side">
+        <h3>Personen</h3>
+        <div id="entities"></div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="card" id="lists" hidden>
+    <h2>3. Eigene Namen und Ausnahmen</h2>
+    <p class="danger">Enthält echte Namen. Wird nur gespeichert, wenn Sie es ausdrücklich wollen.</p>
+    <div class="listcols">
+      <div>
+        <h3>Eigene Namen (immer anonymisieren)</h3>
+        <div id="names-chips" class="chips"></div>
+        <p id="names-empty" class="muted">Noch keine eigenen Namen.</p>
+        <form id="name-add" class="addform"><input id="name-input" placeholder="Name hinzufügen" autocomplete="off"><button type="submit">Hinzufügen</button></form>
+      </div>
+      <div>
+        <h3>Ausnahmen (nie anonymisieren)</h3>
+        <div id="exc-chips" class="chips"></div>
+        <p id="exc-empty" class="muted">Keine Ausnahmen.</p>
+        <form id="exc-add" class="addform"><input id="exc-input" placeholder="Wort hinzufügen" autocomplete="off"><button type="submit">Hinzufügen</button></form>
+      </div>
+    </div>
+    <div class="row">
+      <button type="button" id="btn-list-export">Merkliste als Datei speichern</button>
+      <button type="button" id="btn-list-import">Merkliste laden</button>
+      <input type="file" id="list-file" accept=".json,application/json" hidden>
+      <button type="button" id="btn-clear" class="dangerbtn">Merkliste löschen</button>
+    </div>
+    <label class="persist"><input type="checkbox" id="persist"> Merkliste in diesem Browser speichern (Standard: aus)</label>
+  </section>
+
+  <section class="card" id="export">
+    <h2>4. Export</h2>
+    <p id="pdf-note" class="warnbox" hidden>PDF-Eingabe: Ausgabe nur als Text (.txt/.docx). Das Originallayout bleibt NICHT erhalten.</p>
+    <div class="row">
+      <button type="button" id="btn-copy">Text kopieren</button>
+      <button type="button" id="btn-txt">.txt speichern</button>
+      <button type="button" id="btn-docx">.docx speichern</button>
+      <button type="button" id="btn-xlsx" hidden>.xlsx speichern</button>
+      <button type="button" id="btn-csv" hidden>.csv speichern</button>
+    </div>
+    <p class="hint">Vor jedem Export läuft ein Schlusscheck: Alle bestätigten Namen werden im Ergebnis erneut gesucht. Metadaten (Autor, Firma, Kommentar-Autoren) werden bereinigt. Dateiname immer neutral („anonymisiert_…“).</p>
+    <p id="export-status" class="status" aria-live="polite"></p>
+    <div id="leaks" class="leaks" hidden></div>
+    <details class="mapping">
+      <summary>Zuordnungstabelle (Pseudonym → Klarname)</summary>
+      <p class="danger">Enthält echte Namen. Wird nur auf Klick als SEPARATE Datei gespeichert, nie im anonymisierten Dokument.</p>
+      <button type="button" id="btn-map" class="dangerbtn">Zuordnungstabelle speichern …</button>
+    </details>
+  </section>
+</main>
+<div id="markbar" class="markbar" hidden>
+  <span>„<span id="markterm"></span>“</span>
+  <button type="button" id="btn-mark" class="primary">Als Name markieren</button>
+  <button type="button" id="btn-mark-cancel">Abbrechen</button>
+</div>
+<footer class="foot">Anonymisierer · läuft vollständig offline · Lizenzen siehe README</footer>
+<script>__SCRIPT__</script>
+</body>
+</html>
