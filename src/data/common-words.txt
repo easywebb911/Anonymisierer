@@ -1,0 +1,112 @@
+# Häufige deutsche und englische Wörter (selbst erstellt für dieses Projekt).
+# Zweck: Namen aus den Namenslisten, die zugleich normale Wörter sind
+# (z. B. "Winter", "Rose", "Mark"), gelten als MEHRDEUTIG. Sie werden nur
+# im Namenskontext sicher erkannt, sonst als "unsicherer Treffer" markiert.
+# Format: Wörter durch Leerzeichen/Zeilenumbruch getrennt, Kleinschreibung.
+
+# --- Deutsch: Natur, Zeit, Wetter ---
+winter sommer herbst frühling lenz mai april juni juli august märz januar februar september oktober november dezember
+montag dienstag mittwoch donnerstag freitag samstag sonnabend sonntag morgen abend nacht tag woche monat jahr zeit stunde
+sonne mond stern sterne himmel erde welt wind sturm regen schnee eis hagel blitz donner nebel wolke wolken luft wetter
+berg berge tal hügel wald walde forst feld felder wiese wiesen heide moor bach fluss see meer ufer strand insel küste
+stein steine fels felsen sand kies erz gold silber kupfer eisen stahl blei zinn holz kohle glas ton lehm
+baum bäume busch strauch rose rosen lilie tulpe nelke veilchen linde linden eiche buche birke tanne fichte kiefer ahorn
+blume blumen blüte blatt laub gras moos kraut kräuter klee kresse distel dorn hecke rebe wein traube kirsch kirsche apfel birne
+wolf fuchs bär hase hirsch reh rabe adler falke specht fink finke spatz amsel drossel taube schwan gans ente hahn huhn henne
+vogel fisch hecht karpfen forelle aal lachs hering wal hund katze maus ratte pferd fohlen kuh ochs ochse stier bulle kalb lamm
+schaf ziege bock widder sau schwein igel dachs biber otter wiesel marder luchs löwe tiger frosch kröte schlange wurm käfer biene
+wespe hummel fliege mücke falter schmetterling spinne krebs muschel schnecke
+# --- Deutsch: Menschen, Berufe, Rollen ---
+mann frau kind kinder vater mutter bruder schwester sohn tochter onkel tante oma opa enkel vetter neffe nichte braut bräutigam
+herr herren dame damen junge mädchen knabe greis gast gäste freund freundin nachbar nachbarin bürger bürgerin volk leute mensch
+meister geselle lehrling schüler schülerin lehrer lehrerin richter richterin anwalt anwältin arzt ärztin pfarrer küster kaiser könig
+königin prinz prinzessin graf gräfin fürst herzog ritter knecht magd bauer bäuerin hirt hirte jäger förster fischer bäcker
+koch köchin metzger fleischer schneider schuster schmied zimmermann tischler schreiner maurer maler glaser drechsler
+töpfer weber gerber färber brauer bader barbier schreiber kaufmann händler krämer wirt kellner diener soldat krieger held
+engel teufel christ heide heiden pilger mönch nonne abt bischof papst priester prediger kantor vogt schultheiß amtmann
+kanzler minister präsident direktor leiter chef boss kollege kollegin kunde kundin patient patientin mandant mandantin
+sänger sängerin tänzer spieler trainer fahrer pilot kapitän matrose fischer gärtner förster jäger schäfer imker winzer
+# --- Deutsch: Dinge, Orte, Abstrakta ---
+haus hof dorf stadt land staat reich kreis bezirk gemeinde straße strasse gasse weg pfad platz markt allee ring damm brücke tor turm
+mauer wand dach tür fenster keller zimmer saal halle stube küche bad garten scheune stall mühle schmiede kirche kapelle dom schloss
+burg schule kirchhof friedhof bahnhof hafen flughafen park wald zentrum center klinik krankenhaus apotheke rathaus amt gericht
+institut universität hochschule akademie gymnasium stiftung verein verband gesellschaft firma werk fabrik betrieb büro kanzlei
+tisch stuhl bank bett schrank kiste kasten korb sack tasche kappe hut helm mantel rock hose hemd schuh stiefel tuch band ring kette
+nagel hammer zange säge beil axt messer gabel löffel teller schüssel topf pfanne krug kanne becher glas flasche fass kessel
+brot mehl salz zucker pfeffer butter milch käse fleisch wurst speck ei eier suppe kuchen honig senf essig öl wasser bier
+geld münze pfennig mark taler gulden groschen euro preis lohn kosten summe schuld zins steuer
+kopf haupt hand hände arm bein fuß fuss knie herz blut zahn zähne auge ohr nase mund haar bart brust bauch rücken leib seele geist
+liebe hass glück leid freude trauer stolz zorn mut demut treue ehre recht pflicht gnade segen fluch frieden friede krieg kampf
+streit sieg not tod leben geburt hochzeit fest feier spiel sport kunst musik lied lieder tanz bild buch brief wort wörter name
+namen zahl nummer teil stück art weise form farbe klang licht schatten feuer flamme brand rauch asche funke funk
+kraft macht stärke gewalt ordnung grund ende anfang mitte rand seite punkt linie kurve block blöcke stamm stämme zweig ast wurzel
+schritt sprung lauf fall fahrt reise flug zug wagen karre rad schiff boot kahn floß
+kern schale hülle rinde frucht samen saat ernte acker furche pflug sense egge
+# --- Deutsch: Adjektive (oft großgeschrieben am Satzanfang oder in Namen) ---
+alt neu jung groß gross klein lang kurz breit schmal hoch tief weit nah fern früh spät schnell langsam leicht schwer stark schwach
+reich arm voll leer warm kalt heiß kühl frisch trocken nass feucht hart weich glatt rau rauh scharf stumpf spitz rund gerade krumm
+gut schlecht schön hässlich klug dumm weise froh fröhlich lustig traurig ernst still laut leise sanft wild zahm fromm frei
+weiß weiss schwarz rot roth grün gruen blau gelb braun grau bunt rosa lila
+sauer süß bitter mild herb
+fest locker dicht dünn dick fett mager blank blind taub stumm lahm kahl krank gesund heil wach munter rüstig kühn tapfer feig
+lieb böse brav fein grob schlicht einfach recht link links rechts best beste besser mehr weniger wenig viel viele alle
+# --- Englisch: häufige Wörter, die auch Namen sind ---
+bill mark rose will may june april august grace hope joy faith charity mercy patience prudence honor honour constance
+rich frank earl dean guy pat bob sue rob jack mike ray art bud chip dash rocky rusty sandy sunny buddy cliff dale glen glenn
+wood woods stone hill hills king brown green white black gray grey young little long short price ward waters rice hand block mann
+fay ferry funk grant hayes hope hunt lamb lane marsh mason moore more nash north south east west park parks porter rush sharp
+shields stark swift terry toy turner walker baker carter cook cooper fisher fowler gardner hunter miller potter singer smith
+taylor tailor thatcher tucker wright weaver shepherd archer bishop chancellor clerk dean deacon knight lord marshal page parson
+prior sergeant steward bell bush field ford holmes house howe lake lee marsh meadow mills pool pond rivers rock rose snow spring
+storm summer winter autumn dawn eve noon night day sky star sun moon ruby pearl jade amber crystal coral ivory opal violet iris
+lily daisy holly ivy hazel heather fern willow olive poppy rosemary sage basil
+love joy happy merry jolly young old new best bliss wise strong
+brook brooks banks barley beach bean bird birch bliss bloom blossom bond bow bowman brand bridge burn burns cash chance
+chase church clay coin cross crow drake duke dunn earl fair falcon fox frost gale gay gold golden goode hale hart heath
+hood horn jay jewel kidd kite lark lyon mayo nickel noble paine peace penny piper reed reid rich robin rook royal salmon
+savage sterling stern stock street strong sweet tower trout vale wade wall well wells wheat wren yates
+can do did does done go gets got had has have may might must shall should will would able about after again all also an and
+any are as at be been before being both but by come could each even every few for from get give goes good great her here his
+how if into is it its just know last like look make many me more most much my no not now of off on once one only or other our
+out over own said same say see she so some such than that the their them then there these they this those through time to too
+under up very was way we well were what when where which while who why with work would yet you your
+art arts age aim ball band bar bark base bat beam bear bell bend best bin birth bit blank boss bow box boy bud bull burn cap
+case cast chair chain charm cliff cloud coach coat cole court cove crane crown cry deal den doll door dove drum dust edge
+end eye face fame fan field fire fish flag flame flint flower fold forest gem gift glass glory guard gun hall ham harbor
+harbour hawk head heart hero home host hymn ink iron island jet joint key kid kin knot law lead leaf light line lion lock
+lot luck major march mate meadow mine mint mist moss mount nail nest note oak oath page palm pan path peak pick pike pine
+pitch plain plant plate pope post pound queen quest rain ram range rank reed ridge ring river road roe rook root rope rowe
+sail salt sand saw scale school seal shaw shell shore sign silk silver slate smart song soul spark speed spoke spring stage
+stamp stand star steel stem step stick stock storm strand straw stream sugar sweet table tale tank tide tiger top torch
+town trade tree true trust vine wall war watch wave web wheel whip wind wing wolf yard
+# --- Häufige deutsche Nomen, die in Namenslisten auftauchen ---
+abt adler bach bader baer bauer beck beer bender berg best bettler bischof
+blum blume bote brand braun brauer bremer brenner bruder burger busch bürger dach dauer demut dreher
+eich eiche ender engel ernst esser falter feld fink fischer fleischer förster fröhlich frosch fuchs gast geiger gesell gilde glück
+graf grau gross große großer grube grün gut hahn halle hand hart haupt hecht heck held helm hering herr hertz herz
+hirsch hirt hof hold holz horn huhn hügel jäger jung kahl kaiser kampf kappe kasten kaufmann keil keller
+kern kette kiel kind kirch kirche klee klein kluge knabe knoll koch kohl kohle könig kopf kraft kramer kranz kraus krebs
+kresse krieger kron krone krug kühn kupfer lack lamm land lang lange laub lauer leiter lenz licht liebe lieder linde
+link lippe löwe mai mann mark maurer may mehl meister metzger milde moll mohr montag
+nagel neu ochs papst pfaff pfeffer pfennig plank rabe rath rau rauch reich reif rein
+richter riese ring ringer ritter rose roth ruf rumpf sack sauer schaf schäfer scharf schenk scherz schlicht
+schneider schott schreck schreiber schreiner schuster schütz schütze
+schwarz see sommer sonne specht spiegel stahl stamm stark stein stern stock stolz storch strauch strauß streit
+stube stumpf sturm tanne tasche teufel tischler töpfer treu tuch vater vogel vogt volk wachtel wahl wald
+weber wechsler weiss weiß wenig weniger wiese wild will winter wolf wurm zahn zauber zimmer zimmermann
+zoll zorn
+heide kai mark ernst frank rosa linde reiner sonne hans august
+bill will hope grace joy may june april
+
+# --- Ergänzungen nach Abgleich mit den Namenslisten (Wörter, die dort als Name stehen) ---
+name vorname nachname silvester pfingsten kante job kasse klima strom reis kloß kloss wunsch pech general baron kerl cousin baby ferne länder tuba schaden
+man idea care son easter judge sir princess prince angel heaven tin bay garden abbey gang fletcher gunner fine hardy tall pie berry
+laurel myrtle
+# Orte, Flüsse, Regionen (in Namenslisten enthalten)
+elbe havel lech hagen jena basel paris london madrid washington florida brandenburg berlin hamburg bremen essen halle kiel
+hamm ulm trier siegen celle hof fulda lahn ems inn isar main oder rhein weser saale mosel ruhr spree sachsen hessen bayern baden
+pfalz holstein friesland westfalen preußen schlesien pommern tirol wien graz linz zürich genf bern luzern rom athen moskau
+prag warschau europa afrika asien amerika india china japan georgia virginia carolina dakota jordan israel jemen chad niger
+# Marken und Unternehmen, die wie Personennamen aussehen
+mercedes porsche benz ford opel bosch siemens bayer merck henkel miele aldi lidl edeka rewe haribo kärcher würth adidas puma
+dior chanel gucci prada armani boss hugo ferrari lamborghini bugatti tesla dell philips nestle nestlé

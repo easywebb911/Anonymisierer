@@ -1,0 +1,12 @@
+# Funktionswörter, die NIE als (eigenständiger) Name gelten (selbst erstellt).
+# Einträge der Namenslisten, die hier stehen, werden verworfen.
+# Namenszusätze (von, van, de, al, bin …) werden im Code separat behandelt.
+der die das den dem des ein eine einer eines einem einen kein keine und oder aber doch denn sondern sowie als wie wenn ob dass weil
+da dort hier wo wer was wann warum ich du er sie es wir ihr mich dich sich uns euch mir dir ihm ihn ihnen mein dein sein unser euer
+von vom zu zum zur in im an am auf aus bei beim mit nach seit über unter vor hinter neben zwischen durch für gegen ohne um bis
+dies diese dieser dieses jene jener jenes nicht nur auch noch schon sehr so ja nein nie immer oft bitte danke
+the a an and or but of to in on at by for from with as is are was were be been it its this that these those he she they we you i
+me my your his her our their them who what when where which why how not no yes if then than too very also just only all any some
+each every per via
+la le les du des de del della di da dos das van von ten ter zu al el bin ibn ben abu
+co ne lg scc st mr mrs ms dr prof
