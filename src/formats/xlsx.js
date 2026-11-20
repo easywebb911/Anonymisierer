@@ -7,6 +7,7 @@ import {
   neutralizePath, ZIP_OPTS, FIXED_DATE,
 } from './xmlutil.js';
 import { collectMetaNames, findPropertyParts, cleanProperties, cleanCustomXml, removeThumbnails, stripImages, imageWarnings, setKennungProperty } from './meta.js';
+import { altTextUnits } from './images.js';
 
 const natural = (a, b) => a.localeCompare(b, 'en', { numeric: true });
 const childEls = (el, ln) => Array.from(el.childNodes).filter((c) => c.nodeType === 1 && (!ln || c.localName === ln));
@@ -251,19 +252,42 @@ export async function readXlsx(bytes) {
     }
   }
 
+  // Fundorte für Bilder und Bildbeschreibungen: Zeichnungen und VML-Zeichnungen gehören zu einem Blatt
+  const places = new Map();
+  for (const sh of sheets) {
+    if (!sh.part) continue;
+    const sdoc = docs.get(sh.part);
+    const hf = sdoc ? allElements(sdoc).find((e) => e.localName === 'legacyDrawingHF') : null;
+    const hfId = hf ? Array.from(hf.attributes).find((a) => a.localName === 'id') : null;
+    for (const [id, rel] of relsOf(docs, sh.part)) {
+      if (/\/drawing$/.test(rel.type)) places.set(rel.target, `Blatt „${sh.name}“`);
+      else if (/\/vmlDrawing$/.test(rel.type)) places.set(rel.target, hfId && hfId.value === id ? `Kopf-/Fußzeile, Blatt „${sh.name}“` : `Kommentar, Blatt „${sh.name}“`);
+    }
+  }
+  const placeOf = (part) => ({ label: places.get(part) || (/chart/.test(part) ? 'Diagramm' : 'Sonstiges') });
+  // Bildbeschreibungen (Alt-Text, Titel von Bildern und Formen): eigene Abschnitte am Ende
+  const ownedAttrs = new Map();
+  units.push(...altTextUnits(docs, names.filter((x) => /^xl\/drawings\/[^/]+\.xml$/.test(x)).sort(natural).map((n) => [n, placeOf(n).label]), ownedAttrs));
+  // Kopf-/Fußzeilenbilder (VML): Titel der Bilder ebenfalls als Bildbeschreibung. VML-Teile werden nur gelesen, wenn
+  // sie sauberes XML sind, und nur neu geschrieben, wenn sich eine Beschreibung ändert.
+  const vmlDocs = new Map();
+  for (const n of names.filter((x) => /\.vml$/i.test(x) && places.has(x)).sort(natural)) {
+    try { vmlDocs.set(n, parseXml(await zip.file(n).async('string'), n)); } catch { /* kein sauberes XML: der Schlusscheck sucht trotzdem darin */ }
+  }
+  for (const u of altTextUnits(vmlDocs, [...vmlDocs.keys()].map((n) => [n, placeOf(n).label]), ownedAttrs)) { u.vml = true; units.push(u); }
+
   const warnings = [];
   const hiddenSheets = sheets.filter((s) => s.state !== 'visible');
   if (hiddenSheets.length) warnings.push(`Die Datei enthält ${hiddenSheets.length} ausgeblendete(s) Blatt/Blätter. Diese wurden mitgelesen und werden mit anonymisiert.`);
   const embedded = names.filter((n) => /^xl\/embeddings\//.test(n));
   if (embedded.length) warnings.push(`Die Datei enthält ${embedded.length} eingebettete(s) Objekt(e). Deren Inhalt wird NICHT anonymisiert und vor dem Export geleert.`);
-  const media = names.filter((n) => /^xl\/media\//.test(n));
-  if (media.length) warnings.push(`Die Datei enthält ${media.length} Bild(er). Namen IN Bildern erkennt das Tool nicht.`);
+  // Bilder: eigene Zeile „Bilder“ auf dem Speichern-Bildschirm (Liste mit Vorschau), kein allgemeiner Hinweis mehr
   if (names.some((n) => /^xl\/pivotCache/.test(n))) warnings.push('Die Datei enthält Pivot-Tabellen. Deren zwischengespeicherte Werte werden ersetzt; bitte die Pivot-Tabellen nach dem Öffnen aktualisieren und prüfen.');
   if (names.some((n) => /^xl\/externalLinks\//.test(n))) warnings.push('Die Datei enthält Verknüpfungen zu anderen Dateien. Gespeicherte Werte werden geprüft, die verknüpften Dateien selbst nicht.');
   warnings.push(...await imageWarnings(zip));
   // Namen aus den Original-Metadaten (Autor, Bearbeiter, Manager, Firma, Kommentarautoren, SharePoint-Personen)
   const metaNames = await collectMetaNames(zip, docs);
-  return { kind: 'xlsx', zip, docs, units, owned, sheets, names, warnings, ssDoc, siList, metaNames };
+  return { kind: 'xlsx', zip, docs, vmlDocs, units, owned, ownedAttrs, sheets, names, warnings, ssDoc, siList, metaNames, imageCtx: { placeOf } };
 }
 
 function cellString(sheetDoc, ref, siList) {
@@ -297,9 +321,13 @@ export async function writeXlsx(bytes, repsPerUnit, generic, opts = {}) {
   }
 
   // Phase 1: Texte und Blattnamen
+  const vmlChanged = new Set();
   d.units.forEach((u, i) => {
     if (u.kind === 'formula') return;
-    if (distribute(u, repsPerUnit[i] || []) && u.commit) u.commit();
+    if (distribute(u, repsPerUnit[i] || [])) {
+      if (u.commit) u.commit();
+      if (u.vml) vmlChanged.add(u.part);
+    }
   });
   // Blattnamen umbenennen
   const used = new Set(d.sheets.map((s) => s.name.toLowerCase()));
@@ -328,7 +356,9 @@ export async function writeXlsx(bytes, repsPerUnit, generic, opts = {}) {
         const nv = renameSheetRefs(el.textContent, renames);
         if (nv !== el.textContent) { el.textContent = nv; mod = true; }
       }
+      const own = d.ownedAttrs.get(el);
       for (const a of Array.from(el.attributes)) {
+        if (own && own.has(a.name)) continue; // Bildbeschreibung: schon als eigener Abschnitt ersetzt
         const an = a.localName;
         let v = a.value;
         if (renames.size && an === 'location' && ln === 'hyperlink') v = renameSheetRefs(v, renames);
@@ -409,6 +439,8 @@ export async function writeXlsx(bytes, repsPerUnit, generic, opts = {}) {
   // Modus rückbaufähig: Kennung als unsichtbare benutzerdefinierte Eigenschaft (nach der Bereinigung)
   if (clean && opts.kennung) await setKennungProperty(d.zip, d.docs, changed, opts.kennung);
   for (const n of changed) if (d.docs.has(n)) d.zip.file(n, serializeXml(d.docs.get(n)), { date: FIXED_DATE, createFolders: false });
+  // VML (Kopf-/Fußzeilenbilder): nur bei geänderter Bildbeschreibung neu schreiben, ohne XML-Kopfzeile wie im Original
+  for (const n of vmlChanged) d.zip.file(n, new XMLSerializer().serializeToString(d.vmlDocs.get(n)), { date: FIXED_DATE, createFolders: false });
   // Bild-Metadaten (EXIF, XMP, IPTC, Kommentare, PNG-Textblöcke) verlustfrei entfernen
   if (clean) await stripImages(d.zip);
   return d.zip.generateAsync({ ...ZIP_OPTS, mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });

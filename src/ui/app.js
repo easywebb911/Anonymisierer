@@ -15,6 +15,7 @@ import { readDocx, writeDocx, buildDocx } from '../formats/docx.js';
 import { readXlsx, writeXlsx } from '../formats/xlsx.js';
 import { collectZipTexts } from '../formats/xmlutil.js';
 import { describePart, readKennungProperty } from '../formats/meta.js';
+import { listImages, getImageBytes } from '../formats/images.js';
 import { newKennung, isKennung, kennungFromFileName } from './kennung.js';
 import { readPdf } from '../formats/pdf.js';
 
@@ -97,6 +98,11 @@ const app = {
   stamp: 0,
   kennung: null, // Modus rückbaufähig: Zufallskennung des geladenen Dokuments
   keyKennung: null, // Kennung der zuletzt gespeicherten Schlüsseldatei
+  imagesOpen: false, // Bilderliste aufgeklappt
+  imagesSeen: false, // Bilderliste wurde mindestens einmal geöffnet (Voraussetzung für das Abhaken)
+  imagesAck: false, // „Ich habe die Bilder angesehen. Darauf steht kein Name.“
+  imageUrls: new Map(), // Bild-Nr. -> blob:-Adresse der Vorschau (nur im Arbeitsspeicher, verworfen bei „Nächstes Dokument“)
+  imageBig: new Set(), // Bild-Nr. groß angezeigt
 };
 
 // ---------- Speicher (nur auf ausdrücklichen Wunsch) ----------
@@ -161,7 +167,9 @@ async function loadBytes(bytes, name) {
     row: u.row !== undefined ? (u.part || '') + '#' + u.row : null, cell: u.cell }));
   const warnings = [...(doc.warnings || [])];
   if (bytes.length > WARN_BYTES) warnings.push(`Große Datei (${(bytes.length / 1048576).toFixed(1)} MB): Auf dem iPhone kann die Verarbeitung langsam sein oder abbrechen.`);
-  return { kind, units, warnings, bytes, info: doc.info || '', raw: doc, metaNames: doc.metaNames || [] };
+  // Bilder (nur Word/Excel): Liste mit Fundort, Typ und Beschreibung; Bildinhalte werden erst beim Ansehen gelesen
+  const images = doc.imageCtx ? await listImages(kind, doc.zip, doc.docs, doc.imageCtx) : [];
+  return { kind, units, warnings, bytes, info: doc.info || '', raw: doc, metaNames: doc.metaNames || [], images };
 }
 
 // ---------- Analyse ----------
@@ -448,6 +456,8 @@ function unitView(u) {
   const label = u.label.replace(/ \(mit gelöschtem Text aus Änderungsverfolgung\)$/, '');
   const deleted = label !== u.label;
   const kind = app.doc.kind;
+  const alt = label.match(/^Bildbeschreibung \((Alt-Text|Titel)\)(?: – (.+))?$/);
+  if (alt) return { section: 'Bildbeschreibungen (Alt-Text und Titel von Bildern und Formen)', note: `Bildbeschreibung · ${alt[1]}${alt[2] ? ' · ' + alt[2] : ''}` };
   if (kind === 'docx') {
     if (label === 'Text' || label === 'Tabelle') return { section: '', row: u.row, cell: u.cell, deleted };
     return { section: label, row: u.row, cell: u.cell, deleted };
@@ -487,6 +497,7 @@ function renderDoc() {
     const base = r.unitStarts[ui];
     const box = h('div', { class: 'unit' });
     if (v.deleted) box.append(h('span', { class: 'cellref' }, 'mit gelöschtem Text aus der Änderungsverfolgung'));
+    if (v.note) box.append(h('span', { class: 'cellref' }, v.note));
     const tx = h('div', { class: 'utext', 'data-u': ui });
     let pos = 0;
     while (hi < hits.length && hits[hi].s < base) hi++;
@@ -696,6 +707,8 @@ function renderSave() {
     rows.push(ampelRow('ok', 'Versteckte Angaben werden geleert', 'Autor, Bearbeiter, Firma, Manager, Kommentar-Autoren, SharePoint-Felder und Bild-Metadaten. In Ordnung.',
       names.length ? h('p', { class: 'hint' }, 'In den Dateiangaben gefunden: ' + names.join(', ')) : null));
   }
+  // Bilder (nur Word/Excel): ansehen, dann abhaken
+  if (app.doc.images && app.doc.images.length) rows.push(imagesRow());
   // Datei-Hinweise, je einer mit Abhaken (Sperre wie bisher)
   for (const w of allWarnings()) {
     const done = app.ackWarnings.has(w);
@@ -727,6 +740,67 @@ function renderSave() {
   $('#btn-csv').hidden = true;
   $('#mapping').hidden = isReversible(); // im Modus rückbaufähig ersetzt die Schlüsseldatei die Zuordnungstabelle
   if (!app.preview) startPreview();
+}
+// ---------- Bilder ----------
+function imagesPending() { return !!(app.doc && app.doc.images && app.doc.images.length && !app.imagesAck); }
+function imagesRow() {
+  const imgs = app.doc.images;
+  const n = imgs.length;
+  const prog = app.doc.kind === 'xlsx' ? 'Excel' : 'Word';
+  const row = ampelRow(app.imagesAck ? 'ok' : 'warn', 'Bilder', `${n} ${n === 1 ? 'Bild' : 'Bilder'} im Dokument`,
+    h('p', { class: 'hint', id: 'img-hint' }, 'Das Tool lässt Bilder unverändert. Steht auf einem Bild ein Name oder ein Logo, entferne es vorher in Word bzw. Excel.'),
+    h('div', { class: 'row' }, h('button', { type: 'button', class: 'secondary small', id: 'btn-images', 'aria-expanded': app.imagesOpen ? 'true' : 'false', 'aria-controls': 'img-list',
+      onclick: () => openImages(!app.imagesOpen) }, app.imagesOpen ? 'Bilder ausblenden' : 'Bilder ansehen')),
+    app.imagesOpen ? h('ul', { class: 'imglist', id: 'img-list' }, ...imgs.map((im) => imageTile(im, prog))) : null,
+    h('label', { class: 'check' + (app.imagesSeen ? '' : ' disabled') }, h('input', { type: 'checkbox', id: 'ack-images', checked: app.imagesAck, disabled: !app.imagesSeen,
+      onchange: (e) => { app.imagesAck = e.target.checked; renderSave(); } }), ' Ich habe die Bilder angesehen. Darauf steht kein Name.'),
+    app.imagesSeen ? null : h('p', { class: 'hint' }, 'Abhaken geht erst, nachdem du die Bilder angesehen hast.'));
+  row.classList.add('images');
+  return row;
+}
+function placeholder(lines) { return h('div', { class: 'imgph' }, ...lines.map((l, i) => h(i ? 'span' : 'strong', {}, l))); }
+function imageTile(im, prog) {
+  let pic;
+  if (im.linked) pic = placeholder(['Verknüpftes Bild', 'verknüpft, nicht in der Datei']);
+  else if (im.mime && app.imageUrls.has(im.nr)) {
+    pic = h('img', { class: 'thumb', src: app.imageUrls.get(im.nr), alt: `Vorschau Bild ${im.nr}` });
+    pic.addEventListener('error', () => pic.replaceWith(placeholder([im.type, `Kann hier nicht angezeigt werden. Bitte in ${prog} ansehen.`])));
+  } else if (im.mime) pic = placeholder([im.type, 'Vorschau wird geladen …']);
+  else pic = placeholder([im.type, `Kann hier nicht angezeigt werden. Bitte in ${prog} ansehen.`]);
+  const big = app.imageBig.has(im.nr);
+  const canZoom = !im.linked && im.mime && app.imageUrls.has(im.nr);
+  return h('li', { class: 'imgtile' + (big ? ' big' : ''), 'data-nr': im.nr, 'data-type': im.type, 'data-linked': im.linked ? '1' : '0' },
+    h('div', { class: 'imgbox' }, pic,
+      canZoom ? h('button', { type: 'button', class: 'textlink zoom', 'aria-pressed': big ? 'true' : 'false', onclick: () => { if (big) app.imageBig.delete(im.nr); else app.imageBig.add(im.nr); renderSave(); } }, big ? 'Kleiner anzeigen' : 'Größer anzeigen') : null),
+    h('div', { class: 'imginfo' },
+      h('p', {}, h('strong', {}, `Bild ${im.nr}`), ` · ${im.linked ? 'verknüpft' : im.type}`),
+      h('p', {}, 'Fundort: ', im.place),
+      im.alt ? h('p', {}, 'Beschreibung (Alt-Text): „', im.alt, '“') : null,
+      im.title ? h('p', {}, 'Titel: „', im.title, '“') : null,
+      !im.alt && !im.title ? h('p', { class: 'hint' }, 'Keine Beschreibung.') : h('p', { class: 'hint' }, 'Die Beschreibung wird wie Text geprüft und ersetzt (Schritt 2).')));
+}
+// Liste öffnen/schließen. Vorschauen entstehen beim ersten Öffnen als blob:-Adressen (nur im Arbeitsspeicher).
+async function openImages(open) {
+  app.imagesOpen = open;
+  if (open) app.imagesSeen = true;
+  renderSave();
+  if (!open) return;
+  const doc = app.doc;
+  for (const im of doc.images) {
+    if (!im.mime || app.imageUrls.has(im.nr)) continue;
+    const bytes = await getImageBytes(doc.raw.zip, im);
+    if (app.doc !== doc) return; // inzwischen anderes Dokument
+    if (bytes) app.imageUrls.set(im.nr, URL.createObjectURL(new Blob([bytes], { type: im.mime })));
+  }
+  if (app.screen === 'a3' && app.doc === doc) renderSave();
+}
+function dropImagePreviews() {
+  for (const url of app.imageUrls.values()) URL.revokeObjectURL(url);
+  app.imageUrls = new Map();
+  app.imageBig = new Set();
+  app.imagesOpen = false;
+  app.imagesSeen = false;
+  app.imagesAck = false;
 }
 function schlusscheckRow() {
   const p = app.preview;
@@ -801,6 +875,7 @@ async function doExport(format) {
   const status = $('#export-status');
   if (!app.doc || !app.result) return;
   if (unackedWarnings().length) { status.textContent = 'Bitte zuerst alle Hinweise in der Liste oben abhaken.'; status.className = 'status bad'; return; }
+  if (imagesPending()) { status.textContent = 'Bitte zuerst die Bilder ansehen und abhaken („Bilder ansehen“ in der Liste oben).'; status.className = 'status bad'; return; }
   if (openQuestions().length && !app.questionsAck) { status.textContent = 'Es sind noch Fragen offen. Beantworte sie in Schritt 2 oder bestätige oben, dass du trotzdem speichern willst.'; status.className = 'status bad'; return; }
   if (isReversible() && !keySaved()) { status.textContent = 'Bitte zuerst „1 Schlüssel speichern“. Ohne Schlüsseldatei ist kein Rückbau möglich.'; status.className = 'status bad'; return; }
   status.textContent = 'Erzeuge Ausgabe und führe Schlusscheck durch …';
@@ -902,6 +977,7 @@ async function handleFile(file) {
   renderA1();
 }
 function resetDoc() {
+  dropImagePreviews(); // Vorschauen verwerfen (blob:-Adressen freigeben)
   app.doc = null;
   app.result = null;
   app.ackWarnings = new Set();
@@ -1342,6 +1418,6 @@ function initRestore() {
 }
 
 // Für automatische Tests (nur lesend nutzbar, kein Netzwerk)
-window.__anon = { app, openBytes, buildOutput, finalCheck, addManual, runAnalysis, rb, rbLoadFile, rbLoadKey, rbCheck, show, questions, newKennung };
+window.__anon = { app, openBytes, imagesPending, buildOutput, finalCheck, addManual, runAnalysis, rb, rbLoadFile, rbLoadKey, rbCheck, show, questions, newKennung };
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();

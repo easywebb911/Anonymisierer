@@ -192,3 +192,23 @@ mark.off { background: var(--off); text-decoration: line-through; color: var(--m
   .navbar { justify-content: space-between; }
   .navinfo { order: -1; flex-basis: 100%; }
 }
+
+/* Bilderliste (Version 2.2): kleine Vorschauen auf derselben Seite, nur aus dem Arbeitsspeicher (blob:) */
+.imglist { list-style: none; margin: .75rem 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr)); gap: .75rem; }
+.imgtile { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr); gap: .75rem; align-items: start; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: .6rem; }
+.imgtile p { margin: 0 0 .25rem; overflow-wrap: break-word; }
+.imgbox { width: 7.5rem; display: flex; flex-direction: column; align-items: center; gap: .1rem; }
+.imgbox .thumb { width: 7.5rem; height: 6rem; object-fit: contain; display: block; background: var(--off); border-radius: 8px; }
+.imgbox .imgph { width: 7.5rem; min-height: 6rem; justify-content: center; background: var(--off); border-radius: 8px; box-sizing: border-box; }
+.imgbox .zoom { min-height: 36px; padding: .25rem; font-size: 14px; }
+.imgtile.big { grid-column: 1 / -1; grid-template-columns: minmax(0, 1fr); }
+.imgtile.big .imgbox { width: 100%; }
+.imgtile.big .thumb { width: 100%; height: auto; max-height: 75vh; }
+@media (max-width: 480px) {
+  .imgtile { grid-template-columns: minmax(0, 1fr); }
+  .imgbox, .imgbox .thumb, .imgbox .imgph { width: 100%; }
+  .imgbox .thumb { height: 9rem; }
+}
+.imgph { display: flex; flex-direction: column; gap: .15rem; padding: .35rem; text-align: center; font-size: 13px; line-height: 1.3; color: var(--muted); overflow-wrap: anywhere; }
+.imgph strong { color: var(--fg); font-size: 14px; }
+label.check.disabled { color: var(--muted); }

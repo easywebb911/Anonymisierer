@@ -35,7 +35,7 @@ export async function waitPreview(page) {
   await page.waitForFunction(() => { const p = window.__anon.app.preview; return p && !p.busy; }, null, { timeout: 600000 });
 }
 // Alle Datei-Hinweise abhaken und (falls vorhanden) offene Fragen ausdrücklich bestätigen
-export async function ackAll(page, { questions = true } = {}) {
+export async function ackAll(page, { questions = true, images = true } = {}) {
   await goTo(page, 'a3');
   // je Hinweis einzeln abhaken (die Liste wird nach jedem Haken neu gezeichnet)
   for (let i = 0; i < 50; i++) {
@@ -44,6 +44,18 @@ export async function ackAll(page, { questions = true } = {}) {
     await box.click(); // Klick genügt; die Zeile wird danach neu gezeichnet
   }
   if (questions && await page.$('#ack-questions')) { if (!(await page.isChecked('#ack-questions'))) await page.check('#ack-questions'); }
+  // Bilder (seit Version 2.2): erst die Liste öffnen, dann abhaken
+  if (images) await ackImages(page);
+}
+// Bilderliste öffnen (wie ein Mensch), dann „Ich habe die Bilder angesehen …“ abhaken
+export async function ackImages(page) {
+  if (!(await page.$('#ack-images'))) return false;
+  if (await page.isDisabled('#ack-images')) {
+    await page.click('#btn-images');
+    await page.waitForSelector('#img-list');
+  }
+  if (!(await page.isChecked('#ack-images'))) await page.check('#ack-images');
+  return true;
 }
 // Knopf für ein Format auf dem Speichern-Bildschirm: Hauptknopf, wenn es das Hauptformat ist, sonst „Andere Wege“
 export async function formatButton(page, fmt) {

@@ -6,6 +6,7 @@ import {
   ancestor, neutralizePath, ZIP_OPTS, FIXED_DATE,
 } from './xmlutil.js';
 import { collectMetaNames, cleanProperties, cleanCustomXml, removeThumbnails, stripImages, imageWarnings, setKennungProperty, KENNUNG_PROP } from './meta.js';
+import { altTextUnits } from './images.js';
 
 const PART_ORDER = [
   [/^word\/document\.xml$/, 'Text'],
@@ -132,15 +133,21 @@ export async function readDocx(bytes) {
     r.units.forEach((u) => { u.part = n; units.push(u); });
     r.owned.forEach((x) => owned.add(x));
   }
+  // Bildbeschreibungen (Alt-Text, Titel von Bildern und Formen): eigene Abschnitte am Ende, damit die übrigen
+  // Abschnitte (und damit Ausgaben von Dokumenten ohne Bildbeschreibung) unverändert bleiben
+  const ownedAttrs = new Map();
+  units.push(...altTextUnits(docs, unitParts.map(([n, label]) => [n, label === 'Text' ? '' : label]), ownedAttrs));
   const warnings = [];
   const embedded = names.filter((n) => /^word\/embeddings\//.test(n));
   if (embedded.length) warnings.push(`Das Dokument enthält ${embedded.length} eingebettete(s) Objekt(e) (z. B. Excel-Tabellen). Deren Inhalt wird NICHT anonymisiert und vor dem Export entfernt.`);
-  const media = names.filter((n) => /^word\/media\//.test(n));
-  if (media.length) warnings.push(`Das Dokument enthält ${media.length} Bild(er). Namen IN Bildern (z. B. Scans, Unterschriften) erkennt das Tool nicht.`);
+  // Bilder: eigene Zeile „Bilder“ auf dem Speichern-Bildschirm (Liste mit Vorschau), kein allgemeiner Hinweis mehr
   warnings.push(...await imageWarnings(zip));
   // Namen aus den Original-Metadaten (Autor, Bearbeiter, Manager, Firma, Kommentar-/Änderungsautoren, SharePoint-Personen)
   const metaNames = await collectMetaNames(zip, docs);
-  return { kind: 'docx', zip, docs, units, owned, warnings, names, metaNames };
+  // Fundort von Bildern je Teil in einfacher Sprache (für die Bilderliste)
+  const partLabel = new Map(unitParts);
+  const placeOf = (part) => ({ label: partLabel.get(part) || (/numbering/.test(part) ? 'Aufzählungszeichen' : /glossary/.test(part) ? 'Baustein' : 'Sonstiges') });
+  return { kind: 'docx', zip, docs, units, owned, ownedAttrs, warnings, names, metaNames, imageCtx: { placeOf } };
 }
 
 // Baut die anonymisierte .docx. repsPerUnit: Ersetzungen je Einheit; generic(str): Ersetzer für sonstige Texte.
@@ -165,7 +172,9 @@ export async function writeDocx(bytes, repsPerUnit, generic, opts = {}) {
     let mod = false;
     for (const el of allElements(doc)) {
       // Metadaten-Attribute: Autor/Initialen/Benutzerkennung
+      const own = d.ownedAttrs.get(el);
       for (const a of Array.from(el.attributes)) {
+        if (own && own.has(a.name)) continue; // Bildbeschreibung: schon als eigener Abschnitt ersetzt
         const ln = a.localName;
         let v = a.value;
         if (clean && (ln === 'author' || ln === 'displayName')) v = v ? 'Autor' : v;
