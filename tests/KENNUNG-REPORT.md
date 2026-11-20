@@ -3,68 +3,68 @@
 Chromium headless, Start per file://, alle Schritte über die echte Oberfläche. Alle Namen erfunden (tests/make-kennung.mjs).
 
 ## Vertausch: zwei Dokumente nach gleicher Vorlage, Schlüssel über Kreuz
-### DOCX: anonymisiert_Y97J.docx + schluessel_Y97J.json / anonymisiert_2E4Z.docx + schluessel_2E4Z.json
+### DOCX: anonymisiert_22J7.docx + schluessel_22J7.json / anonymisiert_L8M4.docx + schluessel_L8M4.json
 - Anonymisierter Text beider Dokumente gleich: ja (ohne Kennung wäre der Vertausch nicht zu erkennen)
-- OK: docx: Dateinamen tragen die Kennung – anonymisiert_Y97J.docx, schluessel_Y97J.json
-- OK: docx: Datei 1 + Schlüssel 2 (Originalname) → rot und blockiert – „Kennung Diese Schlüsseldatei gehört zu einem anderen Dokument (Dokument: Y97J, Schlüssel: 2E4Z). Ich weiß, dass die Kenn…“; bisherige Prüfung allein: Urteil „passend“; nach ausdrücklicher Bestätigung frei: true
-- OK: docx: umbenannt (bericht.docx) + eigener Schlüssel → grün (Kennung aus der Eigenschaft) – Kennung Kennung Y97J passt.
-- OK: docx: umbenannt + fremder Schlüssel → rot und blockiert – Kennung Diese Schlüsseldatei gehört zu einem anderen Dokument (Dokument: Y97J, Schlüssel: 2E4Z). Ich
-- OK: docx: richtiges Paar → grün, Rückbau exakt – Kennung Kennung Y97J passt.
-### XLSX: anonymisiert_C83K.xlsx + schluessel_C83K.json / anonymisiert_H72F.xlsx + schluessel_H72F.json
+- OK: docx: Dateinamen tragen die Kennung – anonymisiert_22J7.docx, schluessel_22J7.json
+- OK: docx: Datei 1 + Schlüssel 2 (Originalname) → rot und blockiert – „Kennung Diese Schlüsseldatei gehört zu einem anderen Dokument (Dokument: 22J7, Schlüssel: L8M4). Ich weiß, dass die Kenn…“; bisherige Prüfung allein: Urteil „passend“; nach ausdrücklicher Bestätigung frei: true
+- OK: docx: umbenannt (bericht.docx) + eigener Schlüssel → grün (Kennung aus der Eigenschaft) – Kennung Kennung 22J7 passt.
+- OK: docx: umbenannt + fremder Schlüssel → rot und blockiert – Kennung Diese Schlüsseldatei gehört zu einem anderen Dokument (Dokument: 22J7, Schlüssel: L8M4). Ich
+- OK: docx: richtiges Paar → grün, Rückbau exakt – Kennung Kennung 22J7 passt.
+### XLSX: anonymisiert_W5C6.xlsx + schluessel_W5C6.json / anonymisiert_J96S.xlsx + schluessel_J96S.json
 - Anonymisierter Text beider Dokumente gleich: nein
-- OK: xlsx: Dateinamen tragen die Kennung – anonymisiert_C83K.xlsx, schluessel_C83K.json
-- FEHLER: xlsx: Datei 1 + Schlüssel 2 (Originalname) → rot und blockiert – „Kennung Diese Schlüsseldatei gehört zu einem anderen Dokument (Dokument: C83K, Schlüssel: H72F). Ich weiß, dass die Kenn…“; bisherige Prüfung allein: Urteil „zweifelhaft“; nach ausdrücklicher Bestätigung frei: false
-- OK: xlsx: umbenannt (bericht.xlsx) + eigener Schlüssel → grün (Kennung aus der Eigenschaft) – Kennung Kennung C83K passt.
-- OK: xlsx: umbenannt + fremder Schlüssel → rot und blockiert – Kennung Diese Schlüsseldatei gehört zu einem anderen Dokument (Dokument: C83K, Schlüssel: H72F). Ich
-- OK: xlsx: richtiges Paar → grün, Rückbau exakt – Kennung Kennung C83K passt.
-### TXT: anonymisiert_Y88M.txt + schluessel_Y88M.json / anonymisiert_T5J7.txt + schluessel_T5J7.json
+- OK: xlsx: Dateinamen tragen die Kennung – anonymisiert_W5C6.xlsx, schluessel_W5C6.json
+- OK: xlsx: Datei 1 + Schlüssel 2 (Originalname) → rot und blockiert – „Kennung Diese Schlüsseldatei gehört zu einem anderen Dokument (Dokument: W5C6, Schlüssel: J96S). Ich weiß, dass die Kenn…“; bisherige Prüfung allein: Urteil „zweifelhaft“; nach ausdrücklicher Bestätigung (Kennung UND bisherige Prüfung) frei: true
+- OK: xlsx: umbenannt (bericht.xlsx) + eigener Schlüssel → grün (Kennung aus der Eigenschaft) – Kennung Kennung W5C6 passt.
+- OK: xlsx: umbenannt + fremder Schlüssel → rot und blockiert – Kennung Diese Schlüsseldatei gehört zu einem anderen Dokument (Dokument: W5C6, Schlüssel: J96S). Ich
+- OK: xlsx: richtiges Paar → grün, Rückbau exakt – Kennung Kennung W5C6 passt.
+### TXT: anonymisiert_Q394.txt + schluessel_Q394.json / anonymisiert_74Q3.txt + schluessel_74Q3.json
 - Anonymisierter Text beider Dokumente gleich: ja (ohne Kennung wäre der Vertausch nicht zu erkennen)
-- OK: txt: Dateinamen tragen die Kennung – anonymisiert_Y88M.txt, schluessel_Y88M.json
-- OK: txt: Datei 1 + Schlüssel 2 (Originalname) → rot und blockiert – „Kennung Diese Schlüsseldatei gehört zu einem anderen Dokument (Dokument: Y88M, Schlüssel: T5J7). Ich weiß, dass die Kenn…“; bisherige Prüfung allein: Urteil „passend“; nach ausdrücklicher Bestätigung frei: true
-- OK: txt: umbenannt (notiz.txt) + Schlüssel 2 → bernstein mit Abhaken – „Kennung Im Dokument steht keine Kennung. Der Schlüssel hat die Kennung T5J7. Bitte prüfe, ob beide zusammengeh…“
-- OK: txt: richtiges Paar → grün, Rückbau exakt – Kennung Kennung Y88M passt.
-### CSV: anonymisiert_7F7W.csv + schluessel_7F7W.json / anonymisiert_J4N9.csv + schluessel_J4N9.json
+- OK: txt: Dateinamen tragen die Kennung – anonymisiert_Q394.txt, schluessel_Q394.json
+- OK: txt: Datei 1 + Schlüssel 2 (Originalname) → rot und blockiert – „Kennung Diese Schlüsseldatei gehört zu einem anderen Dokument (Dokument: Q394, Schlüssel: 74Q3). Ich weiß, dass die Kenn…“; bisherige Prüfung allein: Urteil „passend“; nach ausdrücklicher Bestätigung frei: true
+- OK: txt: umbenannt (notiz.txt) + Schlüssel 2 → bernstein mit Abhaken – „Kennung Im Dokument steht keine Kennung. Der Schlüssel hat die Kennung 74Q3. Bitte prüfe, ob beide zusammengeh…“; bisherige Prüfung: „passend“
+- OK: txt: richtiges Paar → grün, Rückbau exakt – Kennung Kennung Q394 passt.
+### CSV: anonymisiert_539V.csv + schluessel_539V.json / anonymisiert_9S6F.csv + schluessel_9S6F.json
 - Anonymisierter Text beider Dokumente gleich: nein
-- OK: csv: Dateinamen tragen die Kennung – anonymisiert_7F7W.csv, schluessel_7F7W.json
-- FEHLER: csv: Datei 1 + Schlüssel 2 (Originalname) → rot und blockiert – „Kennung Diese Schlüsseldatei gehört zu einem anderen Dokument (Dokument: 7F7W, Schlüssel: J4N9). Ich weiß, dass die Kenn…“; bisherige Prüfung allein: Urteil „zweifelhaft“; nach ausdrücklicher Bestätigung frei: false
-- FEHLER: csv: umbenannt (notiz.csv) + Schlüssel 2 → bernstein mit Abhaken – „Kennung Im Dokument steht keine Kennung. Der Schlüssel hat die Kennung J4N9. Bitte prüfe, ob beide zusammengeh…“
-- OK: csv: richtiges Paar → grün, Rückbau exakt – Kennung Kennung 7F7W passt.
+- OK: csv: Dateinamen tragen die Kennung – anonymisiert_539V.csv, schluessel_539V.json
+- OK: csv: Datei 1 + Schlüssel 2 (Originalname) → rot und blockiert – „Kennung Diese Schlüsseldatei gehört zu einem anderen Dokument (Dokument: 539V, Schlüssel: 9S6F). Ich weiß, dass die Kenn…“; bisherige Prüfung allein: Urteil „zweifelhaft“; nach ausdrücklicher Bestätigung (Kennung UND bisherige Prüfung) frei: true
+- OK: csv: umbenannt (notiz.csv) + Schlüssel 2 → bernstein mit Abhaken – „Kennung Im Dokument steht keine Kennung. Der Schlüssel hat die Kennung 9S6F. Bitte prüfe, ob beide zusammengeh…“; bisherige Prüfung: „zweifelhaft“, eigene Bestätigung nötig
+- OK: csv: richtiges Paar → grün, Rückbau exakt – Kennung Kennung 539V passt.
 
 ## Widerspruch zwischen Eigenschaft und Dateiname
-- OK: Datei mit Eigenschaft K1, aber Namen K2 + Schlüssel K1 → Eigenschaft gilt (grün), Widerspruch wird gezeigt – Kennung Kennung Y97J passt. Die Eigenschaft in der Datei (Y97J) und der Dateiname (2E4Z) widersprechen sich; es gilt die Eigenschaft.
-- OK: dieselbe Datei + Schlüssel K2 → rot (Eigenschaft K1 gilt), Widerspruch wird gezeigt – Kennung Diese Schlüsseldatei gehört zu einem anderen Dokument (Dokument: Y97J, Schlüssel: 2E4Z). Die Eigenschaft in der Datei (Y97J) und der Dateiname (2E4Z) wi
+- OK: Datei mit Eigenschaft K1, aber Namen K2 + Schlüssel K1 → Eigenschaft gilt (grün), Widerspruch wird gezeigt – Kennung Kennung 22J7 passt. Die Eigenschaft in der Datei (22J7) und der Dateiname (L8M4) widersprechen sich; es gilt die Eigenschaft.
+- OK: dieselbe Datei + Schlüssel K2 → rot (Eigenschaft K1 gilt), Widerspruch wird gezeigt – Kennung Diese Schlüsseldatei gehört zu einem anderen Dokument (Dokument: 22J7, Schlüssel: L8M4). Die Eigenschaft in der Datei (22J7) und der Dateiname (L8M4) wi
 
 ## Schlüsseldatei aus Version 2.0 (ohne Kennung)
 - OK: txt: Schlüssel aus 2.0 (rueckbau_schluessel_VERTRAULICH.json, Feld „kennung“: nein) → bernstein „Schlüssel ohne Kennung“, Rückbau exakt – Kennung Schlüssel ohne Kennung (erstellt vor Version 2.1). Der Rückbau funktioniert wie bisher; prüfe selbst, ob Datei u
 - OK: docx: Schlüssel aus 2.0 (rueckbau_schluessel_VERTRAULICH.json, Feld „kennung“: nein) → bernstein „Schlüssel ohne Kennung“, Rückbau exakt – Kennung Schlüssel ohne Kennung (erstellt vor Version 2.1). Der Rückbau funktioniert wie bisher; prüfe selbst, ob Datei u
 
 ## Veralteter Schlüssel (nach dem Schlüssel noch einen Treffer geändert)
-- OK: Nach der Änderung: neue Kennung sofort in den Dateikarten, „2 Datei speichern“ gesperrt – anonymisiert_9463.docx → anonymisiert_Z622.docx
-- OK: Alter und neuer Schlüssel haben verschiedene Kennungen – 9463 / Z622
-- OK: ALTER Schlüssel + neue Datei → rot und blockiert – Kennung Diese Schlüsseldatei gehört zu einem anderen Dokument (Dokument: Z622, Schlüssel: 9463). Ich weiß, dass die Kenn
-- OK: neuer Schlüssel + neue Datei → grün – Kennung Kennung Z622 passt.
+- OK: Nach der Änderung: neue Kennung sofort in den Dateikarten, „2 Datei speichern“ gesperrt – anonymisiert_A78W.docx → anonymisiert_8R2S.docx
+- OK: Alter und neuer Schlüssel haben verschiedene Kennungen – A78W / 8R2S
+- OK: ALTER Schlüssel + neue Datei → rot und blockiert – Kennung Diese Schlüsseldatei gehört zu einem anderen Dokument (Dokument: 8R2S, Schlüssel: A78W). Ich weiß, dass die Kenn
+- OK: neuer Schlüssel + neue Datei → grün – Kennung Kennung 8R2S passt.
 
 ## Bearbeitung in LibreOffice (Inhalt geändert, dann in LibreOffice gespeichert)
-- OK: docx: nach Änderung und Speichern in LibreOffice ist die Kennung noch da – Eigenschaft Y97J, erwartet Y97J
-- OK: docx: LibreOffice-Datei (umbenannt) + Schlüssel → grün – Kennung Kennung Y97J passt.
-- OK: xlsx: nach Änderung und Speichern in LibreOffice ist die Kennung noch da – Eigenschaft C83K, erwartet C83K
-- OK: xlsx: LibreOffice-Datei (umbenannt) + Schlüssel → grün – Kennung Kennung C83K passt.
+- OK: docx: nach Änderung und Speichern in LibreOffice ist die Kennung noch da – Eigenschaft 22J7, erwartet 22J7
+- OK: docx: LibreOffice-Datei (umbenannt) + Schlüssel → grün – Kennung Kennung 22J7 passt.
+- OK: xlsx: nach Änderung und Speichern in LibreOffice ist die Kennung noch da – Eigenschaft W5C6, erwartet W5C6
+- OK: xlsx: LibreOffice-Datei (umbenannt) + Schlüssel → grün – Kennung Kennung W5C6 passt.
 - Microsoft Word und Excel selbst: **durch Code ungeprüft**.
 
 ## Doppellauf: Inhalt gleich, Kennung verschieden
 - OK: docx: Inhalt beider Läufe gleich (Kennung ausgenommen), Schlüssel gleich (Kennung ausgenommen)
-- OK: docx: Kennungen beider Läufe verschieden, Dateinamen unterscheiden sich nur in der Kennung – anonymisiert_8E2B.docx / anonymisiert_43L7.docx
+- OK: docx: Kennungen beider Läufe verschieden, Dateinamen unterscheiden sich nur in der Kennung – anonymisiert_33R7.docx / anonymisiert_A36S.docx
 - OK: txt: Inhalt beider Läufe gleich (Kennung ausgenommen), Schlüssel gleich (Kennung ausgenommen)
-- OK: txt: Kennungen beider Läufe verschieden, Dateinamen unterscheiden sich nur in der Kennung – anonymisiert_6R8J.txt / anonymisiert_P47A.txt
-- OK: Erneutes Laden derselben Datei und „Nächstes Dokument“ ergeben jeweils eine neue Kennung – H74J, U5U7, 4N5D
+- OK: txt: Kennungen beider Läufe verschieden, Dateinamen unterscheiden sich nur in der Kennung – anonymisiert_K49J.txt / anonymisiert_M2K7.txt
+- OK: Erneutes Laden derselben Datei und „Nächstes Dokument“ ergeben jeweils eine neue Kennung – 8K8J, 5P5D, 7W7B
 
 ## Zufalls-Beweis
 - OK: Kennung entsteht nur in src/ui/kennung.js (newKennung) aus crypto.getRandomValues; alle Aufrufe ohne Dokumentdaten – Aufrufe in app.js: newKennung(), newKennung()
 - OK: Mit festem Ersatz-Zufall gleiche Kennung vor und nach dem Laden eines Dokuments (kein Dokumentinhalt geht ein) – A3C5 / A3C5
 - OK: 1000 Kennungen: nur erlaubte Zeichen, nie zwei Buchstaben nebeneinander
-- Zeichen genutzt: 32 von 32. Je Buchstabe 55–94-mal, je Ziffer 260–342-mal (Ziffern häufiger, weil nie zwei Buchstaben nebeneinander stehen; innerhalb der Gruppe gleichmäßig).
+- Zeichen genutzt: 32 von 32. Je Buchstabe 52–84-mal, je Ziffer 278–307-mal (Ziffern häufiger, weil nie zwei Buchstaben nebeneinander stehen; innerhalb der Gruppe gleichmäßig).
 - Mögliche Kennungen: 163 840. Doppelte unter 1000: 3 (erwartet rund 3).
-- OK: Grobe Gleichverteilung innerhalb der Buchstaben und der Ziffern – Buchstaben 55–94, Ziffern 260–342
+- OK: Grobe Gleichverteilung innerhalb der Buchstaben und der Ziffern – Buchstaben 52–84, Ziffern 278–307
 
-Prüfungen: 36 von 39 bestanden – FEHLER: xlsx: Datei 1 + Schlüssel 2 (Originalname) → rot und blockiert; csv: Datei 1 + Schlüssel 2 (Originalname) → rot und blockiert; csv: umbenannt (notiz.csv) + Schlüssel 2 → bernstein mit Abhaken.
+Prüfungen: 39 von 39 bestanden.
 Netzwerkanfragen außer lokalen Dateien: 0.
