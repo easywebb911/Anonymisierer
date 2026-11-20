@@ -1,9 +1,9 @@
 # Rückbau: Kreislauf-Beweis und Fallen
 
-Chromium headless gegen index.html (SHA-256 47cd1b16dc0478be…). Alle Namen sind erfunden.
+Chromium headless gegen index.html (SHA-256 2789cec25cea5ea8…). Alle Namen sind erfunden.
 
 ## TXT (protokoll.txt)
-- Anonymisiert (rückbaufähig): 57 Platzhalter in der Schlüsseldatei; Status „Gespeichert: anonymisiert_text.txt (mit bestätigten Restfunden) ACHTUNG: Die passende Rückbau-Schlüsseldatei ist noch nicht gespeichert – ohne sie ist kein Rückbau möglich.“
+- Anonymisiert (rückbaufähig): 57 Platzhalter in der Schlüsseldatei; Status „Gespeichert: anonymisiert_text.txt – mit bestätigten Restfunden.“
 - Simulierte Korrektur: Wort geändert, Satz mit Nachname A, Vorname A, [E-MAIL-1] und Endung „Nachname As“ eingefügt, Abschnitt TOP 3 vor TOP 2 verschoben
 - Rückbau: 76 Platzhalter ersetzt; abweichende Zeilen gegenüber Erwartung: 0
 - Bericht meldete: Vorname A 2→3, Nachname A 4→7, [E-MAIL-1] 1→2; Auffälligkeiten 0
@@ -88,8 +88,8 @@ Hartung und Tannheim stehen nach allein stehender Anrede und später im Text (au
 - OK: Export erst nach Bestätigung (Bericht verlangte Bestätigung)
 - OK: Ergebnis entspricht exakt der Erwartung (alle exakten Platzhalter zurück, Auffälliges unverändert)
 - Rückbau-Bericht: 79 ersetzt; Auffälligkeiten: verändert: nachname ac | unbekannt: Nachname ZZ | gebeugt: Nachnamens A | verändert: [E-Mail-1] | getrennt: Nachname | A
-- OK: falsche Schlüsseldatei (vom Protokoll) erkannt – Urteil: zweifelhaft; Meldung: Wahrscheinlich die falsche Schlüsseldatei: 47 von 57 Platzhaltern gefunden, nur bei 33 stimmt die Anzahl, 28 unbekannte Platzhalter in der Datei.
-- OK: Datei ohne passende Platzhalter: kein Ergebnis – Rückbau-Bericht (vor dem Speichern)Die Schlüsseldatei passt nicht zu dieser Datei: Kein einziger Platzhalter aus der Sch
+- OK: falsche Schlüsseldatei (vom Protokoll) erkannt – Urteil: zweifelhaft; Meldung: Wahrscheinlich die falsche Schlüsseldatei47 von 57 Platzhaltern gefunden, nur bei 33 stimmt die Anzahl, 28 unbekannte Platzhalter in der Datei.
+- OK: Datei ohne passende Platzhalter: kein Ergebnis – Schlüsseldatei passt nichtKein einziger Platzhalter aus der Schlüsseldatei wurde in der Datei gefunden. Es wird nichts e
 - OK: alte Zuordnungstabelle (CSV) wird abgelehnt – Das ist die alte Zuordnungstabelle (zuordnung_VERTRAULICH.csv). Sie reicht für einen Rückbau NICHT: Sie enthäl
 - OK: Rückbau deterministisch (Doppellauf byte-gleich) – ac385ab26ac6aaf2 / ac385ab26ac6aaf2
 - OK: Anonymisierung rückbaufähig deterministisch (Datei und Schlüssel) – 6e6b33171283923f / 6e6b33171283923f

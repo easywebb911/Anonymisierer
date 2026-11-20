@@ -48,6 +48,7 @@ function paragraphUnits(doc, baseLabel) {
   const owned = new Set();
   let pi = -1;
   let prevPos = null;
+  const rowIds = new Map(); // nur für die Anzeige in der Prüfansicht (Tabellenzeilen als Zeilen zeigen)
   for (const p of allElements(doc)) {
     if (!isPara(p)) continue;
     pi++;
@@ -82,6 +83,11 @@ function paragraphUnits(doc, baseLabel) {
     const unit = makeUnit(segs, label);
     unit.follows = !!(pos && prevPos && directlyFollows(prevPos, pos));
     unit.heading = !!(pos && pos.heading);
+    if (pos && pos.row) {
+      if (!rowIds.has(pos.row)) rowIds.set(pos.row, rowIds.size);
+      unit.row = rowIds.get(pos.row);
+      unit.cell = Array.from(pos.row.childNodes).filter((c) => c.nodeType === 1 && isW(c) && c.localName === 'tc').indexOf(pos.cell);
+    }
     prevPos = pos;
     units.push(unit);
   }

@@ -3,3 +3,4 @@ tests/out/
 src/generated/cmaps.js
 tests/out-roundtrip/
 tests/out-meta/
+tests/out-ui/

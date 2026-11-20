@@ -11,6 +11,7 @@ import { fileURLToPath } from 'node:url';
 import JSZip from 'jszip';
 import { PERSONS } from './fixtures-src.mjs';
 import { fold } from '../src/core/fold.js';
+import { startAnon, loadIn, goTo, ackAll, exportWithAck } from './ui-helpers.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..');
@@ -97,15 +98,14 @@ async function newPage() {
   await page.goto('file://' + path.join(root, 'index.html'));
   return { page, ctx, errors };
 }
+// Version 2: Start -> „Dokument anonymisieren“ -> „Nein, anonym reicht“ (Person A, wie bisher Standard) -> Datei laden
 async function loadFixture(page, file) {
-  await page.setInputFiles('#file', path.join(fx, file));
-  await page.waitForFunction(() => /Gelesen|zu groß|nicht|kein|Fehler|PDF enthält/.test(document.querySelector('#load-status').textContent), null, { timeout: 60000 });
-  return page.textContent('#load-status');
+  await startAnon(page, 'person');
+  return loadIn(page, path.join(fx, file), 60000);
 }
 async function loadFixtureAbs(page, file) {
-  await page.setInputFiles('#file', file);
-  await page.waitForFunction(() => /Gelesen|zu groß|nicht|kein|Fehler|PDF enthält/.test(document.querySelector('#load-status').textContent), null, { timeout: 600000 });
-  return page.textContent('#load-status');
+  await startAnon(page, 'person');
+  return loadIn(page, file, 600000);
 }
 async function snapshot(page) {
   return page.evaluate(() => {
@@ -114,32 +114,16 @@ async function snapshot(page) {
       entities: [...r.entities.values()].map((e) => ({ label: e.label, display: e.display, count: e.count })) };
   });
 }
-async function exportOnce(page, btn) {
-  await page.evaluate(() => { document.querySelector('#export-status').textContent = ''; });
-  const dlP = page.waitForEvent('download', { timeout: 600000 }).catch(() => null);
-  await page.click(btn);
-  await page.waitForFunction(() => { const t = document.querySelector('#export-status').textContent; return t && !/^Erzeuge/.test(t); }, null, { timeout: 600000 });
-  const status = await page.textContent('#export-status');
-  const dl = /Gespeichert/.test(status) ? await dlP : null;
-  return [dl, status];
-}
-async function clickExport(page, btn) {
-  let [dl, status] = await exportOnce(page, btn);
-  let blocked = null;
-  if (!dl && /blockiert/.test(status)) {
-    // Schlusscheck hat blockiert: Fundstellen festhalten, Bestätigung anhaken, erneut exportieren
-    blocked = { status, items: await page.$$eval('#leaks li', (els) => els.map((e) => e.textContent)) };
-    await page.check('#leaks input[type=checkbox]');
-    [dl, status] = await exportOnce(page, btn);
-  }
+// Speichern über den Speichern-Bildschirm (Hauptknopf bzw. „Andere Wege“); Schlusscheck-Sperre wie bisher
+async function clickExport(page, fmt) {
+  const { dl, status, blocked } = await exportWithAck(page, fmt);
   if (!dl) return { status, bytes: null, blocked };
   const p = path.join(outDir, `${Date.now()}-${dl.suggestedFilename()}`);
   await dl.saveAs(p);
   return { status, bytes: fs.readFileSync(p), file: p, name: dl.suggestedFilename(), blocked };
 }
-async function ackWarnings(page) {
-  await page.$$eval('#doc-warnings input[type=checkbox]', (els) => els.forEach((e) => { if (!e.checked) e.click(); }));
-}
+// Datei-Hinweise abhaken; offene Fragen ausdrücklich bestätigen (neue Sperre in Version 2)
+async function ackWarnings(page) { await ackAll(page); }
 
 function evaluateDetection(snap) {
   const occ = findPersonTokens(snap.fullText);
@@ -162,11 +146,11 @@ function evaluateDetection(snap) {
 
 const results = [];
 const FORMATS = [
-  { file: 'protokoll.txt', kind: 'txt', native: '#btn-txt' },
-  { file: 'mitarbeiter.csv', kind: 'csv', native: '#btn-csv' },
-  { file: 'protokoll.docx', kind: 'docx', native: '#btn-docx' },
-  { file: 'mitarbeiter.xlsx', kind: 'xlsx', native: '#btn-xlsx' },
-  { file: 'protokoll.pdf', kind: 'pdf', native: '#btn-docx' },
+  { file: 'protokoll.txt', kind: 'txt', native: 'txt' },
+  { file: 'mitarbeiter.csv', kind: 'csv', native: 'csv' },
+  { file: 'protokoll.docx', kind: 'docx', native: 'docx' },
+  { file: 'mitarbeiter.xlsx', kind: 'xlsx', native: 'xlsx' },
+  { file: 'protokoll.pdf', kind: 'pdf', native: 'docx' },
 ];
 
 log('# Testbericht Anonymisierer');
@@ -192,7 +176,7 @@ for (const f of FORMATS) {
   // Export vor manueller Nacharbeit
   const exp1 = await clickExport(page, f.native);
   if (exp1.blocked) log(`- Schlusscheck vor Nacharbeit hat den Export BLOCKIERT („${exp1.blocked.status.trim()}“). Fundstellen: ${exp1.blocked.items.map((t) => t.replace(/\s+/g, ' ')).join(' | ')}. Nach Bestätigung exportiert.`);
-  log(`- Export (${f.native.replace('#btn-', '.')}) vor Nacharbeit: Status „${exp1.status.trim()}“`);
+  log(`- Export (.${f.native}) vor Nacharbeit: Status „${exp1.status.trim()}“`);
   let outText = exp1.bytes ? (/\.(docx|xlsx)$/.test(exp1.name) ? await rawZipText(exp1.bytes) : exp1.bytes.toString('utf8')) : '';
   let leaks = findPersonTokens(outText);
   log(`  - Unabhängige Nachprüfung der Ausgabedatei: ${leaks.length} Klarnamen-Vorkommen übrig${leaks.length ? ' (' + [...new Set(leaks.map((l) => l.word))].join(', ') + ')' : ''}`);
@@ -200,6 +184,7 @@ for (const f of FORMATS) {
   // Manuelles Markieren der nicht erkannten Namen: das erste Wort über die echte Oberfläche (antippen), den Rest über dieselbe Funktion
   const toMark = [...new Set(ev.missed.map((o) => o.word.replace(/s$/, (m) => (personTokens[o.id].includes(o.word) ? m : ''))))];
   if (toMark.length) {
+    await goTo(page, 'a2'); // Markieren geschieht auf dem Prüfen-Bildschirm
     const first = toMark[0];
     const tapped = await page.evaluate((word) => {
       const view = document.querySelector('#docview');
@@ -264,7 +249,7 @@ for (const f of FORMATS) {
   if (finalExp.bytes) fs.writeFileSync(path.join(outDir, 'final-' + f.file + '-' + finalExp.name), finalExp.bytes);
   // Text kopieren / .txt zusätzlich
   if (f.kind !== 'txt') {
-    const t = await clickExport(page, '#btn-txt');
+    const t = await clickExport(page, 'txt');
     const tl = t.bytes ? findPersonTokens(t.bytes.toString('utf8')).length : -1;
     log(`  - Zusätzlich .txt-Export: Klarnamen übrig: ${tl}`);
   }
@@ -334,8 +319,9 @@ log('## Nicht unterstützte Dateien (müssen klar abgelehnt werden)');
 for (const file of ['gescannt.pdf', 'alt-format.doc', 'alt-format.xls']) {
   const { page, ctx } = await newPage();
   const st = await loadFixture(page, file);
-  const reviewHidden = await page.$eval('#review', (e) => e.hidden);
-  log(`- ${file}: „${st.trim()}“ – Prüfansicht ${reviewHidden ? 'nicht angezeigt (kein Teilergebnis)' : 'ANGEZEIGT'}`);
+  const blocked = await page.$eval('#a1-next', (e) => e.disabled);
+  const doc = await page.evaluate(() => !!window.__anon.app.doc);
+  log(`- ${file}: „${st.trim()}“ – Prüfen ${blocked && !doc ? 'nicht erreichbar („Weiter zum Prüfen“ gesperrt, kein Teilergebnis)' : 'ERREICHBAR'}`);
   await ctx.close();
 }
 log('');
@@ -373,6 +359,7 @@ log('');
   await loadFixture(page, 'protokoll.txt');
   await page.evaluate(() => window.__anon.addManual('Uchendu'));
   const before = await page.evaluate(() => ({ ls: localStorage.length, ss: sessionStorage.length, cookies: document.cookie.length }));
+  await page.click('#tgl-adv'); // Merkliste liegt unter „Erweitert“
   page.once('dialog', (d) => d.accept());
   await page.check('#persist');
   const after = await page.evaluate(() => ({ ls: localStorage.length, keys: Object.keys(localStorage) }));
@@ -401,7 +388,7 @@ log('');
     const st = await loadFixtureAbs(page, big);
     const t1 = Date.now();
     await ackWarnings(page);
-    const e = await clickExport(page, '#btn-txt');
+    const e = await clickExport(page, 'txt');
     const t2 = Date.now();
     const mem = await page.evaluate(() => (performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1048576) : -1));
     log(`- TXT ${mb} MB: Laden+Analyse ${((t1 - t0) / 1000).toFixed(1)} s, Export+Schlusscheck ${((t2 - t1) / 1000).toFixed(1)} s, JS-Speicher ca. ${mem} MB – ${st.trim().slice(0, 60)}${e.bytes ? '' : ' (kein Export!)'}`);
@@ -424,7 +411,7 @@ log('');
   const st = await loadFixtureAbs(page, bigX);
   const t1 = Date.now();
   await ackWarnings(page);
-  const e = await clickExport(page, '#btn-xlsx');
+  const e = await clickExport(page, 'xlsx');
   const t2 = Date.now();
   const mem = await page.evaluate(() => (performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1048576) : -1));
   log(`- XLSX mit 20 000 Zeilen × 4 Spalten (${(fs.statSync(bigX).size / 1048576).toFixed(1)} MB gepackt): Laden+Analyse ${((t1 - t0) / 1000).toFixed(1)} s, Export+Schlusscheck ${((t2 - t1) / 1000).toFixed(1)} s, JS-Speicher ca. ${mem} MB${e.bytes ? '' : ' (kein Export!)'} – ${st.trim().slice(0, 60)}`);

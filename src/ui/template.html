@@ -5,178 +5,269 @@
 <meta http-equiv="Content-Security-Policy" content="__CSP__">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light">
 <title>Anonymisierer</title>
 <style>__STYLE__</style>
 </head>
 <body>
 <header class="top">
-  <h1>Anonymisierer</h1>
-  <p class="offline" role="status"><span class="dot" aria-hidden="true"></span> Offline-Modus, nichts wird gesendet</p>
+  <p class="brand">Anonymisierer</p>
+  <ol id="progress" class="progress" aria-label="Fortschritt" hidden></ol>
+  <p class="offline" role="status"><span class="dot" aria-hidden="true"></span> Offline – nichts wird gesendet</p>
 </header>
+
 <main>
-  <section class="notice">
-    <strong>Wichtig:</strong> Das Tool findet nie 100 % der Namen. <strong>Die Prüfansicht vor dem Export ist Pflicht.</strong>
-    Alles läuft nur in diesem Browser auf Ihrem Gerät; es gibt keine Internetverbindung.
+  <!-- ===================== Start ===================== -->
+  <section class="screen" id="scr-start" data-screen="start">
+    <h1>Was möchtest du tun?</h1>
+    <p class="lead">Das Tool führt dich Schritt für Schritt. Alles bleibt auf diesem PC.</p>
+    <div class="bigcards">
+      <button type="button" id="go-anon" class="bigcard primary">
+        <span class="bigcard-title">Dokument anonymisieren</span>
+        <span class="bigcard-text">Namen durch Platzhalter ersetzen, bevor die Datei an eine KI geht.</span>
+      </button>
+      <button type="button" id="go-restore" class="bigcard outline">
+        <span class="bigcard-title">Dokument zurückbauen</span>
+        <span class="bigcard-text">Echte Namen wieder einsetzen. Du brauchst die bearbeitete Datei und ihre Schlüsseldatei.</span>
+      </button>
+    </div>
+    <h2 class="small-h">So läuft das Anonymisieren ab</h2>
+    <ol class="howto">
+      <li><span class="num">1</span> Datei wählen</li>
+      <li><span class="num">2</span> Namen prüfen</li>
+      <li><span class="num">3</span> Speichern</li>
+    </ol>
   </section>
 
-  <section class="card" id="input">
-    <h2>1. Eingabe</h2>
-    <fieldset class="modebox">
-      <legend>Art der Ersetzung (vor dem Anonymisieren wählen)</legend>
-      <label><input type="radio" name="mode" value="person"> <strong>Person A, Person B, …</strong> (Standard) – <span class="norev">nicht rückbaufähig</span></label>
-      <label><input type="radio" name="mode" value="name"> <strong>[NAME]</strong> – <span class="norev">nicht rückbaufähig</span></label>
-      <label><input type="radio" name="mode" value="reversible"> <strong>rückbaufähig</strong> („Vorname A Nachname A“, „[E-MAIL-1]“) – Wähle diesen Modus, wenn du die Datei später wieder mit Klarnamen brauchst.</label>
+  <!-- ===================== A1 Datei ===================== -->
+  <section class="screen" id="scr-a1" data-screen="a1" hidden>
+    <h1>Datei wählen</h1>
+    <fieldset class="choice">
+      <legend>Brauchst du die Datei später wieder mit echten Namen?</legend>
+      <div class="choicecards">
+        <label class="choicecard">
+          <input type="radio" name="mode" value="reversible">
+          <span class="choice-title">Ja, ich baue sie später zurück</span>
+          <span class="choice-text">Du bekommst zusätzlich eine Schlüsseldatei. Nur damit kommen die Namen zurück.</span>
+        </label>
+        <label class="choicecard">
+          <input type="radio" name="mode" value="person">
+          <span class="choice-title">Nein, anonym reicht</span>
+          <span class="choice-text">Einfachere Platzhalter wie „Person A“. Ein Rückbau ist dann nicht möglich.</span>
+        </label>
+      </div>
     </fieldset>
+
+    <h2>Welche Datei?</h2>
     <div id="drop" class="drop" tabindex="0">
-      <p><strong>Datei hierher ziehen</strong> oder</p>
-      <button type="button" id="btn-file" class="primary">Datei auswählen</button>
+      <p class="drop-title">Datei hierher ziehen</p>
+      <button type="button" id="btn-file" class="secondary">Datei auswählen</button>
       <input type="file" id="file" accept=".txt,.text,.pdf,.docx,.xlsx,.csv,.tsv,text/plain,text/csv,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
       <p class="hint">Unterstützt: .txt, .pdf (nur mit Textebene), .docx, .xlsx, .csv · Nicht unterstützt: .doc, .xls, gescannte PDFs · max. 20 MB</p>
+      <p id="load-status" class="status" aria-live="polite"></p>
     </div>
-    <div class="pastebox">
-      <p><strong>… oder Text einfügen:</strong></p>
+    <div class="links">
+      <button type="button" id="tgl-paste" class="textlink" aria-expanded="false" aria-controls="pastebox">Stattdessen Text einfügen</button>
+      <button type="button" id="tgl-adv" class="textlink" aria-expanded="false" aria-controls="advanced">Erweitert</button>
+    </div>
+    <div id="pastebox" class="panel" hidden>
+      <label for="paste">Text einfügen</label>
       <textarea id="paste" rows="7" placeholder="Text hier einfügen (Kopieren/Einfügen)"></textarea>
-      <button type="button" id="btn-text" class="primary">Text prüfen</button>
+      <button type="button" id="btn-text" class="secondary">Text übernehmen</button>
     </div>
-    <p id="load-status" class="status" aria-live="polite"></p>
-  </section>
-
-  <section class="card">
-    <details>
-      <summary><h2 class="inline">Einstellungen</h2></summary>
+    <div id="advanced" class="panel" hidden>
       <fieldset>
         <legend>Zusätzlich ersetzen</legend>
-        <label><input type="checkbox" id="opt-email"> E-Mail-Adressen</label>
-        <label><input type="checkbox" id="opt-phone"> Telefonnummern</label>
-        <label><input type="checkbox" id="opt-iban"> IBAN</label>
-        <label><input type="checkbox" id="opt-address"> Adressen/PLZ</label>
+        <label class="check"><input type="checkbox" id="opt-email"> E-Mail-Adressen</label>
+        <label class="check"><input type="checkbox" id="opt-phone"> Telefonnummern</label>
+        <label class="check"><input type="checkbox" id="opt-iban"> IBAN</label>
+        <label class="check"><input type="checkbox" id="opt-address"> Adressen/PLZ</label>
       </fieldset>
       <fieldset>
         <legend>Unsichere Treffer</legend>
-        <label><input type="checkbox" id="opt-unsureOn"> unsichere Treffer standardmäßig ersetzen (außer z. B. „die Rose“, „im Winter“)</label>
+        <label class="check"><input type="checkbox" id="opt-unsureOn"> unsichere Treffer standardmäßig ersetzen (außer z. B. „die Rose“, „im Winter“)</label>
       </fieldset>
-    </details>
-  </section>
-
-  <section class="card" id="review" hidden>
-    <h2>2. Prüfansicht <span class="req">(Pflicht)</span></h2>
-    <div id="doc-warnings-wrap" class="warnbox" hidden>
-      <h3>Hinweise zu dieser Datei – bitte lesen und abhaken</h3>
-      <div id="doc-warnings"></div>
-    </div>
-    <div id="meta-names" class="metanames" hidden></div>
-    <p id="summary" class="summary"></p>
-    <p class="legend">
-      <mark class="hit sure on" data-l="A">sicher</mark>
-      <mark class="hit unsure on" data-l="A">unsicher</mark>
-      <mark class="hit contact on" data-l="E-MAIL">Kontakt</mark>
-      <mark class="hit sure off" data-l="A">aus</mark>
-      · Treffer antippen = an/aus · Nicht erkannten Namen antippen oder markieren → „Als Name markieren“
-    </p>
-    <div class="cols">
-      <div id="docview" class="docview" lang="de"></div>
-      <aside class="side">
-        <h3>Personen</h3>
-        <div id="entities"></div>
-      </aside>
-    </div>
-  </section>
-
-  <section class="card" id="lists" hidden>
-    <h2>3. Eigene Namen und Ausnahmen</h2>
-    <p class="danger">Enthält echte Namen. Wird nur gespeichert, wenn Sie es ausdrücklich wollen.</p>
-    <div class="listcols">
-      <div>
-        <h3>Eigene Namen (immer anonymisieren)</h3>
-        <div id="names-chips" class="chips"></div>
-        <p id="names-empty" class="muted">Noch keine eigenen Namen.</p>
-        <form id="name-add" class="addform"><input id="name-input" placeholder="Name hinzufügen" autocomplete="off"><button type="submit">Hinzufügen</button></form>
-      </div>
-      <div>
-        <h3>Ausnahmen (nie anonymisieren)</h3>
-        <div id="exc-chips" class="chips"></div>
-        <p id="exc-empty" class="muted">Keine Ausnahmen.</p>
-        <form id="exc-add" class="addform"><input id="exc-input" placeholder="Wort hinzufügen" autocomplete="off"><button type="submit">Hinzufügen</button></form>
-      </div>
-    </div>
-    <div class="row">
-      <button type="button" id="btn-list-export">Merkliste als Datei speichern</button>
-      <button type="button" id="btn-list-import">Merkliste laden</button>
-      <input type="file" id="list-file" accept=".json,application/json" hidden>
-      <button type="button" id="btn-clear" class="dangerbtn">Merkliste löschen</button>
-    </div>
-    <label class="persist"><input type="checkbox" id="persist"> Merkliste in diesem Browser speichern (Standard: aus)</label>
-  </section>
-
-  <section class="card" id="export">
-    <h2>4. Export</h2>
-    <p id="pdf-note" class="warnbox" hidden>PDF-Eingabe: Ausgabe nur als Text (.txt/.docx). Das Originallayout bleibt NICHT erhalten.</p>
-    <p id="norev-note" class="warnbox"><strong>Nicht rückbaufähig:</strong> In diesem Modus kann die Datei später nicht automatisch wieder mit Klarnamen versehen werden. Dafür vor dem Anonymisieren den Modus „rückbaufähig“ wählen.</p>
-    <div id="rev-note" class="warnbox" hidden>
-      <p><strong>Modus rückbaufähig: Ohne die Rückbau-Schlüsseldatei ist kein Rückbau möglich.</strong> Bitte die Schlüsseldatei zusätzlich speichern und sicher aufbewahren.</p>
-      <p class="danger">Die Schlüsseldatei enthält echte Namen. Nie weitergeben, nie an eine KI.</p>
-      <button type="button" id="btn-key" class="dangerbtn">Rückbau-Schlüsseldatei speichern …</button>
-      <p id="key-status" class="status" aria-live="polite"></p>
-    </div>
-    <div class="row">
-      <button type="button" id="btn-copy">Text kopieren</button>
-      <button type="button" id="btn-txt">.txt speichern</button>
-      <button type="button" id="btn-docx">.docx speichern</button>
-      <button type="button" id="btn-xlsx" hidden>.xlsx speichern</button>
-      <button type="button" id="btn-csv" hidden>.csv speichern</button>
-    </div>
-    <p class="hint">Vor jedem Export läuft ein Schlusscheck: Alle bestätigten Namen und alle Namen aus den Dateiangaben der Originaldatei werden in ALLEN Teilen des Ergebnisses erneut gesucht (Text, Dateieigenschaften, SharePoint-Daten, Bilder). Versteckte Angaben (Autor, Firma, Manager, Kommentar-Autoren, SharePoint-Felder, Bild-Metadaten) werden bereinigt. Dateiname immer neutral („anonymisiert_…“).</p>
-    <p id="export-status" class="status" aria-live="polite"></p>
-    <div id="leaks" class="leaks" hidden></div>
-    <details class="mapping" id="mapping">
-      <summary>Zuordnungstabelle (Pseudonym → Klarname)</summary>
-      <p class="danger">Enthält echte Namen. Wird nur auf Klick als SEPARATE Datei gespeichert, nie im anonymisierten Dokument.</p>
-      <button type="button" id="btn-map" class="dangerbtn">Zuordnungstabelle speichern …</button>
-    </details>
-  </section>
-
-  <section class="card" id="restore">
-    <h2>5. Rückbau (Klarnamen wieder einsetzen)</h2>
-    <p>Für Dateien, die im Modus <strong>rückbaufähig</strong> anonymisiert und danach bearbeitet wurden (z. B. Korrekturen nach Hinweisen einer KI). Jeder Platzhalter bekommt wieder genau die ursprüngliche Schreibweise. Alle Bearbeitungen und die Formatierung bleiben erhalten.</p>
-    <p class="hint">Metadaten (Autor, Kommentar-Autoren, Firma) werden NICHT wiederhergestellt. PDF ist als Eingabe nicht möglich (dafür die .txt/.docx-Ausgabe verwenden).</p>
-    <div class="listcols">
-      <div>
-        <h3>a) Anonymisierte Datei</h3>
-        <div id="rb-drop" class="drop" tabindex="0">
-          <p><strong>Datei hierher ziehen</strong> oder</p>
-          <button type="button" id="rb-btn-file">Datei auswählen</button>
-          <input type="file" id="rb-file" accept=".txt,.text,.docx,.xlsx,.csv,.tsv,text/plain,text/csv,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
-          <p class="hint">.txt, .docx, .xlsx, .csv</p>
+      <fieldset>
+        <legend>Andere Platzhalter</legend>
+        <label class="check"><input type="radio" name="mode" value="name"> Überall nur „[NAME]“ statt „Person A, Person B …“ (kein Rückbau möglich)</label>
+      </fieldset>
+      <div id="lists">
+        <p class="danger">Die Listen unten enthalten echte Namen. Sie werden nur gespeichert, wenn du es ausdrücklich willst.</p>
+        <div class="listcols">
+          <div>
+            <h3>Eigene Namen (immer anonymisieren)</h3>
+            <div id="names-chips" class="chips"></div>
+            <p id="names-empty" class="muted">Noch keine eigenen Namen.</p>
+            <form id="name-add" class="addform"><label class="sr" for="name-input">Name hinzufügen</label><input id="name-input" placeholder="Name hinzufügen" autocomplete="off"><button type="submit" class="secondary">Hinzufügen</button></form>
+          </div>
+          <div>
+            <h3>Ausnahmen (nie anonymisieren)</h3>
+            <div id="exc-chips" class="chips"></div>
+            <p id="exc-empty" class="muted">Keine Ausnahmen.</p>
+            <form id="exc-add" class="addform"><label class="sr" for="exc-input">Wort hinzufügen</label><input id="exc-input" placeholder="Wort hinzufügen" autocomplete="off"><button type="submit" class="secondary">Hinzufügen</button></form>
+          </div>
         </div>
-        <textarea id="rb-paste" rows="4" placeholder="… oder anonymisierten Text hier einfügen"></textarea>
-        <button type="button" id="rb-btn-text">Eingefügten Text verwenden</button>
-        <p id="rb-file-status" class="status" aria-live="polite"></p>
+        <div class="row">
+          <button type="button" id="btn-list-export" class="secondary">Merkliste als Datei speichern</button>
+          <button type="button" id="btn-list-import" class="secondary">Merkliste laden</button>
+          <input type="file" id="list-file" accept=".json,application/json" hidden>
+          <button type="button" id="btn-clear" class="dangerbtn">Merkliste löschen</button>
+        </div>
+        <label class="check"><input type="checkbox" id="persist"> Merkliste in diesem Browser speichern (Standard: aus)</label>
+      </div>
+    </div>
+    <nav class="navbar">
+      <button type="button" class="back" data-back>← Zurück</button>
+      <span class="navinfo" id="a1-info"></span>
+      <button type="button" id="a1-next" class="primary" disabled>Weiter zum Prüfen</button>
+    </nav>
+  </section>
+
+  <!-- ===================== A2 Prüfen ===================== -->
+  <section class="screen wide" id="scr-a2" data-screen="a2" hidden>
+    <div id="review">
+      <div class="a2head">
+        <div>
+          <h1>Stimmen die gefundenen Namen?</h1>
+          <p id="summary" class="lead"></p>
+        </div>
+        <p class="legend" aria-label="Legende">
+          <mark class="hit sure on" data-l="A">sicher</mark>
+          <mark class="hit unsure on" data-l="A">unsicher</mark>
+          <mark class="hit sure manual on" data-l="A">von dir markiert</mark>
+          <mark class="hit contact on" data-l="E-MAIL">Kontakt</mark>
+          <mark class="hit sure off" data-l="A">aus</mark>
+        </p>
+      </div>
+      <p class="hint">Treffer antippen schaltet ihn an oder aus. Ein Wort antippen oder markieren, um es als Namen zu markieren.</p>
+      <div class="cols">
+        <div id="docview" class="docview" lang="de"></div>
+        <aside class="side">
+          <div id="qcard" class="qcard" aria-live="polite"></div>
+          <h2 class="small-h">Personen</h2>
+          <div id="entities"></div>
+        </aside>
+      </div>
+    </div>
+    <nav class="navbar">
+      <button type="button" class="back" data-back>← Zurück</button>
+      <span class="navinfo" id="a2-info"></span>
+      <button type="button" id="a2-next" class="primary">Weiter zum Speichern</button>
+    </nav>
+  </section>
+
+  <!-- ===================== A3 Speichern ===================== -->
+  <section class="screen" id="scr-a3" data-screen="a3" hidden>
+    <h1>Letzter Blick, dann speichern</h1>
+    <ul id="ampel" class="ampel"></ul>
+    <div id="filecards" class="filecards"></div>
+    <p id="export-status" class="status" aria-live="polite"></p>
+    <details class="otherways">
+      <summary>Andere Wege</summary>
+      <div class="row">
+        <button type="button" id="btn-copy" class="secondary">Nur Text kopieren</button>
+        <button type="button" id="btn-txt" class="secondary">Als .txt speichern</button>
+        <button type="button" id="btn-docx" class="secondary">Als .docx speichern</button>
+        <button type="button" id="btn-xlsx" class="secondary" hidden>Als .xlsx speichern</button>
+        <button type="button" id="btn-csv" class="secondary" hidden>Als .csv speichern</button>
+      </div>
+      <div id="mapping">
+        <p class="hint">Zuordnungstabelle (Pseudonym → Klarname): enthält echte Namen, wird nur auf Klick als eigene Datei gespeichert, nie im anonymisierten Dokument.</p>
+        <button type="button" id="btn-map" class="dangerbtn">Zuordnungstabelle speichern …</button>
+      </div>
+    </details>
+    <div class="after">
+      <h2 class="small-h">Danach</h2>
+      <p id="save-hint"></p>
+      <button type="button" id="btn-kihint" class="secondary">Hinweis für die KI kopieren</button>
+      <p id="kihint-status" class="status" aria-live="polite"></p>
+      <textarea id="kihint-text" rows="3" readonly hidden></textarea>
+    </div>
+    <nav class="navbar">
+      <button type="button" class="back" data-back>← Zurück</button>
+      <span class="navinfo" id="a3-info"></span>
+      <span class="navbtns">
+        <button type="button" id="btn-key" class="primary" hidden>1 Schlüssel speichern</button>
+        <button type="button" id="btn-save" class="primary">Datei speichern</button>
+        <button type="button" id="btn-next-doc" class="secondary" hidden>Nächstes Dokument</button>
+      </span>
+    </nav>
+  </section>
+
+  <!-- ===================== R1 Dateien ===================== -->
+  <section class="screen" id="scr-r1" data-screen="r1" hidden>
+    <h1>Dateien für den Rückbau</h1>
+    <p class="lead">Für Dateien, die im Modus „rückbaufähig“ anonymisiert und danach bearbeitet wurden. Jeder Platzhalter bekommt wieder genau die ursprüngliche Schreibweise. Bearbeitungen und Formatierung bleiben erhalten.</p>
+    <div class="listcols">
+      <div>
+        <h2>Bearbeitete Datei</h2>
+        <div id="rb-drop" class="drop" tabindex="0">
+          <p class="drop-title">Datei hierher ziehen</p>
+          <button type="button" id="rb-btn-file" class="secondary">Datei auswählen</button>
+          <input type="file" id="rb-file" accept=".txt,.text,.docx,.xlsx,.csv,.tsv,text/plain,text/csv,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
+          <p class="hint">.txt, .docx, .xlsx, .csv (PDF ist nicht möglich: dafür die .txt- oder .docx-Ausgabe verwenden)</p>
+          <p id="rb-file-status" class="status" aria-live="polite"></p>
+        </div>
+        <button type="button" id="tgl-rb-paste" class="textlink" aria-expanded="false" aria-controls="rb-pastebox">Stattdessen Text einfügen</button>
+        <div id="rb-pastebox" class="panel" hidden>
+          <label for="rb-paste">Anonymisierten Text einfügen</label>
+          <textarea id="rb-paste" rows="4"></textarea>
+          <button type="button" id="rb-btn-text" class="secondary">Eingefügten Text verwenden</button>
+        </div>
       </div>
       <div>
-        <h3>b) Rückbau-Schlüsseldatei</h3>
-        <button type="button" id="rb-btn-key">Schlüsseldatei (.json) auswählen</button>
-        <input type="file" id="rb-key" accept=".json,application/json" hidden>
-        <p class="danger">Enthält echte Namen. Nie weitergeben, nie an eine KI.</p>
-        <p id="rb-key-status" class="status" aria-live="polite"></p>
+        <h2>Schlüsseldatei</h2>
+        <div id="rb-key-drop" class="drop keydrop" tabindex="0">
+          <p class="drop-title">Schlüsseldatei hierher ziehen</p>
+          <button type="button" id="rb-btn-key" class="secondary">Schlüsseldatei (.json) auswählen</button>
+          <input type="file" id="rb-key" accept=".json,application/json" hidden>
+          <p class="danger">Enthält echte Namen, nie an eine KI.</p>
+          <p id="rb-key-status" class="status" aria-live="polite"></p>
+        </div>
       </div>
     </div>
-    <div class="row"><button type="button" id="rb-btn-check" class="primary">Rückbau prüfen</button></div>
-    <div id="rb-report" hidden></div>
-    <div class="row" id="rb-actions" hidden>
-      <button type="button" id="rb-btn-save" class="primary">Wiederhergestellte Datei speichern</button>
-      <button type="button" id="rb-btn-copy">Text kopieren</button>
-    </div>
-    <p id="rb-status" class="status" aria-live="polite"></p>
+    <nav class="navbar">
+      <button type="button" class="back" data-back>← Zurück</button>
+      <span class="navinfo" id="r1-info"></span>
+      <button type="button" id="rb-btn-check" class="primary" disabled>Weiter zum Prüfen</button>
+    </nav>
+  </section>
+
+  <!-- ===================== R2 Prüfen ===================== -->
+  <section class="screen" id="scr-r2" data-screen="r2" hidden>
+    <h1>Passt alles zusammen?</h1>
+    <div id="rb-report"></div>
+    <nav class="navbar">
+      <button type="button" class="back" data-back>← Zurück</button>
+      <span class="navinfo" id="r2-info"></span>
+      <button type="button" id="r2-next" class="primary">Weiter zum Speichern</button>
+    </nav>
+  </section>
+
+  <!-- ===================== R3 Speichern ===================== -->
+  <section class="screen" id="scr-r3" data-screen="r3" hidden>
+    <h1>Wiederhergestellte Datei speichern</h1>
+    <ul id="rb-ampel" class="ampel"></ul>
     <div id="rb-left" class="leaks" hidden></div>
+    <p id="rb-status" class="status" aria-live="polite"></p>
+    <div class="row" id="rb-actions"><button type="button" id="rb-btn-copy" class="secondary" hidden>Nur Text kopieren</button></div>
+    <nav class="navbar">
+      <button type="button" class="back" data-back>← Zurück</button>
+      <span class="navinfo"></span>
+      <span class="navbtns">
+        <button type="button" id="rb-btn-save" class="primary">Wiederhergestellte Datei speichern</button>
+        <button type="button" id="rb-next-doc" class="secondary" hidden>Nächstes Dokument</button>
+      </span>
+    </nav>
   </section>
 </main>
-<div id="markbar" class="markbar" hidden>
-  <span>„<span id="markterm"></span>“</span>
-  <button type="button" id="btn-mark" class="primary">Als Name markieren</button>
-  <button type="button" id="btn-mark-cancel">Abbrechen</button>
+
+<div id="markbar" class="markbar" role="dialog" aria-label="Als Name markieren" hidden>
+  <span class="markterm">„<span id="markterm"></span>“</span>
+  <button type="button" id="btn-mark" class="markbtn small">Als Name markieren</button>
+  <button type="button" id="btn-mark-cancel" class="secondary small">Abbrechen</button>
 </div>
-<footer class="foot">Anonymisierer · Version __VERSION__ · Stand __DATE__ · läuft vollständig offline · Lizenzen und Prüfsumme siehe README</footer>
+<footer class="foot">Anonymisierer · Version __VERSION__ · Stand __DATE__ · läuft vollständig offline · Das Tool findet nie alle Namen. Die Prüfung in Schritt 2 gehört immer dazu. · Lizenzen und Prüfsumme siehe README</footer>
 <script>__SCRIPT__</script>
 </body>
 </html>
