@@ -6,6 +6,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import JSZip from 'jszip';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..');
@@ -37,13 +38,36 @@ async function outputs(html, file, mode, formats) {
       const o = await window.__anon.buildOutput(fmt);
       return o.zip ? Array.from(o.bytes) : o.text;
     }, f);
-    res[f] = sha(typeof res[f] === 'string' ? res[f] : Buffer.from(res[f]));
+    const raw = res[f];
+    res[f] = { sha: sha(typeof raw === 'string' ? raw : Buffer.from(raw)), parts: typeof raw === 'string' ? null : await normalizedParts(Buffer.from(raw)) };
   }
   await ctx.close();
   return res;
 }
+// Word/Excel-Teile ohne die Kennung (Version 2.1, Modus rückbaufähig): Eigenschaft „AnonymisiererKennung“
+// entfernen; besteht der Teil danach nur noch aus der leeren Hülle, auch den Teil, seinen Verweis und Inhaltstyp.
+// Nur für den Vergleich „gleich bis auf die Kennung“; byte-gleich wird weiterhin streng gezählt.
+async function normalizedParts(bytes) {
+  const z = await JSZip.loadAsync(bytes);
+  const parts = {};
+  // Ein für die Kennung neu geschriebener Teil verliert nur den Zeilenumbruch nach der XML-Kopfzeile: nicht als Unterschied zählen
+  for (const n of Object.keys(z.files).filter((x) => !z.files[x].dir)) parts[n] = /\.(xml|rels)$/i.test(n) ? (await z.file(n).async('string')).replace(/^(<\?xml[^>]*\?>)\r?\n/, '$1') : sha(await z.file(n).async('nodebuffer'));
+  for (const n of Object.keys(parts)) {
+    if (typeof parts[n] !== 'string' || !parts[n].includes('name="AnonymisiererKennung"')) continue;
+    parts[n] = parts[n].replace(/<property [^>]*name="AnonymisiererKennung"[^>]*>[\s\S]*?<\/property>/, '');
+    if (!/<property[\s>]/.test(parts[n])) {
+      delete parts[n];
+      const esc = n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      for (const r of Object.keys(parts).filter((x) => /\.rels$/.test(x))) parts[r] = parts[r].replace(new RegExp(`<Relationship [^>]*Target="/?${esc}"[^>]*/>`), '');
+      if (parts['[Content_Types].xml']) parts['[Content_Types].xml'] = parts['[Content_Types].xml'].replace(new RegExp(`<Override PartName="/${esc}"[^>]*/>`), '');
+    }
+  }
+  return Object.fromEntries(Object.entries(parts).map(([k, v]) => [k, typeof v === 'string' ? sha(v) : v]));
+}
+const sameParts = (a, b) => !!a && !!b && JSON.stringify(Object.entries(a).sort()) === JSON.stringify(Object.entries(b).sort());
 let total = 0;
 let same = 0;
+let onlyKennung = 0;
 const lines = [];
 for (const [file, formats] of FIXTURES) {
   for (const mode of ['person', 'name', 'reversible']) {
@@ -51,13 +75,16 @@ for (const [file, formats] of FIXTURES) {
     const b = await outputs(newHtml, file, mode, formats);
     for (const f of formats) {
       total++;
-      const ok = a[f] === b[f];
+      const ok = a[f].sha === b[f].sha;
+      // Modus rückbaufähig: Word/Excel dürfen sich NUR durch die Kennung unterscheiden
+      const kOnly = !ok && mode === 'reversible' && sameParts(a[f].parts, b[f].parts);
       if (ok) same++;
-      lines.push(`- ${file}, Modus ${({ person: '„Person A“', name: '„[NAME]“', reversible: '„rückbaufähig“' })[mode]}, Ausgabe .${f}: ${ok ? 'identisch' : 'UNTERSCHIEDLICH'} (${a[f].slice(0, 12)} / ${b[f].slice(0, 12)})`);
+      if (kOnly) onlyKennung++;
+      lines.push(`- ${file}, Modus ${({ person: '„Person A“', name: '„[NAME]“', reversible: '„rückbaufähig“' })[mode]}, Ausgabe .${f}: ${ok ? 'identisch' : kOnly ? 'gleich bis auf die Kennung (Eigenschaft)' : 'UNTERSCHIEDLICH'} (${a[f].sha.slice(0, 12)} / ${b[f].sha.slice(0, 12)})`);
     }
   }
 }
 await browser.close();
-const out = [`Regression: ${same} von ${total} Ausgaben byte-identisch (Referenz ${sha(fs.readFileSync(oldHtml)).slice(0, 16)}…, neu ${sha(fs.readFileSync(newHtml)).slice(0, 16)}…)`, ...lines].join('\n');
+const out = [`Regression: ${same} von ${total} Ausgaben byte-identisch, ${onlyKennung} gleich bis auf die Kennung, ${total - same - onlyKennung} unterschiedlich (Referenz ${sha(fs.readFileSync(oldHtml)).slice(0, 16)}…, neu ${sha(fs.readFileSync(newHtml)).slice(0, 16)}…)`, ...lines].join('\n');
 console.log(out);
-process.exit(same === total ? 0 : 1);
+process.exit(same + onlyKennung === total ? 0 : 1);

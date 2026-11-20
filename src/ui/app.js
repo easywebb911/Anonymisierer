@@ -14,7 +14,8 @@ import { parseKeyFile, planRestore, makeRestoreString, findLeftovers } from '../
 import { readDocx, writeDocx, buildDocx } from '../formats/docx.js';
 import { readXlsx, writeXlsx } from '../formats/xlsx.js';
 import { collectZipTexts } from '../formats/xmlutil.js';
-import { describePart } from '../formats/meta.js';
+import { describePart, readKennungProperty } from '../formats/meta.js';
+import { newKennung, isKennung, kennungFromFileName } from './kennung.js';
 import { readPdf } from '../formats/pdf.js';
 
 const MAX_BYTES = 20 * 1024 * 1024;
@@ -94,6 +95,8 @@ const app = {
   saved: null, // {name}
   keyStamp: undefined,
   stamp: 0,
+  kennung: null, // Modus rückbaufähig: Zufallskennung des geladenen Dokuments
+  keyKennung: null, // Kennung der zuletzt gespeicherten Schlüsseldatei
 };
 
 // ---------- Speicher (nur auf ausdrücklichen Wunsch) ----------
@@ -170,6 +173,9 @@ function runAnalysis() {
 }
 // Jede Änderung der Treffer: Schlusscheck-Bestätigung verfällt, Schlüsseldatei muss neu gespeichert werden
 function changed() {
+  // Wurde zur aktuellen Kennung schon eine Schlüsseldatei gespeichert, bekommt jeder neue Stand eine neue Kennung.
+  // So gibt es nie zwei verschiedene Schlüsseldateien mit derselben Kennung.
+  if (app.keyKennung && app.keyKennung === app.kennung) app.kennung = newKennung();
   app.leakAck = false;
   app.stamp += 1;
   app.preview = null;
@@ -213,13 +219,15 @@ async function buildOutput(format) {
   // SharePoint-Felder: Werte mit einem bestätigten Namen oder einem Namen aus den Dateiangaben werden geleert
   const cf = checkForms();
   const containsName = makeNameTest(cf.forms, cf.phrases);
-  if (format === 'docx' && d.kind === 'docx') return { bytes: await writeDocx(d.bytes, reps, generic, { containsName }), zip: true };
+  // Modus rückbaufähig: Kennung als unsichtbare Eigenschaft in Word/Excel (in den anderen Modi nichts)
+  const kennung = isReversible() ? app.kennung : undefined;
+  if (format === 'docx' && d.kind === 'docx') return { bytes: await writeDocx(d.bytes, reps, generic, { containsName, kennung }), zip: true };
   if (format === 'xlsx' && d.kind === 'xlsx') {
     const sheetIssues = [];
-    const bytes = await writeXlsx(d.bytes, reps, generic, { onSheetName: (x) => sheetIssues.push(x), containsName });
+    const bytes = await writeXlsx(d.bytes, reps, generic, { onSheetName: (x) => sheetIssues.push(x), containsName, kennung });
     return { bytes, zip: true, sheetIssues };
   }
-  if (format === 'docx') return { bytes: await buildDocx(docxSections()), zip: true };
+  if (format === 'docx') return { bytes: await buildDocx(docxSections(), { kennung }), zip: true };
   if (format === 'csv') return { text: writeCsv(d.raw, newUnitTexts()) };
   return { text: plainTextExport() };
 }
@@ -248,7 +256,9 @@ const MIME = {
   xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 };
 const OUT_BASE = { txt: 'anonymisiert_text', csv: 'anonymisiert_tabelle', docx: 'anonymisiert_dokument', xlsx: 'anonymisiert_tabelle' };
-const KEY_NAME = 'rueckbau_schluessel_VERTRAULICH.json';
+// Dateinamen: im Modus rückbaufähig mit Kennung („anonymisiert_K7F3.docx“, „schluessel_K7F3.json“), sonst wie bisher
+function outName(fmt) { return isReversible() && app.kennung ? `anonymisiert_${app.kennung}.${fmt}` : `${OUT_BASE[fmt]}.${fmt}`; }
+function keyName() { return `schluessel_${app.kennung}.json`; }
 function download(bytes, filename, mime) {
   const blob = new Blob([bytes], { type: mime });
   const url = URL.createObjectURL(blob);
@@ -759,9 +769,9 @@ async function startPreview() {
 }
 function renderFileCards() {
   const fmt = mainFormat();
-  const cards = [h('div', { class: 'filecard' }, h('p', { class: 'hint' }, 'Für die KI'), h('p', { class: 'fname' }, `${OUT_BASE[fmt]}.${fmt}`))];
+  const cards = [h('div', { class: 'filecard' }, h('p', { class: 'hint' }, 'Für die KI'), h('p', { class: 'fname', id: 'fname-out' }, outName(fmt)))];
   if (isReversible()) {
-    cards.push(h('div', { class: 'filecard key' }, h('p', {}, h('strong', {}, 'Bleibt auf diesem PC · enthält echte Namen')), h('p', { class: 'fname' }, KEY_NAME),
+    cards.push(h('div', { class: 'filecard key' }, h('p', {}, h('strong', {}, 'Bleibt auf diesem PC · enthält echte Namen')), h('p', { class: 'fname', id: 'fname-key' }, keyName()),
       h('p', {}, 'Ohne diese Datei ist kein Rückbau möglich. Nie weitergeben, nie an eine KI.'),
       h('p', { id: 'key-status', class: 'status' + (keySaved() ? ' ok' : '') }, keySaved() ? app.keyNote : '')));
   }
@@ -819,7 +829,7 @@ async function doExport(format) {
       status.className = ok ? 'status ok' : 'status bad';
       return;
     }
-    const name = `${OUT_BASE[format]}.${format}`;
+    const name = outName(format);
     download(out.zip ? out.bytes : encodeText(out.text), name, MIME[format]);
     app.saved = { name, note };
     status.textContent = `Gespeichert: ${name} – ${note}.`;
@@ -849,10 +859,13 @@ function exportKey() {
   if (!isReversible() || !app.result || !app.result.reversible) return;
   const ok = window.confirm('ACHTUNG: Die Rückbau-Schlüsseldatei enthält die ECHTEN NAMEN und Kontaktdaten.\n\nNie weitergeben, nie an eine KI. Getrennt vom anonymisierten Dokument sicher aufbewahren.\n\nOhne diese Datei ist kein Rückbau möglich.\n\nJetzt speichern?');
   if (!ok) return;
-  const key = buildRestoreKey(app.result, { version: VERSION, kind: app.doc.kind });
+  // Die Kennung kommt als Feld in die Schlüsseldatei (gleich hinter die Tool-Version)
+  const { platzhalter, personen, ...kopf } = buildRestoreKey(app.result, { version: VERSION, kind: app.doc.kind });
+  const key = { ...kopf, kennung: app.kennung, platzhalter, personen };
   app.keyStamp = app.stamp;
+  app.keyKennung = app.kennung;
   app.keyNote = `Schlüsseldatei gespeichert (${key.platzhalter.length} Platzhalter). Wenn du danach noch Treffer änderst, musst du sie erneut speichern.`;
-  download(encodeText(JSON.stringify(key, null, 2)), KEY_NAME, 'application/json');
+  download(encodeText(JSON.stringify(key, null, 2)), keyName(), 'application/json');
   renderSave();
 }
 
@@ -900,6 +913,8 @@ function resetDoc() {
   app.saved = null;
   app.keyStamp = undefined;
   app.keyNote = '';
+  app.kennung = null;
+  app.keyKennung = null;
   app.leakAck = false;
   app.state.overrides = {};
   app.state.merges = {};
@@ -920,6 +935,7 @@ async function openBytes(bytes, name) {
   resetDoc();
   app.doc = doc;
   app.doc.name = name;
+  app.kennung = newKennung(); // neue Zufallskennung je geladenem Dokument
   runAnalysis();
 }
 // „Nächstes Dokument“: alles Geladene verwerfen (Merkliste und Einstellungen bleiben), zurück zum Start
@@ -1083,7 +1099,7 @@ function init() {
 }
 
 // ---------- Rückbau ----------
-const rb = { file: null, key: null, plan: null, leftAck: false, confirmAck: false, saved: null };
+const rb = { file: null, key: null, plan: null, leftAck: false, confirmAck: false, saved: null, keyKennung: null, kennungAck: false };
 
 async function rbLoadFile(bytes, name) {
   const st = $('#rb-file-status');
@@ -1099,7 +1115,10 @@ async function rbLoadFile(bytes, name) {
     else if (kind === 'csv') raw = readCsv(bytes);
     else if (kind === 'docx') raw = await readDocx(bytes);
     else raw = await readXlsx(bytes);
-    rb.file = { kind, bytes, raw, name, units: raw.units.map((u) => ({ text: u.text, label: u.label || '' })) };
+    // Kennung der bearbeiteten Datei: aus der unsichtbaren Eigenschaft (Word/Excel) und aus dem Dateinamen
+    const propK = kind === 'docx' || kind === 'xlsx' ? await readKennungProperty(raw.zip, raw.docs) : null;
+    rb.file = { kind, bytes, raw, name, units: raw.units.map((u) => ({ text: u.text, label: u.label || '' })),
+      kennung: { prop: isKennung(propK) ? propK : null, propRaw: propK, file: kennungFromFileName(name) } };
     st.textContent = `Geladen: ${name} (${kind.toUpperCase()}, ${rb.file.units.length} Textabschnitte).`;
     st.className = 'status ok';
   } catch (e) {
@@ -1111,11 +1130,17 @@ async function rbLoadFile(bytes, name) {
 async function rbLoadKey(text) {
   const st = $('#rb-key-status');
   rb.key = null;
+  rb.keyKennung = null;
   rbReset();
   const r = parseKeyFile(text);
   if (!r.ok) { st.textContent = r.error; st.className = 'status bad'; renderR1(); return; }
+  // Kennung der Schlüsseldatei (Schlüssel vor Version 2.1 haben keine)
+  let kk = null;
+  try { const d = JSON.parse(text.replace(/^\uFEFF/, '')); kk = d.kennung === undefined ? null : d.kennung; } catch { kk = null; }
+  if (kk !== null && !isKennung(kk)) { st.textContent = 'Die Schlüsseldatei ist beschädigt (ungültige Kennung).'; st.className = 'status bad'; renderR1(); return; }
   rb.key = r.key;
-  st.textContent = `Schlüsseldatei geladen: ${r.key.entries.size} Platzhalter (erstellt mit Version ${r.key.toolVersion}${r.key.kind ? ', Quelle ' + r.key.kind.toUpperCase() : ''}).`;
+  rb.keyKennung = kk;
+  st.textContent = `Schlüsseldatei geladen: ${r.key.entries.size} Platzhalter${kk ? ', Kennung ' + kk : ' (ohne Kennung)'} (erstellt mit Version ${r.key.toolVersion}${r.key.kind ? ', Quelle ' + r.key.kind.toUpperCase() : ''}).`;
   st.className = 'status ok';
   renderR1();
 }
@@ -1123,6 +1148,7 @@ function rbReset() {
   rb.plan = null;
   rb.leftAck = false;
   rb.confirmAck = false;
+  rb.kennungAck = false;
   rb.saved = null;
   $('#rb-report').replaceChildren();
   $('#rb-left').hidden = true;
@@ -1131,6 +1157,7 @@ function rbReset() {
 function rbClear() {
   rb.file = null;
   rb.key = null;
+  rb.keyKennung = null;
   rbReset();
   $('#rb-file-status').textContent = '';
   $('#rb-key-status').textContent = '';
@@ -1153,9 +1180,32 @@ function rbCheck() {
   renderR2();
   show('r2');
 }
+// Kennung: Gehören Datei und Schlüssel zusammen? Die Eigenschaft in der Datei gilt vor dem Dateinamen.
+function kennungState() {
+  const fk = rb.file.kennung;
+  const doc = fk.prop || fk.file;
+  const conflict = fk.prop && fk.file && fk.prop !== fk.file ? `Die Eigenschaft in der Datei (${fk.prop}) und der Dateiname (${fk.file}) widersprechen sich; es gilt die Eigenschaft.` : '';
+  const key = rb.keyKennung;
+  if (!key) return { state: 'oldkey', doc, key, conflict, needsAck: false };
+  if (!doc) return { state: 'none', doc, key, conflict, needsAck: true };
+  if (doc === key) return { state: 'ok', doc, key, conflict, needsAck: false };
+  return { state: 'other', doc, key, conflict, needsAck: true };
+}
+function kennungRow() {
+  const k = kennungState();
+  const ack = () => h('label', { class: 'check' }, h('input', { type: 'checkbox', id: 'rb-kennung-ack', checked: rb.kennungAck, onchange: (e) => { rb.kennungAck = e.target.checked; renderR2(); } }),
+    k.state === 'other' ? ' Ich weiß, dass die Kennungen nicht passen, und will trotzdem zurückbauen.' : ' Ich habe geprüft, dass Datei und Schlüssel zusammengehören.');
+  const extra = k.conflict ? h('p', { class: 'hint' }, k.conflict) : null;
+  if (k.state === 'ok') return ampelRow('ok', 'Kennung', `Kennung ${k.doc} passt.`, extra);
+  if (k.state === 'other') return ampelRow(rb.kennungAck ? 'warn' : 'bad', 'Kennung', `Diese Schlüsseldatei gehört zu einem anderen Dokument (Dokument: ${k.doc}, Schlüssel: ${k.key}).`, extra, ack());
+  if (k.state === 'none') return ampelRow(rb.kennungAck ? 'ok' : 'warn', 'Kennung', `Im Dokument steht keine Kennung. Der Schlüssel hat die Kennung ${k.key}. Bitte prüfe, ob beide zusammengehören.`, extra, ack());
+  return ampelRow('warn', 'Kennung', `Schlüssel ohne Kennung (erstellt vor Version 2.1). Der Rückbau funktioniert wie bisher; prüfe selbst, ob Datei und Schlüssel zusammengehören.${k.doc ? ` Das Dokument hat die Kennung ${k.doc}.` : ''}`, extra);
+}
+function kennungBlocked() { const k = kennungState(); return k.needsAck && !rb.kennungAck; }
+
 function renderR2() {
   const plan = rb.plan;
-  const rows = [];
+  const rows = [kennungRow()];
   if (plan.verdict === 'falsch') {
     rows.push(ampelRow('bad', 'Schlüsseldatei passt nicht', 'Kein einziger Platzhalter aus der Schlüsseldatei wurde in der Datei gefunden. Es wird nichts erzeugt. Prüfe, ob Datei und Schlüsseldatei zusammengehören.'));
   } else {
@@ -1180,7 +1230,7 @@ function renderR2() {
     }
   }
   $('#rb-report').replaceChildren(h('ul', { class: 'ampel' }, ...rows));
-  const blocked = plan.verdict === 'falsch' || (plan.needsConfirm && !rb.confirmAck);
+  const blocked = plan.verdict === 'falsch' || (plan.needsConfirm && !rb.confirmAck) || kennungBlocked();
   $('#r2-next').disabled = blocked;
   $('#r2-info').textContent = plan.verdict === 'falsch' ? 'Rückbau nicht möglich' : blocked ? 'Bitte bestätigen' : '';
 }
@@ -1216,6 +1266,7 @@ async function rbSave(copy) {
   const st = $('#rb-status');
   if (!rb.plan || rb.plan.verdict === 'falsch') return;
   if (rb.plan.needsConfirm && !rb.confirmAck) { st.textContent = 'Bitte zuerst die Abweichungen im Bericht prüfen und bestätigen.'; st.className = 'status bad'; return; }
+  if (kennungBlocked()) { st.textContent = 'Bitte zuerst die Kennung prüfen und bestätigen (Schritt „Prüfen“).'; st.className = 'status bad'; return; }
   st.textContent = 'Erzeuge Datei und führe Schlusscheck durch …';
   st.className = 'status';
   try {
@@ -1291,6 +1342,6 @@ function initRestore() {
 }
 
 // Für automatische Tests (nur lesend nutzbar, kein Netzwerk)
-window.__anon = { app, openBytes, buildOutput, finalCheck, addManual, runAnalysis, rb, rbLoadFile, rbLoadKey, rbCheck, show, questions };
+window.__anon = { app, openBytes, buildOutput, finalCheck, addManual, runAnalysis, rb, rbLoadFile, rbLoadKey, rbCheck, show, questions, newKennung };
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();

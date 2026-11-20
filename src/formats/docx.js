@@ -5,7 +5,7 @@ import {
   parseXml, serializeXml, allElements, isW, isA, makeUnit, textSegment, virtualSegment, distribute,
   ancestor, neutralizePath, ZIP_OPTS, FIXED_DATE,
 } from './xmlutil.js';
-import { collectMetaNames, cleanProperties, cleanCustomXml, removeThumbnails, stripImages, imageWarnings } from './meta.js';
+import { collectMetaNames, cleanProperties, cleanCustomXml, removeThumbnails, stripImages, imageWarnings, setKennungProperty, KENNUNG_PROP } from './meta.js';
 
 const PART_ORDER = [
   [/^word\/document\.xml$/, 'Text'],
@@ -208,6 +208,8 @@ export async function writeDocx(bytes, repsPerUnit, generic, opts = {}) {
     // Eingebettete Objekte werden geleert (Inhalt nicht prüfbar); die Beziehung bleibt, damit das Dokument gültig bleibt
     else if (/^word\/embeddings\//.test(n)) d.zip.file(n, new Uint8Array(0), { date: FIXED_DATE, createFolders: false });
   }
+  // Modus rückbaufähig: Kennung als unsichtbare benutzerdefinierte Eigenschaft (nach der Bereinigung)
+  if (clean && opts.kennung) await setKennungProperty(d.zip, d.docs, changed, opts.kennung);
   for (const n of changed) d.zip.file(n, serializeXml(d.docs.get(n)), { date: FIXED_DATE, createFolders: false });
   // Bild-Metadaten (EXIF, XMP, IPTC, Kommentare, PNG-Textblöcke) verlustfrei entfernen
   if (clean) await stripImages(d.zip);
@@ -215,8 +217,8 @@ export async function writeDocx(bytes, repsPerUnit, generic, opts = {}) {
 }
 
 // Neues, schlichtes Word-Dokument aus Textabschnitten (für TXT/PDF/CSV-Eingaben).
-// sections: [{heading?, paragraphs: [string]}]
-export async function buildDocx(sections) {
+// sections: [{heading?, paragraphs: [string]}]; opts.kennung: Modus rückbaufähig, Kennung als benutzerdefinierte Eigenschaft
+export async function buildDocx(sections, opts = {}) {
   const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '');
   const run = (t) => {
@@ -240,6 +242,11 @@ export async function buildDocx(sections) {
     'docProps/core.xml': '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title></dc:title><dc:creator></dc:creator><cp:lastModifiedBy></cp:lastModifiedBy></cp:coreProperties>',
     'docProps/app.xml': '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Application>Anonymisierer</Application></Properties>',
   };
+  if (opts.kennung) {
+    files['docProps/custom.xml'] = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/custom-properties" xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes"><property fmtid="{D5CDD505-2E9C-101B-9397-08002B2CF9AE}" pid="2" name="${KENNUNG_PROP}"><vt:lpwstr>${opts.kennung}</vt:lpwstr></property></Properties>`;
+    files['[Content_Types].xml'] = files['[Content_Types].xml'].replace('</Types>', '<Override PartName="/docProps/custom.xml" ContentType="application/vnd.openxmlformats-officedocument.custom-properties+xml"/></Types>');
+    files['_rels/.rels'] = files['_rels/.rels'].replace('</Relationships>', '<Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/custom-properties" Target="docProps/custom.xml"/></Relationships>');
+  }
   const zip = new JSZip();
   for (const [n, c] of Object.entries(files)) zip.file(n, c, { date: FIXED_DATE, createFolders: false });
   return zip.generateAsync({ ...ZIP_OPTS, mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });

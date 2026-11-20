@@ -86,6 +86,8 @@ async function restore(fileBytes, name, keyPath, { confirm = true } = {}) {
   const fileStatus = await page.textContent('#rb-file-status');
   const keyStatus = await page.textContent('#rb-key-status');
   await page.click('#rb-btn-check', { timeout: 3000 }).catch(() => {}); // gesperrt, wenn eine Datei fehlt oder ungültig ist
+  // Version 2.1: Diese Testdateien tragen keine Kennung im Dateinamen; Zusammengehörigkeit ausdrücklich bestätigen
+  if (await page.$('#rb-kennung-ack')) await page.check('#rb-kennung-ack');
   const plan = await page.evaluate(() => { const p = window.__anon.rb.plan; return p ? { totalFound: p.totalFound, matchedKeys: p.matchedKeys, verdict: p.verdict, needsConfirm: p.needsConfirm, rows: p.rows, issues: p.issues } : null; });
   const reportText = await page.textContent('#rb-report');
   let res = { status: '', bytes: null };
@@ -526,7 +528,10 @@ log('## Fallen (einzeln geprüft)');
   const r2 = await restore(Buffer.from(corrected), 'fallen-korrigiert.txt', a.keyPath);
   chk('Rückbau deterministisch (Doppellauf byte-gleich)', sha(r.bytes) === sha(r2.bytes), `${sha(r.bytes)} / ${sha(r2.bytes)}`);
   const a2 = await anonymize(fp);
-  chk('Anonymisierung rückbaufähig deterministisch (Datei und Schlüssel)', sha(a.anon) === sha(a2.anon) && JSON.stringify(a.key) === JSON.stringify(a2.key), `${sha(a.anon)} / ${sha(a2.anon)}`);
+  // Version 2.1: Die Kennung ist absichtlich zufällig; alles andere muss gleich sein
+  const ohneKennung = (k) => { const c = { ...k }; delete c.kennung; return JSON.stringify(c); };
+  chk('Anonymisierung rückbaufähig deterministisch (Datei und Schlüssel ohne Kennung)', sha(a.anon) === sha(a2.anon) && ohneKennung(a.key) === ohneKennung(a2.key), `${sha(a.anon)} / ${sha(a2.anon)}`);
+  chk('Kennungen zweier Läufe verschieden (Zufall)', a.key.kennung && a2.key.kennung && a.key.kennung !== a2.key.kennung, `${a.key.kennung} / ${a2.key.kennung}`);
   globalThis.__checks = checks;
 }
 

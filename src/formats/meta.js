@@ -147,6 +147,79 @@ export async function cleanProperties(zip, docs, changed, opts = {}) {
 }
 function hasAncestor(el, ln) { for (let p = el.parentNode; p && p.nodeType === 1; p = p.parentNode) if (p.localName === ln) return true; return false; }
 
+// ---------- Kennung (Modus rückbaufähig) ----------
+// Die Kennung verbindet anonymisierte Datei und Schlüsseldatei. Sie wird als unsichtbare benutzerdefinierte
+// Eigenschaft geschrieben (nach der Bereinigung), damit sie ein Umbenennen der Datei übersteht.
+// Sie ist ein Zufallswert ohne Bezug zum Inhalt (kein personenbezogener Wert).
+export const KENNUNG_PROP = 'AnonymisiererKennung';
+const CUSTOM_NS = 'http://schemas.openxmlformats.org/officeDocument/2006/custom-properties';
+const VT_NS = 'http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes';
+const CUSTOM_REL = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/custom-properties';
+const CUSTOM_CT = 'application/vnd.openxmlformats-officedocument.custom-properties+xml';
+const FMTID = '{D5CDD505-2E9C-101B-9397-08002B2CF9AE}';
+export async function setKennungProperty(zip, docs, changed, kennung) {
+  const props = await findPropertyParts(zip, docs);
+  let name = props.custom[0];
+  if (!name) {
+    // Kein Teil für benutzerdefinierte Eigenschaften vorhanden: anlegen, mit Verweis und Inhaltstyp
+    name = 'docProps/custom.xml';
+    for (let i = 2; zip.file(name) || docs.has(name); i++) name = `docProps/custom${i}.xml`;
+    docs.set(name, parseXml(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Properties xmlns="${CUSTOM_NS}" xmlns:vt="${VT_NS}"></Properties>`, name));
+    // Verweise frisch aus dem Paket lesen (frühere Schritte haben sie evtl. schon geändert und geschrieben)
+    const relFile = zip.file('_rels/.rels');
+    const rels = relFile ? parseXml(await relFile.async('string'), '_rels/.rels') : null;
+    if (rels) {
+      docs.set('_rels/.rels', rels);
+      const ids = new Set(allElements(rels).filter((e) => e.localName === 'Relationship').map((e) => e.getAttribute('Id')));
+      let id = 'rIdKennung';
+      for (let i = 2; ids.has(id); i++) id = 'rIdKennung' + i;
+      const rel = rels.createElementNS(rels.documentElement.namespaceURI, 'Relationship');
+      rel.setAttribute('Id', id);
+      rel.setAttribute('Type', CUSTOM_REL);
+      rel.setAttribute('Target', name);
+      rels.documentElement.appendChild(rel);
+      zip.file('_rels/.rels', serializeXml(rels), ZOPT);
+      changed.add('_rels/.rels');
+    }
+    const ct = await readXml(zip, docs, '[Content_Types].xml');
+    if (ct) {
+      const o = ct.createElementNS(ct.documentElement.namespaceURI, 'Override');
+      o.setAttribute('PartName', '/' + name);
+      o.setAttribute('ContentType', CUSTOM_CT);
+      ct.documentElement.appendChild(o);
+      changed.add('[Content_Types].xml');
+    }
+  }
+  const doc = docs.get(name) || await readXml(zip, docs, name);
+  const root = doc.documentElement;
+  let pid = 1;
+  for (const el of allElements(doc).filter((e) => e.localName === 'property')) {
+    if (el.getAttribute('name') === KENNUNG_PROP) { el.parentNode.removeChild(el); continue; }
+    pid = Math.max(pid, Number(el.getAttribute('pid')) || 1);
+  }
+  const prop = doc.createElementNS(root.namespaceURI, root.prefix ? root.prefix + ':property' : 'property');
+  prop.setAttribute('fmtid', FMTID);
+  prop.setAttribute('pid', String(pid + 1));
+  prop.setAttribute('name', KENNUNG_PROP);
+  const v = doc.createElementNS(VT_NS, 'vt:lpwstr');
+  v.textContent = kennung;
+  prop.appendChild(v);
+  root.appendChild(prop);
+  changed.add(name);
+}
+// Liest die Kennung aus der Datei (null, wenn keine vorhanden)
+export async function readKennungProperty(zip, docs) {
+  for (const n of (await findPropertyParts(zip, docs)).custom) {
+    const doc = await readXml(zip, docs, n);
+    if (!doc) continue;
+    for (const el of allElements(doc).filter((e) => e.localName === 'property' && e.getAttribute('name') === KENNUNG_PROP)) {
+      const t = (el.textContent || '').trim();
+      if (t) return t;
+    }
+  }
+  return null;
+}
+
 // SharePoint-Felder: Personen-Felder leeren (in der Form, die SharePoint selbst für "leer" verwendet:
 // DisplayName leer, AccountId xsi:nil, AccountType leer). Andere Textwerte, die einen Namen enthalten, leeren.
 // containsName(str) -> true, wenn str einen bestätigten Namen oder einen Namen aus den Metadaten enthält.
