@@ -5,6 +5,7 @@ import {
   parseXml, serializeXml, allElements, isW, isA, makeUnit, textSegment, virtualSegment, distribute,
   ancestor, neutralizePath, ZIP_OPTS, FIXED_DATE,
 } from './xmlutil.js';
+import { collectMetaNames, cleanProperties, cleanCustomXml, removeThumbnails, stripImages, imageWarnings } from './meta.js';
 
 const PART_ORDER = [
   [/^word\/document\.xml$/, 'Text'],
@@ -130,7 +131,10 @@ export async function readDocx(bytes) {
   if (embedded.length) warnings.push(`Das Dokument enthält ${embedded.length} eingebettete(s) Objekt(e) (z. B. Excel-Tabellen). Deren Inhalt wird NICHT anonymisiert und vor dem Export entfernt.`);
   const media = names.filter((n) => /^word\/media\//.test(n));
   if (media.length) warnings.push(`Das Dokument enthält ${media.length} Bild(er). Namen IN Bildern (z. B. Scans, Unterschriften) erkennt das Tool nicht.`);
-  return { kind: 'docx', zip, docs, units, owned, warnings, names };
+  warnings.push(...await imageWarnings(zip));
+  // Namen aus den Original-Metadaten (Autor, Bearbeiter, Manager, Firma, Kommentar-/Änderungsautoren, SharePoint-Personen)
+  const metaNames = await collectMetaNames(zip, docs);
+  return { kind: 'docx', zip, docs, units, owned, warnings, names, metaNames };
 }
 
 // Baut die anonymisierte .docx. repsPerUnit: Ersetzungen je Einheit; generic(str): Ersetzer für sonstige Texte.
@@ -140,10 +144,18 @@ export async function writeDocx(bytes, repsPerUnit, generic, opts = {}) {
   const d = await readDocx(bytes);
   const changed = new Set();
   d.units.forEach((u, i) => { if (distribute(u, repsPerUnit[i] || [])) changed.add(u.part); });
+  // Versteckte Angaben: SharePoint-Felder (vor dem Ersetzen, damit Werte mit Namen erkannt werden) und
+  // Dateieigenschaften, gefunden über ihre Verweise (nicht über feste Pfade)
+  if (clean) {
+    await cleanCustomXml(d.zip, d.docs, changed, opts.containsName);
+    await cleanProperties(d.zip, d.docs, changed, { titlesOfParts: true });
+    await removeThumbnails(d.zip, d.docs, changed);
+  }
 
   // Sonstige Texte (Feldfunktionen, benutzerdefinierte XML-Daten, Alternativtexte …)
   const ATTRS = new Set(['descr', 'title', 'instr', 'alias', 'tag']);
   for (const [n, doc] of d.docs) {
+    if (/\.rels$/.test(n)) continue; // Verweise werden unten eigens behandelt
     let mod = false;
     for (const el of allElements(doc)) {
       // Metadaten-Attribute: Autor/Initialen/Benutzerkennung
@@ -169,29 +181,6 @@ export async function writeDocx(bytes, repsPerUnit, generic, opts = {}) {
     if (mod) changed.add(n);
   }
 
-  // Dokumenteigenschaften leeren
-  const core = clean ? d.docs.get('docProps/core.xml') : null;
-  if (core) {
-    for (const el of allElements(core)) {
-      if (['creator', 'lastModifiedBy', 'title', 'subject', 'keywords', 'description', 'category', 'contentStatus', 'identifier', 'language'].includes(el.localName) && el.textContent) {
-        el.textContent = '';
-        changed.add('docProps/core.xml');
-      }
-    }
-  }
-  const app = clean ? d.docs.get('docProps/app.xml') : null;
-  if (app) {
-    for (const el of allElements(app)) {
-      if (['Company', 'Manager', 'HyperlinkBase'].includes(el.localName) && el.textContent) { el.textContent = ''; changed.add('docProps/app.xml'); }
-    }
-  }
-  const custom = clean ? d.docs.get('docProps/custom.xml') : null;
-  if (custom) {
-    for (const el of allElements(custom)) {
-      if (['lpwstr', 'lpstr', 'bstr'].includes(el.localName) && el.textContent) { el.textContent = ''; changed.add('docProps/custom.xml'); }
-    }
-  }
-
   // Verweise (.rels): externe Pfade neutralisieren, Vorschaubild entfernen
   for (const n of d.names.filter((x) => /\.rels$/.test(x))) {
     const doc = parseXml(await d.zip.file(n).async('string'), n);
@@ -214,6 +203,8 @@ export async function writeDocx(bytes, repsPerUnit, generic, opts = {}) {
     else if (/^word\/embeddings\//.test(n)) d.zip.file(n, new Uint8Array(0), { date: FIXED_DATE, createFolders: false });
   }
   for (const n of changed) d.zip.file(n, serializeXml(d.docs.get(n)), { date: FIXED_DATE, createFolders: false });
+  // Bild-Metadaten (EXIF, XMP, IPTC, Kommentare, PNG-Textblöcke) verlustfrei entfernen
+  if (clean) await stripImages(d.zip);
   return d.zip.generateAsync({ ...ZIP_OPTS, mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
 }
 

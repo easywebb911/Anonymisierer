@@ -20,10 +20,12 @@ Es ist **eine einzige Datei: `index.html`**. Sie läuft komplett im Browser und 
    - Ein **nicht erkannter Name**: Wort antippen (oder Text markieren) → unten erscheint **„Als Name markieren“**. Danach werden **alle** Vorkommen im Dokument ersetzt, auch mit Endungen („Müllers“) und unabhängig von Groß-/Kleinschreibung.
    - Rechts bzw. unten steht die Liste der **Personen** mit Trefferzahl. Dort kann man eine Person ganz ausschalten, zwei Personen zusammenführen, eine automatische Zuordnung („Herr Yılmaz“ → „Mehmet Yılmaz“) lösen oder ein Wort auf „nie anonymisieren“ setzen.
    - Gelbe Hinweise zur Datei (z. B. „ausgeblendete Blätter“, „Bilder werden nicht geprüft“) müssen abgehakt werden.
+   - **„In den Dateiangaben gefunden: …“** (seit Version 1.3): Namen aus den versteckten Angaben der Originaldatei (Autor, zuletzt bearbeitet von, Manager, Firma, Kommentar- und Änderungsautoren, SharePoint-Personen). Sie werden beim Export aus der Datei entfernt, im Text aber **nicht** automatisch ersetzt. Kommt so ein Name auch im Text vor: „als Namen übernehmen“ tippen.
 5. **Export:** „Text kopieren“, „.txt speichern“, „.docx speichern“ (bei Excel: „.xlsx speichern“, bei CSV: „.csv speichern“).
-   Vor jedem Export läuft ein **Schlusscheck**: Alle bestätigten Namen werden im Ergebnis noch einmal gesucht.
-   Findet er etwas, wird der Export **blockiert**, bis Sie die Fundstellen angesehen und bestätigt haben.
+   Vor jedem Export läuft ein **Schlusscheck**: Alle bestätigten Namen **und alle Namen aus den Dateiangaben** werden im Ergebnis noch einmal gesucht, und zwar in **allen Teilen** der Datei (Text, Dateieigenschaften, SharePoint-Daten, Bilder, Kommentare …).
+   Findet er etwas, wird der Export **blockiert**, bis Sie die Fundstellen angesehen und bestätigt haben. Die Fundstelle sagt in einfacher Sprache, wo der Name steht (z. B. „Bild (versteckte Bildangaben) – word/media/scan4.tiff“).
    Der Dateiname ist immer neutral („anonymisiert_…“).
+   Nach dem Speichern von .docx/.xlsx erscheint: „Lade die Datei direkt hoch. Wenn du sie vorher in Word öffnest und speicherst, trägt Word deinen Namen wieder ein.“ (bei Excel entsprechend).
 6. **Zuordnungstabelle** (nur Modus „Person A“/„[NAME]“; welches Pseudonym zu welchem Namen gehört) gibt es nur auf ausdrücklichen Klick, als **separate** Datei mit Warnhinweis. Sie steht nie im anonymisierten Dokument.
 
 ### Eigene Namen und Ausnahmen
@@ -68,6 +70,7 @@ Es ist **eine einzige Datei: `index.html`**. Sie läuft komplett im Browser und 
 
 **Grenzen des Rückbaus**
 - **Metadaten** (Autor, zuletzt bearbeitet von, Kommentar-Autoren, Firma) werden **nicht** wiederhergestellt.
+- Beim Rückbau wird **nichts bereinigt**: Dateiangaben und Bild-Metadaten der geladenen Datei bleiben, wie sie sind (im Test belegt).
 - **PDF** ist als Rückbau-Eingabe nicht möglich. Verwenden Sie die .txt- oder .docx-Ausgabe der PDF-Anonymisierung.
 - **Umgeschriebene Platzhalter** (z. B. „des Nachnamens A“, „nachname a“, „Person A“ statt „Vorname A Nachname A“) werden gemeldet, aber nicht ersetzt. Bitte von Hand korrigieren.
 - **Formatierung innerhalb eines Namens:** War nur ein Teil eines Namens fett („Anna Mü**ller**“), steht nach dem Rückbau der ganze Name in der Formatierung des ersten Teils. Der Text stimmt exakt.
@@ -93,10 +96,19 @@ Es ist **eine einzige Datei: `index.html`**. Sie läuft komplett im Browser und 
 **Nicht unterstützt** (wird klar gemeldet, nie stillschweigend halb verarbeitet): `.doc`, `.xls`, passwortgeschützte Dateien,
 gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), `.docm`/`.xlsm`/`.xlsb`, PowerPoint, OpenDocument, RTF.
 
-### Was beim Export bereinigt wird (Metadaten)
-- Autor, zuletzt bearbeitet von, Titel, Betreff, Stichwörter, Beschreibung, Kategorie, Firma, Manager, benutzerdefinierte Eigenschaften
+### Was beim Export bereinigt wird (versteckte Angaben)
+- **Dateieigenschaften** – Autor, zuletzt bearbeitet von, Titel, Betreff, Stichwörter, Beschreibung, Kategorie, Firma, Manager, alle Textwerte der benutzerdefinierten Eigenschaften. Seit Version 1.3 findet das Tool diese Teile **über ihre Verweise** in der Datei, nicht nur am üblichen Ort `docProps/…`. In Word wird auch der Titel in der Teileliste geleert.
+- **SharePoint-Felder** (`customXml`, seit Version 1.3):
+  - Personen-Felder werden geleert, und zwar in der Form, die SharePoint selbst für „leer“ schreibt (Anzeigename leer, Kennung `xsi:nil`).
+  - Andere Textwerte werden geleert, wenn sie einen bestätigten Namen oder einen Namen aus den Dateiangaben enthalten.
+  - Die Struktur bleibt erhalten.
+- **Bild-Metadaten** (seit Version 1.3), verlustfrei; die Bildpunkte bleiben gleich, im Test per Prüfsumme belegt:
+  - JPEG: EXIF, XMP, IPTC und Kommentare. Die Bild-Ausrichtung bleibt als einzige EXIF-Angabe erhalten, damit gedrehte Fotos gedreht bleiben.
+  - PNG: Textblöcke (tEXt, zTXt, iTXt) und EXIF
+  - GIF: Kommentare und XMP
+  - Andere Bildtypen (TIFF, EMF, WMF, SVG, WebP …) werden nicht verändert. Dazu erscheint ein Hinweis mit dem Typ, und der Schlusscheck sucht trotzdem darin.
 - Kommentar-Autoren und Initialen, Autoren nachverfolgter Änderungen, Personenliste (inkl. E-Mail-Kennung)
-- Vorschaubild (Thumbnail) wird entfernt
+- Vorschaubild (Thumbnail) wird entfernt, egal wo es liegt
 - Benutzernamen in Pfaden (z. B. `C:\Users\name\…`) und E-Mail-Adressen in Links
 - Blattnamen werden auch in Formeln, definierten Namen und der Blattliste konsistent umbenannt
 - Eingebettete Objekte (z. B. eine Excel-Tabelle in Word) werden **geleert**, weil ihr Inhalt nicht geprüft werden kann (Hinweis erscheint)
@@ -137,7 +149,33 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 - **Kleingeschriebene Namen** werden nur gefunden, wenn derselbe Name schon anderswo erkannt oder von Hand markiert wurde.
 - **Namen in E-Mail-Adressen**, wenn die E-Mail-Erkennung ausgeschaltet ist, und Namen in Wortzusammensetzungen („Müllerstraße“, „Schmidt-Gruppe“ teilweise) werden nicht ersetzt.
 - **Chinesische, japanische, koreanische und thailändische Schrift** (ohne Leerzeichen zwischen Wörtern): Namen in Originalschrift werden nicht erkannt. Arabische, kyrillische, griechische und hebräische Schrift werden über Listen teilweise erkannt.
-- **Bilder** werden nicht geprüft (Namen in Fotos, Scans, Unterschriften, Bild-Metadaten).
+- **Bildinhalt** wird nicht geprüft (Namen in Fotos, Scans, Unterschriften, Logos). Die versteckten Bildangaben werden bei JPEG, PNG und GIF entfernt, bei anderen Bildtypen nicht (Hinweis erscheint, der Schlusscheck sucht trotzdem).
+- **Word/Excel tragen beim Speichern den eigenen Namen wieder ein.** Die anonymisierte Datei deshalb direkt hochladen, nicht vorher in Word/Excel öffnen und speichern.
+- **SharePoint-Felder, die an Inhaltssteuerelemente im Text gebunden sind:** Wird so ein Feld geleert, kann Word beim Öffnen auch den gebundenen Text im Dokument leer anzeigen (durch Code ungeprüft).
+
+### Alle Stellen mit möglichen Klarnamen (.docx/.xlsx), Stand Version 1.3
+
+| Stelle | wird bereinigt? |
+|---|---|
+| Autor, letzter Bearbeiter, Titel, Stichwörter (Dateieigenschaften) | **ja**, auch an ungewöhnlichem Ort (über Verweise gefunden) |
+| Firma, Manager | **ja**, auch an ungewöhnlichem Ort |
+| Benutzerdefinierte Eigenschaften (Textwerte) | **ja**, auch an ungewöhnlichem Ort |
+| Vorlagenname, Blattliste | teilweise: nur erkannte Namen (Word: Titel in der Teileliste wird geleert) |
+| Kommentar-Autoren und Initialen, Excel-Personenliste | ja |
+| Autoren nachverfolgter Änderungen, Personenliste mit E-Mail | ja |
+| Vorschaubild | ja (wird entfernt) |
+| SharePoint-Felder | **ja**: Personen-Felder immer; Textfelder mit erkanntem Namen oder Namen aus den Dateiangaben |
+| Bild-Metadaten JPEG, PNG, GIF | **ja** (verlustfrei) |
+| Bild-Metadaten anderer Typen (TIFF, EMF, WMF, SVG …) | **nein**: Hinweis mit Typ, der Schlusscheck sucht darin |
+| Alt-Texte von Bildern und Formen | teilweise: nur Namen, die auch im Text erkannt wurden (**offen**) |
+| Bildinhalt (Logo, Fotos, Scans) | **nein**, nur ein allgemeiner Hinweis (**offen**) |
+| Kopf-/Fußzeilen, Fußnoten, Kommentartext, Textfelder | ja, gleiche Erkennung wie der Haupttext |
+| Feldfunktionen, Links, Vorlagenpfad | teilweise: erkannte Namen und Benutzerordner |
+| Literaturangaben (Quellen-Autoren in `customXml`) | teilweise: nur erkannte Namen (**offen**) |
+| Eingebettete Objekte | ja (werden geleert, mit Hinweis) |
+| Excel: Zellen, ausgeblendete Blätter, Blattnamen, Kopfzeilen | ja |
+| Excel: Pivot-Zwischenspeicher, externe Verknüpfungen | teilweise |
+| **Schlusscheck** | durchsucht **alle** Teile der Ausgabedatei nach bestätigten Namen und Namen aus den Dateiangaben, auch in Bildern (Text in UTF-8/UTF-16, entpackte PNG-Textblöcke) |
 - **PDF:** nur Textebene; gescannte Seiten fehlen (es wird gewarnt); das Layout geht verloren; schlecht kodierte PDFs liefern unlesbaren Text (es wird gewarnt).
 - **Pivot-Tabellen** in Excel: Werte im Zwischenspeicher werden ersetzt; bitte nach dem Öffnen aktualisieren und prüfen.
 - **Dateigröße:** Grenze 20 MB, Warnhinweis ab 5 MB. Gemessen am Desktop (Chromium, headless): 1 MB Text ≈ 3 s Analyse + 3 s Export (≈ 80 MB Arbeitsspeicher); 10 MB Text ≈ 50 s + 30 s (≈ 560 MB); Excel mit 20 000 Zeilen ≈ 8 s + 17 s (≈ 260 MB).
@@ -149,7 +187,8 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 |---|---|
 | Chromium/Chrome (Desktop) | **geprüft** (automatische Tests, headless) |
 | Chromium mit iPhone-Bildschirmgröße und Touch | **geprüft** (Darstellung, Antippen, Markieren) |
-| Edge und Chrome unter Windows (Firmen-PC, `file://`) | Version 1.0 laut Easy **am PC geprüft**; Versionen 1.1 und 1.2 **durch Code ungeprüft** |
+| Edge und Chrome unter Windows (Firmen-PC, `file://`) | Version 1.0 laut Easy **am PC geprüft**; Versionen 1.1, 1.2 und 1.3 **durch Code ungeprüft** |
+| Microsoft Word / Excel: Öffnen der bereinigten Datei ohne Reparatur-Meldung | **durch Code ungeprüft**. Geprüft: LibreOffice öffnet alle Ausgaben, alle XML-Teile sind wohlgeformt, keine Verweise ins Leere |
 | Firefox (Desktop) | **ungeprüft** |
 | Safari (macOS) | **ungeprüft** |
 | Safari auf dem iPhone | **ungeprüft**. Code ist auf Safari ≥ 15 ausgelegt (keine Lookbehind-Regex, keine neueren Sprachfunktionen). |
@@ -161,12 +200,12 @@ Die Datei muss in einem Browser geöffnet werden (z. B. über „Teilen → in S
 
 ## Version und Prüfsumme
 
-Version **1.2.0**, Stand 2026-11-20 (steht auch im Fußbereich des Tools).
+Version **1.3.0**, Stand 2026-11-20 (steht auch im Fußbereich des Tools).
 
 SHA-256 der `index.html` dieser Version:
 
 ```
-8d9b83bcd51932d3ab6dab11d82d4d63c8f20f9a07326e4ac0d75b661d096709
+2314fccf1ac710b22cf238fb3b631ed6844758d15e559b9211f63377df0f693a
 ```
 
 Eine Datei kann ihre eigene Prüfsumme nicht enthalten, deshalb steht sie nur hier und im PR-Text. Prüfen unter Windows: `certutil -hashfile index.html SHA256`.
@@ -222,9 +261,11 @@ npm ci                       # feste Versionen aus package-lock.json
 npm run build                # erzeugt index.html (Namenslisten, CMaps, Bündel, CSP-Hashes)
 node tests/make-fixtures.mjs # erfundene Testdokumente (braucht LibreOffice für PDF/DOC/XLS)
 node tests/make-kurse.mjs    # Kurs-Tabelle und Risiko-Test für „Anrede allein“ (erfunden)
+node tests/make-meta.mjs     # Testdokumente mit versteckten Angaben (Eigenschaften, SharePoint, Bild-Metadaten; erfunden)
+node tests/meta-proof.mjs    # Beweis: alle Teile der Ausgabe ohne Testnamen, Bildpunkte gleich, Schlusscheck-Falle → tests/META-REPORT.md
 node tests/run-tests.mjs     # End-to-End-Tests in Chromium → tests/REPORT.md
 node tests/roundtrip.mjs     # Rückbau: Kreislauf-Beweis und Fallen → tests/ROUNDTRIP-REPORT.md
 node tests/regression.mjs <alte-index.html>  # Modi „Person A“/„[NAME]“ byte-gleich zur Referenz?
 ```
 
-Aufbau: `src/core` (Erkennung, Muster, Namenslisten-Zugriff, `reversible.js` = Modus rückbaufähig und Schlüsseldatei, `restore.js` = Rückbau), `src/formats` (TXT/CSV/DOCX/XLSX/PDF), `src/ui` (Oberfläche, Netzwerksperre, Vorlage, Stil), `build/` (Build-Skripte), `tests/` (Testdaten, Tests, Bericht).
+Aufbau: `src/core` (Erkennung, Muster, Namenslisten-Zugriff, `reversible.js` = Modus rückbaufähig und Schlüsseldatei, `restore.js` = Rückbau), `src/formats` (TXT/CSV/DOCX/XLSX/PDF, `meta.js` = versteckte Angaben: Dateieigenschaften, SharePoint-Felder, Bild-Metadaten), `src/ui` (Oberfläche, Netzwerksperre, Vorlage, Stil), `build/` (Build-Skripte), `tests/` (Testdaten, Tests, Bericht).

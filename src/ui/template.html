@@ -65,6 +65,7 @@
       <h3>Hinweise zu dieser Datei – bitte lesen und abhaken</h3>
       <div id="doc-warnings"></div>
     </div>
+    <div id="meta-names" class="metanames" hidden></div>
     <p id="summary" class="summary"></p>
     <p class="legend">
       <mark class="hit sure on" data-l="A">sicher</mark>
@@ -125,7 +126,7 @@
       <button type="button" id="btn-xlsx" hidden>.xlsx speichern</button>
       <button type="button" id="btn-csv" hidden>.csv speichern</button>
     </div>
-    <p class="hint">Vor jedem Export läuft ein Schlusscheck: Alle bestätigten Namen werden im Ergebnis erneut gesucht. Metadaten (Autor, Firma, Kommentar-Autoren) werden bereinigt. Dateiname immer neutral („anonymisiert_…“).</p>
+    <p class="hint">Vor jedem Export läuft ein Schlusscheck: Alle bestätigten Namen und alle Namen aus den Dateiangaben der Originaldatei werden in ALLEN Teilen des Ergebnisses erneut gesucht (Text, Dateieigenschaften, SharePoint-Daten, Bilder). Versteckte Angaben (Autor, Firma, Manager, Kommentar-Autoren, SharePoint-Felder, Bild-Metadaten) werden bereinigt. Dateiname immer neutral („anonymisiert_…“).</p>
     <p id="export-status" class="status" aria-live="polite"></p>
     <div id="leaks" class="leaks" hidden></div>
     <details class="mapping" id="mapping">
