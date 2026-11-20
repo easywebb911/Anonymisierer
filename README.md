@@ -23,7 +23,11 @@ Es ist **eine einzige Datei: `index.html`**. Sie läuft komplett im Browser und 
    - **„In den Dateiangaben gefunden: …“** (seit Version 1.3): Namen aus den versteckten Angaben der Originaldatei (Autor, zuletzt bearbeitet von, Manager, Firma, Kommentar- und Änderungsautoren, SharePoint-Personen). Sie werden beim Export aus der Datei entfernt, im Text aber **nicht** automatisch ersetzt. Kommt so ein Name auch im Text vor: „als Namen übernehmen“ tippen.
 5. **Export:** „Text kopieren“, „.txt speichern“, „.docx speichern“ (bei Excel: „.xlsx speichern“, bei CSV: „.csv speichern“).
    Vor jedem Export läuft ein **Schlusscheck**: Alle bestätigten Namen **und alle Namen aus den Dateiangaben** werden im Ergebnis noch einmal gesucht, und zwar in **allen Teilen** der Datei (Text, Dateieigenschaften, SharePoint-Daten, Bilder, Kommentare …).
-   Findet er etwas, wird der Export **blockiert**, bis Sie die Fundstellen angesehen und bestätigt haben. Die Fundstelle sagt in einfacher Sprache, wo der Name steht (z. B. „Bild (versteckte Bildangaben) – word/media/scan4.tiff“).
+   Findet er etwas, wird der Export **blockiert**, bis Sie die Fundstellen angesehen und bestätigt haben. Bei jedem Fund steht in einfacher Sprache, **wo** der Name steht (z. B. „steht in: Kopfzeile“ oder „steht in: Bild (versteckte Bildangaben)“). Außerdem steht dort, **was man tun kann**:
+   - **„als Namen übernehmen“** (Knopf bei Namen aus den Dateiangaben): Der Name wird überall in der Datei ersetzt.
+   - **bewusst stehen lassen:** abhaken und erneut speichern.
+
+   Auch ein **Firmenname** aus den Dateiangaben wird gemeldet, wenn er sichtbar im Text steht (z. B. in der Kopfzeile). Steht er in der Liste „Eigene Namen“, wird er überall ersetzt, und der Schlusscheck bleibt still.
    Der Dateiname ist immer neutral („anonymisiert_…“).
    Nach dem Speichern von .docx/.xlsx erscheint: „Lade die Datei direkt hoch. Wenn du sie vorher in Word öffnest und speicherst, trägt Word deinen Namen wieder ein.“ (bei Excel entsprechend).
 6. **Zuordnungstabelle** (nur Modus „Person A“/„[NAME]“; welches Pseudonym zu welchem Namen gehört) gibt es nur auf ausdrücklichen Klick, als **separate** Datei mit Warnhinweis. Sie steht nie im anonymisierten Dokument.
@@ -205,7 +209,7 @@ Version **1.3.0**, Stand 2026-11-20 (steht auch im Fußbereich des Tools).
 SHA-256 der `index.html` dieser Version:
 
 ```
-2314fccf1ac710b22cf238fb3b631ed6844758d15e559b9211f63377df0f693a
+47cd1b16dc0478bea4795ba326998f262975c2941f2317a1a23715cdedec18ba
 ```
 
 Eine Datei kann ihre eigene Prüfsumme nicht enthalten, deshalb steht sie nur hier und im PR-Text. Prüfen unter Windows: `certutil -hashfile index.html SHA256`.

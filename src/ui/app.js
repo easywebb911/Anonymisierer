@@ -438,14 +438,23 @@ function renderLeaks(leaks) {
   const box = $('#leaks');
   box.hidden = !leaks.length;
   if (!leaks.length) return;
-  const items = leaks.slice(0, 200).map((l) => h('li', {}, h('strong', {}, l.word), ` (${l.entity}) – ${l.where}: „…${l.context.replace(/\s+/g, ' ')}…“`));
+  // Fundstelle in einfacher Sprache: "Kopfzeile – word/header1.xml" -> Ort "Kopfzeile", Teil "word/header1.xml"
+  const place = (w) => { const m = w.match(/^(.*?) – (.+)$/); return m ? { ort: m[1], teil: m[2] } : { ort: w, teil: '' }; };
+  const items = leaks.slice(0, 200).map((l) => {
+    const pl = place(l.where);
+    const taken = l.full && app.state.manualTerms.some((t) => fold(t) === fold(l.full));
+    return h('li', {}, h('strong', {}, l.word), ` – steht in: `, h('strong', {}, pl.ort), pl.teil ? ` (${pl.teil})` : '',
+      ` · ${l.meta ? 'Name ' + l.entity : 'bestätigter Name, ' + l.entity}: „…${l.context.replace(/\s+/g, ' ')}…“ `,
+      l.meta && l.full && !taken ? h('button', { type: 'button', class: 'small', onclick: () => addManual(l.full) }, `„${l.full}“ als Namen übernehmen`) : null);
+  });
   box.replaceChildren(
     h('h3', {}, 'Schlusscheck: Klarnamen im Ergebnis gefunden'),
-    h('p', {}, 'Diese Namen stehen noch im Ergebnis: bestätigte Namen (z. B. weil einzelne Treffer ausgeschaltet sind) oder Namen aus den Dateiangaben der Originaldatei (Autor, Bearbeiter, Firma …). Die Fundstelle sagt, in welchem Teil der Datei. Bitte prüfen und ggf. Treffer einschalten oder den Namen übernehmen.'),
+    h('p', {}, 'Diese Namen stehen noch im Ergebnis: bestätigte Namen (z. B. weil einzelne Treffer ausgeschaltet sind) oder Namen aus den Dateiangaben der Originaldatei (Autor, Bearbeiter, Firma …). Bei jedem Fund steht, wo er steht.'),
+    h('p', {}, h('strong', {}, 'Was tun? '), 'Entweder „als Namen übernehmen“ (bzw. den Treffer einschalten): Dann wird der Name überall in der Datei ersetzt, danach erneut speichern. Oder bewusst stehen lassen: unten abhaken und erneut speichern.'),
     h('ul', {}, ...items),
     leaks.length > 200 ? h('p', {}, `… und ${leaks.length - 200} weitere.`) : null,
     h('label', { class: 'warnitem' }, h('input', { type: 'checkbox', checked: app.leakAck, onchange: (e) => { app.leakAck = e.target.checked; } }),
-      ' Ich habe diese Fundstellen geprüft und will trotzdem exportieren.'));
+      ' Ich habe diese Fundstellen geprüft und lasse sie bewusst stehen.'));
 }
 
 // ---------- Markieren (Text auswählen oder Wort antippen) ----------

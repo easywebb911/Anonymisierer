@@ -1,6 +1,6 @@
 # Rückbau: Kreislauf-Beweis und Fallen
 
-Chromium headless gegen index.html (SHA-256 2314fccf1ac710b2…). Alle Namen sind erfunden.
+Chromium headless gegen index.html (SHA-256 47cd1b16dc0478be…). Alle Namen sind erfunden.
 
 ## TXT (protokoll.txt)
 - Anonymisiert (rückbaufähig): 57 Platzhalter in der Schlüsseldatei; Status „Gespeichert: anonymisiert_text.txt (mit bestätigten Restfunden) ACHTUNG: Die passende Rückbau-Schlüsseldatei ist noch nicht gespeichert – ohne sie ist kein Rückbau möglich.“

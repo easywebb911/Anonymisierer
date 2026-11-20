@@ -1,4 +1,4 @@
-Regression: 22 von 22 Ausgaben byte-identisch (Referenz 8d9b83bcd51932d3…, neu 2314fccf1ac710b2…)
+Regression: 22 von 22 Ausgaben byte-identisch (Referenz 8d9b83bcd51932d3…, neu 47cd1b16dc0478be…)
 - protokoll.txt, Modus „Person A“, Ausgabe .txt: identisch (3b54efc97751 / 3b54efc97751)
 - protokoll.txt, Modus „Person A“, Ausgabe .docx: identisch (54469de544f4 / 54469de544f4)
 - protokoll.txt, Modus „[NAME]“, Ausgabe .txt: identisch (7750bc461611 / 7750bc461611)

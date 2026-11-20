@@ -680,7 +680,7 @@ export function metaLeakForms(metaNames) {
     const label = 'aus den Dateiangaben: ' + m.where;
     if (m.kind === 'org') {
       const words = m.name.trim().split(/\s+/);
-      if (/\p{L}{2,}/u.test(m.name) && !words.every((w) => META_DEFAULT_WORDS.has(fold(w)))) phrases.push({ words, display: m.name, entity: label });
+      if (/\p{L}{2,}/u.test(m.name) && !words.every((w) => META_DEFAULT_WORDS.has(fold(w)))) phrases.push({ words, display: m.name, entity: label, full: m.name, meta: true });
       continue;
     }
     let v = m.name;
@@ -690,9 +690,9 @@ export function metaLeakForms(metaNames) {
       if (!tk.word) continue;
       const k = fold(tk.t);
       if ([...k].length < 2 || META_DEFAULT_WORDS.has(k) || lex.isStopWord(tk.t) || lex.PARTICLES.has(k) || lex.isTitle(k)) continue;
-      if (!forms.has(k)) forms.set(k, { display: tk.t, entity: label, ambiguous: lex.isAmbiguous(k) });
+      if (!forms.has(k)) forms.set(k, { display: tk.t, entity: label, ambiguous: lex.isAmbiguous(k), full: m.name, meta: true });
       const uv = umlautVariant(tk.t);
-      if (uv && !forms.has(fold(uv))) forms.set(fold(uv), { display: tk.t, entity: label, ambiguous: lex.isAmbiguous(k) });
+      if (uv && !forms.has(fold(uv))) forms.set(fold(uv), { display: tk.t, entity: label, ambiguous: lex.isAmbiguous(k), full: m.name, meta: true });
     }
   }
   return { forms, phrases };
@@ -712,7 +712,7 @@ export function findLeaks(forms, texts, phrases = []) {
       const re = new RegExp('(^|[^\\p{L}\\p{N}])(' + ph.words.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('[\\s\\u00a0]+') + ')(?![\\p{L}\\p{N}])', 'giu');
       for (const m of text.matchAll(re)) {
         const at = m.index + m[1].length;
-        leaks.push({ where, word: m[2], entity: ph.entity, context: text.slice(Math.max(0, at - 30), Math.min(text.length, at + m[2].length + 30)) });
+        leaks.push({ where, word: m[2], entity: ph.entity, full: ph.full, meta: true, context: text.slice(Math.max(0, at - 30), Math.min(text.length, at + m[2].length + 30)) });
       }
     }
     for (const tk of tokenize(text)) {
@@ -724,7 +724,7 @@ export function findLeaks(forms, texts, phrases = []) {
         if (!f) { const m = c.match(/^(.+?)(['’]s|s)$/u); if (m) { k = fold(m[1]); f = forms.get(k); } }
         if (!f) continue;
         if (f.ambiguous && !isCap(c)) continue;
-        leaks.push({ where, word: tk.t, entity: f.entity, context: text.slice(Math.max(0, tk.s - 30), Math.min(text.length, tk.e + 30)) });
+        leaks.push({ where, word: tk.t, entity: f.entity, full: f.full, meta: !!f.meta, context: text.slice(Math.max(0, tk.s - 30), Math.min(text.length, tk.e + 30)) });
         break;
       }
     }

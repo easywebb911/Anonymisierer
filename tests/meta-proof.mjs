@@ -302,6 +302,39 @@ log('## Oberfläche');
   check('Hinweis beim Speichern (du-Form, Excel)', status.includes('Lade die Datei direkt hoch. Wenn du sie vorher in Excel öffnest und speicherst, trägt Excel deinen Namen wieder ein.'), status);
   await ctx.close();
 }
+// ---------- Firmenname aus den Dateiangaben im sichtbaren Text (kurse.docx, Entscheidung A) ----------
+log('');
+log('## Firmenname aus den Dateiangaben im sichtbaren Text (kurse.docx)');
+{
+  const { page, ctx } = await newPage();
+  await loadFile(page, path.join(fx, 'kurse.docx'));
+  await page.$$eval('#doc-warnings input[type=checkbox]', (els) => els.forEach((e) => { if (!e.checked) e.click(); }));
+  await page.click('#btn-docx');
+  await page.waitForFunction(() => { const t = document.querySelector('#export-status').textContent; return t && !/^Erzeuge/.test(t); });
+  const status = await page.textContent('#export-status');
+  const box = await page.textContent('#leaks');
+  const items = await page.$$eval('#leaks li', (els) => els.map((e) => e.textContent));
+  check('Schlusscheck blockiert wegen des Firmennamens', /blockiert/.test(status) && items.length > 0 && items.every((t) => t.includes('Familienzentrum Sonnenblume')), items.length + ' Fund(e)');
+  check('Meldung nennt den Ort in einfacher Sprache („Kopfzeile“)', items.every((t) => /steht in: Kopfzeile/.test(t)), items[0] || '');
+  check('Meldung nennt beide Wege: als Namen übernehmen oder bewusst stehen lassen', /als Namen übernehmen/.test(box) && /bewusst stehen lassen/.test(box));
+  await page.click('#leaks button');
+  const after = await page.evaluate(async () => { const o = await window.__anon.buildOutput('docx'); return (await window.__anon.finalCheck(o)).length; });
+  check('Knopf in der Meldung übernimmt den Firmennamen, danach Schlusscheck ohne Fund', after === 0);
+  await ctx.close();
+}
+for (const mode of ['person', 'name', 'reversible']) {
+  const { page, ctx } = await newPage();
+  await page.check(`input[name=mode][value="${mode}"]`);
+  await loadFile(page, path.join(fx, 'kurse.docx'));
+  await page.fill('#name-input', 'Familienzentrum Sonnenblume');
+  await page.click('#name-add button');
+  const r = await page.evaluate(async () => { const o = await window.__anon.buildOutput('docx'); return { n: (await window.__anon.finalCheck(o)).length, b: Array.from(o.bytes) }; });
+  const z = await JSZip.loadAsync(Buffer.from(r.b));
+  const hdr = await z.file('word/header1.xml').async('string');
+  check(`Firmenname in der Liste „Eigene Namen“ (${mode}): in Kopfzeile und Alt-Text ersetzt, Schlusscheck still`, r.n === 0 && !hdr.includes('Sonnenblume'), (hdr.match(/<w:t[^>]*>[^<]*<\/w:t>/g) || []).join('') + ' · ' + ((hdr.match(/descr="[^"]*"/) || [''])[0]));
+  await ctx.close();
+}
+
 await browser.close();
 
 const failed = checks.filter((c) => !c[1]);
