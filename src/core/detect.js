@@ -268,8 +268,15 @@ function a2Candidate(u, toks, base, cov, exceptions) {
   if (!W.length || comps[comps.length - 1].type !== 'W') return null;
   // Nur Allerweltswörter (z. B. "Berlin", "Montag") -> keine a2-Regel; dafür gelten die bisherigen Regeln
   if (W.every((c) => c.A)) return null;
-  return { comps, endTok: k };
+  // Markierung (Entscheidung D): Ersetzt wird immer. Nur ein einzelnes Wort, das in keiner Namensliste steht
+  // und wie ein Sach- oder Ortswort endet, wird als "unsicher" (aber eingeschaltet) markiert.
+  const w0 = W[0];
+  const unsure = W.length === 1 && !w0.known && !w0.shaped && A2_UNSURE_ENDING.test(w0.key);
+  return { comps, endTok: k, unsure };
 }
+// Typische Endungen von Sach- und Ortswörtern (in gefalteter Schreibung, "tät" -> "tat").
+// Steuert NUR die Markierung, lässt nie etwas aus: echte Nachnamen wie Hartung oder Homburg enden ebenso.
+const A2_UNSURE_ENDING = /(?:ik|ie|ung|heit|keit|schaft|tion|tat|nis|ur|sicht|kunde|lehre|wesen|kurs|raum|burg|stadt|dorf|hausen|heim|feld|eck)$/;
 
 // ---------- Regel b2: Wochentage und Monate allein -> "unsicher, aus" ----------
 const CALENDAR = new Set(['montag', 'dienstag', 'mittwoch', 'donnerstag', 'freitag', 'samstag', 'sonnabend', 'sonntag',
@@ -333,7 +340,7 @@ export function analyze(units, state) {
         const lastWc = [...comps].reverse().find((x) => x.type === 'W');
         const s = comps[0].s;
         const e = lastWc.e;
-        const h = { s, e, type: 'person', cert: 'sicher', origin: 'auto', unit: ui, suffix: lastWc.suffix || '', comps,
+        const h = { s, e, type: 'person', cert: c.unsure ? 'unsicher' : 'sicher', origin: 'auto', unit: ui, suffix: lastWc.suffix || '', comps,
           mk: mentionKey(comps, null), titled: true, a2: true, defaultOff: false };
         hits.push(h);
         mentions.push(h);

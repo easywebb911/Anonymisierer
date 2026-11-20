@@ -352,6 +352,30 @@ const summary = [];
   globalThis.__kursePhs = phs;
 }
 
+// ---------- Risiko-Test Anrede allein (Entscheidung D): auch als "unsicher, an" markierte Namen kommen exakt zurück ----------
+{
+  // Gleiche Liste wie D_NAMES in make-kurse.mjs (hier nicht importiert, weil make-kurse.mjs beim Import Dateien schreibt)
+  const dNames = ['Hartung', 'Hornung', 'Kubik', 'Pawlik', 'Homburg', 'Steineck', 'Kronfeld', 'Tannheim'];
+  log('## Risiko-Test Anrede allein (a2-risiko.txt/.csv/.docx, unverändert zurückgebaut)');
+  for (const ext of ['txt', 'csv', 'docx']) {
+    const file = path.join(fx, `a2-risiko.${ext}`);
+    const a = await anonymize(file);
+    const r = await restore(a.anon, `korrigiert.${ext}`, a.keyPath);
+    const got = ext === 'docx' ? await docxParagraphs(r.bytes) : decodeTxt(r.bytes).split(/\r?\n/);
+    const exp = ext === 'docx' ? await docxParagraphs(fs.readFileSync(file)) : decodeTxt(fs.readFileSync(file)).split(/\r?\n/);
+    const anonText = ext === 'docx' ? (await docxParagraphs(a.anon)).join('\n') : decodeTxt(a.anon);
+    const left = dNames.filter((n) => new RegExp(`(^|[^\\p{L}])${n}([^\\p{L}]|$)`, 'u').test(anonText));
+    const noPh = dNames.filter((n) => !phFor(a.key, n));
+    const dev = diffLists(got, exp);
+    if (left.length || noPh.length) dev.push({ erwartet: 'alle D-Namen ersetzt', ergebnis: `stehen geblieben: ${left.join(', ') || '-'}; ohne Platzhalter: ${noPh.join(', ') || '-'}` });
+    summary.push([`Risiko-Test ${ext.toUpperCase()}`, r.plan.totalFound, r.plan.totalFound - dev.length, dev]);
+    log(`- ${ext.toUpperCase()}: ${a.key.platzhalter.length} Platzhalter; D-Namen ersetzt ${dNames.length - left.length}/${dNames.length} (${dNames.map((n) => `${n} → ${phFor(a.key, n)}`).join(', ')}); Rückbau ${r.plan.totalFound} Platzhalter, abweichende ${ext === 'docx' ? 'Absätze' : 'Zeilen'}: ${dev.length}`);
+    for (const d of dev) log(`  - erwartet „${d.erwartet}“ / erhalten „${d.ergebnis}“`);
+    if (a.errors.length || r.errors.length) log(`  - JS-Fehler: ${[...a.errors, ...r.errors].join(' | ')}`);
+  }
+  log('');
+}
+
 // ---------- Fallen ----------
 log('## Fallen (einzeln geprüft)');
 {

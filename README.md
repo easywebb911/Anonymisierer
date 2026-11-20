@@ -110,11 +110,12 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 - **Muster:** Vorname Nachname, „Nachname, Vorname“, Initialen („M. Müller“), Bindestrich-Namen, GROSSSCHREIBUNG, Namenszusätze (von, van der, de la, al-, bin, ibn …), typische Endungen (-ović, -ski, -oğlu, -ov/-ova, -enko, -escu, -poulos, -yan, -shvili, -zadeh …), nachgestellte Anreden („Ahmet Bey“).
 - **Endungen:** „Müllers“, „John’s“ werden mit dem Grundnamen erkannt.
 - **Allerweltswörter** („Rose“, „Mark“, „Winter“, „Paris“, „Koch“ …): nur im Namenskontext sicher, sonst **unsicherer Treffer**.
-- **Anrede allein (seit Version 1.2):** Steht in einem Absatz, einer Zeile oder einer Zelle **nur** „Herr“, „Frau“ (auch „Hr.“, „Fr.“, „Frau Dr.“, „Herr Prof. Dr.“ …), dann gilt der Anfang der **direkt folgenden** Einheit als Name, als sicherer Treffer:
+- **Anrede allein (seit Version 1.2):** Steht in einem Absatz, einer Zeile oder einer Zelle **nur** „Herr“, „Frau“ (auch „Hr.“, „Fr.“, „Frau Dr.“, „Herr Prof. Dr.“ …), dann gilt der Anfang der **direkt folgenden** Einheit als Name. Er wird **immer ersetzt**:
   - in Word: der nächste Absatz (in derselben Zelle oder im Fließtext) oder die **rechte Nachbarzelle** derselben Tabellenzeile;
   - in TXT: die nächste Zeile; in CSV: das rechte Nachbarfeld.
   - **Enge Grenze:** Die Zeile muss **ganz** aus 1 bis 3 großgeschriebenen Namenswörtern bestehen (dazu Initialen und Zusätze wie „von“, „van der“, „al-“). Danach sind nur Satzzeichen erlaubt. Kommt danach noch Text, eine Zahl oder ein Datum, greift die Regel nicht.
   - Ein **leerer Absatz**, eine **leere Zelle**, das **Zeilen- oder Tabellenende** und **Word-Überschriften** unterbrechen die Regel. Wörter von der Liste der Allerweltswörter (z. B. „Berlin“, „Montag“) lösen sie nicht aus.
+  - **Markierung (seit Version 1.2):** Steht das Wort in einer Namensliste (z. B. „Kubik“) oder sind es mehrere Wörter (z. B. „Lieselotte Steineck“), ist der Treffer **„sicher“**. Ist es **ein einzelnes unbekanntes Wort**, das wie ein Sach- oder Ortswort endet (-ik, -ie, -ung, -heit, -keit, -schaft, -tion, -tät, -nis, -ur, -sicht, -kunde, -lehre, -wesen, -kurs, -raum, -burg, -stadt, -dorf, -hausen, -heim, -feld, -eck), wird es trotzdem ersetzt, aber als **„unsicher“** markiert (gestrichelt, eingeschaltet). So bleiben Nachnamen wie „Hartung“ oder „Homburg“ nie stehen, und ein Fehltreffer wie „Mathematik“ ist in der Prüfansicht sichtbar.
 - **Wochentage und Monate (seit Version 1.2):** „Montag“ … „Sonntag“, „Januar“ … „Dezember“ (auch „Jänner“, „Feber“) und Abkürzungen **mit Punkt** („Mo.“, „Jan.“, „Sept.“ …) werden **nicht automatisch ersetzt**, wenn sie allein stehen (ohne Anrede, ohne Namen daneben). Sie erscheinen in der Prüfansicht als „unsicher, aus“ und lassen sich einschalten. „Herr Montag“ oder „Trần Thị Mai“ gelten weiter als Name. „Jan“ ohne Punkt bleibt ein Vorname.
 - **Gleiche Person = gleiches Pseudonym** im ganzen Dokument. „Herr Yılmaz“ wird „Mehmet Yılmaz“ zugeordnet, wenn der Nachname eindeutig ist (in der Prüfansicht sichtbar und lösbar).
 - **Deterministisch:** gleiche Eingabe + gleiche Einstellungen = gleiche Pseudonyme und byte-gleiche Ausgabe (im Test per Doppellauf belegt).
@@ -123,7 +124,8 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 
 ## Grenzen (bitte lesen)
 
-- **Anrede allein, danach ein Sachwort:** Steht nach einer allein stehenden Anrede ein einzelnes unbekanntes Wort, das kein Name ist (z. B. ein Fach „Mathematik“, ein Ort „Lübeck“, in TXT eine Überschrift), wird es als Name ersetzt. Das Tool kann das ohne Wörterbuch nicht unterscheiden. Bitte in der Prüfansicht abschalten.
+- **Anrede allein, danach ein Sachwort:** Steht nach einer allein stehenden Anrede ein einzelnes Wort, das kein Name ist (z. B. ein Fach „Mathematik“, ein Ort „Lübeck“, in TXT eine Überschrift), wird es als Name ersetzt. Endet es wie ein Sach- oder Ortswort, ist es als „unsicher“ markiert. Ohne eine solche Endung (z. B. „Garten“) ist es „sicher“ markiert. Bitte in der Prüfansicht prüfen und abschalten.
+- **„Unsicher“ markierte Namen nach Anrede gelten nur an dieser Stelle:** Ein als „unsicher“ markierter Name nach allein stehender Anrede (z. B. „Hartung“) wird an **anderen** Stellen im Dokument nicht automatisch mit ersetzt (nur „sichere“ Treffer werden übertragen). Solche weiteren Stellen bitte in der Prüfansicht von Hand markieren.
 - **Anrede allein in Excel:** Die Regel gilt dort (noch) nicht. Ein Name in der Nachbarzelle einer Anrede-Zelle wird nur erkannt, wenn er in einer Namensliste steht.
 - **Personen mit Monatsnamen** („Mai“, „April“, „August“): Stehen sie allein ohne Anrede, ist der Treffer standardmäßig aus. In der Prüfansicht prüfen und einschalten.
 - **Nie 100 %.** Seltene Namen, die in keiner Liste stehen und ohne Anrede vorkommen (im Test z. B. „Ijeoma Uchendu“, „Xiong Wenjie“), werden **nicht** erkannt → in der Prüfansicht von Hand markieren.
@@ -160,7 +162,7 @@ Version **1.2.0**, Stand 2026-11-20 (steht auch im Fußbereich des Tools).
 SHA-256 der `index.html` dieser Version:
 
 ```
-a2e9a1a1717c9be86bee0e261fd10a256bf410ef7d98259d9d5c79b6999e6dba
+d0627264022236a8eeb391404734123eddd778001921f6844a02cc631aa115fd
 ```
 
 Eine Datei kann ihre eigene Prüfsumme nicht enthalten, deshalb steht sie nur hier und im PR-Text. Prüfen unter Windows: `certutil -hashfile index.html SHA256`.

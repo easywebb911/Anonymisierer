@@ -1,6 +1,6 @@
 # Rückbau: Kreislauf-Beweis und Fallen
 
-Chromium headless gegen index.html (SHA-256 a2e9a1a1717c9be8…). Alle Namen sind erfunden.
+Chromium headless gegen index.html (SHA-256 d0627264022236a8…). Alle Namen sind erfunden.
 
 ## TXT (protokoll.txt)
 - Anonymisiert (rückbaufähig): 57 Platzhalter in der Schlüsseldatei; Status „Gespeichert: anonymisiert_text.txt (mit bestätigten Restfunden) ACHTUNG: Die passende Rückbau-Schlüsseldatei ist noch nicht gespeichert – ohne sie ist kein Rückbau möglich.“
@@ -37,6 +37,11 @@ Chromium headless gegen index.html (SHA-256 a2e9a1a1717c9be8…). Alle Namen sin
 - Korrektur: Wort geändert, Satz mit Nachname D und Nachname F eingefügt, zwei Tabellenzeilen getauscht
 - Rückbau: 21 Platzhalter ersetzt; abweichende Absätze: 0
 - JS-Fehler: keine
+
+## Risiko-Test Anrede allein (a2-risiko.txt/.csv/.docx, unverändert zurückgebaut)
+- TXT: 15 Platzhalter; D-Namen ersetzt 8/8 (Hartung → Nachname F, Hornung → Nachname G, Kubik → Nachname H, Pawlik → Nachname I, Homburg → Nachname J, Steineck → Nachname K, Kronfeld → Nachname L, Tannheim → Nachname M); Rückbau 16 Platzhalter, abweichende Zeilen: 0
+- CSV: 12 Platzhalter; D-Namen ersetzt 8/8 (Hartung → Nachname E, Hornung → Nachname F, Kubik → Nachname G, Pawlik → Nachname H, Homburg → Nachname I, Steineck → Nachname J, Kronfeld → Nachname K, Tannheim → Nachname L); Rückbau 12 Platzhalter, abweichende Zeilen: 0
+- DOCX: 16 Platzhalter; D-Namen ersetzt 8/8 (Hartung → Nachname E, Hornung → Nachname F, Kubik → Nachname G, Pawlik → Nachname H, Homburg → Nachname I, Steineck → Nachname J, Kronfeld → Nachname K, Tannheim → Nachname L); Rückbau 25 Platzhalter, abweichende Absätze: 0
 
 ## Fallen (einzeln geprüft)
 - Anonymisierte Fallen-Zeilen (so sieht die KI den Text):
@@ -81,6 +86,9 @@ Chromium headless gegen index.html (SHA-256 a2e9a1a1717c9be8…). Alle Namen sin
 | DOCX | 98 | 98 | 0 |
 | XLSX | 48 | 48 | 0 |
 | DOCX Kurs-Tabelle | 21 | 21 | 0 |
+| Risiko-Test TXT | 16 | 16 | 0 |
+| Risiko-Test CSV | 12 | 12 | 0 |
+| Risiko-Test DOCX | 25 | 25 | 0 |
 | Fallen-TXT | 79 | 79 | 0 |
 
 Fallen-Prüfungen: 25 von 25 bestanden.

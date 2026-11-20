@@ -84,6 +84,7 @@ console.log('geschrieben', out);
 // Jeder Fall: [Beschreibung, erwartet ('Name' oder 'kein Name'), Bausteine]
 const H = (t) => `<w:p><w:pPr><w:pStyle w:val="Heading1"/></w:pPr><w:r><w:t xml:space="preserve">${esc(t)}</w:t></w:r></w:p>`;
 const empty = '<w:p/>';
+export const D_NAMES = ['Hartung', 'Hornung', 'Kubik', 'Pawlik', 'Homburg', 'Steineck', 'Kronfeld', 'Tannheim'];
 export const RISK = [
   ['Anrede, dann Überschrift', 'kein Name', p('Herr') + H('Kursübersicht')],
   ['Anrede, dann Fach', 'kein Name', p('Frau') + p('Mathematik')],
@@ -99,12 +100,16 @@ export const RISK = [
   ['"Die Frau"', 'kein Name', p('Die Frau') + p('Mitte vierzig kam herein.')],
   ['"Anrede: Frau", dann Wochentag', 'kein Name', p('Anrede: Frau') + p('Montag')],
   ['Positiv: Anrede mit Titeln, dann Name mit Zusatz', 'Name', p('Frau Prof. Dr.') + p('Henriette von Bodelschwingh')],
+  // Entscheidung D: erfundene Personen, deren Nachnamen wie Sach- oder Ortswörter enden -> müssen ersetzt werden
+  ...D_NAMES.map((n, i) => [`Positiv D: Anrede allein, dann ${n}`, 'Name', p(i % 2 ? 'Frau' : 'Herr') + p(n)]),
+  ['Positiv D: Anrede allein, dann Vor- und Nachname mit Endung', 'Name', p('Frau Dr.') + p('Lieselotte Steineck')],
 ];
 const riskRows = [
   ['Tabelle: Anrede, leere Nachbarzelle, Name', 'kein Name (leere Zelle unterbricht)', ['Herr', '', 'Kirchbichler']],
   ['Tabelle: Anrede, rechte Nachbarzelle Name', 'Name', ['Herr', 'Tesfamariam', 'Garten']],
   ['Tabelle: Anrede, rechte Nachbarzelle Fach', 'kein Name', ['Frau', 'Chemie', 'Raum 12']],
   ['Tabelle: Anrede am Zeilenende, Name in nächster Zeile', 'kein Name (keine Nachbarzelle)', ['Kurs', 'Raum 3', 'Frau'], ['Neumeier-Okafor', 'x', 'y']],
+  ...D_NAMES.map((n, i) => [`Tabelle D: Anrede, rechte Nachbarzelle ${n}`, 'Name', [i % 2 ? 'Frau' : 'Herr', n, 'Kurs']]),
 ];
 let riskBody = p('Risiko-Test Anrede allein');
 for (const [, , xml] of RISK) riskBody += xml + empty;
@@ -125,5 +130,5 @@ const txtLines = ['Risiko-Test Anrede allein'];
 for (const [, , xml] of RISK) txtLines.push(...plainText(xml).map((x) => x.replace(/&amp;/g, '&')), '');
 txtLines.push('Herr', 'Tesfamariam', '');
 fs.writeFileSync(riskOut.replace(/docx$/, 'txt'), txtLines.join('\n'));
-fs.writeFileSync(riskOut.replace(/docx$/, 'csv'), ['Anrede;Name;Fach', 'Herr;Tesfamariam;Garten', 'Frau;Chemie;Raum 12', 'Herr;;Kirchbichler', 'Frau;12.01.2026;Kurs', 'Herr;Lübeck;Ort'].join('\r\n') + '\r\n');
+fs.writeFileSync(riskOut.replace(/docx$/, 'csv'), ['Anrede;Name;Fach', 'Herr;Tesfamariam;Garten', 'Frau;Chemie;Raum 12', 'Herr;;Kirchbichler', 'Frau;12.01.2026;Kurs', 'Herr;Lübeck;Ort', ...D_NAMES.map((n, i) => `${i % 2 ? 'Frau' : 'Herr'};${n};Kurs`)].join('\r\n') + '\r\n');
 console.log('geschrieben', riskOut, '+ .txt + .csv');

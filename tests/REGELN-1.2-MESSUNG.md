@@ -47,3 +47,40 @@ behobenen Fehltreffer in Excel (b2 greift seit dem Einbau auch bei Namensteilen,
 ## Regression (Modi „Person A“ und „[NAME]“, alle bisherigen Testdokumente)
 18 von 22 Ausgaben byte-identisch. Geändert: mitarbeiter.xlsx (.xlsx und .txt, beide Modi), jeweils genau eine Stelle:
 „Gespräch mit … am 3. Person Q“ → „… am 3. Mai“ (Datum bleibt stehen; gewollt durch Regel b2).
+
+## Nachtrag: Entscheidung D (Markierung statt Auslassen)
+
+Umsetzung: Nach allein stehender Anrede wird **immer** ersetzt. Ein einzelnes Wort, das in keiner Namensliste steht und wie ein Sach- oder Ortswort endet, wird als „unsicher, an“ markiert, alles andere als „sicher“.
+
+Risiko-Test erweitert: erfundene Personen Hartung, Hornung, Kubik, Pawlik, Homburg, Steineck, Kronfeld, Tannheim (dazu „Lieselotte Steineck“) nach allein stehender Anrede, in Word (Absatz und Nachbarzelle), TXT und CSV.
+
+| Datei | ersetzt (D-Namen) | davon „sicher“ | davon „unsicher, an“ |
+|---|---|---|---|
+| a2-risiko.docx (Absatz + Nachbarzelle) | 16/16 | 6 (Hornung, Kubik, Pawlik, je 2×) | 10 (Hartung, Homburg, Steineck, Kronfeld, Tannheim, je 2×) |
+| a2-risiko.txt | 8/8 | 3 (Hornung, Kubik, Pawlik) | 5 (Hartung, Homburg, Steineck, Kronfeld, Tannheim) |
+| a2-risiko.csv | 8/8 | 3 (Hornung, Kubik, Pawlik) | 5 (Hartung, Homburg, Steineck, Kronfeld, Tannheim) |
+
+„Lieselotte Steineck“ (zwei Wörter) ist „sicher“.
+
+Messung gegenüber v1.1 (alle Testdokumente, Kurs-Tabelle, Briefzeilen, Risiko-Test):
+
+| | letzter Bericht (A, alles „sicher“) | jetzt (D) |
+|---|---|---|
+| zusätzlich gefundene Namen | 25 | 25 (8 „sicher“, 17 „unsicher, an“) |
+| verlorene richtige Treffer | 0 | 0 |
+| neue Fehltreffer „sicher“ | 8 | **0** |
+| neue Fehltreffer „unsicher“ | 0 | 8 (Mathematik ×2, Lübeck ×3, Chemie ×2, Kursübersicht) |
+| entfallene Fehltreffer | 9 | 9 |
+
+Die 25 statt 5 zusätzlichen Funde und die 9 statt 6 entfallenen Fehltreffer gegenüber dem ersten Bericht kommen von den neuen Testfällen (Hartung & Co.) und von „am 3. Mai“ (Excel) und „Montag“ (Risiko-Test, Briefzeilen).
+
+Die Kurs-Tabelle bleibt unverändert: alle 5 Namen sind „sicher“ (Kirchbichler, Tesfamariam, Brzęczek, Sonnleitner ×2).
+
+Die Ausgabe-Dateien von D sind byte-gleich mit A (22 von 22 Standardausgaben, dazu 12 von 12 Ausgaben aus Kurs-Tabelle und Risiko-Test). Geändert hat sich nur die Markierung in der Prüfansicht.
+
+Zusatzproben (nicht im Repo):
+
+| Probe | Ergebnis |
+|---|---|
+| „Herr“ / „Turnhalle“, „Frau“ / „Sekretariat“, „Herr“ / „Aula“ | Fehltreffer, **„sicher“** (keine Endung aus der Liste) |
+| „Herr“ / „Hartung“ / „Später rief Hartung an.“ | Das zweite „Hartung“ bleibt **stehen**: „unsicher“ markierte Treffer werden nicht auf andere Stellen übertragen. In A wurde es übertragen. |
