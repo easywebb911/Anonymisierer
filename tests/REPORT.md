@@ -1,6 +1,6 @@
 # Testbericht Anonymisierer
 
-Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.html (SHA-256 70ad83c72d5f738f…). Alle Testpersonen sind erfunden.
+Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.html (SHA-256 8d9b83bcd51932d3…). Alle Testpersonen sind erfunden.
 
 ## protokoll.txt
 - Laden: Gelesen: protokoll.txt (TXT, 22 Textabschnitte).
@@ -53,12 +53,12 @@ Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.h
 
 ## mitarbeiter.xlsx
 - Laden: Gelesen: mitarbeiter.xlsx (XLSX, 52 Textabschnitte).
-- **Erkannt (automatisch): 17 von 17 Personen vollständig**; Namens-Vorkommen: 48 von 48
+- **Erkannt (automatisch): 17 von 17 Personen vollständig**; Namens-Vorkommen: 47 von 47
 - Nicht (vollständig) erkannt: keine
 - Fehltreffer (aktiv, kein Name bzw. Falle): 0
-- Fallen im Text: 4, davon als unsicher markiert aber AUS (richtig stehen gelassen): 4
+- Fallen im Text: 5, davon als unsicher markiert aber AUS (richtig stehen gelassen): 5
 - Personen in der Prüfansicht: 23; Treffer gesamt: 39 (sicher 33, unsicher 6)
-- Schlusscheck vor Nacharbeit hat den Export BLOCKIERT („Schlusscheck: 1 bestätigte(r) Klarname(n) noch im Ergebnis gefunden. Export blockiert – bitte prüfen (siehe unten).“). Fundstellen: Rose (Person R) – xl/sharedStrings.xml: „…reserve Kantine preserve eine Rose als Deko preserve Leitung: p…“. Nach Bestätigung exportiert.
+- Schlusscheck vor Nacharbeit hat den Export BLOCKIERT („Schlusscheck: 2 bestätigte(r) Klarname(n) noch im Ergebnis gefunden. Export blockiert – bitte prüfen (siehe unten).“). Fundstellen: Rose (Person R) – xl/sharedStrings.xml: „…reserve Kantine preserve eine Rose als Deko preserve Leitung: p…“ | Mai (Person Q) – xl/sharedStrings.xml: „…e Gespräch mit Person S am 3. Mai preserve Die Reise nach Paris…“. Nach Bestätigung exportiert.
 - Export (.xlsx) vor Nacharbeit: Status „Gespeichert: anonymisiert_tabelle.xlsx (mit bestätigten Restfunden)“
   - Unabhängige Nachprüfung der Ausgabedatei: 0 Klarnamen-Vorkommen übrig
   - LibreOffice öffnet die Ausgabe: ja; Klarnamen im LibreOffice-Text: 0
@@ -115,7 +115,7 @@ Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.h
 - protokoll.txt: Lauf 1 a29844c8bb3ee675 / Lauf 2 a29844c8bb3ee675; Pseudonym-Zuordnung 0e36160d38ce70ac / 0e36160d38ce70ac → identisch
 - mitarbeiter.csv: Lauf 1 48dff6cc89e7ed3c / Lauf 2 48dff6cc89e7ed3c; Pseudonym-Zuordnung d6daf99b6ceba931 / d6daf99b6ceba931 → identisch
 - protokoll.docx: Lauf 1 93b6f8c7c9a57aa1 / Lauf 2 93b6f8c7c9a57aa1; Pseudonym-Zuordnung e86fa7d93e8f4d7a / e86fa7d93e8f4d7a → identisch
-- mitarbeiter.xlsx: Lauf 1 d62d2e84a0bcf277 / Lauf 2 d62d2e84a0bcf277; Pseudonym-Zuordnung 862622377e2eb6cb / 862622377e2eb6cb → identisch
+- mitarbeiter.xlsx: Lauf 1 6674c3ca1d4aaa0d / Lauf 2 6674c3ca1d4aaa0d; Pseudonym-Zuordnung 862622377e2eb6cb / 862622377e2eb6cb → identisch
 - protokoll.pdf: Lauf 1 3a3977dfea99ec6d / Lauf 2 3a3977dfea99ec6d; Pseudonym-Zuordnung 074aa110b73adf3a / 074aa110b73adf3a → identisch
 
 ## Nicht unterstützte Dateien (müssen klar abgelehnt werden)
@@ -137,10 +137,10 @@ Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.h
 - Nach „Merkliste löschen“: localStorage 0 Einträge
 
 ## Größe/Geschwindigkeit (Desktop-Chromium, headless)
-- TXT 1 MB: Laden+Analyse 2.0 s, Export+Schlusscheck 2.0 s, JS-Speicher ca. 61 MB – Gelesen: gross.txt (TXT, 13289 Textabschnitte).
-- TXT 5 MB: Laden+Analyse 9.1 s, Export+Schlusscheck 5.9 s, JS-Speicher ca. 307 MB – Gelesen: gross.txt (TXT, 66419 Textabschnitte).
-- TXT 10 MB: Laden+Analyse 18.9 s, Export+Schlusscheck 13.8 s, JS-Speicher ca. 527 MB – Gelesen: gross.txt (TXT, 132815 Textabschnitte).
-- XLSX mit 20 000 Zeilen × 4 Spalten (0.5 MB gepackt): Laden+Analyse 5.0 s, Export+Schlusscheck 9.6 s, JS-Speicher ca. 228 MB – Gelesen: gross.xlsx (XLSX, 60052 Textabschnitte).
+- TXT 1 MB: Laden+Analyse 2.0 s, Export+Schlusscheck 1.9 s, JS-Speicher ca. 61 MB – Gelesen: gross.txt (TXT, 13289 Textabschnitte).
+- TXT 5 MB: Laden+Analyse 10.1 s, Export+Schlusscheck 6.8 s, JS-Speicher ca. 307 MB – Gelesen: gross.txt (TXT, 66419 Textabschnitte).
+- TXT 10 MB: Laden+Analyse 20.7 s, Export+Schlusscheck 15.0 s, JS-Speicher ca. 527 MB – Gelesen: gross.txt (TXT, 132815 Textabschnitte).
+- XLSX mit 20 000 Zeilen × 4 Spalten (0.5 MB gepackt): Laden+Analyse 6.0 s, Export+Schlusscheck 10.7 s, JS-Speicher ca. 242 MB – Gelesen: gross.xlsx (XLSX, 60052 Textabschnitte).
 
 ## Netzwerkzugriffe während aller Tests
 - Anfragen gesamt: 23; davon nicht lokal (http/https/ws …): 0

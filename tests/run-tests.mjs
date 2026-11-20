@@ -27,7 +27,9 @@ try { ({ chromium } = createRequire(import.meta.url)('playwright')); } catch {
 const PARTICLES = new Set(['von', 'van', 'der', 'de', 'al', 'el', 'bin']);
 const personTokens = Object.fromEntries(Object.entries(PERSONS).map(([id, p]) => [id, [...new Set(p.name.split(/\s+/).flatMap((t) => [t, ...t.split('-')]).filter((t) => t.length > 1 && !PARTICLES.has(t.toLowerCase())))]]));
 const TRAP_RES = [/\b(?:eine|Die) Rose\b/g, /\bim Winter\b/g, /\bnach Paris\b/g, /\balte Mark\b/g, /engl\. Bill\b/g, /\bDer Richter\b/g,
-  /\bDer Bauer\b/g, /\bim Sommer\b/g, /\bUnser Koch\b/g, /\bkleinen Engel\b/g, /\bein Fuchs\b/g, /\bvoller Kraft\b/g, /\bab Mai\b/g];
+  /\bDer Bauer\b/g, /\bim Sommer\b/g, /\bUnser Koch\b/g, /\bkleinen Engel\b/g, /\bein Fuchs\b/g, /\bvoller Kraft\b/g, /\bab Mai\b/g,
+  // Datum, kein Name (seit v1.2 bleibt es richtigerweise stehen; v1.1 hat es fälschlich ersetzt)
+  /\bam 3\. Mai\b/g];
 const trapSpans = (text) => TRAP_RES.flatMap((re) => [...text.matchAll(re)].map((m) => { const w = m[0].split(' ').pop(); const s = m.index + m[0].lastIndexOf(w); return [s, s + w.length, w]; }));
 
 // Vorkommen der Personen-Tokens in einem Text (ohne Fallen-Kontexte)

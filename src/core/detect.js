@@ -220,6 +220,73 @@ function mentionKey(comps, swapped) {
   return { full: true, given, sur };
 }
 
+// ---------- Regel a2: Anrede allein in einer Einheit -> Anfang der direkt folgenden Einheit ist ein Name ----------
+// Auslöser: Absatz/Zeile/Zelle besteht NUR aus Herr/Herrn/Frau/Fräulein/Hr./Fr./Frl., optional mit akademischem Titel.
+const ANREDE = new Set(['herr', 'herrn', 'frau', 'fraulein', 'hr', 'fr', 'frl']);
+const ANREDE_TITLES = new Set(['dr', 'prof', 'professor', 'professorin', 'doktor', 'dipl', 'ing', 'mag', 'med', 'dent', 'vet', 'rer', 'nat',
+  'phil', 'jur', 'oec', 'pol', 'hc', 'habil', 'msc', 'bsc', 'llm', 'mba']);
+export function isAnredeOnly(text) {
+  const t = text.trim();
+  if (!t || !/^[\p{L}\p{M}\s.-]+$/u.test(t)) return false;
+  const words = tokenize(t).filter((x) => x.word);
+  if (!words.length || words.length > 6) return false;
+  let anrede = false;
+  for (const w of words) {
+    const k = fold(w.t);
+    if (ANREDE.has(k) && isCap(w.t)) anrede = true;
+    else if (!ANREDE_TITLES.has(k)) return false;
+  }
+  return anrede;
+}
+// Enge Grenze: Die erste Zeile der Folge-Einheit besteht GANZ aus 1–3 großgeschriebenen Namenswörtern
+// (plus Initialen und Namenszusätzen wie von/van der/al-); danach höchstens Satzzeichen. Sonst kein Treffer.
+const A2_MAX_WORDS = 3;
+function a2Candidate(u, toks, base, cov, exceptions) {
+  const nl = u.text.indexOf('\n');
+  const lineEnd = base + (nl < 0 ? u.text.length : nl);
+  const comps = [];
+  let words = 0;
+  let k = 0;
+  while (k < toks.length && toks[k].s < lineEnd) {
+    const tk = toks[k];
+    if (cov[k]) return null;
+    if (!tk.word) break;
+    if (isInitial(toks, k)) { comps.push({ type: 'I', s: tk.s, e: toks[k + 1].e, key: fold(tk.t) + '.' }); k += 2; continue; }
+    const inf = info(tk, exceptions);
+    if (inf.particle && !tk.allcaps && !inf.F && !inf.L) { comps.push({ type: 'P', s: tk.s, e: tk.e, key: fold(tk.t) }); k++; continue; }
+    if (!(tk.cap || (inf.hy && inf.L))) return null;
+    if (inf.stop || inf.title || inf.exception) return null;
+    comps.push({ type: 'W', s: tk.s, e: tk.e, stemEnd: inf.stemEnd, suffix: inf.suffix, key: inf.key, F: inf.F, L: inf.L, A: inf.A,
+      known: inf.known, shaped: inf.shaped, allcaps: tk.allcaps, tokIdx: k });
+    words++;
+    k++;
+    if (words > A2_MAX_WORDS) return null;
+  }
+  const restStart = k < toks.length && toks[k].s < lineEnd ? toks[k].s : lineEnd;
+  if (!/^[\s,.;:]*$/.test(u.text.slice(restStart - base, lineEnd - base))) return null;
+  const W = comps.filter((c) => c.type === 'W');
+  if (!W.length || comps[comps.length - 1].type !== 'W') return null;
+  // Nur Allerweltswörter (z. B. "Berlin", "Montag") -> keine a2-Regel; dafür gelten die bisherigen Regeln
+  if (W.every((c) => c.A)) return null;
+  // Markierung (Entscheidung E): Ersetzt wird immer. Ein einzelnes Wort, das in keiner Namensliste steht,
+  // wird "unsicher, an" (es kann auch ein Sachwort sein, z. B. "Mathematik" oder "Turnhalle").
+  const w0 = W[0];
+  const unsure = W.length === 1 && !w0.known && !w0.shaped;
+  return { comps, endTok: k, unsure };
+}
+
+// ---------- Regel b2: Wochentage und Monate allein -> "unsicher, aus" ----------
+const CALENDAR = new Set(['montag', 'dienstag', 'mittwoch', 'donnerstag', 'freitag', 'samstag', 'sonnabend', 'sonntag',
+  'januar', 'janner', 'februar', 'feber', 'marz', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'dezember']);
+// Abkürzungen zählen nur mit Punkt ("Jan." ist Januar, "Jan" ist ein Vorname)
+const CALENDAR_ABBR = new Set(['mo', 'di', 'mi', 'do', 'fr', 'sa', 'so', 'jan', 'feb', 'mar', 'mrz', 'apr', 'jun', 'jul', 'aug', 'sep', 'sept', 'okt', 'nov', 'dez']);
+function isCalendarWord(toks, k) {
+  const tk = toks[k];
+  const key = fold(tk.t);
+  if (CALENDAR.has(key)) return true;
+  return CALENDAR_ABBR.has(key) && toks[k + 1] && toks[k + 1].t === '.' && toks[k + 1].s === tk.e;
+}
+
 function letterFor(n) {
   let s = '';
   n += 1;
@@ -262,6 +329,23 @@ export function analyze(units, state) {
     const toks = unitToks[ui];
     const cov = covered[ui];
     const prevText = ui > 0 ? units[ui - 1].text : '';
+    // Regel a2: vorige Einheit besteht nur aus einer Anrede und diese Einheit folgt direkt darauf
+    if (ui > 0 && u.follows && !u.heading && isAnredeOnly(units[ui - 1].text)) {
+      const c = a2Candidate(u, toks, base, cov, exceptions);
+      if (c) {
+        const comps = c.comps;
+        const lastWc = [...comps].reverse().find((x) => x.type === 'W');
+        const s = comps[0].s;
+        const e = lastWc.e;
+        const h = { s, e, type: 'person', cert: c.unsure ? 'unsicher' : 'sicher', origin: 'auto', unit: ui, suffix: lastWc.suffix || '', comps,
+          mk: mentionKey(comps, null), titled: true, a2: true, defaultOff: false };
+        // Gruppe: alle Vorkommen dieses Worts werden in der Prüfansicht gemeinsam an-/ausgeschaltet
+        if (c.unsure) h.a2group = 'a2|' + lastWc.key;
+        hits.push(h);
+        mentions.push(h);
+        toks.forEach((t2, k) => { if (t2.s < e && t2.e > s) { cov[k] = true; tokHit[ui][k] = h; } });
+      }
+    }
     let i = 0;
     while (i < toks.length) {
       const tk = toks[i];
@@ -314,6 +398,9 @@ export function analyze(units, state) {
           }
         }
       }
+      // Regel b2: Wochentag/Monat allein (ohne Anrede, ohne Nachbarnamen) -> unsicher und standardmäßig aus
+      const calendarOnly = cert && W.length === 1 && comps.length === 1 && !ctx.strong && !ctx.weak && !ctx.post && isCalendarWord(toks, W[0].tokIdx);
+      if (calendarOnly) cert = 'unsicher';
       if (cert) {
         const s = comps[0].s;
         const lastWc = [...comps].reverse().find((c) => c.type === 'W');
@@ -321,7 +408,8 @@ export function analyze(units, state) {
         const isNoun = W.length === 1 && W[0].A && !ctx.strong && !ctx.weak && nounContext(toks, W[0].tokIdx);
         const mk = mentionKey(comps.filter((c) => c.type !== 'SEP'), swapped);
         const h = { s, e, type: 'person', cert, origin: 'auto', unit: ui, suffix: lastWc.suffix || '', comps, mk, titled: ctx.strong || ctx.weak,
-          defaultOff: cert === 'unsicher' && (isNoun || !st.settings.unsureOn) };
+          defaultOff: cert === 'unsicher' && (isNoun || calendarOnly || !st.settings.unsureOn) };
+        if (calendarOnly) h.calendar = true;
         if (W.length === 1 && W[0].key.length <= 2 && !ctx.strong && !ctx.weak && !ctx.post) h.defaultOff = true;
         hits.push(h);
         mentions.push(h);
@@ -426,6 +514,18 @@ export function analyze(units, state) {
       partToEntities.get(c.key).add(h.entity);
     }
   }
+  // Regel a2 (Entscheidung E): Ein "unsicher, an" markiertes Wort nach allein stehender Anrede wird auf weitere
+  // Vorkommen übertragen, dort ebenfalls "unsicher, an". Nur für Wörter, die NICHT schon durch einen anderen
+  // Treffer bekannt sind -> die bisherige Übertragung bleibt unverändert.
+  const a2Groups = new Map();
+  for (const h of hits) {
+    if (!h.a2group) continue;
+    const c = h.comps.find((x) => x.type === 'W');
+    if (!c || partToEntities.has(c.key) && !a2Groups.has(c.key)) continue;
+    if (!partToEntities.has(c.key)) partToEntities.set(c.key, new Set());
+    partToEntities.get(c.key).add(h.entity);
+    a2Groups.set(c.key, h.a2group);
+  }
   const manualParts = new Set(hits.filter((h) => h.origin === 'manual').flatMap((h) => (h.comps || []).map((c) => c.key)));
   const partKeys = new Set([...partToEntities.keys()].filter((k) => partToEntities.get(k).size === 1));
   units.forEach((u, ui) => {
@@ -444,6 +544,9 @@ export function analyze(units, state) {
       const h = { s: tk.s, e: tk.e, type: 'person', cert, origin: manual ? 'manual' : 'propagated', unit: ui, suffix: stm.suffix,
         entity: ent, comps: [{ type: 'W', s: tk.s, e: tk.e, key: stm.key }],
         defaultOff: cert === 'unsicher' && amb && nounContext(toks, k) };
+      if (!manual && a2Groups.has(stm.key)) { h.cert = 'unsicher'; h.defaultOff = false; h.a2group = a2Groups.get(stm.key); }
+      // Regel b2 auch hier: einzelner Wochentag/Monat nur wegen eines gleichlautenden Namensteils -> unsicher, aus
+      if (!manual && isCalendarWord(toks, k)) { h.cert = 'unsicher'; h.defaultOff = true; h.calendar = true; }
       // Unbekanntes großgeschriebenes Wort direkt davor (z. B. Vorname vor bekanntem Nachnamen) -> mit ersetzen, unsicher
       const pv = toks[k - 1];
       if (!amb && tk.cap && pv && pv.word && pv.cap && !pv.allcaps && !covered[ui][k - 1] && /^[ \u00a0]+$/.test(fullText.slice(pv.e, tk.s))) {

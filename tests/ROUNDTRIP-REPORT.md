@@ -1,6 +1,6 @@
 # Rückbau: Kreislauf-Beweis und Fallen
 
-Chromium headless gegen index.html (SHA-256 70ad83c72d5f738f…). Alle Namen sind erfunden.
+Chromium headless gegen index.html (SHA-256 8d9b83bcd51932d3…). Alle Namen sind erfunden.
 
 ## TXT (protokoll.txt)
 - Anonymisiert (rückbaufähig): 57 Platzhalter in der Schlüsseldatei; Status „Gespeichert: anonymisiert_text.txt (mit bestätigten Restfunden) ACHTUNG: Die passende Rückbau-Schlüsseldatei ist noch nicht gespeichert – ohne sie ist kein Rückbau möglich.“
@@ -28,9 +28,38 @@ Chromium headless gegen index.html (SHA-256 70ad83c72d5f738f…). Alle Namen sin
 ## XLSX (mitarbeiter.xlsx)
 - Schlüsseldatei: 31 Platzhalter; ausgeblendetes Blatt „Yılmaz“ hieß anonymisiert „Nachname C“
 - Korrektur: Zelltext geändert, Text mit Platzhaltern in eine Zelle eingefügt, Zeilen 3/4 getauscht
-- Rückbau: 49 Platzhalter ersetzt; abweichende Zellen/Blattnamen/Formeln/Kommentare/Kopfzeilen: 0
+- Rückbau: 48 Platzhalter ersetzt; abweichende Zellen/Blattnamen/Formeln/Kommentare/Kopfzeilen: 0
 - Blattnamen und Bezüge nach Rückbau: Blatt 1: Mitarbeiter · Blatt 2: Yılmaz · Blatt 3: Notizen · Name: 'Yılmaz'!$A$1 · S1!E3: Notizen zu Mehmet Yılmaz | f='Yılmaz'!A1 · app: Mitarbeiter · app: Yılmaz · app: Notizen
 - JS-Fehler: keine
+
+## DOCX Kurs-Tabelle (kurse.docx, Namen nur über Anrede im Absatz/der Zelle davor erkannt)
+- Platzhalter der nur so erkannten Namen: Kirchbichler → Nachname D, Tesfamariam → Nachname F, Brzęczek → Nachname L, Sonnleitner → Nachname T
+- Korrektur: Wort geändert, Satz mit Nachname D und Nachname F eingefügt, zwei Tabellenzeilen getauscht
+- Rückbau: 21 Platzhalter ersetzt; abweichende Absätze: 0
+- JS-Fehler: keine
+
+## Risiko-Test Anrede allein (a2-risiko.txt/.csv/.docx, unverändert zurückgebaut)
+- TXT: 15 Platzhalter; D-Namen ersetzt 8/8 (Hartung → Nachname F, Hornung → Nachname G, Kubik → Nachname H, Pawlik → Nachname I, Homburg → Nachname J, Steineck → Nachname K, Kronfeld → Nachname L, Tannheim → Nachname M); Rückbau 16 Platzhalter, abweichende Zeilen: 0
+- CSV: 12 Platzhalter; D-Namen ersetzt 8/8 (Hartung → Nachname E, Hornung → Nachname F, Kubik → Nachname G, Pawlik → Nachname H, Homburg → Nachname I, Steineck → Nachname J, Kronfeld → Nachname K, Tannheim → Nachname L); Rückbau 12 Platzhalter, abweichende Zeilen: 0
+- DOCX: 16 Platzhalter; D-Namen ersetzt 8/8 (Hartung → Nachname E, Hornung → Nachname F, Kubik → Nachname G, Pawlik → Nachname H, Homburg → Nachname I, Steineck → Nachname J, Kronfeld → Nachname K, Tannheim → Nachname L); Rückbau 25 Platzhalter, abweichende Absätze: 0
+
+## Übertragungs-Test Anrede allein (a2-uebertragung.docx/.txt/.csv)
+Hartung und Tannheim stehen nach allein stehender Anrede und später im Text (auch „Hartungs“, „HARTUNG“, in Word zusätzlich in Kopfzeile und Fußnote). Gegenprobe: Mathematik, Turnhalle, Sekretariat, Aula. Kontrolle: Kubik (Namensliste) und Lindqvist (ohne Anrede allein).
+- DOCX: Vorkommen im Original: Hartung 5, Tannheim 3, HARTUNG 1, Mathematik 2, Turnhalle 2, Sekretariat 2, Aula 2, Kubik 2, Lindqvist 2
+  - OK: im Ergebnis stehen geblieben: Hartung 0, Tannheim 0, HARTUNG 0, Mathematik 0, Turnhalle 0, Sekretariat 0, Aula 0, Kubik 0, Lindqvist 0
+  - OK: 17 Treffer aus „Anrede allein“ samt Übertragung, alle „unsicher, an“: Hartung, Tannheim, Hartung*, Tannheim*, Hartungs*, Tannheims*, HARTUNG*, Mathematik, Turnhalle, Sekretariat, Aula, Mathematik*, Turnhalle*, Sekretariat*, Aula*, Hartung*, Hartung* (* = übertragen)
+  - OK: ein „Mathematik“ angetippt → überall Klartext (2/2), anderes Vorkommen angetippt → überall wieder ersetzt (0)
+  - Rückbau: Hartung → Nachname A (mit Varianten 6× im Ergebnis, erwartet 6), Tannheim → Nachname B; 22 Platzhalter zurückgebaut, Abweichungen: 0
+- TXT: Vorkommen im Original: Hartung 5, Tannheim 3, HARTUNG 1, Mathematik 2, Turnhalle 2, Sekretariat 2, Aula 2, Kubik 2, Lindqvist 2
+  - OK: im Ergebnis stehen geblieben: Hartung 0, Tannheim 0, HARTUNG 0, Mathematik 0, Turnhalle 0, Sekretariat 0, Aula 0, Kubik 0, Lindqvist 0
+  - OK: 17 Treffer aus „Anrede allein“ samt Übertragung, alle „unsicher, an“: Hartung*, Hartung, Tannheim, Hartung*, Tannheim*, Hartungs*, Tannheims*, HARTUNG*, Mathematik, Turnhalle, Sekretariat, Aula, Mathematik*, Turnhalle*, Sekretariat*, Aula*, Hartung* (* = übertragen)
+  - OK: ein „Mathematik“ angetippt → überall Klartext (2/2), anderes Vorkommen angetippt → überall wieder ersetzt (0)
+  - Rückbau: Hartung → Nachname A (mit Varianten 6× im Ergebnis, erwartet 6), Tannheim → Nachname B; 22 Platzhalter zurückgebaut, Abweichungen: 0
+- CSV: Vorkommen im Original: Hartung 3, Tannheim 3, HARTUNG 1, Mathematik 2, Turnhalle 2, Sekretariat 2, Aula 2, Kubik 2, Lindqvist 2
+  - OK: im Ergebnis stehen geblieben: Hartung 0, Tannheim 0, HARTUNG 0, Mathematik 0, Turnhalle 0, Sekretariat 0, Aula 0, Kubik 0, Lindqvist 0
+  - OK: 15 Treffer aus „Anrede allein“ samt Übertragung, alle „unsicher, an“: Hartung, Tannheim, Mathematik, Turnhalle, Sekretariat, Aula, Hartung*, Tannheim*, Hartungs*, Tannheims*, HARTUNG*, Mathematik*, Turnhalle*, Sekretariat*, Aula* (* = übertragen)
+  - OK: ein „Mathematik“ angetippt → überall Klartext (2/2), anderes Vorkommen angetippt → überall wieder ersetzt (0)
+  - Rückbau: Hartung → Nachname B (mit Varianten 4× im Ergebnis, erwartet 4), Tannheim → Nachname C; 21 Platzhalter zurückgebaut, Abweichungen: 0
 
 ## Fallen (einzeln geprüft)
 - Anonymisierte Fallen-Zeilen (so sieht die KI den Text):
@@ -73,8 +102,15 @@ Chromium headless gegen index.html (SHA-256 70ad83c72d5f738f…). Alle Namen sin
 | TXT | 76 | 76 | 0 |
 | CSV | 39 | 39 | 0 |
 | DOCX | 98 | 98 | 0 |
-| XLSX | 49 | 49 | 0 |
+| XLSX | 48 | 48 | 0 |
+| DOCX Kurs-Tabelle | 21 | 21 | 0 |
+| Risiko-Test TXT | 16 | 16 | 0 |
+| Risiko-Test CSV | 12 | 12 | 0 |
+| Risiko-Test DOCX | 25 | 25 | 0 |
+| Übertragung DOCX | 22 | 22 | 0 |
+| Übertragung TXT | 22 | 22 | 0 |
+| Übertragung CSV | 21 | 21 | 0 |
 | Fallen-TXT | 79 | 79 | 0 |
 
-Fallen-Prüfungen: 25 von 25 bestanden.
+Fallen-Prüfungen: 34 von 34 bestanden.
 Netzwerkanfragen außer lokalen Dateien: 0.
