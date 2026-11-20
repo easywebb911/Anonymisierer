@@ -103,7 +103,8 @@ export async function readZipText(zip, name) {
 
 // Alle Texte eines (Ausgabe-)ZIPs für den Schlusscheck: Textknoten und Attributwerte aller XML-Teile,
 // dazu UTF-8/UTF-16-Dekodierung kleiner Binärteile.
-export async function collectZipTexts(zip) {
+// opts.inflatePng: zusätzlich komprimierte PNG-Textblöcke (zTXt, iTXt) entpacken (Schlusscheck beim Anonymisieren)
+export async function collectZipTexts(zip, opts = {}) {
   const texts = [];
   const names = Object.keys(zip.files).filter((n) => !zip.files[n].dir).sort();
   for (const name of names) {
@@ -128,9 +129,43 @@ export async function collectZipTexts(zip) {
       if (bytes.length > 8 * 1024 * 1024) { texts.push({ where: name, text: '', skipped: true }); continue; }
       texts.push({ where: name + ' (binär, UTF-8)', text: new TextDecoder('utf-8').decode(bytes) });
       texts.push({ where: name + ' (binär, UTF-16)', text: new TextDecoder('utf-16le').decode(bytes.length % 2 ? bytes.subarray(0, bytes.length - 1) : bytes) });
+      if (opts.inflatePng && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
+        for (const t of await pngCompressedTexts(bytes)) texts.push({ where: name + ' (binär, Bildangaben)', text: t });
+      }
     }
   }
   return texts;
+}
+
+// Komprimierte PNG-Textblöcke entpacken. Ohne DecompressionStream (sehr alte Browser): Hinweistext, damit nichts still fehlt.
+async function pngCompressedTexts(b) {
+  const out = [];
+  const dv = new DataView(b.buffer, b.byteOffset, b.byteLength);
+  let i = 8;
+  while (i + 12 <= b.length) {
+    const len = dv.getUint32(i);
+    const type = String.fromCharCode(b[i + 4], b[i + 5], b[i + 6], b[i + 7]);
+    const data = b.subarray(i + 8, Math.min(b.length, i + 8 + len));
+    i += 12 + len;
+    let comp = null;
+    if (type === 'zTXt') { const z = data.indexOf(0); if (z >= 0) comp = data.subarray(z + 2); }
+    if (type === 'iTXt') {
+      const z = data.indexOf(0);
+      if (z >= 0 && data[z + 1] === 1) {
+        let k = z + 3;
+        k = data.indexOf(0, k) + 1; // Sprache
+        k = data.indexOf(0, k) + 1; // übersetztes Schlüsselwort
+        if (k > 0) comp = data.subarray(k);
+      }
+    }
+    if (!comp) continue;
+    if (typeof DecompressionStream === 'undefined') { out.push('[komprimierte Bildangaben nicht prüfbar]'); continue; }
+    try {
+      const stream = new Blob([comp]).stream().pipeThrough(new DecompressionStream('deflate'));
+      out.push(new TextDecoder('utf-8').decode(await new Response(stream).arrayBuffer()));
+    } catch { out.push('[komprimierte Bildangaben nicht lesbar]'); }
+  }
+  return out;
 }
 
 export const ZIP_OPTS = { type: 'uint8array', compression: 'DEFLATE', compressionOptions: { level: 6 } };

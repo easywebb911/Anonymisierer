@@ -6,6 +6,7 @@ import {
   parseXml, serializeXml, allElements, isS, isA, makeUnit, textSegment, virtualSegment, distribute,
   neutralizePath, ZIP_OPTS, FIXED_DATE,
 } from './xmlutil.js';
+import { collectMetaNames, findPropertyParts, cleanProperties, cleanCustomXml, removeThumbnails, stripImages, imageWarnings } from './meta.js';
 
 const natural = (a, b) => a.localeCompare(b, 'en', { numeric: true });
 const childEls = (el, ln) => Array.from(el.childNodes).filter((c) => c.nodeType === 1 && (!ln || c.localName === ln));
@@ -259,7 +260,10 @@ export async function readXlsx(bytes) {
   if (media.length) warnings.push(`Die Datei enthält ${media.length} Bild(er). Namen IN Bildern erkennt das Tool nicht.`);
   if (names.some((n) => /^xl\/pivotCache/.test(n))) warnings.push('Die Datei enthält Pivot-Tabellen. Deren zwischengespeicherte Werte werden ersetzt; bitte die Pivot-Tabellen nach dem Öffnen aktualisieren und prüfen.');
   if (names.some((n) => /^xl\/externalLinks\//.test(n))) warnings.push('Die Datei enthält Verknüpfungen zu anderen Dateien. Gespeicherte Werte werden geprüft, die verknüpften Dateien selbst nicht.');
-  return { kind: 'xlsx', zip, docs, units, owned, sheets, names, warnings, ssDoc, siList };
+  warnings.push(...await imageWarnings(zip));
+  // Namen aus den Original-Metadaten (Autor, Bearbeiter, Manager, Firma, Kommentarautoren, SharePoint-Personen)
+  const metaNames = await collectMetaNames(zip, docs);
+  return { kind: 'xlsx', zip, docs, units, owned, sheets, names, warnings, ssDoc, siList, metaNames };
 }
 
 function cellString(sheetDoc, ref, siList) {
@@ -284,6 +288,13 @@ export async function writeXlsx(bytes, repsPerUnit, generic, opts = {}) {
   const clean = opts.clean !== false;
   const d = await readXlsx(bytes);
   const changed = new Set();
+  // Versteckte Angaben: SharePoint-Felder (vor dem Ersetzen, damit Werte mit Namen erkannt werden),
+  // Dateieigenschaften (über ihre Verweise gefunden), Vorschaubild
+  if (clean) {
+    await cleanCustomXml(d.zip, d.docs, changed, opts.containsName);
+    await cleanProperties(d.zip, d.docs, changed);
+    await removeThumbnails(d.zip, d.docs, changed);
+  }
 
   // Phase 1: Texte und Blattnamen
   d.units.forEach((u, i) => {
@@ -368,27 +379,10 @@ export async function writeXlsx(bytes, repsPerUnit, generic, opts = {}) {
       });
     }
   }
-  // app.xml: Blattnamen in TitlesOfParts, Firma/Manager
-  const app = d.docs.get('docProps/app.xml');
-  if (app) {
-    for (const el of allElements(app)) {
-      if (el.localName === 'lpstr' && renames.has(el.textContent)) { el.textContent = renames.get(el.textContent); changed.add('docProps/app.xml'); }
-      if (clean && ['Company', 'Manager', 'HyperlinkBase'].includes(el.localName) && el.textContent) { el.textContent = ''; changed.add('docProps/app.xml'); }
-    }
-  }
-  const core = clean ? d.docs.get('docProps/core.xml') : null;
-  if (core) {
-    for (const el of allElements(core)) {
-      if (['creator', 'lastModifiedBy', 'title', 'subject', 'keywords', 'description', 'category', 'contentStatus', 'identifier', 'language'].includes(el.localName) && el.textContent) {
-        el.textContent = '';
-        changed.add('docProps/core.xml');
-      }
-    }
-  }
-  const custom = clean ? d.docs.get('docProps/custom.xml') : null;
-  if (custom) {
-    for (const el of allElements(custom)) {
-      if (['lpwstr', 'lpstr', 'bstr'].includes(el.localName) && el.textContent) { el.textContent = ''; changed.add('docProps/custom.xml'); }
+  // app.xml (über den Verweis gefunden): Blattnamen in TitlesOfParts
+  for (const n of (await findPropertyParts(d.zip, d.docs)).app) {
+    for (const el of allElements(d.docs.get(n))) {
+      if (el.localName === 'lpstr' && renames.has(el.textContent)) { el.textContent = renames.get(el.textContent); changed.add(n); }
     }
   }
   // Alle geänderten Teile ermitteln (Einheiten-Änderungen): konservativ alle XML-Teile mit Einheiten neu schreiben
@@ -413,5 +407,7 @@ export async function writeXlsx(bytes, repsPerUnit, generic, opts = {}) {
     else if (/^xl\/embeddings\//.test(n)) d.zip.file(n, new Uint8Array(0), { date: FIXED_DATE, createFolders: false });
   }
   for (const n of changed) if (d.docs.has(n)) d.zip.file(n, serializeXml(d.docs.get(n)), { date: FIXED_DATE, createFolders: false });
+  // Bild-Metadaten (EXIF, XMP, IPTC, Kommentare, PNG-Textblöcke) verlustfrei entfernen
+  if (clean) await stripImages(d.zip);
   return d.zip.generateAsync({ ...ZIP_OPTS, mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 }

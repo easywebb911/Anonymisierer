@@ -3,6 +3,7 @@ import './lockdown.js';
 import JSZip from 'jszip';
 import {
   analyze, defaultState, replacementsByUnit, applyReplacements, leakForms, findLeaks, makeGenericReplacer,
+  metaLeakForms, makeNameTest,
 } from '../core/detect.js';
 import { fold } from '../core/fold.js';
 import { readTxt, writeTxt, readCsv, writeCsv, encodeText, encodeTextPlain } from '../formats/text.js';
@@ -11,6 +12,7 @@ import { parseKeyFile, planRestore, makeRestoreString, findLeftovers } from '../
 import { readDocx, writeDocx, buildDocx } from '../formats/docx.js';
 import { readXlsx, writeXlsx } from '../formats/xlsx.js';
 import { collectZipTexts } from '../formats/xmlutil.js';
+import { describePart } from '../formats/meta.js';
 import { readPdf } from '../formats/pdf.js';
 
 const MAX_BYTES = 20 * 1024 * 1024;
@@ -20,6 +22,9 @@ const STORE_KEY = 'anonymisierer.merkliste.v1';
 const VERSION = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'dev';
 
 const $ = (sel) => document.querySelector(sel);
+// Hinweis beim Speichern: Word/Excel tragen beim Speichern den Namen des Benutzers wieder in die Datei ein
+const SAVE_HINT_WORD = 'Lade die Datei direkt hoch. Wenn du sie vorher in Word öffnest und speicherst, trägt Word deinen Namen wieder ein.';
+const SAVE_HINT_EXCEL = 'Lade die Datei direkt hoch. Wenn du sie vorher in Excel öffnest und speicherst, trägt Excel deinen Namen wieder ein.';
 function h(tag, attrs, ...kids) {
   const el = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs || {})) {
@@ -102,7 +107,7 @@ async function loadBytes(bytes, name) {
   const units = doc.units.map((u) => ({ text: u.text, label: u.label || '', follows: !!u.follows, heading: !!u.heading }));
   const warnings = [...(doc.warnings || [])];
   if (bytes.length > WARN_BYTES) warnings.push(`Große Datei (${(bytes.length / 1048576).toFixed(1)} MB): Auf dem iPhone kann die Verarbeitung langsam sein oder abbrechen.`);
-  return { kind, units, warnings, bytes, info: doc.info || '', raw: doc };
+  return { kind, units, warnings, bytes, info: doc.info || '', raw: doc, metaNames: doc.metaNames || [] };
 }
 
 // ---------- Analyse ----------
@@ -137,26 +142,38 @@ function docxSections() {
   if (d.kind === 'csv') return [{ paragraphs: writeCsv(d.raw, texts).split(/\r\n|\n|\r/).map((l) => l.split(d.raw.delim).join('\t')) }];
   return [{ paragraphs: writeTxt(d.raw, texts).split(/\r\n|\n|\r/) }];
 }
+// Suchformen für den Schlusscheck: bestätigte Namen + Namen aus den Original-Metadaten (Dateiangaben)
+function checkForms() {
+  const forms = leakForms(app.result);
+  const meta = metaLeakForms(app.doc.metaNames);
+  for (const [k, f] of meta.forms) if (!forms.has(k)) forms.set(k, f);
+  return { forms, phrases: meta.phrases };
+}
 async function buildOutput(format) {
   const d = app.doc;
   const generic = makeGenericReplacer(app.result, app.state.settings);
   const reps = replacementsByUnit(app.result, d.units);
-  if (format === 'docx' && d.kind === 'docx') return { bytes: await writeDocx(d.bytes, reps, generic), zip: true };
+  // SharePoint-Felder: Werte mit einem bestätigten Namen oder einem Namen aus den Dateiangaben werden geleert
+  const cf = checkForms();
+  const containsName = makeNameTest(cf.forms, cf.phrases);
+  if (format === 'docx' && d.kind === 'docx') return { bytes: await writeDocx(d.bytes, reps, generic, { containsName }), zip: true };
   if (format === 'xlsx' && d.kind === 'xlsx') {
     const sheetIssues = [];
-    const bytes = await writeXlsx(d.bytes, reps, generic, { onSheetName: (x) => sheetIssues.push(x) });
+    const bytes = await writeXlsx(d.bytes, reps, generic, { onSheetName: (x) => sheetIssues.push(x), containsName });
     return { bytes, zip: true, sheetIssues };
   }
   if (format === 'docx') return { bytes: await buildDocx(docxSections()), zip: true };
   if (format === 'csv') return { text: writeCsv(d.raw, newUnitTexts()) };
   return { text: plainTextExport() };
 }
+// Schlusscheck: ALLE Teile der Ausgabedatei (Text, Eigenschaften, SharePoint-Daten, Bilder …) nach bestätigten
+// Namen und nach Namen aus den Original-Metadaten durchsuchen. Fundstelle in einfacher Sprache.
 async function finalCheck(out) {
-  const forms = leakForms(app.result);
+  const { forms, phrases } = checkForms();
   let texts;
-  if (out.zip) texts = await collectZipTexts(await JSZip.loadAsync(out.bytes));
+  if (out.zip) texts = (await collectZipTexts(await JSZip.loadAsync(out.bytes), { inflatePng: true })).map((t) => ({ ...t, where: describePart(t.where) }));
   else texts = [{ where: 'Text', text: out.text }];
-  return findLeaks(forms, texts);
+  return findLeaks(forms, texts, phrases);
 }
 
 const MIME = {
@@ -200,7 +217,7 @@ async function doExport(format) {
     }
     renderLeaks(leaks);
     if (leaks.length && !app.leakAck) {
-      status.textContent = `Schlusscheck: ${leaks.length} bestätigte(r) Klarname(n) noch im Ergebnis gefunden. Export blockiert – bitte prüfen (siehe unten).`;
+      status.textContent = `Schlusscheck: ${leaks.length} Klarname(n) noch im Ergebnis gefunden (bestätigte Namen oder Namen aus den Dateiangaben). Export blockiert – bitte prüfen (siehe unten).`;
       status.className = 'status bad';
       return;
     }
@@ -211,7 +228,8 @@ async function doExport(format) {
       const base = { txt: 'anonymisiert_text', csv: 'anonymisiert_tabelle', docx: 'anonymisiert_dokument', xlsx: 'anonymisiert_tabelle' }[format];
       download(out.zip ? out.bytes : encodeText(out.text), `${base}.${format}`, MIME[format]);
       status.textContent = `Gespeichert: ${base}.${format}` + (leaks.length ? ' (mit bestätigten Restfunden)' : ' – Schlusscheck ohne Fund.')
-        + (isReversible() && app.keyStamp !== app.stamp ? ' ACHTUNG: Die passende Rückbau-Schlüsseldatei ist noch nicht gespeichert – ohne sie ist kein Rückbau möglich.' : '');
+        + (isReversible() && app.keyStamp !== app.stamp ? ' ACHTUNG: Die passende Rückbau-Schlüsseldatei ist noch nicht gespeichert – ohne sie ist kein Rückbau möglich.' : '')
+        + (format === 'docx' ? ' ' + SAVE_HINT_WORD : format === 'xlsx' ? ' ' + SAVE_HINT_EXCEL : '');
     }
     status.className = leaks.length || (isReversible() && app.keyStamp !== app.stamp) ? 'status warn' : 'status ok';
   } catch (e) {
@@ -258,6 +276,7 @@ function render() {
     h('input', { type: 'checkbox', checked: app.ackWarnings.has(w), onchange: (e) => { if (e.target.checked) app.ackWarnings.add(w); else app.ackWarnings.delete(w); } }),
     ' ', w)));
   $('#doc-warnings-wrap').hidden = !allWarnings().length;
+  renderMetaNames();
   renderSummary();
   renderDoc();
   renderEntities();
@@ -269,6 +288,22 @@ function render() {
   $('#pdf-note').hidden = k !== 'pdf';
   renderModeNotes();
   $('#leaks').hidden = true;
+}
+
+// Namen aus den Original-Metadaten: eigene Zeile, nicht automatisch im Text ersetzt, per Knopf als Name übernehmen
+function renderMetaNames() {
+  const box = $('#meta-names');
+  const list = app.doc.metaNames || [];
+  box.hidden = !list.length;
+  if (!list.length) return;
+  box.replaceChildren(
+    h('p', {}, h('strong', {}, 'In den Dateiangaben gefunden: '), list.map((m) => m.name).join(', ')),
+    h('p', { class: 'muted' }, 'Diese Angaben (Autor, Bearbeiter, Firma, Kommentar-Autoren, SharePoint-Personen) werden beim Export aus der Datei entfernt. Im Text werden sie NICHT automatisch ersetzt. Kommt ein Name auch im Text vor, hier übernehmen.'),
+    h('div', { class: 'chips' }, ...list.map((m) => {
+      const taken = app.state.manualTerms.some((t) => fold(t) === fold(m.name));
+      return h('span', { class: 'chip' }, `${m.name} (${m.where.replace(/^Dateieigenschaften: /, '')}) `,
+        taken ? h('em', {}, 'übernommen') : h('button', { type: 'button', class: 'small', onclick: () => addManual(m.name) }, 'als Namen übernehmen'));
+    })));
 }
 
 function renderModeNotes() {
@@ -403,14 +438,23 @@ function renderLeaks(leaks) {
   const box = $('#leaks');
   box.hidden = !leaks.length;
   if (!leaks.length) return;
-  const items = leaks.slice(0, 200).map((l) => h('li', {}, h('strong', {}, l.word), ` (${l.entity}) – ${l.where}: „…${l.context.replace(/\s+/g, ' ')}…“`));
+  // Fundstelle in einfacher Sprache: "Kopfzeile – word/header1.xml" -> Ort "Kopfzeile", Teil "word/header1.xml"
+  const place = (w) => { const m = w.match(/^(.*?) – (.+)$/); return m ? { ort: m[1], teil: m[2] } : { ort: w, teil: '' }; };
+  const items = leaks.slice(0, 200).map((l) => {
+    const pl = place(l.where);
+    const taken = l.full && app.state.manualTerms.some((t) => fold(t) === fold(l.full));
+    return h('li', {}, h('strong', {}, l.word), ` – steht in: `, h('strong', {}, pl.ort), pl.teil ? ` (${pl.teil})` : '',
+      ` · ${l.meta ? 'Name ' + l.entity : 'bestätigter Name, ' + l.entity}: „…${l.context.replace(/\s+/g, ' ')}…“ `,
+      l.meta && l.full && !taken ? h('button', { type: 'button', class: 'small', onclick: () => addManual(l.full) }, `„${l.full}“ als Namen übernehmen`) : null);
+  });
   box.replaceChildren(
     h('h3', {}, 'Schlusscheck: Klarnamen im Ergebnis gefunden'),
-    h('p', {}, 'Diese bestätigten Namen stehen noch im Ergebnis (z. B. weil einzelne Treffer ausgeschaltet sind oder an Stellen, die das Tool nicht ersetzen kann). Bitte prüfen und ggf. Treffer einschalten.'),
+    h('p', {}, 'Diese Namen stehen noch im Ergebnis: bestätigte Namen (z. B. weil einzelne Treffer ausgeschaltet sind) oder Namen aus den Dateiangaben der Originaldatei (Autor, Bearbeiter, Firma …). Bei jedem Fund steht, wo er steht.'),
+    h('p', {}, h('strong', {}, 'Was tun? '), 'Entweder „als Namen übernehmen“ (bzw. den Treffer einschalten): Dann wird der Name überall in der Datei ersetzt, danach erneut speichern. Oder bewusst stehen lassen: unten abhaken und erneut speichern.'),
     h('ul', {}, ...items),
     leaks.length > 200 ? h('p', {}, `… und ${leaks.length - 200} weitere.`) : null,
     h('label', { class: 'warnitem' }, h('input', { type: 'checkbox', checked: app.leakAck, onchange: (e) => { app.leakAck = e.target.checked; } }),
-      ' Ich habe diese Fundstellen geprüft und will trotzdem exportieren.'));
+      ' Ich habe diese Fundstellen geprüft und lasse sie bewusst stehen.'));
 }
 
 // ---------- Markieren (Text auswählen oder Wort antippen) ----------

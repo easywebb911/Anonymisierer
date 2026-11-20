@@ -668,10 +668,53 @@ export function leakForms(result) {
   return forms;
 }
 
-// Sucht verbliebene Klarnamen in Texten. texts: [{where, text}]
-export function findLeaks(forms, texts) {
+// Namen aus den Original-Metadaten (Autor, Bearbeiter, Manager, Kommentar-/Änderungsautoren, SharePoint-Personen)
+// als Suchformen für den Schlusscheck. Personen: jedes Namenswort einzeln; Firma: die ganze Wortfolge.
+// Platzhalter-/Standardwerte wie "Autor" oder "Microsoft Office User" zählen nicht als Name.
+const META_DEFAULT_WORDS = new Set(['autor', 'author', 'microsoft', 'office', 'user', 'benutzer', 'nutzer', 'administrator', 'admin',
+  'windows', 'unknown', 'unbekannt', 'owner', 'besitzer', 'gast', 'guest', 'none', 'system', 'person', 'name']);
+export function metaLeakForms(metaNames) {
+  const forms = new Map();
+  const phrases = [];
+  for (const m of metaNames || []) {
+    const label = 'aus den Dateiangaben: ' + m.where;
+    if (m.kind === 'org') {
+      const words = m.name.trim().split(/\s+/);
+      if (/\p{L}{2,}/u.test(m.name) && !words.every((w) => META_DEFAULT_WORDS.has(fold(w)))) phrases.push({ words, display: m.name, entity: label, full: m.name, meta: true });
+      continue;
+    }
+    let v = m.name;
+    if (v.includes('@')) v = v.split('@')[0].replace(/[._-]+/g, ' '); // E-Mail-Adresse: nur der Teil vor dem @
+    if (v.includes('\\')) v = v.split('\\').pop(); // DOMÄNE\benutzer
+    for (const tk of tokenize(v)) {
+      if (!tk.word) continue;
+      const k = fold(tk.t);
+      if ([...k].length < 2 || META_DEFAULT_WORDS.has(k) || lex.isStopWord(tk.t) || lex.PARTICLES.has(k) || lex.isTitle(k)) continue;
+      if (!forms.has(k)) forms.set(k, { display: tk.t, entity: label, ambiguous: lex.isAmbiguous(k), full: m.name, meta: true });
+      const uv = umlautVariant(tk.t);
+      if (uv && !forms.has(fold(uv))) forms.set(fold(uv), { display: tk.t, entity: label, ambiguous: lex.isAmbiguous(k), full: m.name, meta: true });
+    }
+  }
+  return { forms, phrases };
+}
+
+// Prüft, ob ein Text einen der Namen enthält (für SharePoint-Felder)
+export function makeNameTest(forms, phrases) {
+  return (str) => findLeaks(forms, [{ where: '', text: str }], phrases).length > 0;
+}
+
+// Sucht verbliebene Klarnamen in Texten. texts: [{where, text}]; phrases: Wortfolgen (z. B. Firmenname)
+export function findLeaks(forms, texts, phrases = []) {
   const leaks = [];
   for (const { where, text } of texts) {
+    for (const ph of phrases) {
+      // ohne Lookbehind (ältere Safari-Versionen): Wortgrenze vorn als Gruppe
+      const re = new RegExp('(^|[^\\p{L}\\p{N}])(' + ph.words.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('[\\s\\u00a0]+') + ')(?![\\p{L}\\p{N}])', 'giu');
+      for (const m of text.matchAll(re)) {
+        const at = m.index + m[1].length;
+        leaks.push({ where, word: m[2], entity: ph.entity, full: ph.full, meta: true, context: text.slice(Math.max(0, at - 30), Math.min(text.length, at + m[2].length + 30)) });
+      }
+    }
     for (const tk of tokenize(text)) {
       if (!tk.word) continue;
       const cands = [tk.t, ...tk.t.split('-')];
@@ -681,7 +724,7 @@ export function findLeaks(forms, texts) {
         if (!f) { const m = c.match(/^(.+?)(['’]s|s)$/u); if (m) { k = fold(m[1]); f = forms.get(k); } }
         if (!f) continue;
         if (f.ambiguous && !isCap(c)) continue;
-        leaks.push({ where, word: tk.t, entity: f.entity, context: text.slice(Math.max(0, tk.s - 30), Math.min(text.length, tk.e + 30)) });
+        leaks.push({ where, word: tk.t, entity: f.entity, full: f.full, meta: !!f.meta, context: text.slice(Math.max(0, tk.s - 30), Math.min(text.length, tk.e + 30)) });
         break;
       }
     }

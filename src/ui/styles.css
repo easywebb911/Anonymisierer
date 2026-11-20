@@ -43,6 +43,9 @@ fieldset label { display: block; padding: .2rem 0; }
 .status.ok { color: var(--ok); } .status.bad { color: var(--bad); font-weight: 600; } .status.warn { color: var(--warn); }
 .req { color: var(--bad); font-size: .9rem; }
 .warnbox { background: var(--warnbg); border-radius: 8px; padding: .5rem .75rem; margin-bottom: .75rem; }
+.metanames { background: var(--warnbg); border-radius: 8px; padding: .5rem .75rem; margin-bottom: .75rem; }
+.metanames p { margin: .2rem 0; }
+.metanames .chips { display: flex; flex-wrap: wrap; gap: .3rem; }
 .warnitem { display: block; padding: .3rem 0; }
 .summary { font-weight: 600; }
 .legend { font-size: .9rem; color: var(--muted); }
