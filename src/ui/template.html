@@ -22,6 +22,12 @@
 
   <section class="card" id="input">
     <h2>1. Eingabe</h2>
+    <fieldset class="modebox">
+      <legend>Art der Ersetzung (vor dem Anonymisieren wählen)</legend>
+      <label><input type="radio" name="mode" value="person"> <strong>Person A, Person B, …</strong> (Standard) – <span class="norev">nicht rückbaufähig</span></label>
+      <label><input type="radio" name="mode" value="name"> <strong>[NAME]</strong> – <span class="norev">nicht rückbaufähig</span></label>
+      <label><input type="radio" name="mode" value="reversible"> <strong>rückbaufähig</strong> („Vorname A Nachname A“, „[E-MAIL-1]“) – Wähle diesen Modus, wenn du die Datei später wieder mit Klarnamen brauchst.</label>
+    </fieldset>
     <div id="drop" class="drop" tabindex="0">
       <p><strong>Datei hierher ziehen</strong> oder</p>
       <button type="button" id="btn-file" class="primary">Datei auswählen</button>
@@ -39,11 +45,6 @@
   <section class="card">
     <details>
       <summary><h2 class="inline">Einstellungen</h2></summary>
-      <fieldset>
-        <legend>Ersetzen durch</legend>
-        <label><input type="radio" name="mode" value="person"> Person A, Person B, …</label>
-        <label><input type="radio" name="mode" value="name"> [NAME]</label>
-      </fieldset>
       <fieldset>
         <legend>Zusätzlich ersetzen</legend>
         <label><input type="checkbox" id="opt-email"> E-Mail-Adressen</label>
@@ -110,6 +111,13 @@
   <section class="card" id="export">
     <h2>4. Export</h2>
     <p id="pdf-note" class="warnbox" hidden>PDF-Eingabe: Ausgabe nur als Text (.txt/.docx). Das Originallayout bleibt NICHT erhalten.</p>
+    <p id="norev-note" class="warnbox"><strong>Nicht rückbaufähig:</strong> In diesem Modus kann die Datei später nicht automatisch wieder mit Klarnamen versehen werden. Dafür vor dem Anonymisieren den Modus „rückbaufähig“ wählen.</p>
+    <div id="rev-note" class="warnbox" hidden>
+      <p><strong>Modus rückbaufähig: Ohne die Rückbau-Schlüsseldatei ist kein Rückbau möglich.</strong> Bitte die Schlüsseldatei zusätzlich speichern und sicher aufbewahren.</p>
+      <p class="danger">Die Schlüsseldatei enthält echte Namen. Nie weitergeben, nie an eine KI.</p>
+      <button type="button" id="btn-key" class="dangerbtn">Rückbau-Schlüsseldatei speichern …</button>
+      <p id="key-status" class="status" aria-live="polite"></p>
+    </div>
     <div class="row">
       <button type="button" id="btn-copy">Text kopieren</button>
       <button type="button" id="btn-txt">.txt speichern</button>
@@ -120,11 +128,46 @@
     <p class="hint">Vor jedem Export läuft ein Schlusscheck: Alle bestätigten Namen werden im Ergebnis erneut gesucht. Metadaten (Autor, Firma, Kommentar-Autoren) werden bereinigt. Dateiname immer neutral („anonymisiert_…“).</p>
     <p id="export-status" class="status" aria-live="polite"></p>
     <div id="leaks" class="leaks" hidden></div>
-    <details class="mapping">
+    <details class="mapping" id="mapping">
       <summary>Zuordnungstabelle (Pseudonym → Klarname)</summary>
       <p class="danger">Enthält echte Namen. Wird nur auf Klick als SEPARATE Datei gespeichert, nie im anonymisierten Dokument.</p>
       <button type="button" id="btn-map" class="dangerbtn">Zuordnungstabelle speichern …</button>
     </details>
+  </section>
+
+  <section class="card" id="restore">
+    <h2>5. Rückbau (Klarnamen wieder einsetzen)</h2>
+    <p>Für Dateien, die im Modus <strong>rückbaufähig</strong> anonymisiert und danach bearbeitet wurden (z. B. Korrekturen nach Hinweisen einer KI). Jeder Platzhalter bekommt wieder genau die ursprüngliche Schreibweise. Alle Bearbeitungen und die Formatierung bleiben erhalten.</p>
+    <p class="hint">Metadaten (Autor, Kommentar-Autoren, Firma) werden NICHT wiederhergestellt. PDF ist als Eingabe nicht möglich (dafür die .txt/.docx-Ausgabe verwenden).</p>
+    <div class="listcols">
+      <div>
+        <h3>a) Anonymisierte Datei</h3>
+        <div id="rb-drop" class="drop" tabindex="0">
+          <p><strong>Datei hierher ziehen</strong> oder</p>
+          <button type="button" id="rb-btn-file">Datei auswählen</button>
+          <input type="file" id="rb-file" accept=".txt,.text,.docx,.xlsx,.csv,.tsv,text/plain,text/csv,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
+          <p class="hint">.txt, .docx, .xlsx, .csv</p>
+        </div>
+        <textarea id="rb-paste" rows="4" placeholder="… oder anonymisierten Text hier einfügen"></textarea>
+        <button type="button" id="rb-btn-text">Eingefügten Text verwenden</button>
+        <p id="rb-file-status" class="status" aria-live="polite"></p>
+      </div>
+      <div>
+        <h3>b) Rückbau-Schlüsseldatei</h3>
+        <button type="button" id="rb-btn-key">Schlüsseldatei (.json) auswählen</button>
+        <input type="file" id="rb-key" accept=".json,application/json" hidden>
+        <p class="danger">Enthält echte Namen. Nie weitergeben, nie an eine KI.</p>
+        <p id="rb-key-status" class="status" aria-live="polite"></p>
+      </div>
+    </div>
+    <div class="row"><button type="button" id="rb-btn-check" class="primary">Rückbau prüfen</button></div>
+    <div id="rb-report" hidden></div>
+    <div class="row" id="rb-actions" hidden>
+      <button type="button" id="rb-btn-save" class="primary">Wiederhergestellte Datei speichern</button>
+      <button type="button" id="rb-btn-copy">Text kopieren</button>
+    </div>
+    <p id="rb-status" class="status" aria-live="polite"></p>
+    <div id="rb-left" class="leaks" hidden></div>
   </section>
 </main>
 <div id="markbar" class="markbar" hidden>
@@ -132,7 +175,7 @@
   <button type="button" id="btn-mark" class="primary">Als Name markieren</button>
   <button type="button" id="btn-mark-cancel">Abbrechen</button>
 </div>
-<footer class="foot">Anonymisierer · läuft vollständig offline · Lizenzen siehe README</footer>
+<footer class="foot">Anonymisierer · Version __VERSION__ · Stand __DATE__ · läuft vollständig offline · Lizenzen und Prüfsumme siehe README</footer>
 <script>__SCRIPT__</script>
 </body>
 </html>

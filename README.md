@@ -1,6 +1,7 @@
 # Anonymisierer
 
 Ein Werkzeug, das **Klarnamen** in Texten und Dokumenten durch Pseudonyme ersetzt („Person A“, „Person B“ … oder „[NAME]“).
+Im Modus **rückbaufähig** kann eine anonymisierte und danach bearbeitete Datei später wieder mit den Klarnamen versehen werden (**Rückbau**).
 Es ist **eine einzige Datei: `index.html`**. Sie läuft komplett im Browser und **sendet nichts ins Internet**.
 
 > **Wichtig:** Das Tool findet nie 100 % der Namen. **Die Prüfansicht vor dem Export ist Pflicht.**
@@ -11,18 +12,19 @@ Es ist **eine einzige Datei: `index.html`**. Sie läuft komplett im Browser und 
 ## Bedienung in einfacher Sprache
 
 1. **`index.html` öffnen.** Doppelklick am Computer: Die Datei öffnet sich im Browser. Eine Internetverbindung wird nicht gebraucht.
-2. **Eingabe:** Datei in das Feld ziehen **oder** „Datei auswählen“ tippen **oder** Text in das Textfeld einfügen und „Text prüfen“ drücken.
-3. **Prüfansicht (Pflicht):**
+2. **Art der Ersetzung wählen** (oben in „1. Eingabe“): „Person A, Person B, …“ (Standard), „[NAME]“ oder **„rückbaufähig“**. Wählen Sie „rückbaufähig“, wenn Sie die Datei später wieder mit Klarnamen brauchen.
+3. **Eingabe:** Datei in das Feld ziehen **oder** „Datei auswählen“ tippen **oder** Text in das Textfeld einfügen und „Text prüfen“ drücken.
+4. **Prüfansicht (Pflicht):**
    - Gelb = sicherer Treffer, orange mit gestricheltem Rand = unsicherer Treffer, blau = Kontaktdaten, grau durchgestrichen = ausgeschaltet.
    - Einen Treffer **antippen** schaltet ihn an oder aus.
    - Ein **nicht erkannter Name**: Wort antippen (oder Text markieren) → unten erscheint **„Als Name markieren“**. Danach werden **alle** Vorkommen im Dokument ersetzt, auch mit Endungen („Müllers“) und unabhängig von Groß-/Kleinschreibung.
    - Rechts bzw. unten steht die Liste der **Personen** mit Trefferzahl. Dort kann man eine Person ganz ausschalten, zwei Personen zusammenführen, eine automatische Zuordnung („Herr Yılmaz“ → „Mehmet Yılmaz“) lösen oder ein Wort auf „nie anonymisieren“ setzen.
    - Gelbe Hinweise zur Datei (z. B. „ausgeblendete Blätter“, „Bilder werden nicht geprüft“) müssen abgehakt werden.
-4. **Export:** „Text kopieren“, „.txt speichern“, „.docx speichern“ (bei Excel: „.xlsx speichern“, bei CSV: „.csv speichern“).
+5. **Export:** „Text kopieren“, „.txt speichern“, „.docx speichern“ (bei Excel: „.xlsx speichern“, bei CSV: „.csv speichern“).
    Vor jedem Export läuft ein **Schlusscheck**: Alle bestätigten Namen werden im Ergebnis noch einmal gesucht.
    Findet er etwas, wird der Export **blockiert**, bis Sie die Fundstellen angesehen und bestätigt haben.
    Der Dateiname ist immer neutral („anonymisiert_…“).
-5. **Zuordnungstabelle** (welches Pseudonym zu welchem Namen gehört) gibt es nur auf ausdrücklichen Klick, als **separate** Datei mit Warnhinweis. Sie steht nie im anonymisierten Dokument.
+6. **Zuordnungstabelle** (nur Modus „Person A“/„[NAME]“; welches Pseudonym zu welchem Namen gehört) gibt es nur auf ausdrücklichen Klick, als **separate** Datei mit Warnhinweis. Sie steht nie im anonymisierten Dokument.
 
 ### Eigene Namen und Ausnahmen
 - **Eigene Namen (Merkliste):** Namen, die das Tool nicht kennt. Sie werden bei jedem weiteren Dokument automatisch mit ersetzt.
@@ -30,9 +32,51 @@ Es ist **eine einzige Datei: `index.html`**. Sie läuft komplett im Browser und 
 - **Gespeichert wird nur auf ausdrücklichen Wunsch:** als Datei („Merkliste als Datei speichern“) oder im Browser (Schalter, **Standard: aus**). Die Liste **enthält echte Namen**. „Merkliste löschen“ entfernt alles, auch aus dem Browser.
 
 ### Einstellungen
-- Ersetzen durch „Person A, B, …“ oder „[NAME]“.
+- Art der Ersetzung: siehe oben (sichtbar vor dem Anonymisieren).
 - Zusätzlich ersetzen (einzeln schaltbar, Standard: an): E-Mail, Telefon, IBAN (mit Prüfziffer), Adresse/PLZ.
 - „Unsichere Treffer standardmäßig ersetzen“ (Standard: an). Ausnahme: Wörter wie „die Rose“, „im Winter“, „mit voller Kraft“ (Artikel oder Präposition davor) bleiben aus, sind aber markiert.
+
+---
+
+## Rückbau: Klarnamen wieder einsetzen (Modus „rückbaufähig“)
+
+**Wofür?** Sie lassen eine Datei anonymisieren, geben sie z. B. einer KI zur Prüfung, arbeiten deren Hinweise ein und brauchen danach wieder die Fassung mit den echten Namen.
+
+**So sieht der Text im Modus „rückbaufähig“ aus** (Beispiel):
+
+> Frau Nachname A leitet. Nachname As Bericht liegt vor. Nachname A2 unterschrieb. Initiale B. Nachname B kam später.
+> Vorname C Nachname C ist erreichbar unter [E-MAIL-1] und [TELEFON-1].
+
+- Jeder Namensteil hat einen eigenen Platzhalter: „Vorname A“, „Nachname A“, „Initiale A“. Ein Wort, dessen Rolle unklar ist, heißt „Name A“.
+- Jede Schreibweise hat genau einen Platzhalter. Eine weitere Schreibweise derselben Person bekommt eine Nummer: „MÜLLER“ wird „Nachname A2“, „Müller“ bleibt „Nachname A“.
+- Endungen und Anreden bleiben im Text stehen („Herrn Nachname As“) und kommen beim Rückbau genauso zurück („Herrn Müllers“).
+- Kontaktdaten werden nummeriert: [E-MAIL-1], [TELEFON-2], [IBAN-1], [ADRESSE-1]. Gleicher Wert bekommt die gleiche Nummer.
+
+**Ablauf**
+1. Modus **„rückbaufähig“** wählen, Datei laden, Prüfansicht durchgehen.
+2. Exportieren **und** die **Rückbau-Schlüsseldatei** speichern (Knopf im Export-Bereich). **Ohne diese Datei ist kein Rückbau möglich.** Wenn Sie nach dem Speichern noch Treffer ändern, die Schlüsseldatei neu speichern.
+3. Die anonymisierte Datei bearbeiten oder prüfen lassen. Platzhalter dabei möglichst **unverändert** lassen.
+4. In **„5. Rückbau“** die bearbeitete Datei (.txt, .docx, .xlsx, .csv oder eingefügten Text) und die Schlüsseldatei laden, dann „Rückbau prüfen“.
+5. Der **Rückbau-Bericht** zeigt je Platzhalter, wie oft er erwartet und gefunden wurde. Außerdem zeigt er auffällige Stellen: veränderte („nachname a“), gebeugte („des Nachnamens A“), getrennte (Zeilenumbruch) und unbekannte Platzhalter. Auffällige Stellen werden **nicht** geraten, sondern bleiben stehen. Bei Auffälligkeiten muss bestätigt werden.
+6. Speichern: gleiches Format, Dateiname „wiederhergestellt_…“. Alle Ihre Änderungen, die Formatierung und die Zellstruktur bleiben erhalten. Vor dem Speichern prüft ein **Schlusscheck**, ob noch Platzhalter aus der Schlüsseldatei übrig sind. Wenn ja, wird gewarnt und erst nach Bestätigung gespeichert.
+
+> **Warnung zur Schlüsseldatei:** Sie **enthält echte Namen** und Kontaktdaten. **Nie weitergeben, nie an eine KI.** Getrennt vom anonymisierten Dokument sicher aufbewahren.
+
+- Die alte **Zuordnungstabelle** (`zuordnung_VERTRAULICH.csv`, Modus „Person A“) **reicht für einen Rückbau nicht**. Das Tool meldet das beim Laden.
+- In den Modi „Person A“ und „[NAME]“ ist **kein Rückbau** möglich. Das steht im Tool vor dem Export.
+- Eine **falsche Schlüsseldatei** wird erkannt, wenn kaum Platzhalter oder Anzahlen passen. Dann gibt es entweder kein Ergebnis oder eine deutliche Warnung mit Bestätigung.
+
+**Grenzen des Rückbaus**
+- **Metadaten** (Autor, zuletzt bearbeitet von, Kommentar-Autoren, Firma) werden **nicht** wiederhergestellt.
+- **PDF** ist als Rückbau-Eingabe nicht möglich. Verwenden Sie die .txt- oder .docx-Ausgabe der PDF-Anonymisierung.
+- **Umgeschriebene Platzhalter** (z. B. „des Nachnamens A“, „nachname a“, „Person A“ statt „Vorname A Nachname A“) werden gemeldet, aber nicht ersetzt. Bitte von Hand korrigieren.
+- **Formatierung innerhalb eines Namens:** War nur ein Teil eines Namens fett („Anna Mü**ller**“), steht nach dem Rückbau der ganze Name in der Formatierung des ersten Teils. Der Text stimmt exakt.
+- **Excel-Blattnamen** dürfen höchstens 31 Zeichen haben. Wird ein Blattname durch Platzhalter zu lang, warnt das Tool vor dem Export. Der Rückbau dieses Blattnamens ist dann nicht exakt.
+- **Alternativtexte, Feldfunktionen, Links:** Dort wird nur zurückgebaut, wenn die Schreibweise exakt bekannt war. Sonst steht dort „Name A“; das meldet der Rückbau-Bericht als unbekannt.
+- Steht im **Original schon Text, der wie ein Platzhalter aussieht** (z. B. „Nachname A“), warnt das Tool vor dem Export, weil der Rückbau ihn ebenfalls ersetzen würde.
+- Eine Schlüsseldatei einer **anderen, gleich aufgebauten Datei** (gleiche Personenzahl, gleiche Häufigkeiten) kann nicht sicher erkannt werden.
+- Zeichen in zerlegter Unicode-Form (NFD) kommen in zusammengesetzter Form (NFC) zurück. Sie sehen gleich aus.
+- Text-Ausgaben (.txt/.csv) sind immer UTF-8.
 
 ---
 
@@ -90,6 +134,7 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 |---|---|
 | Chromium/Chrome (Desktop) | **geprüft** (automatische Tests, headless) |
 | Chromium mit iPhone-Bildschirmgröße und Touch | **geprüft** (Darstellung, Antippen, Markieren) |
+| Edge und Chrome unter Windows (Firmen-PC, `file://`) | Version 1.0 laut Easy **am PC geprüft**; Version 1.1 (Rückbau) **durch Code ungeprüft** |
 | Firefox (Desktop) | **ungeprüft** |
 | Safari (macOS) | **ungeprüft** |
 | Safari auf dem iPhone | **ungeprüft**. Code ist auf Safari ≥ 15 ausgelegt (keine Lookbehind-Regex, keine neueren Sprachfunktionen). |
@@ -98,6 +143,18 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 Die Datei muss in einem Browser geöffnet werden (z. B. über „Teilen → in Safari öffnen“, falls angeboten, oder über eine App, die lokale HTML-Dateien im Browser öffnet).
 
 ---
+
+## Version und Prüfsumme
+
+Version **1.1.0**, Stand 2026-11-20 (steht auch im Fußbereich des Tools).
+
+SHA-256 der `index.html` dieser Version:
+
+```
+70ad83c72d5f738f21480b5e553415acf443e7438c21ad1673e83d35d43150cd
+```
+
+Eine Datei kann ihre eigene Prüfsumme nicht enthalten, deshalb steht sie nur hier und im PR-Text. Prüfen unter Windows: `certutil -hashfile index.html SHA256`.
 
 ## Datenschutz und Offline-Nachweis
 
@@ -150,6 +207,8 @@ npm ci                       # feste Versionen aus package-lock.json
 npm run build                # erzeugt index.html (Namenslisten, CMaps, Bündel, CSP-Hashes)
 node tests/make-fixtures.mjs # erfundene Testdokumente (braucht LibreOffice für PDF/DOC/XLS)
 node tests/run-tests.mjs     # End-to-End-Tests in Chromium → tests/REPORT.md
+node tests/roundtrip.mjs     # Rückbau: Kreislauf-Beweis und Fallen → tests/ROUNDTRIP-REPORT.md
+node tests/regression.mjs <alte-index.html>  # Modi „Person A“/„[NAME]“ byte-gleich zur Referenz?
 ```
 
-Aufbau: `src/core` (Erkennung, Muster, Namenslisten-Zugriff), `src/formats` (TXT/CSV/DOCX/XLSX/PDF), `src/ui` (Oberfläche, Netzwerksperre, Vorlage, Stil), `build/` (Build-Skripte), `tests/` (Testdaten, Tests, Bericht).
+Aufbau: `src/core` (Erkennung, Muster, Namenslisten-Zugriff, `reversible.js` = Modus rückbaufähig und Schlüsseldatei, `restore.js` = Rückbau), `src/formats` (TXT/CSV/DOCX/XLSX/PDF), `src/ui` (Oberfläche, Netzwerksperre, Vorlage, Stil), `build/` (Build-Skripte), `tests/` (Testdaten, Tests, Bericht).

@@ -5,6 +5,7 @@
 import { fold, umlautVariant } from './fold.js';
 import * as lex from './lexicon.js';
 import { findContacts } from './patterns.js';
+import { assignReversible, MODE_REVERSIBLE } from './reversible.js';
 
 const TOKEN_RE = /[\p{L}\p{M}]+(?:['’][\p{L}\p{M}]+)*(?:-[\p{L}\p{M}]+(?:['’][\p{L}\p{M}]+)*)*|\p{N}+|\S/gu;
 // Arabische Namenspräfixe mit Bindestrich: al-Hassan, el-Masri, Abd-ar-…
@@ -319,7 +320,7 @@ export function analyze(units, state) {
         const e = lastWc.e;
         const isNoun = W.length === 1 && W[0].A && !ctx.strong && !ctx.weak && nounContext(toks, W[0].tokIdx);
         const mk = mentionKey(comps.filter((c) => c.type !== 'SEP'), swapped);
-        const h = { s, e, type: 'person', cert, origin: 'auto', unit: ui, suffix: lastWc.suffix || '', comps, mk,
+        const h = { s, e, type: 'person', cert, origin: 'auto', unit: ui, suffix: lastWc.suffix || '', comps, mk, titled: ctx.strong || ctx.weak,
           defaultOff: cert === 'unsicher' && (isNoun || !st.settings.unsureOn) };
         if (W.length === 1 && W[0].key.length <= 2 && !ctx.strong && !ctx.weak && !ctx.post) h.defaultOff = true;
         hits.push(h);
@@ -491,7 +492,10 @@ export function analyze(units, state) {
   });
   for (const en of entities.values()) en.count = en.hits.length;
 
-  return { fullText, unitStarts, hits, entities };
+  const result = { fullText, unitStarts, hits, entities };
+  // Modus "rückbaufähig": Platzhalter je Namensteil und nummerierte Kontaktdaten
+  if (st.settings.mode === MODE_REVERSIBLE) assignReversible(result);
+  return result;
 }
 
 function mergeAdjacent(hits, fullText) {
@@ -516,6 +520,11 @@ export function replacementsByUnit(result, units) {
   for (const h of result.hits) {
     if (!h.on) continue;
     const base = result.unitStarts[h.unit];
+    if (h.parts) {
+      // rückbaufähig: jeder Namensteil einzeln; Text dazwischen (Leerzeichen, Komma, Punkt der Initiale) und Endung bleiben
+      for (const p of h.parts) per[h.unit].push({ s: p.s - base, e: p.e - base, text: p.text });
+      continue;
+    }
     const text = h.label + (h.type === 'person' ? (h.suffix || '') : '');
     per[h.unit].push({ s: h.s - base, e: h.e - base, text });
   }
@@ -580,6 +589,7 @@ export function findLeaks(forms, texts) {
 // Ersetzer für Texte außerhalb der Prüfansicht (Metadaten, Feldfunktionen, Alternativtexte, Verweise):
 // ersetzt alle Formen bestätigter Personen sowie Kontaktdaten (gemäß Einstellungen).
 export function makeGenericReplacer(result, settings) {
+  if (result.reversible) return makeReversibleGeneric(result, settings);
   const forms = new Map();
   for (const en of result.entities.values()) {
     if (!en.hits.some((h) => h.on)) continue;
@@ -595,6 +605,42 @@ export function makeGenericReplacer(result, settings) {
       let suffix = '';
       let f = forms.get(k);
       if (!f) { const m = tk.t.match(/^(.+?)(['’]s|s)$/u); if (m) { k = fold(m[1]); f = forms.get(k); suffix = m[2]; } }
+      if (!f || (f.ambiguous && !isCap(tk.t))) continue;
+      reps.push({ s: tk.s, e: tk.e, text: f.label + suffix });
+    }
+    return reps.length ? applyReplacements(str, reps) : str;
+  };
+}
+
+// rückbaufähig: dieselben Platzhalter wie im Text, wenn die Schreibweise exakt bekannt ist.
+// Sonst "Name X" (nicht rückbaufähig; wird beim Rückbau als unbekannt gemeldet).
+function makeReversibleGeneric(result, settings) {
+  const exact = new Map(); // Schreibweise -> Platzhalter
+  // Initialen und Einzelzeichen nicht: "A" in "Plan A" ist kein Name
+  for (const [ph, info] of result.reversible.placeholderInfo) {
+    if (info.kategorie === 'Name' && info.rolle !== 'Initiale' && [...info.wert].length >= 2 && !exact.has(info.wert)) exact.set(info.wert, ph);
+  }
+  const forms = new Map();
+  for (const en of result.entities.values()) {
+    if (!en.hits.some((h) => h.on)) continue;
+    for (const [k, f] of leakForms({ ...result, entities: new Map([[en.key, en]]) })) if (!forms.has(k)) forms.set(k, { ...f, label: 'Name ' + en.letter });
+  }
+  return (str) => {
+    if (!str || !/\p{L}|\d/u.test(str)) return str;
+    const reps = [];
+    for (const c of findContacts(str, settings)) {
+      if (c.cert !== 'sicher') continue;
+      const ph = result.reversible.contactNums.get(c.type + '|' + str.slice(c.s, c.e));
+      reps.push({ s: c.s, e: c.e, text: ph || CONTACT_LABELS[c.type] });
+    }
+    for (const tk of tokenize(str)) {
+      if (!tk.word || reps.some((r) => tk.s < r.e && tk.e > r.s)) continue;
+      const m = tk.t.match(/^(.+?)(['’]s|s)$/u);
+      if (exact.has(tk.t)) { reps.push({ s: tk.s, e: tk.e, text: exact.get(tk.t) }); continue; }
+      if (m && exact.has(m[1])) { reps.push({ s: tk.s, e: tk.e, text: exact.get(m[1]) + m[2] }); continue; }
+      let f = forms.get(fold(tk.t));
+      let suffix = '';
+      if (!f && m) { f = forms.get(fold(m[1])); suffix = m[2]; }
       if (!f || (f.ambiguous && !isCap(tk.t))) continue;
       reps.push({ s: tk.s, e: tk.e, text: f.label + suffix });
     }

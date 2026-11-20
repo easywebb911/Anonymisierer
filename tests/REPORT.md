@@ -1,6 +1,6 @@
 # Testbericht Anonymisierer
 
-Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.html (SHA-256 e8ff8011a5bdc008…). Alle Testpersonen sind erfunden.
+Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.html (SHA-256 70ad83c72d5f738f…). Alle Testpersonen sind erfunden.
 
 ## protokoll.txt
 - Laden: Gelesen: protokoll.txt (TXT, 22 Textabschnitte).
@@ -114,7 +114,7 @@ Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.h
 ## Determinismus (Doppellauf)
 - protokoll.txt: Lauf 1 a29844c8bb3ee675 / Lauf 2 a29844c8bb3ee675; Pseudonym-Zuordnung 0e36160d38ce70ac / 0e36160d38ce70ac → identisch
 - mitarbeiter.csv: Lauf 1 48dff6cc89e7ed3c / Lauf 2 48dff6cc89e7ed3c; Pseudonym-Zuordnung d6daf99b6ceba931 / d6daf99b6ceba931 → identisch
-- protokoll.docx: Lauf 1 7e6750cbd126603f / Lauf 2 7e6750cbd126603f; Pseudonym-Zuordnung e86fa7d93e8f4d7a / e86fa7d93e8f4d7a → identisch
+- protokoll.docx: Lauf 1 93b6f8c7c9a57aa1 / Lauf 2 93b6f8c7c9a57aa1; Pseudonym-Zuordnung e86fa7d93e8f4d7a / e86fa7d93e8f4d7a → identisch
 - mitarbeiter.xlsx: Lauf 1 d62d2e84a0bcf277 / Lauf 2 d62d2e84a0bcf277; Pseudonym-Zuordnung 862622377e2eb6cb / 862622377e2eb6cb → identisch
 - protokoll.pdf: Lauf 1 3a3977dfea99ec6d / Lauf 2 3a3977dfea99ec6d; Pseudonym-Zuordnung 074aa110b73adf3a / 074aa110b73adf3a → identisch
 
@@ -137,10 +137,10 @@ Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.h
 - Nach „Merkliste löschen“: localStorage 0 Einträge
 
 ## Größe/Geschwindigkeit (Desktop-Chromium, headless)
-- TXT 1 MB: Laden+Analyse 3.3 s, Export+Schlusscheck 2.7 s, JS-Speicher ca. 73 MB – Gelesen: gross.txt (TXT, 13289 Textabschnitte).
-- TXT 5 MB: Laden+Analyse 17.6 s, Export+Schlusscheck 14.9 s, JS-Speicher ca. 290 MB – Gelesen: gross.txt (TXT, 66419 Textabschnitte).
-- TXT 10 MB: Laden+Analyse 42.9 s, Export+Schlusscheck 30.6 s, JS-Speicher ca. 595 MB – Gelesen: gross.txt (TXT, 132815 Textabschnitte).
-- XLSX mit 20 000 Zeilen × 4 Spalten (0.5 MB gepackt): Laden+Analyse 7.9 s, Export+Schlusscheck 15.5 s, JS-Speicher ca. 257 MB – Gelesen: gross.xlsx (XLSX, 60052 Textabschnitte).
+- TXT 1 MB: Laden+Analyse 2.0 s, Export+Schlusscheck 2.0 s, JS-Speicher ca. 61 MB – Gelesen: gross.txt (TXT, 13289 Textabschnitte).
+- TXT 5 MB: Laden+Analyse 9.1 s, Export+Schlusscheck 5.9 s, JS-Speicher ca. 307 MB – Gelesen: gross.txt (TXT, 66419 Textabschnitte).
+- TXT 10 MB: Laden+Analyse 18.9 s, Export+Schlusscheck 13.8 s, JS-Speicher ca. 527 MB – Gelesen: gross.txt (TXT, 132815 Textabschnitte).
+- XLSX mit 20 000 Zeilen × 4 Spalten (0.5 MB gepackt): Laden+Analyse 5.0 s, Export+Schlusscheck 9.6 s, JS-Speicher ca. 228 MB – Gelesen: gross.xlsx (XLSX, 60052 Textabschnitte).
 
 ## Netzwerkzugriffe während aller Tests
 - Anfragen gesamt: 23; davon nicht lokal (http/https/ws …): 0
