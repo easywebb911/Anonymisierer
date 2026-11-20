@@ -132,3 +132,42 @@ txtLines.push('Herr', 'Tesfamariam', '');
 fs.writeFileSync(riskOut.replace(/docx$/, 'txt'), txtLines.join('\n'));
 fs.writeFileSync(riskOut.replace(/docx$/, 'csv'), ['Anrede;Name;Fach', 'Herr;Tesfamariam;Garten', 'Frau;Chemie;Raum 12', 'Herr;;Kirchbichler', 'Frau;12.01.2026;Kurs', 'Herr;Lübeck;Ort', ...D_NAMES.map((n, i) => `${i % 2 ? 'Frau' : 'Herr'};${n};Kurs`)].join('\r\n') + '\r\n');
 console.log('geschrieben', riskOut, '+ .txt + .csv');
+
+// ---------- Übertragungs-Test (Entscheidung E): "unsicher" markiertes Wort nach Anrede an allen Stellen ----------
+// Hartung und Tannheim: unbekannte Einzelwörter nach allein stehender Anrede -> "unsicher, an", überall übertragen.
+// Kubik: steht in der Namensliste -> "sicher" (Kontrolle). Lindqvist: Name OHNE Anrede-allein (Kontrolle, darf sich nicht ändern).
+// Mathematik, Turnhalle, Sekretariat, Aula: Gegenprobe (Sachwörter, müssen "unsicher, an" sein und sich abschalten lassen).
+export const UEB_BODY = [
+  'Übertragungs-Test Anrede allein', ['Herr', 'Hartung'], ['Frau', 'Tannheim'], ['Herr', 'Kubik'],
+  'Später rief Hartung an. Tannheim war verhindert.', 'Hartungs Antrag und Tannheims Brief liegen vor.', 'Unterschrift: HARTUNG',
+  'Kubik kommt auch.', ['Frau', 'Mathematik'], ['Herr', 'Turnhalle'], ['Frau', 'Sekretariat'], ['Herr', 'Aula'],
+  'Mathematik ist Pflicht. Treffpunkt ist die Turnhalle, danach das Sekretariat und die Aula.',
+  'Petra Lindqvist leitet den Kurs. Lindqvist ist erreichbar.',
+];
+{
+  const flat = UEB_BODY.flat();
+  const bodyU = flat.map((t, i) => (t.startsWith('Später') ? `<w:p><w:r><w:t xml:space="preserve">${esc(t)}</w:t></w:r><w:r><w:rPr><w:rStyle w:val="FootnoteReference"/></w:rPr><w:footnoteReference w:id="1"/></w:r></w:p>` : p(t))).join('');
+  const docU = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="${W}" xmlns:r="${R}"><w:body>${bodyU}<w:sectPr><w:headerReference w:type="default" r:id="rIdH1"/><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1417" w:right="1417" w:bottom="1134" w:left="1417" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>`;
+  const hdrU = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:hdr xmlns:w="${W}" xmlns:r="${R}">${p('Ansprechpartner: Hartung')}</w:hdr>`;
+  const fnU = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:footnotes xmlns:w="${W}" xmlns:r="${R}"><w:footnote w:type="separator" w:id="-1"><w:p><w:r><w:separator/></w:r></w:p></w:footnote><w:footnote w:type="continuationSeparator" w:id="0"><w:p><w:r><w:continuationSeparator/></w:r></w:p></w:footnote><w:footnote w:id="1"><w:p><w:r><w:rPr><w:rStyle w:val="FootnoteReference"/></w:rPr><w:footnoteRef/></w:r><w:r><w:t xml:space="preserve"> Laut Hartung gilt der Plan ab sofort.</w:t></w:r></w:p></w:footnote></w:footnotes>`;
+  const z3 = new JSZip();
+  const opt = { date: FIXED, createFolders: false };
+  z3.file('[Content_Types].xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/header1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"/><Override PartName="/word/footnotes.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml"/></Types>`, opt);
+  z3.file('_rels/.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>', opt);
+  z3.file('word/_rels/document.xml.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rIdH1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/header" Target="header1.xml"/><Relationship Id="rIdFn" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes" Target="footnotes.xml"/></Relationships>`, opt);
+  z3.file('word/document.xml', docU, opt);
+  z3.file('word/header1.xml', hdrU, opt);
+  z3.file('word/footnotes.xml', fnU, opt);
+  const uOut = out.replace(/kurse\.docx$/, 'a2-uebertragung.docx');
+  fs.writeFileSync(uOut, await z3.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' }));
+  fs.writeFileSync(uOut.replace(/docx$/, 'txt'), ['Ansprechpartner: Hartung', ...flat, 'Laut Hartung gilt der Plan ab sofort.'].join('\n') + '\n');
+  fs.writeFileSync(uOut.replace(/docx$/, 'csv'), ['Anrede;Name;Notiz', 'Herr;Hartung;Kurs', 'Frau;Tannheim;Kurs', 'Herr;Kubik;Kurs', 'Frau;Mathematik;Raum 3', 'Herr;Turnhalle;Raum 4',
+    'Frau;Sekretariat;Raum 5', 'Herr;Aula;Raum 6', 'Notiz;Später rief Hartung an;Tannheim war verhindert', 'Notiz;Hartungs Antrag;Tannheims Brief',
+    'Notiz;HARTUNG;Kubik kommt auch', 'Notiz;Mathematik ist Pflicht;Turnhalle, Sekretariat, Aula', 'Notiz;Petra Lindqvist;Lindqvist ist erreichbar'].join('\r\n') + '\r\n');
+  console.log('geschrieben', uOut, '+ .txt + .csv');
+}

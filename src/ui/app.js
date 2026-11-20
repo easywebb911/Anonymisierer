@@ -551,7 +551,8 @@ function init() {
     const m = e.target.closest('mark.hit');
     if (m) {
       const x = app.result.hits[Number(m.dataset.h)];
-      setHits([x], !x.on);
+      // Regel a2: "unsicher" markiertes Wort nach Anrede und alle seine übertragenen Vorkommen gemeinsam schalten
+      setHits(x.a2group ? app.result.hits.filter((y) => y.a2group === x.a2group) : [x], !x.on);
       return;
     }
     const sel = window.getSelection();

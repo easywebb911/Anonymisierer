@@ -84,3 +84,51 @@ Zusatzproben (nicht im Repo):
 |---|---|
 | „Herr“ / „Turnhalle“, „Frau“ / „Sekretariat“, „Herr“ / „Aula“ | Fehltreffer, **„sicher“** (keine Endung aus der Liste) |
 | „Herr“ / „Hartung“ / „Später rief Hartung an.“ | Das zweite „Hartung“ bleibt **stehen**: „unsicher“ markierte Treffer werden nicht auf andere Stellen übertragen. In A wurde es übertragen. |
+
+## Nachtrag: Entscheidung E (ersetzt D)
+
+Umsetzung:
+- Jedes **einzelne unbekannte Wort** nach allein stehender Anrede wird „unsicher, an“, egal wie es endet. Die Endungsliste ist entfernt.
+- Es wird auf alle weiteren Vorkommen übertragen, dort ebenfalls „unsicher, an“, mit demselben Platzhalter, auch mit Endung, in GROSSSCHREIBUNG, in Kopfzeile und Fußnote.
+- Ein Klick in der Prüfansicht schaltet alle Vorkommen gemeinsam aus oder an.
+- Namen aus den Listen und mehrteilige Namen bleiben „sicher“.
+- Übertragen wird nur, wenn das Wort nicht schon durch einen anderen sicheren Treffer bekannt ist. So bleibt die bisherige Übertragung unberührt.
+
+Neues Testdokument `a2-uebertragung.docx/.txt/.csv`:
+
+| Format | Hartung (inkl. Hartungs, HARTUNG) | Tannheim (inkl. Tannheims) | Gegenprobe Mathematik/Turnhalle/Sekretariat/Aula | Kontrollen Kubik, Lindqvist |
+|---|---|---|---|---|
+| Word (mit Kopfzeile + Fußnote) | 6/6 ersetzt | 3/3 | 8/8 „unsicher, an“ | „sicher“, unverändert |
+| TXT | 6/6 | 3/3 | 8/8 „unsicher, an“ | „sicher“, unverändert |
+| CSV | 4/4 | 3/3 | 8/8 „unsicher, an“ | „sicher“, unverändert |
+
+- Ein angetipptes „Mathematik“ macht beide Vorkommen wieder zu Klartext. Ein anderes angetipptes Vorkommen schaltet beide wieder an.
+- Rückbau exakt: Word 22/22, TXT 22/22, CSV 21/21.
+- „HARTUNG“ bekommt die Schreibvariante „Nachname A2“ und kommt exakt zurück.
+
+Messung gegenüber v1.1 (alle Testdokumente, Kurs-Tabelle, Briefzeilen, Risiko-Test, Übertragungs-Test):
+
+| | D | E |
+|---|---|---|
+| zusätzlich gefunden | 31 | **50** (alle „unsicher, an“) |
+| verlorene Treffer | 0 | 0 |
+| neue Fehltreffer „sicher“ | 18 | **0** |
+| neue Fehltreffer „unsicher“ | 11 | 32 |
+| entfallene Fehltreffer | 9 | 9 |
+
+- **Ohne das neue Übertragungs-Dokument** sind die Zahlen gleich der Wegwerf-Messung: +25, 0 verloren, 0 „sicher“ und 8 „unsicher“ Fehltreffer, 9 entfallen.
+- Die 24 zusätzlichen „unsicher“ Fehltreffer stehen im Übertragungs-Test: Mathematik, Turnhalle, Sekretariat und Aula, je 2× in 3 Formaten. Dort sind sie absichtlich gesetzt.
+- **Kurs-Tabelle:** Alle 5 Namen sind ersetzt, alle „unsicher, an“ (Kirchbichler, Tesfamariam, Brzęczek, Sonnleitner ×2).
+
+**Treffer außerhalb von a2:** Alle Treffer, die nicht aus a2 oder seiner Übertragung stammen, sind in allen 14 Dateien gleich wie in D (Position, Art, Markierung, an/aus, Herkunft, Buchstabe). Die einzigen Unterschiede sind übertragene a2-Wörter:
+- Sonnleitner (Kurs-Tabelle)
+- Turnhalle, Sekretariat, Aula (Übertragungs-Test)
+
+In D waren sie „sicher“ übertragen, jetzt sind sie „unsicher, an“ und gehören zur Klick-Gruppe.
+
+**Unterschied zur Wegwerf-Kopie:** Die Wegwerf-Kopie hat ein a2-Wort auch dann eingetragen, wenn dasselbe Wort schon durch einen anderen Treffer bekannt war. Dann hätte die bisherige Übertragung dieses Namens ausfallen können. Der Einbau trägt nur unbekannte Wörter ein.
+
+**Regression:**
+- gegen v1.1: 18/22 identisch, nur „am 3. Mai“ (Excel)
+- gegen D: 22/22 identisch; Kurs-Tabelle und Risiko-Test 12/12 identisch
+- Geändert nur `a2-uebertragung.*` (8 Ausgaben, beide Modi). Grund: Hartung, Tannheim und Mathematik werden jetzt auch an den weiteren Stellen ersetzt (Fließtext, Endung, GROSS, Kopfzeile, Fußnote).

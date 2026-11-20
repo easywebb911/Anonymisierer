@@ -376,6 +376,59 @@ const summary = [];
   log('');
 }
 
+// ---------- Übertragungs-Test (Entscheidung E): "unsicher" markiertes Wort nach Anrede an allen Stellen ----------
+globalThis.__uebChecks = [];
+{
+  const words = ['Hartung', 'Tannheim', 'HARTUNG', 'Mathematik', 'Turnhalle', 'Sekretariat', 'Aula', 'Kubik', 'Lindqvist'];
+  const count = (t) => Object.fromEntries(words.map((w) => [w, (t.match(new RegExp(`(?<![\\p{L}])${w}`, 'gu')) || []).length]));
+  const fmt = (c) => Object.entries(c).map(([k, v]) => `${k} ${v}`).join(', ');
+  log('## Übertragungs-Test Anrede allein (a2-uebertragung.docx/.txt/.csv)');
+  log('Hartung und Tannheim stehen nach allein stehender Anrede und später im Text (auch „Hartungs“, „HARTUNG“, in Word zusätzlich in Kopfzeile und Fußnote). Gegenprobe: Mathematik, Turnhalle, Sekretariat, Aula. Kontrolle: Kubik (Namensliste) und Lindqvist (ohne Anrede allein).');
+  for (const ext of ['docx', 'txt', 'csv']) {
+    const file = path.join(fx, `a2-uebertragung.${ext}`);
+    const textOf = async (bytes) => (ext === 'docx' ? (await docxParagraphs(bytes)).join('\n') : decodeTxt(bytes));
+    const origText = await textOf(fs.readFileSync(file));
+    // 1) Prüfansicht: Markierung, Übertragung, An/Aus der ganzen Gruppe
+    const { page, ctx, errors } = await newPage();
+    await loadFile(page, file);
+    const hits = await page.evaluate(() => { const r = window.__anon.app.result; return r.hits.filter((h) => h.type === 'person').map((h) => ({ t: r.fullText.slice(h.s, h.e), cert: h.cert, on: h.on, a2: !!h.a2, g: h.a2group || '' })); });
+    const exportTxt = async () => page.evaluate(async () => (await window.__anon.buildOutput('txt')).text);
+    const before = count(await exportTxt());
+    await page.locator('mark.hit', { hasText: 'Mathematik' }).first().click();
+    const off = count(await exportTxt());
+    await page.locator('mark.hit', { hasText: 'Mathematik' }).last().click();
+    const on2 = count(await exportTxt());
+    await ctx.close();
+    const orig = count(origText);
+    const groupHits = hits.filter((h) => h.g);
+    const sureFromA2 = hits.filter((h) => h.g && h.cert === 'sicher');
+    const okReplace = Object.values(before).every((v) => v === 0);
+    const okToggle = off.Mathematik === orig.Mathematik && Object.entries(off).every(([k, v]) => k === 'Mathematik' || v === 0) && Object.values(on2).every((v) => v === 0);
+    const okMark = groupHits.length > 0 && groupHits.every((h) => h.cert === 'unsicher' && h.on) && !sureFromA2.length;
+    globalThis.__uebChecks.push([`Übertragung ${ext}: alles ersetzt`, okReplace], [`Übertragung ${ext}: Gruppe an/aus`, okToggle], [`Übertragung ${ext}: Markierung`, okMark]);
+    log(`- ${ext.toUpperCase()}: Vorkommen im Original: ${fmt(orig)}`);
+    log(`  - ${okReplace ? 'OK' : 'FEHLER'}: im Ergebnis stehen geblieben: ${fmt(before)}`);
+    log(`  - ${okMark ? 'OK' : 'FEHLER'}: ${groupHits.length} Treffer aus „Anrede allein“ samt Übertragung, alle „unsicher, an“: ${groupHits.map((h) => h.t + (h.a2 ? '' : '*')).join(', ')} (* = übertragen)`);
+    log(`  - ${okToggle ? 'OK' : 'FEHLER'}: ein „Mathematik“ angetippt → überall Klartext (${off.Mathematik}/${orig.Mathematik}), anderes Vorkommen angetippt → überall wieder ersetzt (${on2.Mathematik})`);
+    // 2) Rückbau: alle übertragenen Vorkommen mit demselben Platzhalter, exakt zurück
+    const a = await anonymize(file);
+    const anonText = await textOf(a.anon);
+    const phH = phFor(a.key, 'Hartung');
+    const phT = phFor(a.key, 'Tannheim');
+    // Varianten wie "Nachname A2" (andere Schreibweise, z. B. GROSS) gehören zum selben Namen
+    const nPhH = (anonText.match(new RegExp(phH + '[0-9]*(?![A-Z0-9])', 'g')) || []).length;
+    const r = await restore(a.anon, `korrigiert.${ext}`, a.keyPath);
+    const dev = diffLists((await textOf(r.bytes)).split(/\r?\n/), origText.split(/\r?\n/));
+    const expH = orig.Hartung + orig.HARTUNG;
+    if (nPhH !== expH) dev.push({ erwartet: `${expH}× ${phH}`, ergebnis: `${nPhH}×` });
+    summary.push([`Übertragung ${ext.toUpperCase()}`, r.plan.totalFound, r.plan.totalFound - dev.length, dev]);
+    log(`  - Rückbau: Hartung → ${phH} (mit Varianten ${nPhH}× im Ergebnis, erwartet ${expH}), Tannheim → ${phT}; ${r.plan.totalFound} Platzhalter zurückgebaut, Abweichungen: ${dev.length}`);
+    for (const d of dev) log(`    - erwartet „${d.erwartet}“ / erhalten „${d.ergebnis}“`);
+    if (errors.length || a.errors.length || r.errors.length) log(`  - JS-Fehler: ${[...errors, ...a.errors, ...r.errors].join(' | ')}`);
+  }
+  log('');
+}
+
 // ---------- Fallen ----------
 log('## Fallen (einzeln geprüft)');
 {
@@ -492,6 +545,7 @@ log('## Zusammenfassung Kreislauf');
 log('| Format | Werte gesamt (ersetzte Platzhalter) | exakt zurück | Abweichungen |');
 log('|---|---|---|---|');
 for (const [f, total, ok, dev] of summary) log(`| ${f} | ${total} | ${ok} | ${dev.length} |`);
+globalThis.__checks.push(...globalThis.__uebChecks);
 const failed = globalThis.__checks.filter((c) => !c[1]);
 log('');
 log(`Fallen-Prüfungen: ${globalThis.__checks.length - failed.length} von ${globalThis.__checks.length} bestanden${failed.length ? ' – FEHLER: ' + failed.map((c) => c[0]).join('; ') : ''}.`);

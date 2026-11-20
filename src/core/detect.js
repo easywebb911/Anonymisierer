@@ -268,15 +268,12 @@ function a2Candidate(u, toks, base, cov, exceptions) {
   if (!W.length || comps[comps.length - 1].type !== 'W') return null;
   // Nur Allerweltswörter (z. B. "Berlin", "Montag") -> keine a2-Regel; dafür gelten die bisherigen Regeln
   if (W.every((c) => c.A)) return null;
-  // Markierung (Entscheidung D): Ersetzt wird immer. Nur ein einzelnes Wort, das in keiner Namensliste steht
-  // und wie ein Sach- oder Ortswort endet, wird als "unsicher" (aber eingeschaltet) markiert.
+  // Markierung (Entscheidung E): Ersetzt wird immer. Ein einzelnes Wort, das in keiner Namensliste steht,
+  // wird "unsicher, an" (es kann auch ein Sachwort sein, z. B. "Mathematik" oder "Turnhalle").
   const w0 = W[0];
-  const unsure = W.length === 1 && !w0.known && !w0.shaped && A2_UNSURE_ENDING.test(w0.key);
+  const unsure = W.length === 1 && !w0.known && !w0.shaped;
   return { comps, endTok: k, unsure };
 }
-// Typische Endungen von Sach- und Ortswörtern (in gefalteter Schreibung, "tät" -> "tat").
-// Steuert NUR die Markierung, lässt nie etwas aus: echte Nachnamen wie Hartung oder Homburg enden ebenso.
-const A2_UNSURE_ENDING = /(?:ik|ie|ung|heit|keit|schaft|tion|tat|nis|ur|sicht|kunde|lehre|wesen|kurs|raum|burg|stadt|dorf|hausen|heim|feld|eck)$/;
 
 // ---------- Regel b2: Wochentage und Monate allein -> "unsicher, aus" ----------
 const CALENDAR = new Set(['montag', 'dienstag', 'mittwoch', 'donnerstag', 'freitag', 'samstag', 'sonnabend', 'sonntag',
@@ -342,6 +339,8 @@ export function analyze(units, state) {
         const e = lastWc.e;
         const h = { s, e, type: 'person', cert: c.unsure ? 'unsicher' : 'sicher', origin: 'auto', unit: ui, suffix: lastWc.suffix || '', comps,
           mk: mentionKey(comps, null), titled: true, a2: true, defaultOff: false };
+        // Gruppe: alle Vorkommen dieses Worts werden in der Prüfansicht gemeinsam an-/ausgeschaltet
+        if (c.unsure) h.a2group = 'a2|' + lastWc.key;
         hits.push(h);
         mentions.push(h);
         toks.forEach((t2, k) => { if (t2.s < e && t2.e > s) { cov[k] = true; tokHit[ui][k] = h; } });
@@ -515,6 +514,18 @@ export function analyze(units, state) {
       partToEntities.get(c.key).add(h.entity);
     }
   }
+  // Regel a2 (Entscheidung E): Ein "unsicher, an" markiertes Wort nach allein stehender Anrede wird auf weitere
+  // Vorkommen übertragen, dort ebenfalls "unsicher, an". Nur für Wörter, die NICHT schon durch einen anderen
+  // Treffer bekannt sind -> die bisherige Übertragung bleibt unverändert.
+  const a2Groups = new Map();
+  for (const h of hits) {
+    if (!h.a2group) continue;
+    const c = h.comps.find((x) => x.type === 'W');
+    if (!c || partToEntities.has(c.key) && !a2Groups.has(c.key)) continue;
+    if (!partToEntities.has(c.key)) partToEntities.set(c.key, new Set());
+    partToEntities.get(c.key).add(h.entity);
+    a2Groups.set(c.key, h.a2group);
+  }
   const manualParts = new Set(hits.filter((h) => h.origin === 'manual').flatMap((h) => (h.comps || []).map((c) => c.key)));
   const partKeys = new Set([...partToEntities.keys()].filter((k) => partToEntities.get(k).size === 1));
   units.forEach((u, ui) => {
@@ -533,6 +544,7 @@ export function analyze(units, state) {
       const h = { s: tk.s, e: tk.e, type: 'person', cert, origin: manual ? 'manual' : 'propagated', unit: ui, suffix: stm.suffix,
         entity: ent, comps: [{ type: 'W', s: tk.s, e: tk.e, key: stm.key }],
         defaultOff: cert === 'unsicher' && amb && nounContext(toks, k) };
+      if (!manual && a2Groups.has(stm.key)) { h.cert = 'unsicher'; h.defaultOff = false; h.a2group = a2Groups.get(stm.key); }
       // Regel b2 auch hier: einzelner Wochentag/Monat nur wegen eines gleichlautenden Namensteils -> unsicher, aus
       if (!manual && isCalendarWord(toks, k)) { h.cert = 'unsicher'; h.defaultOff = true; h.calendar = true; }
       // Unbekanntes großgeschriebenes Wort direkt davor (z. B. Vorname vor bekanntem Nachnamen) -> mit ersetzen, unsicher
