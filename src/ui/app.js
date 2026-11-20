@@ -99,7 +99,7 @@ async function loadBytes(bytes, name) {
   else if (kind === 'docx') doc = await readDocx(bytes);
   else if (kind === 'xlsx') doc = await readXlsx(bytes);
   else if (kind === 'pdf') doc = await readPdf(bytes);
-  const units = doc.units.map((u) => ({ text: u.text, label: u.label || '' }));
+  const units = doc.units.map((u) => ({ text: u.text, label: u.label || '', follows: !!u.follows, heading: !!u.heading }));
   const warnings = [...(doc.warnings || [])];
   if (bytes.length > WARN_BYTES) warnings.push(`Große Datei (${(bytes.length / 1048576).toFixed(1)} MB): Auf dem iPhone kann die Verarbeitung langsam sein oder abbrechen.`);
   return { kind, units, warnings, bytes, info: doc.info || '', raw: doc };

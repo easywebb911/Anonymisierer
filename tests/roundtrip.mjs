@@ -315,6 +315,43 @@ const summary = [];
   log('');
 }
 
+// ---------- DOCX Kurs-Tabelle (Namen nur über "Anrede allein -> nächster Absatz/Nachbarzelle" erkannt) ----------
+{
+  const origBytes = fs.readFileSync(path.join(fx, 'kurse.docx'));
+  const a = await anonymize(path.join(fx, 'kurse.docx'));
+  const a2Names = ['Kirchbichler', 'Tesfamariam', 'Brzęczek', 'Sonnleitner'];
+  const phs = a2Names.map((n) => phFor(a.key, n));
+  const editDocx = async (bytes, n1, n2) => {
+    const z = await JSZip.loadAsync(bytes);
+    let xml = await z.file('word/document.xml').async('string');
+    xml = xml.replace('Wir malen Landschaften', 'Wir zeichnen Landschaften');
+    const para = `<w:p><w:r><w:t xml:space="preserve">Nachtrag: Frau ${n1} vertritt Frau ${n2}.</w:t></w:r></w:p>`;
+    xml = xml.replace(/(<w:body>)/, `$1${para}`);
+    // zwei Tabellenzeilen tauschen (Kurse "Töpfern" und "Schach")
+    const rows = [...xml.matchAll(/<w:tr>(?:(?!<w:tr>)[\s\S])*?<\/w:tr>/g)].map((m) => m[0]);
+    const r1 = rows.find((r) => r.includes('Töpfern'));
+    const r2 = rows.find((r) => r.includes('Schach'));
+    xml = xml.replace(r1, '@@R1@@').replace(r2, r1).replace('@@R1@@', r2);
+    z.file('word/document.xml', xml);
+    return z.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
+  };
+  const corrected = await editDocx(a.anon, phs[0], phs[1]);
+  const expected = await editDocx(origBytes, a2Names[0], a2Names[1]);
+  const r = await restore(corrected, 'korrigiert.docx', a.keyPath);
+  const got = await docxParagraphs(r.bytes);
+  const exp = await docxParagraphs(expected);
+  const dev = diffLists(got, exp);
+  summary.push(['DOCX Kurs-Tabelle', r.plan.totalFound, r.plan.totalFound - dev.length, dev]);
+  log('## DOCX Kurs-Tabelle (kurse.docx, Namen nur über Anrede im Absatz/der Zelle davor erkannt)');
+  log(`- Platzhalter der nur so erkannten Namen: ${a2Names.map((n, i) => `${n} → ${phs[i]}`).join(', ')}`);
+  log(`- Korrektur: Wort geändert, Satz mit ${phs[0]} und ${phs[1]} eingefügt, zwei Tabellenzeilen getauscht`);
+  log(`- Rückbau: ${r.plan.totalFound} Platzhalter ersetzt; abweichende Absätze: ${dev.length}`);
+  for (const d of dev) log(`  - erwartet „${d.erwartet}“ / erhalten „${d.ergebnis}“`);
+  log(`- JS-Fehler: ${[...a.errors, ...r.errors].join(' | ') || 'keine'}`);
+  log('');
+  globalThis.__kursePhs = phs;
+}
+
 // ---------- Fallen ----------
 log('## Fallen (einzeln geprüft)');
 {

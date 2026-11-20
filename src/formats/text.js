@@ -35,7 +35,8 @@ export function readTxt(bytes) {
   const lines = [];
   const eols = [];
   for (let i = 0; i < parts.length; i += 2) { lines.push(parts[i]); eols.push(parts[i + 1] || ''); }
-  return { kind: 'txt', units: lines.map((t) => ({ text: t, label: '' })), eols, encoding, bom, warnings: [] };
+  // follows: jede Zeile folgt direkt auf die vorige (für die Regel "Anrede allein -> nächste Zeile ist Name")
+  return { kind: 'txt', units: lines.map((t, i) => ({ text: t, label: '', follows: i > 0 })), eols, encoding, bom, warnings: [] };
 }
 export function writeTxt(doc, newTexts) {
   return newTexts.map((t, i) => t + doc.eols[i]).join('');
@@ -98,7 +99,12 @@ export function readCsv(bytes) {
   const units = [];
   const map = [];
   rows.forEach((r, ri) => r.cells.forEach((c, ci) => {
-    if (c.value.trim()) { units.push({ text: c.value, label: `Zeile ${ri + 1}, Spalte ${ci + 1}` }); map.push([ri, ci]); }
+    if (c.value.trim()) {
+      // follows: rechtes Nachbarfeld derselben Zeile (leeres Feld dazwischen unterbricht)
+      const prev = map[map.length - 1];
+      units.push({ text: c.value, label: `Zeile ${ri + 1}, Spalte ${ci + 1}`, follows: !!prev && prev[0] === ri && prev[1] === ci - 1 });
+      map.push([ri, ci]);
+    }
   }));
   const warnings = [];
   if (unbalanced) warnings.push('Die CSV-Datei enthält ein nicht geschlossenes Anführungszeichen. Bitte das Ergebnis besonders sorgfältig prüfen.');

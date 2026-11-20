@@ -1,6 +1,6 @@
 # Rückbau: Kreislauf-Beweis und Fallen
 
-Chromium headless gegen index.html (SHA-256 70ad83c72d5f738f…). Alle Namen sind erfunden.
+Chromium headless gegen index.html (SHA-256 a2e9a1a1717c9be8…). Alle Namen sind erfunden.
 
 ## TXT (protokoll.txt)
 - Anonymisiert (rückbaufähig): 57 Platzhalter in der Schlüsseldatei; Status „Gespeichert: anonymisiert_text.txt (mit bestätigten Restfunden) ACHTUNG: Die passende Rückbau-Schlüsseldatei ist noch nicht gespeichert – ohne sie ist kein Rückbau möglich.“
@@ -28,8 +28,14 @@ Chromium headless gegen index.html (SHA-256 70ad83c72d5f738f…). Alle Namen sin
 ## XLSX (mitarbeiter.xlsx)
 - Schlüsseldatei: 31 Platzhalter; ausgeblendetes Blatt „Yılmaz“ hieß anonymisiert „Nachname C“
 - Korrektur: Zelltext geändert, Text mit Platzhaltern in eine Zelle eingefügt, Zeilen 3/4 getauscht
-- Rückbau: 49 Platzhalter ersetzt; abweichende Zellen/Blattnamen/Formeln/Kommentare/Kopfzeilen: 0
+- Rückbau: 48 Platzhalter ersetzt; abweichende Zellen/Blattnamen/Formeln/Kommentare/Kopfzeilen: 0
 - Blattnamen und Bezüge nach Rückbau: Blatt 1: Mitarbeiter · Blatt 2: Yılmaz · Blatt 3: Notizen · Name: 'Yılmaz'!$A$1 · S1!E3: Notizen zu Mehmet Yılmaz | f='Yılmaz'!A1 · app: Mitarbeiter · app: Yılmaz · app: Notizen
+- JS-Fehler: keine
+
+## DOCX Kurs-Tabelle (kurse.docx, Namen nur über Anrede im Absatz/der Zelle davor erkannt)
+- Platzhalter der nur so erkannten Namen: Kirchbichler → Nachname D, Tesfamariam → Nachname F, Brzęczek → Nachname L, Sonnleitner → Nachname T
+- Korrektur: Wort geändert, Satz mit Nachname D und Nachname F eingefügt, zwei Tabellenzeilen getauscht
+- Rückbau: 21 Platzhalter ersetzt; abweichende Absätze: 0
 - JS-Fehler: keine
 
 ## Fallen (einzeln geprüft)
@@ -73,7 +79,8 @@ Chromium headless gegen index.html (SHA-256 70ad83c72d5f738f…). Alle Namen sin
 | TXT | 76 | 76 | 0 |
 | CSV | 39 | 39 | 0 |
 | DOCX | 98 | 98 | 0 |
-| XLSX | 49 | 49 | 0 |
+| XLSX | 48 | 48 | 0 |
+| DOCX Kurs-Tabelle | 21 | 21 | 0 |
 | Fallen-TXT | 79 | 79 | 0 |
 
 Fallen-Prüfungen: 25 von 25 bestanden.

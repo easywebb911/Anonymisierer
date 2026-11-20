@@ -110,6 +110,12 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 - **Muster:** Vorname Nachname, „Nachname, Vorname“, Initialen („M. Müller“), Bindestrich-Namen, GROSSSCHREIBUNG, Namenszusätze (von, van der, de la, al-, bin, ibn …), typische Endungen (-ović, -ski, -oğlu, -ov/-ova, -enko, -escu, -poulos, -yan, -shvili, -zadeh …), nachgestellte Anreden („Ahmet Bey“).
 - **Endungen:** „Müllers“, „John’s“ werden mit dem Grundnamen erkannt.
 - **Allerweltswörter** („Rose“, „Mark“, „Winter“, „Paris“, „Koch“ …): nur im Namenskontext sicher, sonst **unsicherer Treffer**.
+- **Anrede allein (seit Version 1.2):** Steht in einem Absatz, einer Zeile oder einer Zelle **nur** „Herr“, „Frau“ (auch „Hr.“, „Fr.“, „Frau Dr.“, „Herr Prof. Dr.“ …), dann gilt der Anfang der **direkt folgenden** Einheit als Name, als sicherer Treffer:
+  - in Word: der nächste Absatz (in derselben Zelle oder im Fließtext) oder die **rechte Nachbarzelle** derselben Tabellenzeile;
+  - in TXT: die nächste Zeile; in CSV: das rechte Nachbarfeld.
+  - **Enge Grenze:** Die Zeile muss **ganz** aus 1 bis 3 großgeschriebenen Namenswörtern bestehen (dazu Initialen und Zusätze wie „von“, „van der“, „al-“). Danach sind nur Satzzeichen erlaubt. Kommt danach noch Text, eine Zahl oder ein Datum, greift die Regel nicht.
+  - Ein **leerer Absatz**, eine **leere Zelle**, das **Zeilen- oder Tabellenende** und **Word-Überschriften** unterbrechen die Regel. Wörter von der Liste der Allerweltswörter (z. B. „Berlin“, „Montag“) lösen sie nicht aus.
+- **Wochentage und Monate (seit Version 1.2):** „Montag“ … „Sonntag“, „Januar“ … „Dezember“ (auch „Jänner“, „Feber“) und Abkürzungen **mit Punkt** („Mo.“, „Jan.“, „Sept.“ …) werden **nicht automatisch ersetzt**, wenn sie allein stehen (ohne Anrede, ohne Namen daneben). Sie erscheinen in der Prüfansicht als „unsicher, aus“ und lassen sich einschalten. „Herr Montag“ oder „Trần Thị Mai“ gelten weiter als Name. „Jan“ ohne Punkt bleibt ein Vorname.
 - **Gleiche Person = gleiches Pseudonym** im ganzen Dokument. „Herr Yılmaz“ wird „Mehmet Yılmaz“ zugeordnet, wenn der Nachname eindeutig ist (in der Prüfansicht sichtbar und lösbar).
 - **Deterministisch:** gleiche Eingabe + gleiche Einstellungen = gleiche Pseudonyme und byte-gleiche Ausgabe (im Test per Doppellauf belegt).
 
@@ -117,6 +123,9 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 
 ## Grenzen (bitte lesen)
 
+- **Anrede allein, danach ein Sachwort:** Steht nach einer allein stehenden Anrede ein einzelnes unbekanntes Wort, das kein Name ist (z. B. ein Fach „Mathematik“, ein Ort „Lübeck“, in TXT eine Überschrift), wird es als Name ersetzt. Das Tool kann das ohne Wörterbuch nicht unterscheiden. Bitte in der Prüfansicht abschalten.
+- **Anrede allein in Excel:** Die Regel gilt dort (noch) nicht. Ein Name in der Nachbarzelle einer Anrede-Zelle wird nur erkannt, wenn er in einer Namensliste steht.
+- **Personen mit Monatsnamen** („Mai“, „April“, „August“): Stehen sie allein ohne Anrede, ist der Treffer standardmäßig aus. In der Prüfansicht prüfen und einschalten.
 - **Nie 100 %.** Seltene Namen, die in keiner Liste stehen und ohne Anrede vorkommen (im Test z. B. „Ijeoma Uchendu“, „Xiong Wenjie“), werden **nicht** erkannt → in der Prüfansicht von Hand markieren.
 - **Fehltreffer** sind möglich (z. B. „Bill“ in „engl. Bill“, ein Tabellenkopf „Name“). Sie sind meist als „unsicher“ markiert und lassen sich abschalten.
 - **Kleingeschriebene Namen** werden nur gefunden, wenn derselbe Name schon anderswo erkannt oder von Hand markiert wurde.
@@ -134,7 +143,7 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 |---|---|
 | Chromium/Chrome (Desktop) | **geprüft** (automatische Tests, headless) |
 | Chromium mit iPhone-Bildschirmgröße und Touch | **geprüft** (Darstellung, Antippen, Markieren) |
-| Edge und Chrome unter Windows (Firmen-PC, `file://`) | Version 1.0 laut Easy **am PC geprüft**; Version 1.1 (Rückbau) **durch Code ungeprüft** |
+| Edge und Chrome unter Windows (Firmen-PC, `file://`) | Version 1.0 laut Easy **am PC geprüft**; Versionen 1.1 und 1.2 **durch Code ungeprüft** |
 | Firefox (Desktop) | **ungeprüft** |
 | Safari (macOS) | **ungeprüft** |
 | Safari auf dem iPhone | **ungeprüft**. Code ist auf Safari ≥ 15 ausgelegt (keine Lookbehind-Regex, keine neueren Sprachfunktionen). |
@@ -146,12 +155,12 @@ Die Datei muss in einem Browser geöffnet werden (z. B. über „Teilen → in S
 
 ## Version und Prüfsumme
 
-Version **1.1.0**, Stand 2026-11-20 (steht auch im Fußbereich des Tools).
+Version **1.2.0**, Stand 2026-11-20 (steht auch im Fußbereich des Tools).
 
 SHA-256 der `index.html` dieser Version:
 
 ```
-70ad83c72d5f738f21480b5e553415acf443e7438c21ad1673e83d35d43150cd
+a2e9a1a1717c9be86bee0e261fd10a256bf410ef7d98259d9d5c79b6999e6dba
 ```
 
 Eine Datei kann ihre eigene Prüfsumme nicht enthalten, deshalb steht sie nur hier und im PR-Text. Prüfen unter Windows: `certutil -hashfile index.html SHA256`.
@@ -206,6 +215,7 @@ Absichtlich keine ganz frischen Releases (jszip 3.10.2 und pdfjs-dist 6.x waren 
 npm ci                       # feste Versionen aus package-lock.json
 npm run build                # erzeugt index.html (Namenslisten, CMaps, Bündel, CSP-Hashes)
 node tests/make-fixtures.mjs # erfundene Testdokumente (braucht LibreOffice für PDF/DOC/XLS)
+node tests/make-kurse.mjs    # Kurs-Tabelle und Risiko-Test für „Anrede allein“ (erfunden)
 node tests/run-tests.mjs     # End-to-End-Tests in Chromium → tests/REPORT.md
 node tests/roundtrip.mjs     # Rückbau: Kreislauf-Beweis und Fallen → tests/ROUNDTRIP-REPORT.md
 node tests/regression.mjs <alte-index.html>  # Modi „Person A“/„[NAME]“ byte-gleich zur Referenz?

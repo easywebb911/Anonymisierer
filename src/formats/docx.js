@@ -23,11 +23,33 @@ function natural(a, b) { return a.localeCompare(b, 'en', { numeric: true }); }
 
 function isPara(el) { return (isW(el) || isA(el)) && el.localName === 'p'; }
 
+// Lage eines Absatzes für die Regel "Anrede allein -> nächste Einheit ist Name":
+// laufende Nummer aller Absätze (auch leerer), Tabellenzelle, Tabellenzeile, Textfeld, Überschrift
+function paraPosition(p, pi) {
+  const cell = ancestor(p, (a) => isW(a) && a.localName === 'tc');
+  const row = cell ? ancestor(cell, (a) => isW(a) && a.localName === 'tr') : null;
+  const txbx = ancestor(p, (a) => isW(a) && a.localName === 'txbxContent');
+  const pStyle = Array.from(p.getElementsByTagNameNS('*', 'pStyle')).find((x) => x.parentNode && x.parentNode.parentNode === p);
+  const style = pStyle ? (pStyle.getAttributeNS(pStyle.namespaceURI, 'val') || pStyle.getAttribute('w:val') || '') : '';
+  return { pi, cell, row, txbx, heading: /heading|berschrift|title|titel/i.test(style) };
+}
+// Folgt Absatz b direkt auf Absatz a? (gleiche Zelle bzw. beide im Fließtext, oder rechte Nachbarzelle)
+function directlyFollows(a, b) {
+  if (!a || !b || b.pi !== a.pi + 1 || a.txbx !== b.txbx) return false;
+  if (a.cell === b.cell) return true;
+  if (!a.cell || !b.cell || a.row !== b.row) return false;
+  const cells = Array.from(a.row.childNodes).filter((c) => c.nodeType === 1 && isW(c) && c.localName === 'tc');
+  return cells.indexOf(b.cell) === cells.indexOf(a.cell) + 1;
+}
+
 function paragraphUnits(doc, baseLabel) {
   const units = [];
   const owned = new Set();
+  let pi = -1;
+  let prevPos = null;
   for (const p of allElements(doc)) {
     if (!isPara(p)) continue;
+    pi++;
     const segs = [];
     let lastDel = null;
     const walk = (n) => {
@@ -49,13 +71,18 @@ function paragraphUnits(doc, baseLabel) {
     };
     walk(p);
     if (!segs.some((s) => s.writable && s.text.trim())) continue;
+    const pos = isW(p) ? paraPosition(p, pi) : null;
     let label = baseLabel;
     if (ancestor(p, (a) => isW(a) && a.localName === 'txbxContent')) label = 'Textfeld';
     else if (ancestor(p, (a) => isW(a) && a.localName === 'tbl')) label = baseLabel === 'Text' ? 'Tabelle' : baseLabel;
     if (segs.some((sg, i) => i > 0 && !sg.writable && sg.text === '\n') && p.getElementsByTagNameNS('*', 'delText').length) {
       label += ' (mit gelöschtem Text aus Änderungsverfolgung)';
     }
-    units.push(makeUnit(segs, label));
+    const unit = makeUnit(segs, label);
+    unit.follows = !!(pos && prevPos && directlyFollows(prevPos, pos));
+    unit.heading = !!(pos && pos.heading);
+    prevPos = pos;
+    units.push(unit);
   }
   // Diagramm-Zwischenspeicher (c:v) mit Buchstaben
   for (const v of allElements(doc)) {
