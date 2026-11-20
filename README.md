@@ -47,7 +47,7 @@ Das Tool zeigt immer **nur einen Bildschirm**. Oben siehst du, in welchem Schrit
 - Einen Treffer **antippen** schaltet ihn an oder aus.
 - Einen **nicht erkannten Namen** antippen oder markieren: Direkt daneben erscheint **„Als Name markieren“**. Danach wird er **überall** ersetzt, auch mit Endung („Müllers“) und in GROSSSCHREIBUNG.
 - **Fragekarte** rechts: Das Tool fragt bei jedem unsicheren Wort bzw. jeder unsicheren Person **einmal**: „Ist „…“ hier ein Name?“.
-  - **„Ja, Name“** schaltet alle diese Stellen an, **„Nein“** alle aus.
+  - **„Ja, Name“** schaltet alle unsicheren Stellen dieses Worts bzw. dieser Person an, **„Nein“** schaltet sie aus. **Sicher erkannte Stellen derselben Person bleiben in jedem Fall an**; ein „Nein“ gibt also keinen sicher erkannten Namen frei.
   - Am PC gehen auch die Tasten **J** und **N**, aber nur auf diesem Bildschirm und nicht, während du in einem Eingabefeld bist.
   - Namen aus den **Dateiangaben** (Autor, Bearbeiter, Firma, Kommentar-Autoren, SharePoint-Personen) erscheinen ebenfalls als Frage: „Als Namen übernehmen?“. Aus der Datei werden sie so oder so entfernt; mit „Ja“ werden sie auch im Text ersetzt.
 - **Personenliste**:
@@ -77,6 +77,9 @@ Das Tool zeigt immer **nur einen Bildschirm**. Oben siehst du, in welchem Schrit
 
 ### Eigene Namen und Ausnahmen (unter „Erweitert“)
 - **Eigene Namen (Merkliste):** Namen, die das Tool nicht kennt. Sie werden bei jedem weiteren Dokument automatisch mit ersetzt. Auch „Als Name markieren“ und „für nächstes Mal merken“ tragen dort ein.
+  - **Achtung: Die Liste enthält echte Namen.**
+  - Sie bleibt auch nach „Nächstes Dokument“ bestehen, und zwar so lange, bis du den Tab (bzw. den Browser) schließt oder sie löschst („Merkliste löschen“ oder einzelne Namen mit „×“ entfernen).
+  - Nur wenn du den Schalter „im Browser speichern“ einschaltest, bleibt sie auch nach dem Schließen erhalten, bis du sie löschst.
 - **Ausnahmen:** Wörter, die nie ersetzt werden sollen (z. B. ein Firmenname).
 - **Gespeichert wird nur auf ausdrücklichen Wunsch:** als Datei („Merkliste als Datei speichern“) oder im Browser (Schalter, **Standard: aus**). Die Liste **enthält echte Namen**. „Merkliste löschen“ entfernt alles, auch aus dem Browser.
 
