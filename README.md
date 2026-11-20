@@ -60,7 +60,8 @@ Das Tool zeigt immer **nur einen Bildschirm**. Oben siehst du, in welchem Schrit
   - ersetzte Personen und Stellen
   - **Fragen**: offene Fragen musst du beantworten oder ausdrücklich bestätigen
   - versteckte Angaben werden geleert (nur Word/Excel)
-  - jeder **Hinweis zur Datei** (z. B. Bilder) mit einem Haken **„Gelesen“**; erst wenn alle abgehakt sind, wird gespeichert
+  - jeder **Hinweis zur Datei** mit einem Haken **„Gelesen“**; erst wenn alle abgehakt sind, wird gespeichert
+  - **Bilder** (nur Word/Excel, seit Version 2.2): „3 Bilder im Dokument“ mit dem Knopf **„Bilder ansehen“** (siehe unten). Erst nachdem du die Liste geöffnet hast, kannst du abhaken: **„Ich habe die Bilder angesehen. Darauf steht kein Name.“** Vorher wird nicht gespeichert.
   - **Schlüsseldatei** (nur rückbaufähig)
   - **Schlusscheck**: Alle bestätigten Namen und alle Namen aus den Dateiangaben werden in **allen Teilen** der Ausgabe noch einmal gesucht (Text, Dateieigenschaften, SharePoint-Daten, Bilder …). Bei jedem Fund steht, **wo** er steht (z. B. „steht in: Kopfzeile“). Du kannst ihn **„als Namen übernehmen“** (dann wird er überall ersetzt) oder **bewusst stehen lassen** (abhaken). Vorher wird nicht gespeichert.
 - **Dateikarten:**
@@ -74,6 +75,24 @@ Das Tool zeigt immer **nur einen Bildschirm**. Oben siehst du, in welchem Schrit
   - der Hinweis „Lade die Datei direkt hoch. Wenn du sie vorher in Word (Excel) öffnest und speicherst, trägt Word (Excel) deinen Namen wieder ein.“
   - der Knopf **„Hinweis für die KI kopieren“**. Er kopiert einen Satz, der die KI bittet, die Platzhalter nie zu verändern und nur Fehler zu zeigen. Geht das Kopieren nicht, steht der Satz zum Markieren da.
 - Nach dem Speichern: Bestätigung in der Ampel und **„Nächstes Dokument“**. Das verwirft alles Geladene und führt zum Start; die Merkliste und die Einstellungen bleiben.
+
+### Bilder und Bildbeschreibungen (seit Version 2.2)
+**Bilder werden nie verändert und nie entfernt.** Das Tool kann nicht lesen, was auf einem Bild steht. Deshalb zeigt es dir vor dem Speichern jedes Bild, damit du selbst nachsehen kannst.
+- **„Bilder ansehen“** öffnet auf derselben Seite eine Liste. Je Bild siehst du:
+  - eine kleine Vorschau (mit „Größer anzeigen“, z. B. um einen Namen auf einem Scan zu lesen),
+  - den Fundort in einfacher Sprache: „im Text bei „…““, „Tabelle“, „Kopfzeile“, „Fußzeile“, in Excel der Blattname mit Zelle oder „Kopf-/Fußzeile“,
+  - den Bildtyp (z. B. PNG, JPEG),
+  - die Beschreibung des Bildes (Alt-Text und Titel), falls vorhanden.
+- Manche Bildtypen kann der Browser nicht zeigen (z. B. **EMF, WMF, TIFF**). Dann steht dort eine graue Kachel: „Kann hier nicht angezeigt werden. Bitte in Word (Excel) ansehen.“
+- **Verknüpfte Bilder** liegen gar nicht in der Datei, sondern woanders (z. B. auf einem Netzlaufwerk). Sie haben eine eigene Kachel „verknüpft, nicht in der Datei“. Das Tool lädt sie **nie** nach.
+- **SVG-Grafiken** werden nur als Bild gezeigt, nie als Programmcode in die Seite eingebaut.
+- **Steht auf einem Bild ein Name oder ein Logo:** Entferne das Bild vorher in Word bzw. Excel und lade die Datei neu.
+- Die Vorschauen liegen **nur im Arbeitsspeicher** und werden bei „Nächstes Dokument“ verworfen. Es wird nichts gesendet.
+
+**Bildbeschreibungen** (Alt-Text und Titel von Bildern und Formen, in Word und Excel) werden wie Text behandelt:
+- Sie stehen im Schritt „Prüfen“ als eigene Abschnitte, gekennzeichnet als **„Bildbeschreibung“**.
+- Namen darin werden erkannt, lassen sich wie im Text markieren und werden beim Speichern ersetzt, **auch wenn der Name sonst nirgends im Text steht**.
+- Der Rückbau setzt sie exakt zurück.
 
 ### Eigene Namen und Ausnahmen (unter „Erweitert“)
 - **Eigene Namen (Merkliste):** Namen, die das Tool nicht kennt. Sie werden bei jedem weiteren Dokument automatisch mit ersetzt. Auch „Als Name markieren“ und „für nächstes Mal merken“ tragen dort ein.
@@ -221,11 +240,14 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 - **Kleingeschriebene Namen** werden nur gefunden, wenn derselbe Name schon anderswo erkannt oder von Hand markiert wurde.
 - **Namen in E-Mail-Adressen**, wenn die E-Mail-Erkennung ausgeschaltet ist, und Namen in Wortzusammensetzungen („Müllerstraße“, „Schmidt-Gruppe“ teilweise) werden nicht ersetzt.
 - **Chinesische, japanische, koreanische und thailändische Schrift** (ohne Leerzeichen zwischen Wörtern): Namen in Originalschrift werden nicht erkannt. Arabische, kyrillische, griechische und hebräische Schrift werden über Listen teilweise erkannt.
-- **Bildinhalt** wird nicht geprüft (Namen in Fotos, Scans, Unterschriften, Logos). Die versteckten Bildangaben werden bei JPEG, PNG und GIF entfernt, bei anderen Bildtypen nicht (Hinweis erscheint, der Schlusscheck sucht trotzdem).
+- **Bildinhalt** wird nie verändert und nicht automatisch geprüft (Namen in Fotos, Scans, Unterschriften, Logos). Du siehst jedes Bild vor dem Speichern in der Liste „Bilder ansehen“ und bestätigst es. Die versteckten Bildangaben werden bei JPEG, PNG und GIF entfernt, bei anderen Bildtypen nicht (Hinweis erscheint, der Schlusscheck sucht trotzdem).
+- **Bilder, die der Browser nicht zeigen kann** (EMF, WMF, TIFF …), und **verknüpfte Bilder** musst du in Word bzw. Excel selbst ansehen.
+- **Kopf-/Fußzeilenbilder in Excel:** Ihr Titel wird nur dann als Bildbeschreibung geprüft, wenn der zugehörige Teil sauberes XML ist (bei Excel-Dateien der Regelfall). Sonst sucht der Schlusscheck trotzdem darin nach bestätigten Namen.
+- **Fundstelle im Schlusscheck:** Steht ein übersehener Name in einer Bildbeschreibung, nennt der Schlusscheck den Teil der Datei (z. B. „Text“), nicht das Wort „Bildbeschreibung“; der angezeigte Ausschnitt zeigt die Beschreibung.
 - **Word/Excel tragen beim Speichern den eigenen Namen wieder ein.** Die anonymisierte Datei deshalb direkt hochladen, nicht vorher in Word/Excel öffnen und speichern.
 - **SharePoint-Felder, die an Inhaltssteuerelemente im Text gebunden sind:** Wird so ein Feld geleert, kann Word beim Öffnen auch den gebundenen Text im Dokument leer anzeigen (durch Code ungeprüft).
 
-### Alle Stellen mit möglichen Klarnamen (.docx/.xlsx), Stand Version 1.3
+### Alle Stellen mit möglichen Klarnamen (.docx/.xlsx), Stand Version 2.2
 
 | Stelle | wird bereinigt? |
 |---|---|
@@ -239,8 +261,8 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 | SharePoint-Felder | **ja**: Personen-Felder immer; Textfelder mit erkanntem Namen oder Namen aus den Dateiangaben |
 | Bild-Metadaten JPEG, PNG, GIF | **ja** (verlustfrei) |
 | Bild-Metadaten anderer Typen (TIFF, EMF, WMF, SVG …) | **nein**: Hinweis mit Typ, der Schlusscheck sucht darin |
-| Alt-Texte von Bildern und Formen | teilweise: nur Namen, die auch im Text erkannt wurden (**offen**) |
-| Bildinhalt (Logo, Fotos, Scans) | **nein**, nur ein allgemeiner Hinweis (**offen**) |
+| Alt-Texte und Titel von Bildern und Formen | **ja** (seit 2.2): eigene Abschnitte „Bildbeschreibung“, Erkennung wie Text |
+| Bildinhalt (Logo, Fotos, Scans) | **nein**, wird nie verändert; seit 2.2 Liste „Bilder ansehen“ mit Vorschau und Pflicht-Bestätigung |
 | Kopf-/Fußzeilen, Fußnoten, Kommentartext, Textfelder | ja, gleiche Erkennung wie der Haupttext |
 | Feldfunktionen, Links, Vorlagenpfad | teilweise: erkannte Namen und Benutzerordner |
 | Literaturangaben (Quellen-Autoren in `customXml`) | teilweise: nur erkannte Namen (**offen**) |
@@ -259,7 +281,7 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 |---|---|
 | Chromium/Chrome (Desktop) | **geprüft** (automatische Tests, headless) |
 | Chromium mit 390, 1280 und 1920 px Breite | **geprüft** (kein waagrechtes Scrollen, Knöpfe mindestens 44 px, Antippen, Markieren, Tasten J/N) |
-| Edge und Chrome unter Windows (Firmen-PC, `file://`) | Version 1.0 laut Easy **am PC geprüft**; Versionen 1.1 bis 2.1 **durch Code ungeprüft** |
+| Edge und Chrome unter Windows (Firmen-PC, `file://`) | Version 1.0 laut Easy **am PC geprüft**; Versionen 1.1 bis 2.2 **durch Code ungeprüft** |
 | Microsoft Word / Excel: Öffnen der bereinigten Datei ohne Reparatur-Meldung | **durch Code ungeprüft** (auch die unsichtbare Kennung, seit 2.1). Geprüft: LibreOffice öffnet alle Ausgaben, alle XML-Teile sind wohlgeformt, keine Verweise ins Leere |
 | Firefox (Desktop) | **ungeprüft** |
 | Safari (macOS) | **ungeprüft** |
@@ -272,7 +294,7 @@ Die Datei muss in einem Browser geöffnet werden (z. B. über „Teilen → in S
 
 ## Version und Prüfsumme
 
-Version **2.1.0**, Stand 2026-11-20 (steht auch im Fußbereich des Tools).
+Version **2.2.0**, Stand 2026-11-20 (steht auch im Fußbereich des Tools).
 
 SHA-256 der `index.html` dieser Version:
 
@@ -284,7 +306,7 @@ Eine Datei kann ihre eigene Prüfsumme nicht enthalten, deshalb steht sie nur hi
 
 ## Datenschutz und Offline-Nachweis
 
-- **Content-Security-Policy** in der Datei: `default-src 'none'`, `connect-src 'none'`, `img-src 'none'`, `font-src 'none'`, `worker-src 'none'`, `form-action 'none'`. Skript und Stil sind nur über ihren SHA-256-Hash erlaubt (kein `unsafe-inline`, kein `unsafe-eval`).
+- **Content-Security-Policy** in der Datei: `default-src 'none'`, `connect-src 'none'`, `img-src blob:` (seit 2.2, nur für die Bild-Vorschauen aus dem Arbeitsspeicher; vorher `'none'`), `font-src 'none'`, `worker-src 'none'`, `form-action 'none'`. Skript und Stil sind nur über ihren SHA-256-Hash erlaubt (kein `unsafe-inline`, kein `unsafe-eval`).
 - **Netzwerksperre im Code:** `fetch`, `XMLHttpRequest`, `WebSocket`, `EventSource`, `Worker`, `sendBeacon`, `window.open` u. a. werden beim Start unbrauchbar gemacht.
 - Keine externen Skripte, Schriften, Bilder oder Links. Alle Bibliotheken sind eingebettet.
 - Keine Telemetrie, kein Protokollieren von Inhalten. Browser-Speicher nur mit Schalter (Standard aus).
@@ -338,9 +360,11 @@ node tests/meta-proof.mjs    # Beweis: alle Teile der Ausgabe ohne Testnamen, Bi
 node tests/ui-flow.mjs       # geführte Bedienung: Durchläufe, Sperren, Fragekarte, Zurück/Weiter, Breiten → tests/UI-REPORT.md
 node tests/run-tests.mjs     # End-to-End-Tests in Chromium → tests/REPORT.md
 node tests/roundtrip.mjs     # Rückbau: Kreislauf-Beweis und Fallen → tests/ROUNDTRIP-REPORT.md
-node tests/regression.mjs <alte-index.html>  # alle Testdokumente, alle Modi byte-gleich zur Referenz (rückbaufähige .docx/.xlsx: gleich bis auf die Kennung)?
+node tests/regression.mjs <alte-index.html>  # alle Testdokumente, alle Modi byte-gleich zur Referenz (Ausnahmen einzeln mit Grund: Kennung; Dokumente mit Bildbeschreibungen)?
+node tests/make-bilder.mjs   # Bilder-Testdokumente: Word/Excel mit Bildern in Text, Kopfzeile, Tabelle, Name nur im Alt-Text/Titel, EMF, verknüpft, SVG (erfunden)
+node tests/bilder-test.mjs <index.html-2.1>  # Bilder: Liste, Kacheln, Sperre, Bildbeschreibungen, Kreislauf, Breiten → tests/BILDER-REPORT.md
 node tests/make-kennung.mjs  # Vertausch-Testpaar: gleiche Vorlage, andere (erfundene) Personen, vier Formate
 node tests/kennung-test.mjs <index.html-2.0>  # Kennung: Vertausch, Veraltet, Umbenennen, Alt-Schlüssel, LibreOffice, Zufall → tests/KENNUNG-REPORT.md
 ```
 
-Aufbau: `src/core` (Erkennung, Muster, Namenslisten-Zugriff, `reversible.js` = Modus rückbaufähig und Schlüsseldatei, `restore.js` = Rückbau), `src/formats` (TXT/CSV/DOCX/XLSX/PDF, `meta.js` = versteckte Angaben: Dateieigenschaften, SharePoint-Felder, Bild-Metadaten), `src/ui` (Oberfläche mit den Bildschirmen Start/Datei/Prüfen/Speichern und Rückbau, Netzwerksperre, Vorlage, Stil), `build/` (Build-Skripte), `tests/` (Testdaten, Tests, Bericht).
+Aufbau: `src/core` (Erkennung, Muster, Namenslisten-Zugriff, `reversible.js` = Modus rückbaufähig und Schlüsseldatei, `restore.js` = Rückbau), `src/formats` (TXT/CSV/DOCX/XLSX/PDF, `meta.js` = versteckte Angaben: Dateieigenschaften, SharePoint-Felder, Bild-Metadaten, `images.js` = Bilderliste und Bildbeschreibungen), `src/ui` (Oberfläche mit den Bildschirmen Start/Datei/Prüfen/Speichern und Rückbau, Netzwerksperre, Vorlage, Stil), `build/` (Build-Skripte), `tests/` (Testdaten, Tests, Bericht).
