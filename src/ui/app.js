@@ -5,7 +5,9 @@ import {
   analyze, defaultState, replacementsByUnit, applyReplacements, leakForms, findLeaks, makeGenericReplacer,
 } from '../core/detect.js';
 import { fold } from '../core/fold.js';
-import { readTxt, writeTxt, readCsv, writeCsv, encodeText } from '../formats/text.js';
+import { readTxt, writeTxt, readCsv, writeCsv, encodeText, encodeTextPlain } from '../formats/text.js';
+import { MODE_REVERSIBLE, buildRestoreKey } from '../core/reversible.js';
+import { parseKeyFile, planRestore, makeRestoreString, findLeftovers } from '../core/restore.js';
 import { readDocx, writeDocx, buildDocx } from '../formats/docx.js';
 import { readXlsx, writeXlsx } from '../formats/xlsx.js';
 import { collectZipTexts } from '../formats/xmlutil.js';
@@ -14,6 +16,8 @@ import { readPdf } from '../formats/pdf.js';
 const MAX_BYTES = 20 * 1024 * 1024;
 const WARN_BYTES = 5 * 1024 * 1024;
 const STORE_KEY = 'anonymisierer.merkliste.v1';
+// eslint-disable-next-line no-undef
+const VERSION = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'dev';
 
 const $ = (sel) => document.querySelector(sel);
 function h(tag, attrs, ...kids) {
@@ -106,6 +110,7 @@ function runAnalysis() {
   if (!app.doc) return;
   app.result = analyze(app.doc.units, app.state);
   app.leakAck = false;
+  app.stamp = (app.stamp || 0) + 1; // jede Änderung der Treffer -> Schlüsseldatei muss neu gespeichert werden
   render();
 }
 
@@ -137,7 +142,11 @@ async function buildOutput(format) {
   const generic = makeGenericReplacer(app.result, app.state.settings);
   const reps = replacementsByUnit(app.result, d.units);
   if (format === 'docx' && d.kind === 'docx') return { bytes: await writeDocx(d.bytes, reps, generic), zip: true };
-  if (format === 'xlsx' && d.kind === 'xlsx') return { bytes: await writeXlsx(d.bytes, reps, generic), zip: true };
+  if (format === 'xlsx' && d.kind === 'xlsx') {
+    const sheetIssues = [];
+    const bytes = await writeXlsx(d.bytes, reps, generic, { onSheetName: (x) => sheetIssues.push(x) });
+    return { bytes, zip: true, sheetIssues };
+  }
   if (format === 'docx') return { bytes: await buildDocx(docxSections()), zip: true };
   if (format === 'csv') return { text: writeCsv(d.raw, newUnitTexts()) };
   return { text: plainTextExport() };
@@ -185,6 +194,10 @@ async function doExport(format) {
   try {
     const out = await buildOutput(format === 'copy' ? 'txt' : format);
     const leaks = await finalCheck(out);
+    // rückbaufähig: Blattname, den Excel nicht 1:1 zulässt (zu lang, Sonderzeichen) -> Rückbau dieses Namens nicht exakt
+    if (isReversible()) {
+      for (const x of out.sheetIssues || []) leaks.push({ word: x.requested, entity: 'Blattname', where: 'Excel', context: `Excel lässt den Blattnamen „${x.requested}“ nicht zu; gespeichert als „${x.actual}“. Der Rückbau dieses Blattnamens ist NICHT exakt.` });
+    }
     renderLeaks(leaks);
     if (leaks.length && !app.leakAck) {
       status.textContent = `Schlusscheck: ${leaks.length} bestätigte(r) Klarname(n) noch im Ergebnis gefunden. Export blockiert – bitte prüfen (siehe unten).`;
@@ -197,9 +210,10 @@ async function doExport(format) {
     } else {
       const base = { txt: 'anonymisiert_text', csv: 'anonymisiert_tabelle', docx: 'anonymisiert_dokument', xlsx: 'anonymisiert_tabelle' }[format];
       download(out.zip ? out.bytes : encodeText(out.text), `${base}.${format}`, MIME[format]);
-      status.textContent = `Gespeichert: ${base}.${format}` + (leaks.length ? ' (mit bestätigten Restfunden)' : ' – Schlusscheck ohne Fund.');
+      status.textContent = `Gespeichert: ${base}.${format}` + (leaks.length ? ' (mit bestätigten Restfunden)' : ' – Schlusscheck ohne Fund.')
+        + (isReversible() && app.keyStamp !== app.stamp ? ' ACHTUNG: Die passende Rückbau-Schlüsseldatei ist noch nicht gespeichert – ohne sie ist kein Rückbau möglich.' : '');
     }
-    status.className = leaks.length ? 'status warn' : 'status ok';
+    status.className = leaks.length || (isReversible() && app.keyStamp !== app.stamp) ? 'status warn' : 'status ok';
   } catch (e) {
     status.textContent = 'Fehler beim Export: ' + e.message;
     status.className = 'status bad';
@@ -220,7 +234,17 @@ function exportMapping() {
 }
 
 // ---------- Darstellung ----------
-function unackedWarnings() { return (app.doc ? app.doc.warnings : []).filter((w) => !app.ackWarnings.has(w)); }
+function isReversible() { return app.state.settings.mode === MODE_REVERSIBLE; }
+function allWarnings() {
+  if (!app.doc) return [];
+  const list = [...app.doc.warnings];
+  const rv = app.result && app.result.reversible;
+  if (rv && rv.clashes.length) {
+    list.push(`Das Original enthält schon Text, der wie ein Platzhalter aussieht (${rv.clashes.slice(0, 5).join(', ')}${rv.clashes.length > 5 ? ' …' : ''}). Beim Rückbau würde dieser Text ebenfalls ersetzt. Bitte vorher prüfen oder umformulieren.`);
+  }
+  return list;
+}
+function unackedWarnings() { return allWarnings().filter((w) => !app.ackWarnings.has(w)); }
 
 function render() {
   const r = app.result;
@@ -230,10 +254,10 @@ function render() {
   if (!app.doc || !r) return;
   // Hinweise zum Dokument
   const warnBox = $('#doc-warnings');
-  warnBox.replaceChildren(...app.doc.warnings.map((w) => h('label', { class: 'warnitem' },
+  warnBox.replaceChildren(...allWarnings().map((w) => h('label', { class: 'warnitem' },
     h('input', { type: 'checkbox', checked: app.ackWarnings.has(w), onchange: (e) => { if (e.target.checked) app.ackWarnings.add(w); else app.ackWarnings.delete(w); } }),
     ' ', w)));
-  $('#doc-warnings-wrap').hidden = !app.doc.warnings.length;
+  $('#doc-warnings-wrap').hidden = !allWarnings().length;
   renderSummary();
   renderDoc();
   renderEntities();
@@ -243,7 +267,27 @@ function render() {
   $('#btn-csv').hidden = k !== 'csv';
   $('#btn-docx').hidden = k === 'xlsx';
   $('#pdf-note').hidden = k !== 'pdf';
+  renderModeNotes();
   $('#leaks').hidden = true;
+}
+
+function renderModeNotes() {
+  const rev = isReversible();
+  $('#rev-note').hidden = !rev;
+  $('#norev-note').hidden = rev;
+  $('#mapping').hidden = rev; // im Modus rückbaufähig ersetzt die Schlüsseldatei die Zuordnungstabelle
+}
+
+// Rückbau-Schlüsseldatei (nur Modus rückbaufähig)
+function exportKey() {
+  if (!isReversible() || !app.result || !app.result.reversible) return;
+  const ok = window.confirm('ACHTUNG: Die Rückbau-Schlüsseldatei enthält die ECHTEN NAMEN und Kontaktdaten.\n\nNie weitergeben, nie an eine KI. Getrennt vom anonymisierten Dokument sicher aufbewahren.\n\nOhne diese Datei ist kein Rückbau möglich.\n\nJetzt speichern?');
+  if (!ok) return;
+  const key = buildRestoreKey(app.result, { version: VERSION, kind: app.doc.kind });
+  app.keyStamp = app.stamp;
+  download(encodeText(JSON.stringify(key, null, 2)), 'rueckbau_schluessel_VERTRAULICH.json', 'application/json');
+  $('#key-status').textContent = `Schlüsseldatei gespeichert (${key.platzhalter.length} Platzhalter). Wichtig: Wenn Sie danach noch Treffer an- oder ausschalten, die Schlüsseldatei erneut speichern.`;
+  $('#key-status').className = 'status ok';
 }
 
 function renderSummary() {
@@ -268,6 +312,7 @@ function setHits(list, on) {
     if (m) { m.classList.toggle('on', on); m.classList.toggle('off', !on); m.title = hitTitle(x); }
   }
   app.leakAck = false;
+  app.stamp = (app.stamp || 0) + 1; // jede Änderung der Treffer -> Schlüsseldatei muss neu gespeichert werden
   $('#leaks').hidden = true;
   renderSummary();
   renderEntities();
@@ -574,10 +619,187 @@ function init() {
   $('#btn-xlsx').addEventListener('click', () => doExport('xlsx'));
   $('#btn-csv').addEventListener('click', () => doExport('csv'));
   $('#btn-map').addEventListener('click', exportMapping);
+  $('#btn-key').addEventListener('click', exportKey);
+  initRestore();
+  renderModeNotes();
   render();
 }
 
+
+// ---------- Rückbau ----------
+const rb = { file: null, key: null, plan: null, leftAck: false, confirmAck: false };
+
+async function rbLoadFile(bytes, name) {
+  const st = $('#rb-file-status');
+  rb.file = null;
+  rb.plan = null;
+  rbReset();
+  try {
+    if (bytes.length > MAX_BYTES) throw new Error(`Die Datei ist zu groß (Grenze ${MAX_BYTES / 1048576} MB).`);
+    const kind = await sniff(bytes, name);
+    if (kind === 'pdf') throw new Error('PDF ist für den Rückbau nicht möglich. Bitte die anonymisierte .txt- oder .docx-Datei verwenden.');
+    let raw;
+    if (kind === 'txt') raw = readTxt(bytes);
+    else if (kind === 'csv') raw = readCsv(bytes);
+    else if (kind === 'docx') raw = await readDocx(bytes);
+    else raw = await readXlsx(bytes);
+    rb.file = { kind, bytes, raw, name, units: raw.units.map((u) => ({ text: u.text, label: u.label || '' })) };
+    st.textContent = `Geladen: ${name} (${kind.toUpperCase()}, ${rb.file.units.length} Textabschnitte).`;
+    st.className = 'status ok';
+  } catch (e) {
+    st.textContent = e.message;
+    st.className = 'status bad';
+  }
+}
+async function rbLoadKey(text) {
+  const st = $('#rb-key-status');
+  rb.key = null;
+  rbReset();
+  const r = parseKeyFile(text);
+  if (!r.ok) { st.textContent = r.error; st.className = 'status bad'; return; }
+  rb.key = r.key;
+  st.textContent = `Schlüsseldatei geladen: ${r.key.entries.size} Platzhalter (erstellt mit Version ${r.key.toolVersion}${r.key.kind ? ', Quelle ' + r.key.kind.toUpperCase() : ''}).`;
+  st.className = 'status ok';
+}
+function rbReset() {
+  rb.plan = null;
+  rb.leftAck = false;
+  rb.confirmAck = false;
+  $('#rb-report').hidden = true;
+  $('#rb-actions').hidden = true;
+  $('#rb-left').hidden = true;
+  $('#rb-status').textContent = '';
+}
+
+const ART = { unbekannt: 'unbekannter Platzhalter (nicht in der Schlüsseldatei) – bleibt stehen', verändert: 'veränderter Platzhalter (z. B. Kleinschreibung) – NICHT ersetzt', gebeugt: 'gebeugter Platzhalter (z. B. „des Nachnamens A“) – NICHT ersetzt', getrennt: 'getrennter Platzhalter (Zeilenumbruch) – NICHT ersetzt' };
+
+function rbCheck() {
+  rbReset();
+  const st = $('#rb-status');
+  if (!rb.file || !rb.key) { st.textContent = 'Bitte zuerst die anonymisierte Datei UND die Schlüsseldatei laden.'; st.className = 'status bad'; return; }
+  const plan = planRestore(rb.file.units, rb.key);
+  rb.plan = plan;
+  const box = $('#rb-report');
+  const kids = [h('h3', {}, 'Rückbau-Bericht (vor dem Speichern)')];
+  if (plan.verdict === 'falsch') {
+    kids.push(h('p', { class: 'danger' }, 'Die Schlüsseldatei passt nicht zu dieser Datei: Kein einziger Platzhalter aus der Schlüsseldatei wurde gefunden. Es wird nichts erzeugt.'));
+    box.replaceChildren(...kids);
+    box.hidden = false;
+    return;
+  }
+  if (plan.verdict === 'zweifelhaft') {
+    kids.push(h('p', { class: 'danger' }, `Wahrscheinlich die falsche Schlüsseldatei: ${plan.matchedKeys} von ${rb.key.entries.size} Platzhaltern gefunden, nur bei ${plan.okRows} stimmt die Anzahl, ${plan.unknown} unbekannte Platzhalter in der Datei. Bitte prüfen, ob Datei und Schlüsseldatei zusammengehören.`));
+  }
+  const bad = plan.rows.filter((r) => r.status !== 'ok');
+  kids.push(h('p', { class: plan.needsConfirm ? 'warnbox' : 'okbox' },
+    `${plan.totalFound} Platzhalter werden ersetzt (${plan.matchedKeys} verschiedene). Abweichende Anzahl: ${bad.length}. Auffällige Stellen: ${plan.issues.length}.`));
+  kids.push(h('div', { class: 'rbscroll' }, h('table', { class: 'rbtable' },
+    h('thead', {}, h('tr', {}, h('th', {}, 'Platzhalter'), h('th', {}, 'Art'), h('th', {}, 'erwartet'), h('th', {}, 'gefunden'), h('th', {}, 'Status'))),
+    h('tbody', {}, ...plan.rows.map((r) => h('tr', { class: r.status === 'ok' ? '' : 'bad' },
+      h('td', {}, r.platzhalter), h('td', {}, r.kategorie), h('td', {}, String(r.erwartet)), h('td', {}, String(r.gefunden)),
+      h('td', {}, r.status === 'ok' ? 'ok' : r.status === 'weniger' ? 'weniger als erwartet (gelöscht oder umgeschrieben?)' : 'mehr als erwartet (eingefügt?)')))))));
+  if (plan.issues.length) {
+    kids.push(h('h3', {}, 'Auffällige Stellen'));
+    kids.push(h('ul', {}, ...plan.issues.slice(0, 300).map((x) => h('li', {}, h('strong', {}, x.text), ` – ${ART[x.art] || x.art}${x.vermutlich ? ' (gemeint vermutlich „' + x.vermutlich + '“)' : ''} – ${x.where}: „…${x.kontext}…“`))));
+  }
+  kids.push(h('p', { class: 'hint' }, 'Metadaten (Autor, Kommentar-Autoren, Firma) werden nicht wiederhergestellt.'));
+  if (plan.needsConfirm) {
+    kids.push(h('label', { class: 'warnitem' }, h('input', { type: 'checkbox', id: 'rb-confirm', onchange: (e) => { rb.confirmAck = e.target.checked; } }),
+      ' Ich habe die Abweichungen geprüft. Nicht ersetzte Stellen bleiben als Platzhalter stehen und müssen von Hand korrigiert werden.'));
+  }
+  box.replaceChildren(...kids);
+  box.hidden = false;
+  $('#rb-actions').hidden = false;
+  $('#rb-btn-copy').hidden = !(rb.file.kind === 'txt');
+  $('#rb-btn-save').textContent = `Wiederhergestellte Datei speichern (.${rb.file.kind})`;
+}
+
+async function rbBuild() {
+  const f = rb.file;
+  const restoreStr = makeRestoreString(rb.key);
+  const reps = rb.plan.repsPerUnit;
+  const texts = () => f.raw.units.map((u, i) => applyReplacements(u.text, reps[i]));
+  if (f.kind === 'docx') return { bytes: await writeDocx(f.bytes, reps, restoreStr, { clean: false }), zip: true };
+  if (f.kind === 'xlsx') {
+    const sheetIssues = [];
+    const bytes = await writeXlsx(f.bytes, reps, restoreStr, { clean: false, onSheetName: (x) => sheetIssues.push(x) });
+    return { bytes, zip: true, sheetIssues };
+  }
+  if (f.kind === 'csv') return { text: writeCsv(f.raw, texts()), bom: f.raw.bom };
+  return { text: writeTxt(f.raw, texts()), bom: f.raw.bom };
+}
+
+async function rbSave(copy) {
+  const st = $('#rb-status');
+  if (!rb.plan || rb.plan.verdict === 'falsch') return;
+  if (rb.plan.needsConfirm && !rb.confirmAck) { st.textContent = 'Bitte zuerst die Abweichungen im Bericht prüfen und bestätigen.'; st.className = 'status bad'; return; }
+  st.textContent = 'Erzeuge Datei und führe Schlusscheck durch …';
+  st.className = 'status';
+  try {
+    const out = await rbBuild();
+    const texts = out.zip ? await collectZipTexts(await JSZip.loadAsync(out.bytes)) : [{ where: 'Text', text: out.text }];
+    const left = findLeftovers(rb.key, texts);
+    for (const x of out.sheetIssues || []) left.push({ where: 'Excel', text: x.requested, kontext: `Blattname nicht zulässig, gespeichert als „${x.actual}“` });
+    const box = $('#rb-left');
+    box.hidden = !left.length;
+    if (left.length) {
+      box.replaceChildren(h('h3', {}, 'Schlusscheck: Platzhalter noch im Ergebnis'),
+        h('ul', {}, ...left.slice(0, 200).map((x) => h('li', {}, h('strong', {}, x.text), ` – ${x.where}: „…${x.kontext}…“`))),
+        h('label', { class: 'warnitem' }, h('input', { type: 'checkbox', checked: rb.leftAck, onchange: (e) => { rb.leftAck = e.target.checked; } }), ' Ich habe diese Stellen geprüft und will trotzdem speichern.'));
+      if (!rb.leftAck) { st.textContent = `Schlusscheck: ${left.length} Platzhalter aus der Schlüsseldatei stehen noch im Ergebnis. Speichern blockiert – bitte prüfen.`; st.className = 'status bad'; return; }
+    }
+    if (copy) {
+      const ok = await copyText(out.text);
+      st.textContent = ok ? 'Wiederhergestellter Text kopiert.' : 'Kopieren nicht möglich.';
+    } else {
+      const name = `wiederhergestellt_${f2base(rb.file.kind)}.${rb.file.kind}`;
+      const bytes = out.zip ? out.bytes : (out.bom ? encodeText(out.text) : encodeTextPlain(out.text));
+      download(bytes, name, MIME[rb.file.kind]);
+      st.textContent = `Gespeichert: ${name}` + (left.length ? ' (mit bestätigten Restfunden).' : ' – Schlusscheck ohne Fund.');
+    }
+    st.className = left.length ? 'status warn' : 'status ok';
+  } catch (e) {
+    st.textContent = 'Fehler beim Rückbau: ' + e.message;
+    st.className = 'status bad';
+  }
+}
+function f2base(kind) { return { txt: 'text', csv: 'tabelle', docx: 'dokument', xlsx: 'tabelle' }[kind]; }
+
+function initRestore() {
+  const drop = $('#rb-drop');
+  const input = $('#rb-file');
+  drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('over'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+  drop.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    drop.classList.remove('over');
+    const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f) await rbLoadFile(new Uint8Array(await f.arrayBuffer()), f.name);
+  });
+  $('#rb-btn-file').addEventListener('click', () => input.click());
+  input.addEventListener('change', async () => {
+    const f = input.files[0];
+    input.value = '';
+    if (f) await rbLoadFile(new Uint8Array(await f.arrayBuffer()), f.name);
+  });
+  $('#rb-btn-text').addEventListener('click', async () => {
+    const t = $('#rb-paste').value;
+    if (!t.trim()) { $('#rb-file-status').textContent = 'Bitte zuerst Text einfügen.'; $('#rb-file-status').className = 'status bad'; return; }
+    await rbLoadFile(new TextEncoder().encode(t), 'eingefuegt.txt');
+  });
+  $('#rb-btn-key').addEventListener('click', () => $('#rb-key').click());
+  $('#rb-key').addEventListener('change', async (e) => {
+    const f = e.target.files[0];
+    e.target.value = '';
+    if (f) await rbLoadKey(new TextDecoder().decode(new Uint8Array(await f.arrayBuffer())));
+  });
+  $('#rb-btn-check').addEventListener('click', rbCheck);
+  $('#rb-btn-save').addEventListener('click', () => rbSave(false));
+  $('#rb-btn-copy').addEventListener('click', () => rbSave(true));
+}
+
 // Für automatische Tests (nur lesend nutzbar, kein Netzwerk)
-window.__anon = { app, openBytes, buildOutput, finalCheck, addManual, runAnalysis };
+window.__anon = { app, openBytes, buildOutput, finalCheck, addManual, runAnalysis, rb, rbLoadFile, rbLoadKey, rbCheck };
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();

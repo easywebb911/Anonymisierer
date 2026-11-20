@@ -107,7 +107,9 @@ export async function readDocx(bytes) {
 }
 
 // Baut die anonymisierte .docx. repsPerUnit: Ersetzungen je Einheit; generic(str): Ersetzer für sonstige Texte.
-export async function writeDocx(bytes, repsPerUnit, generic) {
+// opts.clean (Standard true): Metadaten bereinigen (Anonymisieren). false: nur Texte ändern (Rückbau).
+export async function writeDocx(bytes, repsPerUnit, generic, opts = {}) {
+  const clean = opts.clean !== false;
   const d = await readDocx(bytes);
   const changed = new Set();
   d.units.forEach((u, i) => { if (distribute(u, repsPerUnit[i] || [])) changed.add(u.part); });
@@ -121,9 +123,9 @@ export async function writeDocx(bytes, repsPerUnit, generic) {
       for (const a of Array.from(el.attributes)) {
         const ln = a.localName;
         let v = a.value;
-        if (ln === 'author' || ln === 'displayName') v = v ? 'Autor' : v;
-        else if (ln === 'initials') v = v ? 'A' : v;
-        else if (ln === 'userId' || ln === 'providerId') v = '';
+        if (clean && (ln === 'author' || ln === 'displayName')) v = v ? 'Autor' : v;
+        else if (clean && ln === 'initials') v = v ? 'A' : v;
+        else if (clean && (ln === 'userId' || ln === 'providerId')) v = '';
         else if (ATTRS.has(ln) || (ln === 'name' && /^(docPr|cNvPr|bookmarkStart)$/.test(el.localName)) || (ln === 'val' && /^(alias|tag|docVar)$/.test(el.localName))) v = generic(v);
         if (v !== a.value) { el.setAttributeNS(a.namespaceURI, a.name, v); mod = true; }
       }
@@ -141,7 +143,7 @@ export async function writeDocx(bytes, repsPerUnit, generic) {
   }
 
   // Dokumenteigenschaften leeren
-  const core = d.docs.get('docProps/core.xml');
+  const core = clean ? d.docs.get('docProps/core.xml') : null;
   if (core) {
     for (const el of allElements(core)) {
       if (['creator', 'lastModifiedBy', 'title', 'subject', 'keywords', 'description', 'category', 'contentStatus', 'identifier', 'language'].includes(el.localName) && el.textContent) {
@@ -150,13 +152,13 @@ export async function writeDocx(bytes, repsPerUnit, generic) {
       }
     }
   }
-  const app = d.docs.get('docProps/app.xml');
+  const app = clean ? d.docs.get('docProps/app.xml') : null;
   if (app) {
     for (const el of allElements(app)) {
       if (['Company', 'Manager', 'HyperlinkBase'].includes(el.localName) && el.textContent) { el.textContent = ''; changed.add('docProps/app.xml'); }
     }
   }
-  const custom = d.docs.get('docProps/custom.xml');
+  const custom = clean ? d.docs.get('docProps/custom.xml') : null;
   if (custom) {
     for (const el of allElements(custom)) {
       if (['lpwstr', 'lpstr', 'bstr'].includes(el.localName) && el.textContent) { el.textContent = ''; changed.add('docProps/custom.xml'); }
@@ -169,17 +171,17 @@ export async function writeDocx(bytes, repsPerUnit, generic) {
     let mod = false;
     for (const rel of allElements(doc).filter((e) => e.localName === 'Relationship')) {
       const target = rel.getAttribute('Target') || '';
-      if (/\/thumbnail$/.test(rel.getAttribute('Type') || '')) {
+      if (clean && /\/thumbnail$/.test(rel.getAttribute('Type') || '')) {
         rel.parentNode.removeChild(rel);
         mod = true;
       } else if (rel.getAttribute('TargetMode') === 'External') {
-        const nt = generic(neutralizePath(target));
+        const nt = generic(clean ? neutralizePath(target) : target);
         if (nt !== target) { rel.setAttribute('Target', nt); mod = true; }
       }
     }
     if (mod) d.zip.file(n, serializeXml(doc), { date: FIXED_DATE, createFolders: false });
   }
-  for (const n of d.names) {
+  for (const n of clean ? d.names : []) {
     if (/^docProps\/thumbnail\./i.test(n)) d.zip.remove(n);
     // Eingebettete Objekte werden geleert (Inhalt nicht prüfbar); die Beziehung bleibt, damit das Dokument gültig bleibt
     else if (/^word\/embeddings\//.test(n)) d.zip.file(n, new Uint8Array(0), { date: FIXED_DATE, createFolders: false });

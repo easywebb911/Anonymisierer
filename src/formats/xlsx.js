@@ -279,7 +279,9 @@ function cellString(sheetDoc, ref, siList) {
 function colToNum(c) { let n = 0; for (const ch of c) n = n * 26 + (ch.charCodeAt(0) - 64); return n; }
 function numToCol(n) { let s = ''; while (n > 0) { const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); } return s; }
 
-export async function writeXlsx(bytes, repsPerUnit, generic) {
+// opts.clean (Standard true): Metadaten bereinigen (Anonymisieren). false: nur Texte, Blattnamen, Bezüge (Rückbau).
+export async function writeXlsx(bytes, repsPerUnit, generic, opts = {}) {
+  const clean = opts.clean !== false;
   const d = await readXlsx(bytes);
   const changed = new Set();
 
@@ -295,6 +297,8 @@ export async function writeXlsx(bytes, repsPerUnit, generic) {
     if (u.kind !== 'sheetname' || u.seg.newName === null) return;
     used.delete(u.sheet.name.toLowerCase());
     const nn = sanitizeSheetName(u.seg.newName, used, 'Blatt ' + (d.sheets.indexOf(u.sheet) + 1));
+    // Excel erlaubt nicht jeden Blattnamen (max. 31 Zeichen, keine []:*?/\, eindeutig) -> melden
+    if (opts.onSheetName && nn !== u.seg.newName) opts.onSheetName({ requested: u.seg.newName, actual: nn });
     if (nn !== u.sheet.name) { renames.set(u.sheet.name, nn); u.sheet.el.setAttribute('name', nn); }
   });
   // Phase 2: Formeln (nur Text in Anführungszeichen wird ersetzt)
@@ -318,17 +322,20 @@ export async function writeXlsx(bytes, repsPerUnit, generic) {
         let v = a.value;
         if (renames.size && an === 'location' && ln === 'hyperlink') v = renameSheetRefs(v, renames);
         else if (renames.size && an === 'sheet' && ln === 'worksheetSource' && renames.has(v)) v = renames.get(v);
-        else if (an === 'author' || an === 'displayName') v = v ? 'Autor' : v;
-        else if (an === 'userId' || an === 'userName') v = '';
-        else if (an === 'providerId') v = 'None';
-        else if (an === 'name' && ln === 'userInfo') v = 'Autor';
+        else if (clean && (an === 'author' || an === 'displayName')) v = v ? 'Autor' : v;
+        else if (clean && (an === 'userId' || an === 'userName')) v = '';
+        else if (clean && an === 'providerId') v = 'None';
+        else if (clean && an === 'name' && ln === 'userInfo') v = 'Autor';
         else if ((an === 'v' && ln === 's') || (an === 'v' && ln === 'pivotField') || an === 'caption' || an === 'prompt' || an === 'error'
           || an === 'promptTitle' || an === 'errorTitle' || an === 'tooltip' || an === 'display' || an === 'descr' || an === 'title'
           || (an === 'comment' && ln === 'definedName') || (an === 'name' && (ln === 'cNvPr' || ln === 'item'))) v = generic(v);
         if (v !== a.value) { el.setAttributeNS(a.namespaceURI, a.name, v); mod = true; }
       }
       // Kommentar-Autoren
-      if (ln === 'author' && el.parentNode && el.parentNode.localName === 'authors' && el.textContent) { el.textContent = 'Autor'; mod = true; continue; }
+      if (ln === 'author' && el.parentNode && el.parentNode.localName === 'authors' && el.textContent) {
+        if (clean) { el.textContent = 'Autor'; mod = true; }
+        continue;
+      }
       const isFormula = ln === 'f' || ln === 'definedName' || /^formula[12]?$/.test(ln);
       if (!d.owned.has(el) && !isFormula) {
         for (const c of Array.from(el.childNodes)) {
@@ -366,10 +373,10 @@ export async function writeXlsx(bytes, repsPerUnit, generic) {
   if (app) {
     for (const el of allElements(app)) {
       if (el.localName === 'lpstr' && renames.has(el.textContent)) { el.textContent = renames.get(el.textContent); changed.add('docProps/app.xml'); }
-      if (['Company', 'Manager', 'HyperlinkBase'].includes(el.localName) && el.textContent) { el.textContent = ''; changed.add('docProps/app.xml'); }
+      if (clean && ['Company', 'Manager', 'HyperlinkBase'].includes(el.localName) && el.textContent) { el.textContent = ''; changed.add('docProps/app.xml'); }
     }
   }
-  const core = d.docs.get('docProps/core.xml');
+  const core = clean ? d.docs.get('docProps/core.xml') : null;
   if (core) {
     for (const el of allElements(core)) {
       if (['creator', 'lastModifiedBy', 'title', 'subject', 'keywords', 'description', 'category', 'contentStatus', 'identifier', 'language'].includes(el.localName) && el.textContent) {
@@ -378,7 +385,7 @@ export async function writeXlsx(bytes, repsPerUnit, generic) {
       }
     }
   }
-  const custom = d.docs.get('docProps/custom.xml');
+  const custom = clean ? d.docs.get('docProps/custom.xml') : null;
   if (custom) {
     for (const el of allElements(custom)) {
       if (['lpwstr', 'lpstr', 'bstr'].includes(el.localName) && el.textContent) { el.textContent = ''; changed.add('docProps/custom.xml'); }
@@ -393,15 +400,15 @@ export async function writeXlsx(bytes, repsPerUnit, generic) {
     let mod = false;
     for (const rel of allElements(doc).filter((e) => e.localName === 'Relationship')) {
       const target = rel.getAttribute('Target') || '';
-      if (/\/thumbnail$/.test(rel.getAttribute('Type') || '')) { rel.parentNode.removeChild(rel); mod = true; }
+      if (clean && /\/thumbnail$/.test(rel.getAttribute('Type') || '')) { rel.parentNode.removeChild(rel); mod = true; }
       else if (rel.getAttribute('TargetMode') === 'External') {
-        const nt = generic(neutralizePath(target));
+        const nt = generic(clean ? neutralizePath(target) : target);
         if (nt !== target) { rel.setAttribute('Target', nt); mod = true; }
       }
     }
     if (mod) changed.add(n);
   }
-  for (const n of d.names) {
+  for (const n of clean ? d.names : []) {
     if (/^docProps\/thumbnail\./i.test(n)) d.zip.remove(n);
     else if (/^xl\/embeddings\//.test(n)) d.zip.file(n, new Uint8Array(0), { date: FIXED_DATE, createFolders: false });
   }

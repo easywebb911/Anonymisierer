@@ -22,7 +22,8 @@ for (const f of fs.readdirSync(cmapDir).filter((x) => x.endsWith('.bcmap')).sort
 }
 fs.writeFileSync(path.join(gen, 'cmaps.js'), '// AUTOMATISCH ERZEUGT aus pdfjs-dist/cmaps (Lizenz: siehe README)\nexport const CMAPS = ' + JSON.stringify(cmaps) + ';\n');
 
-// 3) Bündeln
+// 3) Bündeln (Version und Stand kommen aus package.json, damit der Build reproduzierbar bleibt)
+const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 const res = await esbuild.build({
   entryPoints: [path.join(root, 'src/ui/app.js')],
   bundle: true,
@@ -34,7 +35,7 @@ const res = await esbuild.build({
   charset: 'utf8',
   write: false,
   logLevel: 'warning',
-  define: { 'process.env.NODE_ENV': '"production"' },
+  define: { 'process.env.NODE_ENV': '"production"', __APP_VERSION__: JSON.stringify(pkg.version) },
 });
 let js = res.outputFiles[0].text;
 // "</script" darf im Skript nicht vorkommen (würde das HTML-Element beenden)
@@ -52,7 +53,7 @@ const csp = [
 ].join('; ');
 
 const tpl = fs.readFileSync(path.join(root, 'src/ui/template.html'), 'utf8');
-const html = tpl.replace('__CSP__', csp).replace('__STYLE__', () => css).replace('__SCRIPT__', () => js);
+const html = tpl.replace('__VERSION__', pkg.version).replace('__DATE__', pkg.releaseDate).replace('__CSP__', csp).replace('__STYLE__', () => css).replace('__SCRIPT__', () => js);
 fs.writeFileSync(path.join(root, 'index.html'), html);
 const hash = crypto.createHash('sha256').update(html).digest('hex');
 console.log(`index.html: ${(html.length / 1024 / 1024).toFixed(2)} MB, SHA-256 ${hash}`);

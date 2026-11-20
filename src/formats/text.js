@@ -14,6 +14,11 @@ export function decodeText(bytes) {
 }
 
 // Ausgabe immer als UTF-8 (mit BOM, damit Excel/Windows Umlaute korrekt anzeigen)
+// Ohne BOM (für den Rückbau, wenn die Eingabedatei auch keinen hatte)
+export function encodeTextPlain(text) {
+  return new TextEncoder().encode(text);
+}
+
 export function encodeText(text) {
   const body = new TextEncoder().encode(text);
   const out = new Uint8Array(body.length + 3);
@@ -24,13 +29,13 @@ export function encodeText(text) {
 
 // TXT: eine Einheit pro Zeile
 export function readTxt(bytes) {
-  const { text, encoding } = decodeText(bytes);
+  const { text, encoding, bom } = decodeText(bytes);
   if (text.includes('\u0000')) throw new Error('Die Datei scheint keine Textdatei zu sein.');
   const parts = text.split(/(\r\n|\n|\r)/);
   const lines = [];
   const eols = [];
   for (let i = 0; i < parts.length; i += 2) { lines.push(parts[i]); eols.push(parts[i + 1] || ''); }
-  return { kind: 'txt', units: lines.map((t) => ({ text: t, label: '' })), eols, encoding, warnings: [] };
+  return { kind: 'txt', units: lines.map((t) => ({ text: t, label: '' })), eols, encoding, bom, warnings: [] };
 }
 export function writeTxt(doc, newTexts) {
   return newTexts.map((t, i) => t + doc.eols[i]).join('');
@@ -87,7 +92,7 @@ function parseCsv(text, delim) {
 }
 
 export function readCsv(bytes) {
-  const { text, encoding } = decodeText(bytes);
+  const { text, encoding, bom } = decodeText(bytes);
   const delim = detectDelimiter(text);
   const { rows, unbalanced } = parseCsv(text, delim);
   const units = [];
@@ -98,7 +103,7 @@ export function readCsv(bytes) {
   const warnings = [];
   if (unbalanced) warnings.push('Die CSV-Datei enthält ein nicht geschlossenes Anführungszeichen. Bitte das Ergebnis besonders sorgfältig prüfen.');
   const names = { ';': 'Semikolon', ',': 'Komma', '\t': 'Tabulator', '|': 'senkrechter Strich' };
-  return { kind: 'csv', units, rows, map, delim, encoding, warnings, info: `Trennzeichen: ${names[delim]}` };
+  return { kind: 'csv', units, rows, map, delim, encoding, bom, warnings, info: `Trennzeichen: ${names[delim]}` };
 }
 
 export function writeCsv(doc, newTexts) {
