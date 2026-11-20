@@ -6,7 +6,7 @@ import {
   parseXml, serializeXml, allElements, isS, isA, makeUnit, textSegment, virtualSegment, distribute,
   neutralizePath, ZIP_OPTS, FIXED_DATE,
 } from './xmlutil.js';
-import { collectMetaNames, findPropertyParts, cleanProperties, cleanCustomXml, removeThumbnails, stripImages, imageWarnings } from './meta.js';
+import { collectMetaNames, findPropertyParts, cleanProperties, cleanCustomXml, removeThumbnails, stripImages, imageWarnings, setKennungProperty } from './meta.js';
 
 const natural = (a, b) => a.localeCompare(b, 'en', { numeric: true });
 const childEls = (el, ln) => Array.from(el.childNodes).filter((c) => c.nodeType === 1 && (!ln || c.localName === ln));
@@ -406,6 +406,8 @@ export async function writeXlsx(bytes, repsPerUnit, generic, opts = {}) {
     if (/^docProps\/thumbnail\./i.test(n)) d.zip.remove(n);
     else if (/^xl\/embeddings\//.test(n)) d.zip.file(n, new Uint8Array(0), { date: FIXED_DATE, createFolders: false });
   }
+  // Modus rückbaufähig: Kennung als unsichtbare benutzerdefinierte Eigenschaft (nach der Bereinigung)
+  if (clean && opts.kennung) await setKennungProperty(d.zip, d.docs, changed, opts.kennung);
   for (const n of changed) if (d.docs.has(n)) d.zip.file(n, serializeXml(d.docs.get(n)), { date: FIXED_DATE, createFolders: false });
   // Bild-Metadaten (EXIF, XMP, IPTC, Kommentare, PNG-Textblöcke) verlustfrei entfernen
   if (clean) await stripImages(d.zip);

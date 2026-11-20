@@ -64,11 +64,11 @@ Das Tool zeigt immer **nur einen Bildschirm**. Oben siehst du, in welchem Schrit
   - **Schlüsseldatei** (nur rückbaufähig)
   - **Schlusscheck**: Alle bestätigten Namen und alle Namen aus den Dateiangaben werden in **allen Teilen** der Ausgabe noch einmal gesucht (Text, Dateieigenschaften, SharePoint-Daten, Bilder …). Bei jedem Fund steht, **wo** er steht (z. B. „steht in: Kopfzeile“). Du kannst ihn **„als Namen übernehmen“** (dann wird er überall ersetzt) oder **bewusst stehen lassen** (abhaken). Vorher wird nicht gespeichert.
 - **Dateikarten:**
-  - „Für die KI“ mit dem Namen der anonymisierten Datei (immer neutral: „anonymisiert_…“)
+  - „Für die KI“ mit dem Namen der anonymisierten Datei (immer neutral: „anonymisiert_…“; bei rückbaufähig mit Kennung, z. B. „anonymisiert_K7F3.docx“)
   - nur bei rückbaufähig zusätzlich rot: **„Bleibt auf diesem PC · enthält echte Namen“** mit der Schlüsseldatei
 - **Hauptknopf:**
   - Bei „anonym reicht“: **„Datei speichern“**. Das Format passt zur Eingabe: Word → .docx, Excel → .xlsx, CSV → .csv, Text und PDF → .txt.
-  - Bei rückbaufähig zwei nummerierte Knöpfe: erst **„1 Schlüssel speichern“**, dann **„2 Datei speichern“**. Der zweite geht erst nach dem ersten. Änderst du danach noch Treffer, musst du den Schlüssel erneut speichern.
+  - Bei rückbaufähig zwei nummerierte Knöpfe: erst **„1 Schlüssel speichern“**, dann **„2 Datei speichern“**. Der zweite geht erst nach dem ersten. Änderst du danach noch Treffer, bekommt das Dokument eine **neue Kennung** und du musst den Schlüssel erneut speichern.
 - **„Andere Wege“** (klein): „Nur Text kopieren“, „Als .txt speichern“, „Als .docx speichern“ und die **Zuordnungstabelle** (nur bei „anonym reicht“; enthält echte Namen, eigene Datei mit Warnhinweis). Für alle Wege gelten dieselben Sperren.
 - **Danach:**
   - der Hinweis „Lade die Datei direkt hoch. Wenn du sie vorher in Word (Excel) öffnest und speicherst, trägt Word (Excel) deinen Namen wieder ein.“
@@ -104,6 +104,19 @@ Das Tool zeigt immer **nur einen Bildschirm**. Oben siehst du, in welchem Schrit
 - Endungen und Anreden bleiben im Text stehen („Herrn Nachname As“) und kommen beim Rückbau genauso zurück („Herrn Müllers“).
 - Kontaktdaten werden nummeriert: [E-MAIL-1], [TELEFON-2], [IBAN-1], [ADRESSE-1]. Gleicher Wert bekommt die gleiche Nummer.
 
+**Kennung (seit Version 2.1)**
+- Jede rückbaufähige Anonymisierung bekommt eine **Kennung** aus 4 Zeichen, z. B. **K7F3**. Die Dateien heißen dann `anonymisiert_K7F3.docx` und `schluessel_K7F3.json`. So siehst du sofort, was zusammengehört.
+- In Word- und Excel-Dateien steht die Kennung zusätzlich **unsichtbar in den Dateieigenschaften**. Sie bleibt also auch erhalten, wenn du die Datei umbenennst (in LibreOffice auch nach Bearbeiten und Speichern geprüft).
+- **Jede Anonymisierung bekommt eine neue Kennung**, auch wenn du dieselbe Datei noch einmal lädst oder nach dem Schlüssel noch einen Treffer änderst. Warum? Zwei verschiedene Schlüssel dürfen nie dieselbe Kennung haben. Nur so erkennt der Rückbau einen **vertauschten** oder einen **veralteten** Schlüssel sicher, auch bei Dokumenten nach derselben Vorlage.
+- Die Kennung ist **reiner Zufall**. Nichts aus dem Dokument geht ein (kein Text, kein Name, kein Dateiname, keine Uhrzeit). Aus der Kennung lässt sich also nichts über den Inhalt ableiten.
+- Beim Rückbau zeigt die Ampel eine Zeile **„Kennung“**:
+  - grün: „Kennung K7F3 passt“
+  - rot: „Diese Schlüsseldatei gehört zu einem anderen Dokument“. Weiter geht es erst nach ausdrücklicher Bestätigung.
+  - gelb: „Im Dokument steht keine Kennung“ (z. B. umbenannte Textdatei, eingefügter Text). Du prüfst selbst und hakst ab.
+  - gelb: „Schlüssel ohne Kennung“ (Schlüssel von vor Version 2.1). Der Rückbau geht wie bisher.
+  - Widersprechen sich Eigenschaft und Dateiname, gilt die Eigenschaft; der Widerspruch wird angezeigt.
+- **Grenzen:** Bei **eingefügtem Text** und bei **umbenannten .txt/.csv-Dateien** steht die Kennung nirgends im Dokument; dann kann das Tool einen Vertausch nicht erkennen und fragt nur nach. Alte Schlüssel (vor 2.1) haben keine Kennung. Die Kennung schützt vor Verwechslung, nicht vor Absicht.
+
 **Ablauf**
 1. Anonymisieren mit der Antwort **„Ja, ich baue sie später zurück“**. Im Schritt „Speichern“ erst **„1 Schlüssel speichern“**, dann **„2 Datei speichern“**. **Ohne die Schlüsseldatei ist kein Rückbau möglich.**
 2. Die anonymisierte Datei bearbeiten oder prüfen lassen. Platzhalter dabei möglichst **unverändert** lassen („Hinweis für die KI kopieren“ hilft).
@@ -133,7 +146,7 @@ Das Tool zeigt immer **nur einen Bildschirm**. Oben siehst du, in welchem Schrit
 - **Excel-Blattnamen** dürfen höchstens 31 Zeichen haben. Wird ein Blattname durch Platzhalter zu lang, warnt das Tool vor dem Export. Der Rückbau dieses Blattnamens ist dann nicht exakt.
 - **Alternativtexte, Feldfunktionen, Links:** Dort wird nur zurückgebaut, wenn die Schreibweise exakt bekannt war. Sonst steht dort „Name A“; das meldet der Rückbau-Bericht als unbekannt.
 - Steht im **Original schon Text, der wie ein Platzhalter aussieht** (z. B. „Nachname A“), warnt das Tool vor dem Export, weil der Rückbau ihn ebenfalls ersetzen würde.
-- Eine Schlüsseldatei einer **anderen, gleich aufgebauten Datei** (gleiche Personenzahl, gleiche Häufigkeiten) kann nicht sicher erkannt werden.
+- Eine Schlüsseldatei einer **anderen, gleich aufgebauten Datei** (gleiche Personenzahl, gleiche Häufigkeiten) erkennt seit Version 2.1 die **Kennung**. Ohne Kennung im Dokument (eingefügter Text, umbenannte .txt/.csv) oder mit einem alten Schlüssel ist das weiterhin nicht sicher.
 - Zeichen in zerlegter Unicode-Form (NFD) kommen in zusammengesetzter Form (NFC) zurück. Sie sehen gleich aus.
 - Text-Ausgaben (.txt/.csv) sind immer UTF-8.
 
@@ -246,8 +259,8 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 |---|---|
 | Chromium/Chrome (Desktop) | **geprüft** (automatische Tests, headless) |
 | Chromium mit 390, 1280 und 1920 px Breite | **geprüft** (kein waagrechtes Scrollen, Knöpfe mindestens 44 px, Antippen, Markieren, Tasten J/N) |
-| Edge und Chrome unter Windows (Firmen-PC, `file://`) | Version 1.0 laut Easy **am PC geprüft**; Versionen 1.1 bis 2.0 **durch Code ungeprüft** |
-| Microsoft Word / Excel: Öffnen der bereinigten Datei ohne Reparatur-Meldung | **durch Code ungeprüft**. Geprüft: LibreOffice öffnet alle Ausgaben, alle XML-Teile sind wohlgeformt, keine Verweise ins Leere |
+| Edge und Chrome unter Windows (Firmen-PC, `file://`) | Version 1.0 laut Easy **am PC geprüft**; Versionen 1.1 bis 2.1 **durch Code ungeprüft** |
+| Microsoft Word / Excel: Öffnen der bereinigten Datei ohne Reparatur-Meldung | **durch Code ungeprüft** (auch die unsichtbare Kennung, seit 2.1). Geprüft: LibreOffice öffnet alle Ausgaben, alle XML-Teile sind wohlgeformt, keine Verweise ins Leere |
 | Firefox (Desktop) | **ungeprüft** |
 | Safari (macOS) | **ungeprüft** |
 | Safari auf dem iPhone | **ungeprüft**. Code ist auf Safari ≥ 15 ausgelegt (keine Lookbehind-Regex, keine neueren Sprachfunktionen). |
@@ -259,7 +272,7 @@ Die Datei muss in einem Browser geöffnet werden (z. B. über „Teilen → in S
 
 ## Version und Prüfsumme
 
-Version **2.0.0**, Stand 2026-11-20 (steht auch im Fußbereich des Tools).
+Version **2.1.0**, Stand 2026-11-20 (steht auch im Fußbereich des Tools).
 
 SHA-256 der `index.html` dieser Version:
 
@@ -325,7 +338,9 @@ node tests/meta-proof.mjs    # Beweis: alle Teile der Ausgabe ohne Testnamen, Bi
 node tests/ui-flow.mjs       # geführte Bedienung: Durchläufe, Sperren, Fragekarte, Zurück/Weiter, Breiten → tests/UI-REPORT.md
 node tests/run-tests.mjs     # End-to-End-Tests in Chromium → tests/REPORT.md
 node tests/roundtrip.mjs     # Rückbau: Kreislauf-Beweis und Fallen → tests/ROUNDTRIP-REPORT.md
-node tests/regression.mjs <alte-index.html>  # alle Testdokumente, alle Modi byte-gleich zur Referenz?
+node tests/regression.mjs <alte-index.html>  # alle Testdokumente, alle Modi byte-gleich zur Referenz (rückbaufähige .docx/.xlsx: gleich bis auf die Kennung)?
+node tests/make-kennung.mjs  # Vertausch-Testpaar: gleiche Vorlage, andere (erfundene) Personen, vier Formate
+node tests/kennung-test.mjs <index.html-2.0>  # Kennung: Vertausch, Veraltet, Umbenennen, Alt-Schlüssel, LibreOffice, Zufall → tests/KENNUNG-REPORT.md
 ```
 
 Aufbau: `src/core` (Erkennung, Muster, Namenslisten-Zugriff, `reversible.js` = Modus rückbaufähig und Schlüsseldatei, `restore.js` = Rückbau), `src/formats` (TXT/CSV/DOCX/XLSX/PDF, `meta.js` = versteckte Angaben: Dateieigenschaften, SharePoint-Felder, Bild-Metadaten), `src/ui` (Oberfläche mit den Bildschirmen Start/Datei/Prüfen/Speichern und Rückbau, Netzwerksperre, Vorlage, Stil), `build/` (Build-Skripte), `tests/` (Testdaten, Tests, Bericht).

@@ -229,6 +229,7 @@ log('## Sperren halten das Speichern weiter auf');
   await p2.page.setInputFiles('#rb-key', kp);
   await p2.page.waitForFunction(() => document.querySelector('#rb-key-status').textContent);
   await p2.page.click('#rb-btn-check');
+  if (await p2.page.$('#rb-kennung-ack')) await p2.page.check('#rb-kennung-ack'); // umbenannte .txt: Kennung bestätigen
   const needs = await p2.page.evaluate(() => window.__anon.rb.plan.needsConfirm);
   check('Rückbau-Auffälligkeit verlangt Bestätigung: „Weiter“ gesperrt', needs && await p2.page.$eval('#r2-next', (b) => b.disabled));
   await p2.page.check('#rb-confirm');
