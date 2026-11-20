@@ -8,8 +8,8 @@ Chromium headless, Start per file://. Alle Namen in den Testdateien sind erfunde
 - OK: … mit Antwort und Datei aktiv
 - OK: Alle 16 Fragen mit Taste J beantwortet – Keine Frage offen
 - OK: „2 Datei speichern“ ist vor dem Schlüssel gesperrt
-- OK: Datei gespeichert – Gespeichert: anonymisiert_H56V.docx – Schlusscheck ohne Fund.
-- Ampel nach dem Speichern: grün: Ersetzte Personen und Stellen · grün: Fragen · grün: Versteckte Angaben werden geleert · grün: Hinweis zur Datei · grün: Schlüsseldatei · grün: Schlusscheck · grün: Gespeichert
+- OK: Datei gespeichert – Gespeichert: anonymisiert_E38W.docx – Schlusscheck ohne Fund.
+- Ampel nach dem Speichern: grün: Ersetzte Personen und Stellen · grün: Fragen · grün: Versteckte Angaben werden geleert · grün: Bilder · grün: Schlüsseldatei · grün: Schlusscheck · grün: Gespeichert
 - OK: In jedem Schritt genau ein Bildschirm und genau ein Hauptknopf – Start: Bildschirm start, Hauptknopf „Dokument anonymisieren
         Namen durch Platzhalter ersetzen, bevor die Datei an eine KI geht.“ → Datei (leer): Bildschirm a1, Hauptknopf „Weiter zum Prüfen“ → Datei (geladen): Bildschirm a1, Hauptknopf „Weiter zum Prüfen“ → Prüfen: Bildschirm a2, Hauptknopf „Weiter zum Speichern“ → Speichern (vor dem Schlüssel): Bildschirm a3, Hauptknopf „1 Schlüssel speichern“ → Speichern (nach dem Schlüssel): Bildschirm a3, Hauptknopf „2 Datei speichern“ → Gespeichert: Bildschirm a3, Hauptknopf „Nächstes Dokument“
 - OK: Keine JavaScript-Fehler
@@ -34,11 +34,11 @@ Chromium headless, Start per file://. Alle Namen in den Testdateien sind erfunde
 - OK: Keine JavaScript-Fehler
 
 ## Sperren halten das Speichern weiter auf
-- OK: Offener Datei-Hinweis blockiert – Bitte zuerst alle Hinweise in der Liste oben abhaken.
-- OK: Offene Fragen blockieren ohne ausdrückliche Bestätigung – Es sind noch Fragen offen. Beantworte sie in Schritt 2 oder bestätige oben, dass du trotzdem speichern willst.
-- OK: Schlusscheck-Fund blockiert – Schlusscheck: 3 Klarname(n) noch im Ergebnis gefunden (bestätigte Namen oder Namen aus den Dateiangaben). Export blockiert – bitte prüfen (siehe Liste oben).
-- OK: Schlusscheck-Fund blockiert auch „Als .txt speichern“ – Schlusscheck: 1 Klarname(n) noch im Ergebnis gefunden (bestätigte Namen oder Namen aus den Dateiangaben). Export blockiert – bitte prüfen (siehe Liste oben).
-- OK: Nach „bewusst stehen lassen“ wird gespeichert – Gespeichert: anonymisiert_dokument.docx – mit bestätigten Restfunden.
+- FEHLER: Offener Datei-Hinweis blockiert – Bitte zuerst die Bilder ansehen und abhaken („Bilder ansehen“ in der Liste oben).
+- FEHLER: Offene Fragen blockieren ohne ausdrückliche Bestätigung – Bitte zuerst die Bilder ansehen und abhaken („Bilder ansehen“ in der Liste oben).
+- FEHLER: Schlusscheck-Fund blockiert – Bitte zuerst die Bilder ansehen und abhaken („Bilder ansehen“ in der Liste oben).
+- FEHLER: Schlusscheck-Fund blockiert auch „Als .txt speichern“ – Bitte zuerst die Bilder ansehen und abhaken („Bilder ansehen“ in der Liste oben).
+- FEHLER: Nach „bewusst stehen lassen“ wird gespeichert – Bitte zuerst die Bilder ansehen und abhaken („Bilder ansehen“ in der Liste oben).
 - OK: Fehlende Schlüsseldatei blockiert auch „Als .docx speichern“ – Bitte zuerst „1 Schlüssel speichern“. Ohne Schlüsseldatei ist kein Rückbau möglich.
 - OK: „2 Datei speichern“ gesperrt, solange der Schlüssel fehlt
 - OK: Nach dem Schlüssel ist „2 Datei speichern“ frei
@@ -71,5 +71,5 @@ Chromium headless, Start per file://. Alle Namen in den Testdateien sind erfunde
 - Headless-Chromium unter file:// lieferte 2 von 2 Downloads (eins.txt, zwei.txt).
 - Gewählt: zwei nummerierte Knöpfe („1 Schlüssel speichern“, „2 Datei speichern“, der zweite erst nach dem ersten aktiv). Grund: Edge/Chrome fragen bei mehreren Downloads aus einem Klick je nach Einstellung „Mehrere Dateien herunterladen?“ oder blockieren still; das zeigt der Headless-Test nicht und ist unter file:// am Firmen-PC nicht verlässlich vorhersagbar.
 
-Prüfungen: 47 von 47 bestanden.
+Prüfungen: 42 von 47 bestanden – FEHLER: Offener Datei-Hinweis blockiert; Offene Fragen blockieren ohne ausdrückliche Bestätigung; Schlusscheck-Fund blockiert; Schlusscheck-Fund blockiert auch „Als .txt speichern“; Nach „bewusst stehen lassen“ wird gespeichert.
 Netzwerkanfragen außer lokalen Dateien: 0.
