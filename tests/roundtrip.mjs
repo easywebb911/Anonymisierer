@@ -9,6 +9,7 @@ import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import JSZip from 'jszip';
+import { startAnon, loadIn, goTo, ackAll, exportWithAck, saveKey, screenOf } from './ui-helpers.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..');
@@ -36,12 +37,13 @@ async function newPage() {
   await page.goto('file://' + path.join(root, 'index.html'));
   return { page, ctx, errors };
 }
-async function setMode(page, mode) { await page.check(`input[name=mode][value="${mode}"]`); }
+// Version 2: Start -> „Dokument anonymisieren“ -> Antwort (Modus) wählen
+async function setMode(page, mode) { await startAnon(page, mode); }
 async function loadFile(page, file) {
-  await page.setInputFiles('#file', file);
-  await page.waitForFunction(() => /Gelesen|nicht|Fehler/.test(document.querySelector('#load-status').textContent), null, { timeout: 120000 });
+  if ((await screenOf(page)) === 'start') await startAnon(page, 'person');
+  await loadIn(page, file);
 }
-async function ack(page) { await page.$$eval('#doc-warnings input[type=checkbox]', (els) => els.forEach((e) => { if (!e.checked) e.click(); })); }
+async function ack(page) { await ackAll(page); }
 async function download(page, clickSel, statusSel, okRe) {
   await page.evaluate((s) => { document.querySelector(s).textContent = ''; }, statusSel);
   const dlP = page.waitForEvent('download', { timeout: 120000 }).catch(() => null);
@@ -60,16 +62,15 @@ async function anonymize(file, manual = []) {
   await loadFile(page, file);
   for (const m of manual) await page.evaluate((x) => window.__anon.addManual(x), m);
   await ack(page);
+  // Version 2: erst „1 Schlüssel speichern“, dann „2 Datei speichern“ (die Datei ist vorher gesperrt)
   const kind = path.extname(file).slice(1);
-  const btn = { txt: '#btn-txt', csv: '#btn-csv', docx: '#btn-docx', xlsx: '#btn-xlsx' }[kind];
-  let out = await download(page, btn, '#export-status', /Gespeichert/);
-  if (!out.bytes && /blockiert/.test(out.status)) { await page.check('#leaks input[type=checkbox]'); out = await download(page, btn, '#export-status', /Gespeichert/); }
-  const keyP = page.waitForEvent('download');
-  await page.click('#btn-key');
-  const kd = await keyP;
+  const kd = await saveKey(page);
   const keyPath = path.join(outDir, `${Date.now()}-${kd.suggestedFilename()}`);
   await kd.saveAs(keyPath);
   const keyStatus = await page.textContent('#key-status');
+  const r = await exportWithAck(page, kind);
+  const out = { status: r.status, bytes: null };
+  if (r.dl) { const p = path.join(outDir, `${Date.now()}-${r.dl.suggestedFilename()}`); await r.dl.saveAs(p); out.bytes = fs.readFileSync(p); }
   await ctx.close();
   return { anon: out.bytes, anonStatus: out.status, keyPath, key: JSON.parse(fs.readFileSync(keyPath, 'utf8').replace(/^\uFEFF/, '')), keyStatus, errors };
 }
@@ -77,18 +78,20 @@ async function restore(fileBytes, name, keyPath, { confirm = true } = {}) {
   const { page, ctx, errors } = await newPage();
   const fp = path.join(outDir, `in-${Date.now()}-${name}`);
   fs.writeFileSync(fp, fileBytes);
+  await page.click('#go-restore'); // Version 2: Start -> „Dokument zurückbauen“
   await page.setInputFiles('#rb-file', fp);
   await page.waitForFunction(() => document.querySelector('#rb-file-status').textContent, null, { timeout: 60000 });
   await page.setInputFiles('#rb-key', keyPath);
   await page.waitForFunction(() => document.querySelector('#rb-key-status').textContent);
   const fileStatus = await page.textContent('#rb-file-status');
   const keyStatus = await page.textContent('#rb-key-status');
-  await page.click('#rb-btn-check').catch(() => {});
+  await page.click('#rb-btn-check', { timeout: 3000 }).catch(() => {}); // gesperrt, wenn eine Datei fehlt oder ungültig ist
   const plan = await page.evaluate(() => { const p = window.__anon.rb.plan; return p ? { totalFound: p.totalFound, matchedKeys: p.matchedKeys, verdict: p.verdict, needsConfirm: p.needsConfirm, rows: p.rows, issues: p.issues } : null; });
   const reportText = await page.textContent('#rb-report');
   let res = { status: '', bytes: null };
   if (plan && plan.verdict !== 'falsch') {
     if (plan.needsConfirm && confirm) await page.check('#rb-confirm');
+    await page.click('#r2-next'); // Bildschirm „Prüfen“ -> „Speichern“
     res = await download(page, '#rb-btn-save', '#rb-status', /Gespeichert/);
     if (!res.bytes && /blockiert/.test(res.status)) {
       res.blocked = await page.$$eval('#rb-left li', (els) => els.map((e) => e.textContent));
@@ -391,6 +394,7 @@ globalThis.__uebChecks = [];
     // 1) Prüfansicht: Markierung, Übertragung, An/Aus der ganzen Gruppe
     const { page, ctx, errors } = await newPage();
     await loadFile(page, file);
+    await goTo(page, 'a2');
     const hits = await page.evaluate(() => { const r = window.__anon.app.result; return r.hits.filter((h) => h.type === 'person').map((h) => ({ t: r.fullText.slice(h.s, h.e), cert: h.cert, on: h.on, a2: !!h.a2, g: h.a2group || '' })); });
     const exportTxt = async () => page.evaluate(async () => (await window.__anon.buildOutput('txt')).text);
     const before = count(await exportTxt());
@@ -531,7 +535,9 @@ for (const mode of ['person', 'name']) {
   const { page, ctx } = await newPage();
   await setMode(page, mode);
   await loadFile(page, path.join(fx, 'protokoll.txt'));
-  const norev = await page.isVisible('#norev-note');
+  // Version 2: Der Hinweis „Ein Rückbau ist dann nicht möglich“ steht auf der gewählten Karte; auf „Speichern“ gibt es keinen Schlüssel-Knopf
+  const norev = mode === 'person' ? /Rückbau ist dann nicht möglich/.test(await page.textContent('label.choicecard:has(input[value="person"])')) : /kein Rückbau möglich/.test(await page.textContent('#advanced'));
+  await ackAll(page);
   const keyBtn = await page.isVisible('#btn-key');
   const ok = norev && !keyBtn;
   globalThis.__checks.push([`Modus ${mode}`, ok]);

@@ -12,6 +12,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import JSZip from 'jszip';
 import { META_PEOPLE } from './make-meta.mjs';
+import { startAnon, loadIn, goTo, ackAll, exportOnce, exportWithAck, saveKey, screenOf } from './ui-helpers.mjs';
 
 const { chromium } = createRequire('/opt/node22/lib/node_modules/')('playwright');
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -85,9 +86,10 @@ async function newPage() {
   await page.goto('file://' + path.join(root, 'index.html'));
   return { page, ctx, errors };
 }
-async function loadFile(page, file) {
-  await page.setInputFiles('#file', file);
-  await page.waitForFunction(() => /Gelesen|nicht|Fehler/.test(document.querySelector('#load-status').textContent), null, { timeout: 120000 });
+// Version 2: Start -> „Dokument anonymisieren“ -> Antwort -> Datei
+async function loadFile(page, file, mode = 'person') {
+  if ((await screenOf(page)) === 'start') await startAnon(page, mode);
+  await loadIn(page, file);
 }
 // Bildpunkte im Browser dekodieren (wie ein Betrachter sie anzeigt) und als Prüfsumme zurückgeben
 async function pixelHash(page, bytes, mime) {
@@ -152,9 +154,9 @@ for (const [file, kind] of FILES) {
   log(`## ${file}`);
   for (const mode of ['person', 'name', 'reversible']) {
     const { page, ctx, errors } = await newPage();
-    await page.check(`input[name=mode][value="${mode}"]`);
-    await loadFile(page, path.join(fx, file));
-    const ui = await page.evaluate(() => ({ meta: document.querySelector('#meta-names').hidden ? '' : document.querySelector('#meta-names').textContent, warnings: window.__anon.app.doc.warnings }));
+    await loadFile(page, path.join(fx, file), mode);
+    // Version 2: Namen aus den Dateiangaben erscheinen als Fragen auf dem Prüfen-Bildschirm
+    const ui = await page.evaluate(() => ({ meta: window.__anon.questions().filter((q) => q.kind === 'meta').map((q) => `In den Dateiangaben steht „${q.name}“`).join(' | '), warnings: window.__anon.app.doc.warnings }));
     const out = await page.evaluate(async (k) => { const o = await window.__anon.buildOutput(k); const leaks = await window.__anon.finalCheck(o); return { bytes: Array.from(o.bytes), leaks }; }, kind);
     const bytes = Buffer.from(out.bytes);
     fs.writeFileSync(path.join(outDir, `${mode}-${file}`), bytes);
@@ -177,7 +179,7 @@ for (const [file, kind] of FILES) {
     check(`${file} (${mode}): in KEINEM Teil der Ausgabe steht noch ein Testname`, !left.length, left.map(([n, v]) => `${n}: ${JSON.stringify(v.per)}`).join('; ') || `vorher ${Object.values(before).reduce((s, v) => s + v.total, 0)} Vorkommen, nachher 0`);
     check(`${file} (${mode}): Schlusscheck ohne Fund`, !out.leaks.length, out.leaks.map((l) => `${l.word} – ${l.where}`).join('; '));
     if (mode === 'person') {
-      check(`${file}: Prüfansicht zeigt „In den Dateiangaben gefunden“ mit allen Namen`, NAMES.filter((n) => n !== META_PEOPLE.textPerson).every((n) => ui.meta.includes(n)), ui.meta.slice(0, 220));
+      check(`${file}: Prüfen-Bildschirm fragt nach allen Namen aus den Dateiangaben`, NAMES.filter((n) => n !== META_PEOPLE.textPerson).every((n) => ui.meta.includes(n)), ui.meta.slice(0, 220));
       // Bildpunkte
       for (const n of Object.keys(origFiles).filter((x) => /media\//.test(x))) {
         const mime = /jpe?g$/.test(n) ? 'image/jpeg' : /png$/.test(n) ? 'image/png' : 'image/gif';
@@ -212,19 +214,14 @@ for (const [file, kind] of FILES) {
 log('## Rückbau bleibt ohne Bereinigung');
 {
   const { page, ctx } = await newPage();
-  await page.check('input[name=mode][value="reversible"]');
-  await loadFile(page, path.join(fx, 'meta-word.docx'));
-  await page.$$eval('#doc-warnings input[type=checkbox]', (els) => els.forEach((e) => { if (!e.checked) e.click(); }));
-  const dlP = page.waitForEvent('download');
-  await page.click('#btn-docx');
-  const dl = await dlP;
-  const anonPath = path.join(outDir, 'rb-anon.docx');
-  await dl.saveAs(anonPath);
-  const kP = page.waitForEvent('download');
-  await page.click('#btn-key');
-  const kd = await kP;
+  await loadFile(page, path.join(fx, 'meta-word.docx'), 'reversible');
+  await ackAll(page);
+  const kd = await saveKey(page); // erst Schlüssel, dann Datei
   const keyPath = path.join(outDir, 'rb-key.json');
   await kd.saveAs(keyPath);
+  const { dl } = await exportWithAck(page, 'docx');
+  const anonPath = path.join(outDir, 'rb-anon.docx');
+  await dl.saveAs(anonPath);
   await ctx.close();
   // Bild MIT Bildangaben und Kern-Eigenschaften MIT Autor zurück in die anonymisierte Datei legen
   const orig = await zipFiles(fs.readFileSync(path.join(fx, 'meta-word.docx')));
@@ -234,12 +231,14 @@ log('## Rückbau bleibt ohne Bereinigung');
   const inPath = path.join(outDir, 'rb-mit-angaben.docx');
   fs.writeFileSync(inPath, await z.generateAsync({ type: 'nodebuffer' }));
   const p2 = await newPage();
+  await p2.page.click('#go-restore');
   await p2.page.setInputFiles('#rb-file', inPath);
   await p2.page.waitForFunction(() => document.querySelector('#rb-file-status').textContent);
   await p2.page.setInputFiles('#rb-key', keyPath);
   await p2.page.waitForFunction(() => document.querySelector('#rb-key-status').textContent);
   await p2.page.click('#rb-btn-check');
   const res = await p2.page.evaluate(() => (window.__anon.rb.plan ? window.__anon.rb.plan.totalFound : -1));
+  await p2.page.click('#r2-next');
   const dl2P = p2.page.waitForEvent('download', { timeout: 60000 });
   await p2.page.click('#rb-btn-save');
   const dl2 = await dl2P;
@@ -259,11 +258,10 @@ log('## Schlusscheck-Falle (meta-falle.docx: TIFF-Bild mit Autor, das das Tool n
   const { page, ctx, errors } = await newPage();
   await loadFile(page, path.join(fx, 'meta-falle.docx'));
   const warnings = await page.evaluate(() => window.__anon.app.doc.warnings);
-  check('Hinweis in der Prüfansicht nennt den Bildtyp TIFF', warnings.some((w) => /TIFF/.test(w)), warnings.find((w) => /TIFF/.test(w)) || '');
-  await page.$$eval('#doc-warnings input[type=checkbox]', (els) => els.forEach((e) => { if (!e.checked) e.click(); }));
-  await page.click('#btn-docx');
-  await page.waitForFunction(() => { const t = document.querySelector('#export-status').textContent; return t && !/^Erzeuge/.test(t); });
-  const status = await page.textContent('#export-status');
+  await ackAll(page);
+  const rowText = await page.textContent('#ampel');
+  check('Hinweis auf dem Speichern-Bildschirm nennt den Bildtyp TIFF', warnings.some((w) => /TIFF/.test(w)) && /TIFF/.test(rowText), warnings.find((w) => /TIFF/.test(w)) || '');
+  const { status } = await exportOnce(page, 'docx');
   const leaks = await page.$$eval('#leaks li', (els) => els.map((e) => e.textContent));
   check('Schlusscheck blockiert den Export', /blockiert/.test(status), status);
   check('Schlusscheck nennt die Fundstelle „Bild“ im TIFF-Teil', leaks.some((l) => /Bild/.test(l) && /scan4\.tiff/.test(l)), leaks.filter((l) => /tiff/.test(l)).slice(0, 2).join(' | '));
@@ -279,27 +277,28 @@ log('## Oberfläche');
 {
   const { page, ctx } = await newPage();
   await loadFile(page, path.join(fx, 'meta-word.docx'));
-  await page.$$eval('#doc-warnings input[type=checkbox]', (els) => els.forEach((e) => { if (!e.checked) e.click(); }));
-  const dlP = page.waitForEvent('download');
-  await page.click('#btn-docx');
-  await dlP;
-  const status = await page.textContent('#export-status');
-  check('Hinweis beim Speichern (du-Form, Word)', status.includes('Lade die Datei direkt hoch. Wenn du sie vorher in Word öffnest und speicherst, trägt Word deinen Namen wieder ein.'), status);
-  const n0 = await page.evaluate(() => window.__anon.app.result.entities.size);
-  await page.click('#meta-names button >> nth=0');
-  const after = await page.evaluate(() => ({ terms: window.__anon.app.state.manualTerms.slice(), n: window.__anon.app.result.entities.size, meta: document.querySelector('#meta-names').textContent }));
-  check('Knopf „als Namen übernehmen“ übernimmt den Namen als eigenen Namen', after.terms.length === 1 && after.meta.includes('übernommen'), `übernommen: ${after.terms.join(', ')}; Personen ${n0} → ${after.n}`);
+  await ackAll(page);
+  await exportWithAck(page, 'docx');
+  const after1 = await page.textContent('.after');
+  check('Hinweis nach dem Speichern im Kasten „Danach“ (du-Form, Word)', after1.includes('Lade die Datei direkt hoch. Wenn du sie vorher in Word öffnest und speicherst, trägt Word deinen Namen wieder ein.'), after1.trim().slice(0, 140));
+  // Frage zu einem Namen aus den Dateiangaben auf dem Prüfen-Bildschirm mit „Ja, übernehmen“ beantworten
+  await goTo(page, 'a2');
+  for (let i = 0; i < 20; i++) {
+    const t = await page.textContent('#qcard');
+    if (/In den Dateiangaben steht/.test(t)) { await page.click('#q-yes'); break; }
+    await page.click('#q-no');
+  }
+  const after = await page.evaluate(() => ({ terms: window.__anon.app.state.manualTerms.slice(), q: window.__anon.questions().filter((q) => q.kind === 'meta' && q.taken).map((q) => q.name) }));
+  check('Frage „Als Namen übernehmen?“ mit Ja übernimmt den Namen als eigenen Namen', after.terms.length === 1 && after.q.length === 1, `übernommen: ${after.terms.join(', ')}`);
   await ctx.close();
 }
 {
   const { page, ctx } = await newPage();
   await loadFile(page, path.join(fx, 'meta-tabelle.xlsx'));
-  await page.$$eval('#doc-warnings input[type=checkbox]', (els) => els.forEach((e) => { if (!e.checked) e.click(); }));
-  const dlP = page.waitForEvent('download');
-  await page.click('#btn-xlsx');
-  await dlP;
-  const status = await page.textContent('#export-status');
-  check('Hinweis beim Speichern (du-Form, Excel)', status.includes('Lade die Datei direkt hoch. Wenn du sie vorher in Excel öffnest und speicherst, trägt Excel deinen Namen wieder ein.'), status);
+  await ackAll(page);
+  await exportWithAck(page, 'xlsx');
+  const after1 = await page.textContent('.after');
+  check('Hinweis nach dem Speichern im Kasten „Danach“ (du-Form, Excel)', after1.includes('Lade die Datei direkt hoch. Wenn du sie vorher in Excel öffnest und speicherst, trägt Excel deinen Namen wieder ein.'), after1.trim().slice(0, 140));
   await ctx.close();
 }
 // ---------- Firmenname aus den Dateiangaben im sichtbaren Text (kurse.docx, Entscheidung A) ----------
@@ -308,10 +307,8 @@ log('## Firmenname aus den Dateiangaben im sichtbaren Text (kurse.docx)');
 {
   const { page, ctx } = await newPage();
   await loadFile(page, path.join(fx, 'kurse.docx'));
-  await page.$$eval('#doc-warnings input[type=checkbox]', (els) => els.forEach((e) => { if (!e.checked) e.click(); }));
-  await page.click('#btn-docx');
-  await page.waitForFunction(() => { const t = document.querySelector('#export-status').textContent; return t && !/^Erzeuge/.test(t); });
-  const status = await page.textContent('#export-status');
+  await ackAll(page);
+  const { status } = await exportOnce(page, 'docx');
   const box = await page.textContent('#leaks');
   const items = await page.$$eval('#leaks li', (els) => els.map((e) => e.textContent));
   check('Schlusscheck blockiert wegen des Firmennamens', /blockiert/.test(status) && items.length > 0 && items.every((t) => t.includes('Familienzentrum Sonnenblume')), items.length + ' Fund(e)');
@@ -324,8 +321,8 @@ log('## Firmenname aus den Dateiangaben im sichtbaren Text (kurse.docx)');
 }
 for (const mode of ['person', 'name', 'reversible']) {
   const { page, ctx } = await newPage();
-  await page.check(`input[name=mode][value="${mode}"]`);
-  await loadFile(page, path.join(fx, 'kurse.docx'));
+  await loadFile(page, path.join(fx, 'kurse.docx'), mode);
+  if (await page.isHidden('#advanced')) await page.click('#tgl-adv'); // Eigene Namen liegen unter „Erweitert“
   await page.fill('#name-input', 'Familienzentrum Sonnenblume');
   await page.click('#name-add button');
   const r = await page.evaluate(async () => { const o = await window.__anon.buildOutput('docx'); return { n: (await window.__anon.finalCheck(o)).length, b: Array.from(o.bytes) }; });

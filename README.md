@@ -4,43 +4,89 @@ Ein Werkzeug, das **Klarnamen** in Texten und Dokumenten durch Pseudonyme ersetz
 Im Modus **rückbaufähig** kann eine anonymisierte und danach bearbeitete Datei später wieder mit den Klarnamen versehen werden (**Rückbau**).
 Es ist **eine einzige Datei: `index.html`**. Sie läuft komplett im Browser und **sendet nichts ins Internet**.
 
-> **Wichtig:** Das Tool findet nie 100 % der Namen. **Die Prüfansicht vor dem Export ist Pflicht.**
-> Lesen Sie das Ergebnis immer selbst durch, bevor Sie es weitergeben.
+> **Wichtig:** Das Tool findet nie alle Namen. **Die Prüfung in Schritt 2 gehört immer dazu.**
+> Lies das Ergebnis immer selbst durch, bevor du es weitergibst.
 
 ---
 
-## Bedienung in einfacher Sprache
+## Bedienung in einfacher Sprache (seit Version 2.0: Schritt für Schritt)
 
-1. **`index.html` öffnen.** Doppelklick am Computer: Die Datei öffnet sich im Browser. Eine Internetverbindung wird nicht gebraucht.
-2. **Art der Ersetzung wählen** (oben in „1. Eingabe“): „Person A, Person B, …“ (Standard), „[NAME]“ oder **„rückbaufähig“**. Wählen Sie „rückbaufähig“, wenn Sie die Datei später wieder mit Klarnamen brauchen.
-3. **Eingabe:** Datei in das Feld ziehen **oder** „Datei auswählen“ tippen **oder** Text in das Textfeld einfügen und „Text prüfen“ drücken.
-4. **Prüfansicht (Pflicht):**
-   - Gelb = sicherer Treffer, orange mit gestricheltem Rand = unsicherer Treffer, blau = Kontaktdaten, grau durchgestrichen = ausgeschaltet.
-   - Einen Treffer **antippen** schaltet ihn an oder aus.
-   - Ein **nicht erkannter Name**: Wort antippen (oder Text markieren) → unten erscheint **„Als Name markieren“**. Danach werden **alle** Vorkommen im Dokument ersetzt, auch mit Endungen („Müllers“) und unabhängig von Groß-/Kleinschreibung.
-   - Rechts bzw. unten steht die Liste der **Personen** mit Trefferzahl. Dort kann man eine Person ganz ausschalten, zwei Personen zusammenführen, eine automatische Zuordnung („Herr Yılmaz“ → „Mehmet Yılmaz“) lösen oder ein Wort auf „nie anonymisieren“ setzen.
-   - Gelbe Hinweise zur Datei (z. B. „ausgeblendete Blätter“, „Bilder werden nicht geprüft“) müssen abgehakt werden.
-   - **„In den Dateiangaben gefunden: …“** (seit Version 1.3): Namen aus den versteckten Angaben der Originaldatei (Autor, zuletzt bearbeitet von, Manager, Firma, Kommentar- und Änderungsautoren, SharePoint-Personen). Sie werden beim Export aus der Datei entfernt, im Text aber **nicht** automatisch ersetzt. Kommt so ein Name auch im Text vor: „als Namen übernehmen“ tippen.
-5. **Export:** „Text kopieren“, „.txt speichern“, „.docx speichern“ (bei Excel: „.xlsx speichern“, bei CSV: „.csv speichern“).
-   Vor jedem Export läuft ein **Schlusscheck**: Alle bestätigten Namen **und alle Namen aus den Dateiangaben** werden im Ergebnis noch einmal gesucht, und zwar in **allen Teilen** der Datei (Text, Dateieigenschaften, SharePoint-Daten, Bilder, Kommentare …).
-   Findet er etwas, wird der Export **blockiert**, bis Sie die Fundstellen angesehen und bestätigt haben. Bei jedem Fund steht in einfacher Sprache, **wo** der Name steht (z. B. „steht in: Kopfzeile“ oder „steht in: Bild (versteckte Bildangaben)“). Außerdem steht dort, **was man tun kann**:
-   - **„als Namen übernehmen“** (Knopf bei Namen aus den Dateiangaben): Der Name wird überall in der Datei ersetzt.
-   - **bewusst stehen lassen:** abhaken und erneut speichern.
+Das Tool zeigt immer **nur einen Bildschirm**. Oben siehst du, in welchem Schritt du bist (Haken = erledigt). Unten links ist **„← Zurück“** (nichts geht dabei verloren), unten rechts der **eine Hauptknopf** für den nächsten Schritt.
 
-   Auch ein **Firmenname** aus den Dateiangaben wird gemeldet, wenn er sichtbar im Text steht (z. B. in der Kopfzeile). Steht er in der Liste „Eigene Namen“, wird er überall ersetzt, und der Schlusscheck bleibt still.
-   Der Dateiname ist immer neutral („anonymisiert_…“).
-   Nach dem Speichern von .docx/.xlsx erscheint: „Lade die Datei direkt hoch. Wenn du sie vorher in Word öffnest und speicherst, trägt Word deinen Namen wieder ein.“ (bei Excel entsprechend).
-6. **Zuordnungstabelle** (nur Modus „Person A“/„[NAME]“; welches Pseudonym zu welchem Namen gehört) gibt es nur auf ausdrücklichen Klick, als **separate** Datei mit Warnhinweis. Sie steht nie im anonymisierten Dokument.
+**Start: „Was möchtest du tun?“**
+- **Dokument anonymisieren:** Namen durch Platzhalter ersetzen, bevor die Datei an eine KI geht.
+- **Dokument zurückbauen:** echte Namen wieder einsetzen (siehe unten „Rückbau“).
 
-### Eigene Namen und Ausnahmen
-- **Eigene Namen (Merkliste):** Namen, die das Tool nicht kennt. Sie werden bei jedem weiteren Dokument automatisch mit ersetzt.
+### Anonymisieren in drei Schritten
+
+**1. Datei**
+- Beantworte die Frage **„Brauchst du die Datei später wieder mit echten Namen?“**:
+  - **„Ja, ich baue sie später zurück“**: Modus „rückbaufähig“. Du bekommst zusätzlich eine Schlüsseldatei.
+  - **„Nein, anonym reicht“**: Platzhalter „Person A“. Ein Rückbau ist dann nicht möglich.
+  - Es ist nichts vorausgewählt. „Weiter“ geht erst, wenn du geantwortet und eine Datei oder einen Text geladen hast.
+- Datei in das Feld ziehen oder **„Datei auswählen“**. Fehler (z. B. gescanntes PDF) stehen direkt am Feld.
+- **„Stattdessen Text einfügen“** klappt ein Textfeld auf.
+- **„Erweitert“** klappt auf:
+  - Kontaktdaten (E-Mail, Telefon, IBAN, Adresse) und unsichere Treffer an/aus
+  - Platzhalter „[NAME]“ statt „Person A“
+  - Eigene Namen und Ausnahmen
+  - Merkliste speichern/laden/löschen und der Schalter „im Browser speichern“ (Standard aus)
+
+**2. Prüfen: „Stimmen die gefundenen Namen?“**
+- Links steht der Text. Tabellen bleiben als Zeilen erkennbar; Kopfzeilen, Fußnoten, Kommentare und Excel-Blätter haben eine kleine Überschrift.
+- Farben und Formen:
+
+  | Darstellung | Bedeutung |
+  |---|---|
+  | gelbe Fläche | sicher |
+  | orange Fläche mit gestricheltem Rand | unsicher |
+  | blaue Fläche mit Unterstrich | von dir markiert |
+  | grauer Rahmen | Kontaktdaten |
+  | grau durchgestrichen | aus |
+
+- Einen Treffer **antippen** schaltet ihn an oder aus.
+- Einen **nicht erkannten Namen** antippen oder markieren: Direkt daneben erscheint **„Als Name markieren“**. Danach wird er **überall** ersetzt, auch mit Endung („Müllers“) und in GROSSSCHREIBUNG.
+- **Fragekarte** rechts: Das Tool fragt bei jedem unsicheren Wort bzw. jeder unsicheren Person **einmal**: „Ist „…“ hier ein Name?“.
+  - **„Ja, Name“** schaltet alle unsicheren Stellen dieses Worts bzw. dieser Person an, **„Nein“** schaltet sie aus. **Sicher erkannte Stellen derselben Person bleiben in jedem Fall an**; ein „Nein“ gibt also keinen sicher erkannten Namen frei.
+  - Am PC gehen auch die Tasten **J** und **N**, aber nur auf diesem Bildschirm und nicht, während du in einem Eingabefeld bist.
+  - Namen aus den **Dateiangaben** (Autor, Bearbeiter, Firma, Kommentar-Autoren, SharePoint-Personen) erscheinen ebenfalls als Frage: „Als Namen übernehmen?“. Aus der Datei werden sie so oder so entfernt; mit „Ja“ werden sie auch im Text ersetzt.
+- **Personenliste**:
+  - eine Zeile pro Person mit Schalter und Trefferzahl
+  - hinter **„⋯“**: Schreibweisen, Zuordnung lösen, **zusammenführen mit …**, **nie anonymisieren**, **für nächstes Mal merken** (kommt in „Eigene Namen“)
+- Weiter geht es auch mit offenen Fragen; beim Speichern musst du das dann ausdrücklich bestätigen.
+
+**3. Speichern: „Letzter Blick, dann speichern“**
+- Eine **Ampel-Liste**: grün mit Haken = in Ordnung, bernstein mit Ausrufezeichen = hier ist etwas zu tun.
+  - ersetzte Personen und Stellen
+  - **Fragen**: offene Fragen musst du beantworten oder ausdrücklich bestätigen
+  - versteckte Angaben werden geleert (nur Word/Excel)
+  - jeder **Hinweis zur Datei** (z. B. Bilder) mit einem Haken **„Gelesen“**; erst wenn alle abgehakt sind, wird gespeichert
+  - **Schlüsseldatei** (nur rückbaufähig)
+  - **Schlusscheck**: Alle bestätigten Namen und alle Namen aus den Dateiangaben werden in **allen Teilen** der Ausgabe noch einmal gesucht (Text, Dateieigenschaften, SharePoint-Daten, Bilder …). Bei jedem Fund steht, **wo** er steht (z. B. „steht in: Kopfzeile“). Du kannst ihn **„als Namen übernehmen“** (dann wird er überall ersetzt) oder **bewusst stehen lassen** (abhaken). Vorher wird nicht gespeichert.
+- **Dateikarten:**
+  - „Für die KI“ mit dem Namen der anonymisierten Datei (immer neutral: „anonymisiert_…“)
+  - nur bei rückbaufähig zusätzlich rot: **„Bleibt auf diesem PC · enthält echte Namen“** mit der Schlüsseldatei
+- **Hauptknopf:**
+  - Bei „anonym reicht“: **„Datei speichern“**. Das Format passt zur Eingabe: Word → .docx, Excel → .xlsx, CSV → .csv, Text und PDF → .txt.
+  - Bei rückbaufähig zwei nummerierte Knöpfe: erst **„1 Schlüssel speichern“**, dann **„2 Datei speichern“**. Der zweite geht erst nach dem ersten. Änderst du danach noch Treffer, musst du den Schlüssel erneut speichern.
+- **„Andere Wege“** (klein): „Nur Text kopieren“, „Als .txt speichern“, „Als .docx speichern“ und die **Zuordnungstabelle** (nur bei „anonym reicht“; enthält echte Namen, eigene Datei mit Warnhinweis). Für alle Wege gelten dieselben Sperren.
+- **Danach:**
+  - der Hinweis „Lade die Datei direkt hoch. Wenn du sie vorher in Word (Excel) öffnest und speicherst, trägt Word (Excel) deinen Namen wieder ein.“
+  - der Knopf **„Hinweis für die KI kopieren“**. Er kopiert einen Satz, der die KI bittet, die Platzhalter nie zu verändern und nur Fehler zu zeigen. Geht das Kopieren nicht, steht der Satz zum Markieren da.
+- Nach dem Speichern: Bestätigung in der Ampel und **„Nächstes Dokument“**. Das verwirft alles Geladene und führt zum Start; die Merkliste und die Einstellungen bleiben.
+
+### Eigene Namen und Ausnahmen (unter „Erweitert“)
+- **Eigene Namen (Merkliste):** Namen, die das Tool nicht kennt. Sie werden bei jedem weiteren Dokument automatisch mit ersetzt. Auch „Als Name markieren“ und „für nächstes Mal merken“ tragen dort ein.
+  - **Achtung: Die Liste enthält echte Namen.**
+  - Sie bleibt auch nach „Nächstes Dokument“ bestehen, und zwar so lange, bis du den Tab (bzw. den Browser) schließt oder sie löschst („Merkliste löschen“ oder einzelne Namen mit „×“ entfernen).
+  - Nur wenn du den Schalter „im Browser speichern“ einschaltest, bleibt sie auch nach dem Schließen erhalten, bis du sie löschst.
 - **Ausnahmen:** Wörter, die nie ersetzt werden sollen (z. B. ein Firmenname).
 - **Gespeichert wird nur auf ausdrücklichen Wunsch:** als Datei („Merkliste als Datei speichern“) oder im Browser (Schalter, **Standard: aus**). Die Liste **enthält echte Namen**. „Merkliste löschen“ entfernt alles, auch aus dem Browser.
 
-### Einstellungen
-- Art der Ersetzung: siehe oben (sichtbar vor dem Anonymisieren).
+### Einstellungen (unter „Erweitert“)
 - Zusätzlich ersetzen (einzeln schaltbar, Standard: an): E-Mail, Telefon, IBAN (mit Prüfziffer), Adresse/PLZ.
 - „Unsichere Treffer standardmäßig ersetzen“ (Standard: an). Ausnahme: Wörter wie „die Rose“, „im Winter“, „mit voller Kraft“ (Artikel oder Präposition davor) bleiben aus, sind aber markiert.
+- „[NAME]“ statt „Person A, Person B …“ (kein Rückbau möglich).
 
 ---
 
@@ -59,12 +105,18 @@ Es ist **eine einzige Datei: `index.html`**. Sie läuft komplett im Browser und 
 - Kontaktdaten werden nummeriert: [E-MAIL-1], [TELEFON-2], [IBAN-1], [ADRESSE-1]. Gleicher Wert bekommt die gleiche Nummer.
 
 **Ablauf**
-1. Modus **„rückbaufähig“** wählen, Datei laden, Prüfansicht durchgehen.
-2. Exportieren **und** die **Rückbau-Schlüsseldatei** speichern (Knopf im Export-Bereich). **Ohne diese Datei ist kein Rückbau möglich.** Wenn Sie nach dem Speichern noch Treffer ändern, die Schlüsseldatei neu speichern.
-3. Die anonymisierte Datei bearbeiten oder prüfen lassen. Platzhalter dabei möglichst **unverändert** lassen.
-4. In **„5. Rückbau“** die bearbeitete Datei (.txt, .docx, .xlsx, .csv oder eingefügten Text) und die Schlüsseldatei laden, dann „Rückbau prüfen“.
-5. Der **Rückbau-Bericht** zeigt je Platzhalter, wie oft er erwartet und gefunden wurde. Außerdem zeigt er auffällige Stellen: veränderte („nachname a“), gebeugte („des Nachnamens A“), getrennte (Zeilenumbruch) und unbekannte Platzhalter. Auffällige Stellen werden **nicht** geraten, sondern bleiben stehen. Bei Auffälligkeiten muss bestätigt werden.
-6. Speichern: gleiches Format, Dateiname „wiederhergestellt_…“. Alle Ihre Änderungen, die Formatierung und die Zellstruktur bleiben erhalten. Vor dem Speichern prüft ein **Schlusscheck**, ob noch Platzhalter aus der Schlüsseldatei übrig sind. Wenn ja, wird gewarnt und erst nach Bestätigung gespeichert.
+1. Anonymisieren mit der Antwort **„Ja, ich baue sie später zurück“**. Im Schritt „Speichern“ erst **„1 Schlüssel speichern“**, dann **„2 Datei speichern“**. **Ohne die Schlüsseldatei ist kein Rückbau möglich.**
+2. Die anonymisierte Datei bearbeiten oder prüfen lassen. Platzhalter dabei möglichst **unverändert** lassen („Hinweis für die KI kopieren“ hilft).
+3. Start → **„Dokument zurückbauen“**. Schritt **„Dateien“**: links die bearbeitete Datei (.txt, .docx, .xlsx, .csv oder eingefügter Text), rechts die Schlüsseldatei. Probleme (z. B. alte CSV-Zuordnung statt Schlüsseldatei) stehen direkt am Feld. „Weiter“ geht erst mit beiden Dateien.
+4. Schritt **„Prüfen“**: der **Rückbau-Bericht** als Ampel-Liste.
+   - Je Platzhalter steht, wie oft er erwartet und gefunden wurde.
+   - Auffällige Stellen werden mit Fundstelle gezeigt: veränderte („nachname a“), gebeugte („des Nachnamens A“), getrennte (Zeilenumbruch) und unbekannte Platzhalter. Sie werden **nicht** geraten, sondern bleiben stehen.
+   - Bei Auffälligkeiten musst du bestätigen, erst dann geht es weiter.
+   - Passt die Schlüsseldatei gar nicht, geht es nicht weiter.
+5. Schritt **„Speichern“**: **„Wiederhergestellte Datei speichern“**.
+   - Gleiches Format, Dateiname „wiederhergestellt_…“. Alle deine Änderungen, die Formatierung und die Zellstruktur bleiben erhalten.
+   - Vor dem Speichern prüft ein **Schlusscheck**, ob noch Platzhalter aus der Schlüsseldatei übrig sind. Wenn ja, wird erst nach Bestätigung gespeichert.
+   - Danach führt **„Nächstes Dokument“** zum Start.
 
 > **Warnung zur Schlüsseldatei:** Sie **enthält echte Namen** und Kontaktdaten. **Nie weitergeben, nie an eine KI.** Getrennt vom anonymisierten Dokument sicher aufbewahren.
 
@@ -133,22 +185,25 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
   - Ein **leerer Absatz**, eine **leere Zelle**, das **Zeilen- oder Tabellenende** und **Word-Überschriften** unterbrechen die Regel. Wörter von der Liste der Allerweltswörter (z. B. „Berlin“, „Montag“) lösen sie nicht aus.
   - **Markierung:** Steht das Wort in einer Namensliste (z. B. „Kubik“) oder sind es mehrere Wörter (z. B. „Lieselotte Steineck“), ist der Treffer **„sicher“** (wie bisher). Ist es **ein einzelnes unbekanntes Wort** (z. B. „Hartung“, aber auch „Mathematik“ oder „Turnhalle“), wird es ersetzt und als **„unsicher, an“** markiert (gestrichelt). Ein Fehltreffer aus dieser Regel ist also nie „sicher“.
   - **Übertragung:** Ein solches „unsicher, an“ markiertes Wort wird im **ganzen Dokument** ersetzt, auch mit Endung („Hartungs“), in GROSSSCHREIBUNG, in Kopf- und Fußzeilen und Fußnoten, immer mit demselben Platzhalter und ebenfalls „unsicher, an“. Treffer, die nicht aus dieser Regel stammen, ändern sich dadurch nicht.
-  - **Ein Klick für alle:** Tippt man in der Prüfansicht eines dieser Vorkommen an, gehen **alle** Vorkommen des Worts aus (bzw. wieder an).
-- **Wochentage und Monate (seit Version 1.2):** „Montag“ … „Sonntag“, „Januar“ … „Dezember“ (auch „Jänner“, „Feber“) und Abkürzungen **mit Punkt** („Mo.“, „Jan.“, „Sept.“ …) werden **nicht automatisch ersetzt**, wenn sie allein stehen (ohne Anrede, ohne Namen daneben). Sie erscheinen in der Prüfansicht als „unsicher, aus“ und lassen sich einschalten. „Herr Montag“ oder „Trần Thị Mai“ gelten weiter als Name. „Jan“ ohne Punkt bleibt ein Vorname.
-- **Gleiche Person = gleiches Pseudonym** im ganzen Dokument. „Herr Yılmaz“ wird „Mehmet Yılmaz“ zugeordnet, wenn der Nachname eindeutig ist (in der Prüfansicht sichtbar und lösbar).
+  - **Ein Klick für alle:** Tippt man im Schritt „Prüfen“ eines dieser Vorkommen an, gehen **alle** Vorkommen des Worts aus (bzw. wieder an).
+- **Wochentage und Monate (seit Version 1.2):** „Montag“ … „Sonntag“, „Januar“ … „Dezember“ (auch „Jänner“, „Feber“) und Abkürzungen **mit Punkt** („Mo.“, „Jan.“, „Sept.“ …) werden **nicht automatisch ersetzt**, wenn sie allein stehen (ohne Anrede, ohne Namen daneben). Sie erscheinen im Schritt „Prüfen“ als „unsicher, aus“ und lassen sich einschalten. „Herr Montag“ oder „Trần Thị Mai“ gelten weiter als Name. „Jan“ ohne Punkt bleibt ein Vorname.
+- **Gleiche Person = gleiches Pseudonym** im ganzen Dokument. „Herr Yılmaz“ wird „Mehmet Yılmaz“ zugeordnet, wenn der Nachname eindeutig ist (im Schritt „Prüfen“ sichtbar und lösbar).
 - **Deterministisch:** gleiche Eingabe + gleiche Einstellungen = gleiche Pseudonyme und byte-gleiche Ausgabe (im Test per Doppellauf belegt).
 
 ---
 
 ## Grenzen (bitte lesen)
 
-- **Anrede allein, danach ein Sachwort:** Steht nach einer allein stehenden Anrede ein einzelnes Wort, das kein Name ist (z. B. ein Fach „Mathematik“, ein Ort „Lübeck“, „Turnhalle“, in TXT eine Überschrift), wird es als Name ersetzt, und zwar **überall im Dokument**. Es ist immer „unsicher“ markiert. Bitte in der Prüfansicht prüfen und mit einem Klick abschalten (dann ist es überall wieder Klartext).
+- **Bedienung (seit Version 2.0):**
+  - Es gibt kein dunkles Farbschema mehr; die Farben sind fest hell.
+  - Rückbaufähig wird mit zwei Klicks gespeichert („1 Schlüssel“, „2 Datei“), weil Browser zwei Downloads aus einem Klick blockieren oder nachfragen können.
+- **Anrede allein, danach ein Sachwort:** Steht nach einer allein stehenden Anrede ein einzelnes Wort, das kein Name ist (z. B. ein Fach „Mathematik“, ein Ort „Lübeck“, „Turnhalle“, in TXT eine Überschrift), wird es als Name ersetzt, und zwar **überall im Dokument**. Es ist immer „unsicher“ markiert. Bitte im Schritt „Prüfen“ prüfen und mit einem Klick abschalten (dann ist es überall wieder Klartext).
 - **Mitgenommenes Nachbarwort:** Steht ein übertragenes Wort direkt hinter einem unbekannten großgeschriebenen Wort (z. B. „Treffpunkt Turnhalle“), wird das Nachbarwort mit ersetzt, wie bei der bisherigen Übertragung von Namen. Auch das ist „unsicher“ markiert und geht mit dem Klick aus.
 - **Wort schon anderweitig als Name bekannt:** Ist dasselbe Wort im Dokument schon durch einen anderen sicheren Treffer bekannt (z. B. „Anna Hartung“), gilt für die weiteren Vorkommen die bisherige Übertragung dieses Namens („sicher“).
 - **Anrede allein in Excel:** Die Regel gilt dort (noch) nicht. Ein Name in der Nachbarzelle einer Anrede-Zelle wird nur erkannt, wenn er in einer Namensliste steht.
 - **Anrede allein ohne direkte Folge:** Ein leerer Absatz, eine leere Zelle oder ein Zeilenende zwischen Anrede und Name unterbricht die Regel (der Name wird dann nur erkannt, wenn er in einer Liste steht).
-- **Personen mit Monatsnamen** („Mai“, „April“, „August“): Stehen sie allein ohne Anrede, ist der Treffer standardmäßig aus. In der Prüfansicht prüfen und einschalten.
-- **Nie 100 %.** Seltene Namen, die in keiner Liste stehen und ohne Anrede vorkommen (im Test z. B. „Ijeoma Uchendu“, „Xiong Wenjie“), werden **nicht** erkannt → in der Prüfansicht von Hand markieren.
+- **Personen mit Monatsnamen** („Mai“, „April“, „August“): Stehen sie allein ohne Anrede, ist der Treffer standardmäßig aus. Im Schritt „Prüfen“ prüfen und einschalten.
+- **Nie 100 %.** Seltene Namen, die in keiner Liste stehen und ohne Anrede vorkommen (im Test z. B. „Ijeoma Uchendu“, „Xiong Wenjie“), werden **nicht** erkannt → im Schritt „Prüfen“ von Hand markieren.
 - **Fehltreffer** sind möglich (z. B. „Bill“ in „engl. Bill“, ein Tabellenkopf „Name“). Sie sind meist als „unsicher“ markiert und lassen sich abschalten.
 - **Kleingeschriebene Namen** werden nur gefunden, wenn derselbe Name schon anderswo erkannt oder von Hand markiert wurde.
 - **Namen in E-Mail-Adressen**, wenn die E-Mail-Erkennung ausgeschaltet ist, und Namen in Wortzusammensetzungen („Müllerstraße“, „Schmidt-Gruppe“ teilweise) werden nicht ersetzt.
@@ -190,8 +245,8 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 | Browser | Status |
 |---|---|
 | Chromium/Chrome (Desktop) | **geprüft** (automatische Tests, headless) |
-| Chromium mit iPhone-Bildschirmgröße und Touch | **geprüft** (Darstellung, Antippen, Markieren) |
-| Edge und Chrome unter Windows (Firmen-PC, `file://`) | Version 1.0 laut Easy **am PC geprüft**; Versionen 1.1, 1.2 und 1.3 **durch Code ungeprüft** |
+| Chromium mit 390, 1280 und 1920 px Breite | **geprüft** (kein waagrechtes Scrollen, Knöpfe mindestens 44 px, Antippen, Markieren, Tasten J/N) |
+| Edge und Chrome unter Windows (Firmen-PC, `file://`) | Version 1.0 laut Easy **am PC geprüft**; Versionen 1.1 bis 2.0 **durch Code ungeprüft** |
 | Microsoft Word / Excel: Öffnen der bereinigten Datei ohne Reparatur-Meldung | **durch Code ungeprüft**. Geprüft: LibreOffice öffnet alle Ausgaben, alle XML-Teile sind wohlgeformt, keine Verweise ins Leere |
 | Firefox (Desktop) | **ungeprüft** |
 | Safari (macOS) | **ungeprüft** |
@@ -204,12 +259,12 @@ Die Datei muss in einem Browser geöffnet werden (z. B. über „Teilen → in S
 
 ## Version und Prüfsumme
 
-Version **1.3.0**, Stand 2026-11-20 (steht auch im Fußbereich des Tools).
+Version **2.0.0**, Stand 2026-11-20 (steht auch im Fußbereich des Tools).
 
 SHA-256 der `index.html` dieser Version:
 
 ```
-47cd1b16dc0478bea4795ba326998f262975c2941f2317a1a23715cdedec18ba
+2789cec25cea5ea857d2fd8db4609db83f27cfa5dcc9e63101f50fe0dfef579f
 ```
 
 Eine Datei kann ihre eigene Prüfsumme nicht enthalten, deshalb steht sie nur hier und im PR-Text. Prüfen unter Windows: `certutil -hashfile index.html SHA256`.
@@ -267,9 +322,10 @@ node tests/make-fixtures.mjs # erfundene Testdokumente (braucht LibreOffice für
 node tests/make-kurse.mjs    # Kurs-Tabelle und Risiko-Test für „Anrede allein“ (erfunden)
 node tests/make-meta.mjs     # Testdokumente mit versteckten Angaben (Eigenschaften, SharePoint, Bild-Metadaten; erfunden)
 node tests/meta-proof.mjs    # Beweis: alle Teile der Ausgabe ohne Testnamen, Bildpunkte gleich, Schlusscheck-Falle → tests/META-REPORT.md
+node tests/ui-flow.mjs       # geführte Bedienung: Durchläufe, Sperren, Fragekarte, Zurück/Weiter, Breiten → tests/UI-REPORT.md
 node tests/run-tests.mjs     # End-to-End-Tests in Chromium → tests/REPORT.md
 node tests/roundtrip.mjs     # Rückbau: Kreislauf-Beweis und Fallen → tests/ROUNDTRIP-REPORT.md
-node tests/regression.mjs <alte-index.html>  # Modi „Person A“/„[NAME]“ byte-gleich zur Referenz?
+node tests/regression.mjs <alte-index.html>  # alle Testdokumente, alle Modi byte-gleich zur Referenz?
 ```
 
-Aufbau: `src/core` (Erkennung, Muster, Namenslisten-Zugriff, `reversible.js` = Modus rückbaufähig und Schlüsseldatei, `restore.js` = Rückbau), `src/formats` (TXT/CSV/DOCX/XLSX/PDF, `meta.js` = versteckte Angaben: Dateieigenschaften, SharePoint-Felder, Bild-Metadaten), `src/ui` (Oberfläche, Netzwerksperre, Vorlage, Stil), `build/` (Build-Skripte), `tests/` (Testdaten, Tests, Bericht).
+Aufbau: `src/core` (Erkennung, Muster, Namenslisten-Zugriff, `reversible.js` = Modus rückbaufähig und Schlüsseldatei, `restore.js` = Rückbau), `src/formats` (TXT/CSV/DOCX/XLSX/PDF, `meta.js` = versteckte Angaben: Dateieigenschaften, SharePoint-Felder, Bild-Metadaten), `src/ui` (Oberfläche mit den Bildschirmen Start/Datei/Prüfen/Speichern und Rückbau, Netzwerksperre, Vorlage, Stil), `build/` (Build-Skripte), `tests/` (Testdaten, Tests, Bericht).
