@@ -2,6 +2,7 @@
 // Bild-Metadaten. Die Teile werden über ihre Verweise gefunden (Beziehungen und Inhaltstypen),
 // nicht über feste Pfade. Alles hier ist rein lokal (keine Netzwerkzugriffe).
 import { parseXml, serializeXml, allElements, FIXED_DATE } from './xmlutil.js';
+import { partIndex } from './parts.js';
 
 const ZOPT = { date: FIXED_DATE, createFolders: false };
 const XSI = 'http://www.w3.org/2001/XMLSchema-instance';
@@ -92,8 +93,12 @@ export async function collectMetaNames(zip, docs) {
     }
   }
   // Kommentar- und Änderungsautoren, Personenlisten (Word: w:author, people.xml; Excel: authors, persons, userInfo)
+  // Version 2.4.1: auch Kommentar-, Personen- und Textteile außerhalb von word/ bzw. xl/ (über Beziehung/Inhaltstyp)
+  const idx = await partIndex(zip);
+  const TEXT_REL = /\/(officeDocument|header|footer|footnotes|endnotes|comments|threadedComment|person|people|worksheet|revisionLog|usernames)$/;
+  const TEXT_CT = /(document\.main|template\.main|sheet\.main|header|footer|footnotes|endnotes|comments|threadedcomments|person|people|worksheet|revisionLog|userNames)\+xml$/i;
   for (const n of Object.keys(zip.files).filter((x) => !zip.files[x].dir && /\.xml$/i.test(x)).sort()) {
-    if (!/^(word|xl)\//.test(n)) continue;
+    if (!/^(word|xl)\//.test(n) && !idx.is(n, TEXT_REL, TEXT_CT)) continue;
     const doc = await readXml(zip, docs, n);
     if (!doc) continue;
     for (const el of allElements(doc)) {

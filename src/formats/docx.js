@@ -7,19 +7,25 @@ import {
 } from './xmlutil.js';
 import { collectMetaNames, cleanProperties, cleanCustomXml, removeThumbnails, stripImages, imageWarnings, setKennungProperty, KENNUNG_PROP } from './meta.js';
 import { altTextUnits } from './images.js';
+import { partIndex, EMBED_REL } from './parts.js';
 
+// Art eines Teils: fester Pfad (wie bisher), Beziehungstyp, Inhaltstyp (seit Version 2.4.1 auch an ungewöhnlicher Stelle)
 const PART_ORDER = [
-  [/^word\/document\.xml$/, 'Text'],
-  [/^word\/header\d*\.xml$/, 'Kopfzeile'],
-  [/^word\/footer\d*\.xml$/, 'Fußzeile'],
-  [/^word\/footnotes\.xml$/, 'Fußnote'],
-  [/^word\/endnotes\.xml$/, 'Endnote'],
-  [/^word\/comments\.xml$/, 'Kommentar'],
-  [/^word\/glossary\/document\.xml$/, 'Baustein'],
-  [/^word\/charts\/.*\.xml$/, 'Diagramm'],
-  [/^word\/diagrams\/.*\.xml$/, 'SmartArt'],
+  [/^word\/document\.xml$/, 'Text', null, null],
+  [/^word\/header\d*\.xml$/, 'Kopfzeile', /\/header$/, /wordprocessingml\.header\+xml$/],
+  [/^word\/footer\d*\.xml$/, 'Fußzeile', /\/footer$/, /wordprocessingml\.footer\+xml$/],
+  [/^word\/footnotes\.xml$/, 'Fußnote', /\/footnotes$/, /wordprocessingml\.footnotes\+xml$/],
+  [/^word\/endnotes\.xml$/, 'Endnote', /\/endnotes$/, /wordprocessingml\.endnotes\+xml$/],
+  [/^word\/comments\.xml$/, 'Kommentar', /\/comments$/, /wordprocessingml\.comments\+xml$/],
+  [/^word\/glossary\/document\.xml$/, 'Baustein', /\/glossaryDocument$/, /document\.glossary\+xml$/],
+  [/^word\/charts\/.*\.xml$/, 'Diagramm', /\/chart$/, /drawingml\.chart\+xml$/],
+  [/^word\/diagrams\/.*\.xml$/, 'SmartArt', /\/diagram\w*$/, /diagram\w*\+xml$/i],
 ];
 const SKIP_PARTS = /^word\/(styles|settings|fontTable|webSettings|numbering|people|commentsExtended|commentsIds|commentsExtensible|stylesWithEffects)\.xml$|^word\/theme\//;
+// dieselben Teile, erkannt am Beziehungs- oder Inhaltstyp (an jedem Ort)
+const SKIP_REL = /\/(styles|settings|fontTable|webSettings|numbering|people|commentsExtended|commentsIds|commentsExtensible|stylesWithEffects|theme)$/;
+const SKIP_CT = /(styles|settings|fontTable|webSettings|numbering|people|commentsExtended|commentsIds|commentsExtensible|stylesWithEffects|theme)\+xml$/i;
+const MAIN_CT = /wordprocessingml\.(document|template)\.main\+xml$/;
 
 function natural(a, b) { return a.localeCompare(b, 'en', { numeric: true }); }
 
@@ -106,21 +112,31 @@ async function open(bytes) {
   let zip;
   try { zip = await JSZip.loadAsync(bytes); } catch { throw new Error('Die Datei ist kein gültiges Word-Dokument (.docx).'); }
   const ct = zip.file('[Content_Types].xml');
-  if (!ct || !zip.file('word/document.xml')) throw new Error('Die Datei ist kein gültiges Word-Dokument (.docx).');
+  const idx = await partIndex(zip);
+  // Haupttext am üblichen Ort wie bisher, sonst über die Paket-Beziehung (officeDocument) und den Inhaltstyp
+  const mainPart = zip.file('word/document.xml') ? 'word/document.xml' : (idx.main && /\.xml$/i.test(idx.main) && MAIN_CT.test(idx.ct(idx.main)) ? idx.main : null);
+  if (!ct || !mainPart) throw new Error('Die Datei ist kein gültiges Word-Dokument (.docx).');
   const ctText = await ct.async('string');
   if (/macroEnabled/i.test(ctText)) throw new Error('Word-Dateien mit Makros (.docm) werden nicht unterstützt.');
-  return zip;
+  return { zip, idx, mainPart };
 }
 
 // Liest das Dokument. Liefert Einheiten und eine Funktion, die mit Ersetzungen die neue Datei baut.
 export async function readDocx(bytes) {
-  const zip = await open(bytes);
+  const { zip, idx, mainPart } = await open(bytes);
   const names = Object.keys(zip.files).filter((n) => !zip.files[n].dir);
   const xmlNames = names.filter((n) => /\.xml$/i.test(n));
+  // Art je Teil: zuerst Beziehungs-/Inhaltstyp (gilt an jedem Ort), sonst fester Pfad wie bisher; jeder Teil genau einmal
+  const kindOf = (n) => {
+    if (n === mainPart) return 0;
+    const k = PART_ORDER.findIndex(([, , relRe, ctRe]) => relRe && idx.is(n, relRe, ctRe));
+    if (k >= 0 && !idx.is(n, SKIP_REL, SKIP_CT)) return k;
+    return PART_ORDER.findIndex(([re]) => re.test(n));
+  };
   const unitParts = [];
-  for (const [re, label] of PART_ORDER) {
-    for (const n of xmlNames.filter((x) => re.test(x)).sort(natural)) unitParts.push([n, label]);
-  }
+  PART_ORDER.forEach(([, label], k) => {
+    for (const n of xmlNames.filter((x) => kindOf(x) === k).sort(natural)) unitParts.push([n, label]);
+  });
   for (const n of xmlNames.filter((x) => x.startsWith('word/') && !SKIP_PARTS.test(x) && !unitParts.some((u) => u[0] === x)).sort(natural)) {
     unitParts.push([n, 'Sonstiges']);
   }
@@ -138,7 +154,7 @@ export async function readDocx(bytes) {
   const ownedAttrs = new Map();
   units.push(...altTextUnits(docs, unitParts.map(([n, label]) => [n, label === 'Text' ? '' : label]), ownedAttrs));
   const warnings = [];
-  const embedded = names.filter((n) => /^word\/embeddings\//.test(n));
+  const embedded = names.filter((n) => /^word\/embeddings\//.test(n) || idx.is(n, EMBED_REL));
   if (embedded.length) warnings.push(`Das Dokument enthält ${embedded.length} eingebettete(s) Objekt(e) (z. B. Excel-Tabellen). Deren Inhalt wird NICHT anonymisiert und vor dem Export entfernt.`);
   // Bilder: eigene Zeile „Bilder“ auf dem Speichern-Bildschirm (Liste mit Vorschau), kein allgemeiner Hinweis mehr
   warnings.push(...await imageWarnings(zip));
@@ -147,7 +163,7 @@ export async function readDocx(bytes) {
   // Fundort von Bildern je Teil in einfacher Sprache (für die Bilderliste)
   const partLabel = new Map(unitParts);
   const placeOf = (part) => ({ label: partLabel.get(part) || (/numbering/.test(part) ? 'Aufzählungszeichen' : /glossary/.test(part) ? 'Baustein' : 'Sonstiges') });
-  return { kind: 'docx', zip, docs, units, owned, ownedAttrs, warnings, names, metaNames, imageCtx: { placeOf } };
+  return { kind: 'docx', zip, docs, units, owned, ownedAttrs, warnings, names, metaNames, imageCtx: { placeOf }, embedded };
 }
 
 // Baut die anonymisierte .docx. repsPerUnit: Ersetzungen je Einheit; generic(str): Ersetzer für sonstige Texte.
@@ -215,7 +231,7 @@ export async function writeDocx(bytes, repsPerUnit, generic, opts = {}) {
   for (const n of clean ? d.names : []) {
     if (/^docProps\/thumbnail\./i.test(n)) d.zip.remove(n);
     // Eingebettete Objekte werden geleert (Inhalt nicht prüfbar); die Beziehung bleibt, damit das Dokument gültig bleibt
-    else if (/^word\/embeddings\//.test(n)) d.zip.file(n, new Uint8Array(0), { date: FIXED_DATE, createFolders: false });
+    else if (d.embedded.includes(n)) d.zip.file(n, new Uint8Array(0), { date: FIXED_DATE, createFolders: false });
   }
   // Modus rückbaufähig: Kennung als unsichtbare benutzerdefinierte Eigenschaft (nach der Bereinigung)
   if (clean && opts.kennung) await setKennungProperty(d.zip, d.docs, changed, opts.kennung);

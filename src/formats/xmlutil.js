@@ -101,9 +101,72 @@ export async function readZipText(zip, name) {
   return f ? f.async('string') : null;
 }
 
+// ---------- Nutzertext (Version 2.4.1) ----------
+// Der Schlusscheck sucht nur in Inhalten, die Nutzertext tragen können: alle Textknoten (Zellen, Absätze, Kommentare,
+// Kopf-/Fußzeilen, Dateieigenschaften …) und die unten genannten Attribute (Bildbeschreibungen, Blattnamen, Autoren,
+// Verweisziele …). Formatangaben (Rahmenart „thin“, Ausrichtung „left“, Farbe „auto“, Stilverweise, Maße) werden
+// nicht durchsucht. Teile, deren Aufbau unbekannt ist (fremde Namensräume, SharePoint-/Zusatzdaten), werden wie
+// bisher vollständig mit allen Attributwerten durchsucht.
+const OOXML_NS = /^(http:\/\/schemas\.openxmlformats\.org\/|http:\/\/purl\.oclc\.org\/ooxml\/|http:\/\/schemas\.microsoft\.com\/office\/(word|excel|drawing|spreadsheetml|20\d\d\/relationships)|urn:schemas-microsoft-com:)/;
+// Attribute mit Nutzertext, gleich an welchem Element
+const USER_ATTR = new Set(['descr', 'title', 'alt', 'tooltip', 'author', 'displayName', 'initials', 'userName', 'userId',
+  'string', 'instr', 'caption', 'prompt', 'error', 'promptTitle', 'errorTitle', 'display', 'location', 'href',
+  'destinationFile', 'sourceFile', 'odcFile', 'connection', 'command', 'description', 'Target', 'PartName']);
+// Attribute mit Nutzertext nur an bestimmten Elementen
+const NAME_ELS = new Set(['cNvPr', 'docPr', 'bookmarkStart', 'sheet', 'definedName', 'tableColumn', 'table', 'cacheField',
+  'userInfo', 'property', 'docVar', 'queryTable', 'connection', 'pivotTableDefinition', 'pivotField', 'dataField',
+  'slicer', 'slicerCacheDefinition', 'timeline', 'timelineCacheDefinition', 'tableStyle']);
+const VAL_ELS = new Set(['alias', 'tag', 'docVar', 'statusText', 'helpText', 'default', 'listEntry', 'lvlText', 'filter',
+  'customFilter', 'sheetName']);
+const on = (v) => v === '1' || v === 'true' || v === 'on';
+function userAttr(el, a) {
+  const ln = a.localName;
+  const el1 = el.localName;
+  if (USER_ATTR.has(ln)) return a.value;
+  if (ln === 'name') {
+    if (NAME_ELS.has(el1)) return a.value;
+    // Excel: eigene Zellenformatvorlage (ohne builtinId); Word: Name einer eigenen Formatvorlage siehe unten
+    if (el1 === 'cellStyle' && !el.hasAttribute('builtinId')) return a.value;
+    return null;
+  }
+  if (ln === 'val') {
+    if (VAL_ELS.has(el1)) return a.value;
+    const p = el.parentNode;
+    // Word: Formularfeld-Name, Name einer eigenen Formatvorlage (w:customStyle)
+    if (el1 === 'name' && p && p.nodeType === 1 && (p.localName === 'ffData'
+      || (p.localName === 'style' && Array.from(p.attributes).some((x) => x.localName === 'customStyle' && on(x.value))))) return a.value;
+    return null;
+  }
+  if (ln === 'text' && el1 === 'cfRule') return a.value;
+  if (ln === 'v' && (el1 === 's' || el1 === 'pivotField')) return a.value;
+  if (ln === 'n' && el1 === 'item') return a.value;
+  if ((ln === 'value' || ln === 'displayText') && el1 === 'listItem') return a.value;
+  if (ln === 'comment' && el1 === 'definedName') return a.value;
+  if (ln === 'anchor' && el1 === 'hyperlink') return a.value;
+  if (ln === 'sheet' && el1 === 'worksheetSource') return a.value;
+  // Zahlenformat: nur Text in Anführungszeichen („"Herr "@“), nicht die Formatzeichen
+  if (ln === 'formatCode' && el1 === 'numFmt') return (a.value.match(/"[^"]*"/g) || []).join(' ');
+  return null;
+}
+// Excel: Steuercodes der Kopf-/Fußzeile (&L, &"Arial,Bold", &12 …) entfernen
+const HF_CODES = /&(?:"[^"]*"|\d{1,3}|K[0-9A-Fa-f]{6}|K\d\d[+-]\d{3}|&|[A-Za-z])/g;
+// Excel: Funktionsnamen in Formeln („ROW(“, „_xlfn.CONCAT(“) außerhalb von Zeichenketten entfernen
+function formulaUserText(f) {
+  return f.split(/("(?:[^"]|"")*")/).map((p, i) => (i % 2 ? p : p.replace(/[A-Z_][A-Z0-9._]*(?=\()/g, ' '))).join('');
+}
+const isSml = (el) => el.namespaceURI && /spreadsheetml|officeDocument\/2006\/main$|purl\.oclc\.org\/ooxml\/spreadsheetml|\/excel\/\d+\/main$/.test(el.namespaceURI);
+function userTextNode(el, v) {
+  const ln = el.localName;
+  if (/^(odd|even|first)(Header|Footer)$/.test(ln) && isSml(el)) return v.replace(HF_CODES, ' ');
+  if ((ln === 'f' || ln === 'formula' || ln === 'formula1' || ln === 'formula2' || ln === 'definedName') && isSml(el)) return formulaUserText(v);
+  return v;
+}
+const CUSTOM_DATA = /(^|\/)customXml\/item\d*\.xml$/i;
+
 // Alle Texte eines (Ausgabe-)ZIPs für den Schlusscheck: Textknoten und Attributwerte aller XML-Teile,
 // dazu UTF-8/UTF-16-Dekodierung kleiner Binärteile.
 // opts.inflatePng: zusätzlich komprimierte PNG-Textblöcke (zTXt, iTXt) entpacken (Schlusscheck beim Anonymisieren)
+// opts.userText (Version 2.4.1): in bekannten Office-Teilen nur Nutzertext (siehe oben) als text liefern
 export async function collectZipTexts(zip, opts = {}) {
   const texts = [];
   const names = Object.keys(zip.files).filter((n) => !zip.files[n].dir).sort();
@@ -114,10 +177,22 @@ export async function collectZipTexts(zip, opts = {}) {
       try { doc = parseXml(str, name); } catch { texts.push({ where: name, text: str }); continue; }
       const parts = [];
       const plain = []; // nur Textknoten (Version 2.3: für Einrichtungen über mehrere Textläufe hinweg)
+      const root = doc.documentElement;
+      // bekannter Office-Teil (Namensraum der Wurzel oder VML) und keine SharePoint-/Zusatzdaten: nur Nutzertext
+      const known = !!opts.userText && !CUSTOM_DATA.test(name) && !!root
+        && ((root.namespaceURI && OOXML_NS.test(root.namespaceURI)) || /\.vml$/i.test(name));
       const walk = (n) => {
         for (const c of Array.from(n.childNodes)) {
-          if (c.nodeType === 3 || c.nodeType === 4) { parts.push(c.nodeValue); plain.push(c.nodeValue); } else if (c.nodeType === 1) {
-            for (const a of Array.from(c.attributes)) if (!/^xmlns/.test(a.name)) parts.push(a.value);
+          if (c.nodeType === 3 || c.nodeType === 4) {
+            parts.push(known ? userTextNode(n, c.nodeValue) : c.nodeValue);
+            plain.push(c.nodeValue);
+          } else if (c.nodeType === 1) {
+            for (const a of Array.from(c.attributes)) {
+              if (/^xmlns/.test(a.name)) continue;
+              if (!known) { parts.push(a.value); continue; }
+              const v = userAttr(c, a);
+              if (v) parts.push(v);
+            }
             walk(c);
           }
         }
