@@ -274,7 +274,7 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 - **Word/Excel tragen beim Speichern den eigenen Namen wieder ein.** Die anonymisierte Datei deshalb direkt hochladen, nicht vorher in Word/Excel öffnen und speichern.
 - **SharePoint-Felder, die an Inhaltssteuerelemente im Text gebunden sind:** Wird so ein Feld geleert, kann Word beim Öffnen auch den gebundenen Text im Dokument leer anzeigen (durch Code ungeprüft).
 
-### Alle Stellen mit möglichen Klarnamen (.docx/.xlsx), Stand Version 2.2
+### Alle Stellen mit möglichen Klarnamen (.docx/.xlsx), Stand Version 2.3
 
 | Stelle | wird bereinigt? |
 |---|---|
@@ -326,7 +326,7 @@ Version **2.3.0**, Stand 2026-11-21 (steht auch im Fußbereich des Tools).
 SHA-256 der `index.html` dieser Version:
 
 ```
-559e1a56a1c5c350e83547674e57fa58bb3b275312192206be21fa135e8a55b0
+eb09d3247780e56cc8a8895616aef5e41497e4934afa87eaccb4dd4c54f5f198
 ```
 
 Eine Datei kann ihre eigene Prüfsumme nicht enthalten, deshalb steht sie nur hier und im PR-Text. Prüfen unter Windows: `certutil -hashfile index.html SHA256`.
