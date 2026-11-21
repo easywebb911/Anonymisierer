@@ -253,8 +253,10 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
     - **TXT:** Steht der Name auf zwei direkt aufeinanderfolgenden Zeilen (genau ein Umbruch), wird er ersetzt; die beiden Zeilen werden in der Ausgabe eine. Im Modus „rückbaufähig“ ist das eine eigene Schreibweise mit Nummer, und der Rückbau stellt den Umbruch exakt wieder her (auch Windows-Zeilenenden).
     - **Excel und CSV:** Ein Umbruch innerhalb einer Zelle stört nicht; der Name wird ersetzt und exakt zurückgebaut.
     - **Word**, Zeilenumbruch (Umschalt+Enter) im Namen: In „Person A“ und „[NAME]“ wird ersetzt. Im Modus „rückbaufähig“ **nicht**, weil der Umbruch beim Rückbau nicht exakt zurückkäme. Der Schlusscheck meldet die Stelle und sperrt das Speichern: „Der Name steht über einen Zeilenumbruch. Entferne den Umbruch in Word oder markiere die Teile einzeln.“
-    - **Zwei oder mehr Umbrüche** im Namen (auch eine Leerzeile dazwischen): nicht ersetzt; der Schlusscheck meldet die Stelle, wenn die Einrichtung im Dokument sonst gefunden wurde.
-  - **Briefkopf über zwei getrennte Absätze** (Word: zwei Absätze, TXT: Leerzeile dazwischen): wird nicht ersetzt. Der Schlusscheck meldet ihn nur, wenn die Einrichtung **an anderer Stelle im Dokument** gefunden wurde. Steht sie **nur** im Briefkopf, bleibt sie **unbemerkt** stehen. Bitte den Briefkopf selbst prüfen oder die Teile einzeln markieren.
+    - **Zwei oder mehr Umbrüche** im Namen: nicht ersetzt; der Schlusscheck meldet die Stelle (siehe unten).
+  - **Briefkopf über zwei getrennte Absätze** (Word: zwei Absätze, TXT: Leerzeile dazwischen): wird **nicht ersetzt**, aber **immer gemeldet** (siehe unten): „Der Name steht über zwei Absätze. Entferne den Absatz in Word oder markiere die Teile einzeln.“
+  - **Schlusscheck für Einrichtungen:** Jede Einrichtung aus deiner Liste („Eigene Namen“, markiert oder aus den Dateiangaben übernommen) wird im **Originaltext** gesucht: in allen Abschnitten, auch in Kopf-/Fußzeilen und Bildbeschreibungen, auch über Zeilenumbruch und Absatz hinweg, mit Endungen und in GROSSSCHREIBUNG. Jede Fundstelle, die in der Ausgabe nicht **vollständig** als Einrichtung ersetzt ist (auch wenn nur ein Teil als Person ersetzt wurde oder ein Treffer ausgeschaltet ist), wird mit Fundort gemeldet; gespeichert wird erst nach „bewusst stehen lassen“.
+  - **Grenze:** Geprüft werden nur Einrichtungen, die in der Liste stehen, markiert sind oder aus den Dateiangaben übernommen wurden. Was nirgends als Einrichtung eingetragen ist, kennt das Tool nicht.
   - **Kurzformen** („FZS“, „die Sonnenblume“) findet das Tool nicht von selbst: markieren und mit der Einrichtung zusammenführen.
 
 - **Bedienung (seit Version 2.0):**
@@ -393,7 +395,7 @@ node tests/run-tests.mjs     # End-to-End-Tests in Chromium → tests/REPORT.md
 node tests/roundtrip.mjs     # Rückbau: Kreislauf-Beweis und Fallen → tests/ROUNDTRIP-REPORT.md
 node tests/regression.mjs <alte-index.html>  # alle Testdokumente, alle Modi byte-gleich zur Referenz (Ausnahmen einzeln mit Grund: Kennung; Dokumente mit Bildbeschreibungen)?
 node tests/make-einrichtung.mjs  # Einrichtungs-Testdokumente: Word/Excel/TXT/CSV (erfunden)
-node tests/einrichtung-test.mjs <index.html-2.2>  # Einrichtungen: Fälle, Vorrang, Art-Wechsel, Merkliste, Rückwärts-Prüfung → tests/EINRICHTUNG-REPORT.md
+node tests/einrichtung-test.mjs <index.html-2.2> [index.html-voriger-Stand]  # Einrichtungen: Fälle, Vorrang, Art-Wechsel, Merkliste, Rückwärts-Prüfung → tests/EINRICHTUNG-REPORT.md
 node tests/make-bilder.mjs   # Bilder-Testdokumente: Word/Excel mit Bildern in Text, Kopfzeile, Tabelle, Name nur im Alt-Text/Titel, EMF, verknüpft, SVG (erfunden)
 node tests/bilder-test.mjs <index.html-2.1>  # Bilder: Liste, Kacheln, Sperre, Bildbeschreibungen, Kreislauf, Breiten → tests/BILDER-REPORT.md
 node tests/make-kennung.mjs  # Vertausch-Testpaar: gleiche Vorlage, andere (erfundene) Personen, vier Formate
