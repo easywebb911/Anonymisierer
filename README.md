@@ -271,6 +271,7 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 - **Nie 100 %.** Seltene Namen, die in keiner Liste stehen und ohne Anrede vorkommen (im Test z. B. „Ijeoma Uchendu“, „Xiong Wenjie“), werden **nicht** erkannt → im Schritt „Prüfen“ von Hand markieren.
 - **Fehltreffer** sind möglich (z. B. „Bill“ in „engl. Bill“, ein Tabellenkopf „Name“). Sie sind meist als „unsicher“ markiert und lassen sich abschalten.
 - **Kleingeschriebene Namen** werden nur gefunden, wenn derselbe Name schon anderswo erkannt oder von Hand markiert wurde.
+- **Endungen (seit Version 2.3.1):** Ist ein Name erkannt oder markiert, werden auch seine gebeugten Formen ersetzt („Quabbenjansens“, „Müllers“), mit den Endungen ’s, ', s, es, n und ns. Grenze: Eine Endung in GROSSSCHREIBUNG („MÜLLERS“, „QUABBENJANSENS“) zählt nicht als Endung. Solche Formen bleiben stehen, und der Schlusscheck meldet sie **nur**, wenn dieselbe Form auch klein geschrieben im Dokument steht. Bitte GROSS geschriebene Namen im Schritt „Prüfen“ selbst ansehen und markieren.
 - **Namen in E-Mail-Adressen**, wenn die E-Mail-Erkennung ausgeschaltet ist, und Namen in Wortzusammensetzungen („Müllerstraße“, „Schmidt-Gruppe“ teilweise) werden nicht ersetzt.
 - **Chinesische, japanische, koreanische und thailändische Schrift** (ohne Leerzeichen zwischen Wörtern): Namen in Originalschrift werden nicht erkannt. Arabische, kyrillische, griechische und hebräische Schrift werden über Listen teilweise erkannt.
 - **Bildinhalt** wird nie verändert und nicht automatisch geprüft (Namen in Fotos, Scans, Unterschriften, Logos). Du siehst jedes Bild vor dem Speichern in der Liste „Bilder ansehen“ und bestätigst es. Die versteckten Bildangaben werden bei JPEG, PNG und GIF entfernt, bei anderen Bildtypen nicht (Hinweis erscheint, der Schlusscheck sucht trotzdem).
@@ -314,7 +315,7 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 |---|---|
 | Chromium/Chrome (Desktop) | **geprüft** (automatische Tests, headless) |
 | Chromium mit 390, 1280 und 1920 px Breite | **geprüft** (kein waagrechtes Scrollen, Knöpfe mindestens 44 px, Antippen, Markieren, Tasten J/N) |
-| Edge und Chrome unter Windows (Firmen-PC, `file://`) | Version 1.0 laut Easy **am PC geprüft**; Versionen 1.1 bis 2.3 **durch Code ungeprüft** |
+| Edge und Chrome unter Windows (Firmen-PC, `file://`) | Version 1.0 laut Easy **am PC geprüft**; Versionen 1.1 bis 2.3.1 **durch Code ungeprüft** |
 | Microsoft Word / Excel: Öffnen der bereinigten Datei ohne Reparatur-Meldung | **durch Code ungeprüft** (auch die unsichtbare Kennung, seit 2.1). Geprüft: LibreOffice öffnet alle Ausgaben, alle XML-Teile sind wohlgeformt, keine Verweise ins Leere |
 | Firefox (Desktop) | **ungeprüft** |
 | Safari (macOS) | **ungeprüft** |
@@ -327,7 +328,7 @@ Die Datei muss in einem Browser geöffnet werden (z. B. über „Teilen → in S
 
 ## Version und Prüfsumme
 
-Version **2.3.0**, Stand 2026-11-21 (steht auch im Fußbereich des Tools).
+Version **2.3.1**, Stand 2026-11-21 (steht auch im Fußbereich des Tools).
 
 SHA-256 der `index.html` dieser Version:
 
@@ -396,6 +397,8 @@ node tests/roundtrip.mjs     # Rückbau: Kreislauf-Beweis und Fallen → tests/R
 node tests/regression.mjs <alte-index.html>  # alle Testdokumente, alle Modi byte-gleich zur Referenz (Ausnahmen einzeln mit Grund: Kennung; Dokumente mit Bildbeschreibungen)?
 node tests/make-einrichtung.mjs  # Einrichtungs-Testdokumente: Word/Excel/TXT/CSV (erfunden)
 node tests/einrichtung-test.mjs <index.html-2.2> [index.html-voriger-Stand]  # Einrichtungen: Fälle, Vorrang, Art-Wechsel, Merkliste, Rückwärts-Prüfung → tests/EINRICHTUNG-REPORT.md
+node tests/make-endungen.mjs     # Endungs-Testdokumente (Word/TXT/CSV, Gegenprobe; erfunden)
+node tests/endungen-test.mjs <index.html-2.3.0>  # Endungsprüfung vorher/nachher, Gegenprobe, Kreislauf → tests/ENDUNGEN-REPORT.md
 node tests/make-bilder.mjs   # Bilder-Testdokumente: Word/Excel mit Bildern in Text, Kopfzeile, Tabelle, Name nur im Alt-Text/Titel, EMF, verknüpft, SVG (erfunden)
 node tests/bilder-test.mjs <index.html-2.1>  # Bilder: Liste, Kacheln, Sperre, Bildbeschreibungen, Kreislauf, Breiten → tests/BILDER-REPORT.md
 node tests/make-kennung.mjs  # Vertausch-Testpaar: gleiche Vorlage, andere (erfundene) Personen, vier Formate

@@ -268,6 +268,9 @@ Testdokumente: tests/make-endungen.mjs (alle Namen erfunden, keiner in den Namen
 ## Gemeldet, nicht gebaut: GROSSSCHREIBUNG mit Endung („QUABBENJANSENS“)
 - 6 Formen in GROSSSCHREIBUNG mit Endung „S“: nicht ersetzt 6 (LÜDINGHAUSS, WITTEKINDHORNS, QUABBENJANSENS, OSTERVELKENSS, HALLERMESS, TÖNNIESKAMPES); davon vom Schlusscheck gemeldet: 6.
 - Grund: Die Endungsliste enthält nur kleine Endungen („s“), ein großes „S“ zählt nicht als Endung (wie in 2.3.0). Das zu ändern wäre eine Erweiterung der Regel (Entscheidung Easy).
+- Ohne kleine gebeugte Form im Dokument, 2.3.0: „Herr Person A kommt. QUABBENJANSENS Akte liegt vor.“ → Schlusscheck: keine Meldung | „Herr Person A kommt. MÜLLERS Akte liegt vor.“ → Schlusscheck: keine Meldung
+- dasselbe, 2.3.1: „Herr Person A kommt. QUABBENJANSENS Akte liegt vor.“ → Schlusscheck: keine Meldung | „Herr Person A kommt. MÜLLERS Akte liegt vor.“ → Schlusscheck: keine Meldung
+- Befund (bestand schon in 2.3.0, nicht Teil dieses Auftrags): Solche Formen bleiben unbemerkt stehen. Vorschlag: Endungen ohne Rücksicht auf Groß-/Kleinschreibung prüfen (beim Ersetzen und im Schlusscheck) – Entscheidung Easy.
 
 Prüfungen: 21 von 21 bestanden.
 Netzwerkanfragen außer lokalen Dateien: 0.

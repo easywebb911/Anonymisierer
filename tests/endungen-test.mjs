@@ -222,6 +222,29 @@ log('## Gemeldet, nicht gebaut: GROSSSCHREIBUNG mit Endung („QUABBENJANSENS“
   log(`- ${forms.length} Formen in GROSSSCHREIBUNG mit Endung „S“: nicht ersetzt ${open.length} (${open.join(', ')}); davon vom Schlusscheck gemeldet: ${flagged.length}.`);
   log('- Grund: Die Endungsliste enthält nur kleine Endungen („s“), ein großes „S“ zählt nicht als Endung (wie in 2.3.0). Das zu ändern wäre eine Erweiterung der Regel (Entscheidung Easy).');
 }
+// Unbemerkt, schon in 2.3.0: GROSSSCHREIBUNG mit Endung, wenn dieselbe Form nicht auch klein geschrieben vorkommt
+{
+  const { page, ctx } = await newPage();
+  const res = [];
+  for (const html of [oldHtml, newHtml]) {
+    await page.goto('file://' + html);
+    res.push(await page.evaluate(async () => {
+      const A = window.__anon;
+      A.app.state.settings.mode = 'person';
+      const out = [];
+      for (const t of ['Herr Gerrit Quabbenjansen kommt. QUABBENJANSENS Akte liegt vor.', 'Herr Gerrit Müller kommt. MÜLLERS Akte liegt vor.']) {
+        await A.openBytes(new TextEncoder().encode(t), 'x.txt');
+        const o = await A.buildOutput('txt');
+        out.push(`„${o.text}“ → Schlusscheck: ${(await A.finalCheck(o)).map((l) => l.word).join(', ') || 'keine Meldung'}`);
+      }
+      return out;
+    }));
+  }
+  await ctx.close();
+  log(`- Ohne kleine gebeugte Form im Dokument, 2.3.0: ${res[0].join(' | ')}`);
+  log(`- dasselbe, 2.3.1: ${res[1].join(' | ')}`);
+  log('- Befund (bestand schon in 2.3.0, nicht Teil dieses Auftrags): Solche Formen bleiben unbemerkt stehen. Vorschlag: Endungen ohne Rücksicht auf Groß-/Kleinschreibung prüfen (beim Ersetzen und im Schlusscheck) – Entscheidung Easy.');
+}
 await browser.close();
 
 const failed = checks.filter((c) => !c[1]);
