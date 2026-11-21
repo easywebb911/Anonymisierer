@@ -20,20 +20,26 @@ const QUOTES = [['„', '“”'], ['“', '”'], ['"', '"'], ['»', '«'], ['�
 // Wörter am Anfang, die nicht zum Namen gehören (Satzanfang, Artikel)
 const LEAD = /^(?:(?:Der|Die|Das|Den|Dem|Des|Ein|Eine|Einen|Einem|Einer|Bei|Von|Vom|Mit|Für|Im|In|Am|An|Zum|Zur|Und|Oder|Wir|Sie|Ihr|Unser|Unsere)[  ]+)+/u;
 
+// Vorfilter (Geschwindigkeit): die Muster laufen nur, wenn ihr Kennzeichen im Text steht
+const HEAD_PRE = /[sS]chul|Gymnasi|Universität|Kita|Kinderg|Krippe|Hort|Kinderh|zentr|Verein|Stiftung|Prax|Klinik|Krankenh|Kanzlei|Firm|Institut|Akademi/;
+const LF_PRE = /GmbH|mbH|AG|KG|UG|GbR|eG|e\.[ \u00a0]?V\./;
+const QUOTE_PRE = /[„“"»«]/;
+
 export function findOrgHints(text) {
   const out = [];
   if (!text) return out;
   const add = (s, e, rule) => { if (e > s) out.push({ s, e, text: text.slice(s, e), rule }); };
-  for (const m of text.matchAll(RE_HEAD_NAME)) add(m.index, m.index + m[0].length, 'a');
-  for (const m of text.matchAll(RE_NAME_HEAD)) add(m.index, m.index + m[0].length, 'a');
-  for (const m of text.matchAll(RE_LEGAL)) {
+  const head = HEAD_PRE.test(text);
+  if (head) for (const m of text.matchAll(RE_HEAD_NAME)) add(m.index, m.index + m[0].length, 'a');
+  if (head && text.includes('-')) for (const m of text.matchAll(RE_NAME_HEAD)) add(m.index, m.index + m[0].length, 'a');
+  if (LF_PRE.test(text)) for (const m of text.matchAll(RE_LEGAL)) {
     const lead = m[0].match(LEAD);
     const s = m.index + (lead ? lead[0].length : 0);
     // nur eine Rechtsform ohne Wort davor bleibt keine Stelle
     if (new RegExp(`^${LF}$`, 'u').test(text.slice(s, m.index + m[0].length))) continue;
     add(s, m.index + m[0].length, 'b');
   }
-  for (const [open, closes] of QUOTES) {
+  if (QUOTE_PRE.test(text)) for (const [open, closes] of QUOTES) {
     let i = text.indexOf(open);
     while (i >= 0) {
       let j = -1;

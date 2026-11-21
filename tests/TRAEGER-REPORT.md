@@ -6,43 +6,43 @@ Testdatei „anmeldung“ (tests/make-traeger.mjs), alle Namen erfunden. Word: V
 
 Soll: 0 Webadresse (auch Link-Ziel, Feldfunktion, Link-Hinweis), 0 Kontoname, alle 10 Wörter „bleiben stehen“, Warnpunkt nennt die drei Stellen. Offen (kommt mit PR B/C): Vorkommen von „Tannhofen“, „Brandner“, „lern und spiel“, „GYMTH“.
 
-| Format | Modus | Ausgabe | Webadresse 2.7.0 | Konto 2.7.0 | bleiben stehen | Warnpunkt nennt die drei | offen, kommt mit PR B/C |
+| Format | Modus | Ausgabe | Webadresse 2.7.0 (2.6.1) | Konto 2.7.0 (2.6.1) | bleiben stehen | Warnpunkt nennt die drei | offen, kommt mit PR B/C (2.6.1) |
 |---|---|---|---|---|---|---|---|
-| txt | person | .txt | 0 | 0 | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) |
+| txt | person | .txt | 0 (8) | 0 (1) | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) (9) |
 - OK: txt/person/.txt: 0 Webadresse, 0 Konto, alles Stehende da, Warnpunkt vollständig
-| txt | name | .txt | 0 | 0 | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) |
+| txt | name | .txt | 0 (8) | 0 (1) | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) (9) |
 - OK: txt/name/.txt: 0 Webadresse, 0 Konto, alles Stehende da, Warnpunkt vollständig
-| txt | reversible | .txt | 0 | 0 | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) |
+| txt | reversible | .txt | 0 (8) | 0 (1) | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) (9) |
 - OK: txt/reversible/.txt: 0 Webadresse, 0 Konto, alles Stehende da, Warnpunkt vollständig
-| csv | person | .csv | 0 | 0 | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) |
+| csv | person | .csv | 0 (8) | 0 (1) | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) (9) |
 - OK: csv/person/.csv: 0 Webadresse, 0 Konto, alles Stehende da, Warnpunkt vollständig
-| csv | name | .csv | 0 | 0 | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) |
+| csv | name | .csv | 0 (8) | 0 (1) | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) (9) |
 - OK: csv/name/.csv: 0 Webadresse, 0 Konto, alles Stehende da, Warnpunkt vollständig
-| csv | reversible | .csv | 0 | 0 | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) |
+| csv | reversible | .csv | 0 (8) | 0 (1) | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) (9) |
 - OK: csv/reversible/.csv: 0 Webadresse, 0 Konto, alles Stehende da, Warnpunkt vollständig
-| docx | person | .docx | 0 | 0 | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) |
+| docx | person | .docx | 0 (10) | 0 (1) | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) (9) |
 - OK: docx/person/.docx: 0 Webadresse, 0 Konto, alles Stehende da, Warnpunkt vollständig
-| docx | name | .docx | 0 | 0 | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) |
+| docx | name | .docx | 0 (10) | 0 (1) | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) (9) |
 - OK: docx/name/.docx: 0 Webadresse, 0 Konto, alles Stehende da, Warnpunkt vollständig
-| docx | reversible | .docx | 0 | 0 | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) |
+| docx | reversible | .docx | 0 (10) | 0 (1) | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) (9) |
 - OK: docx/reversible/.docx: 0 Webadresse, 0 Konto, alles Stehende da, Warnpunkt vollständig
-| xlsx | person | .xlsx | 0 | 0 | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) |
+| xlsx | person | .xlsx | 0 (14) | 0 (1) | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) (9) |
 - OK: xlsx/person/.xlsx: 0 Webadresse, 0 Konto, alles Stehende da, Warnpunkt vollständig
-| xlsx | name | .xlsx | 0 | 0 | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) |
+| xlsx | name | .xlsx | 0 (14) | 0 (1) | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) (9) |
 - OK: xlsx/name/.xlsx: 0 Webadresse, 0 Konto, alles Stehende da, Warnpunkt vollständig
-| xlsx | reversible | .xlsx | 0 | 0 | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) |
+| xlsx | reversible | .xlsx | 0 (14) | 0 (1) | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) (9) |
 - OK: xlsx/reversible/.xlsx: 0 Webadresse, 0 Konto, alles Stehende da, Warnpunkt vollständig
-| pdf | person | .txt | 0 | 0 | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) |
+| pdf | person | .txt | 0 (4) | 0 (1) | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) (9) |
 - OK: pdf/person/.txt: 0 Webadresse, 0 Konto, alles Stehende da, Warnpunkt vollständig
-| pdf | person | .docx | 0 | 0 | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) |
+| pdf | person | .docx | 0 (3) | 0 (1) | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) (9) |
 - OK: pdf/person/.docx: 0 Webadresse, 0 Konto, alles Stehende da, Warnpunkt vollständig
-| pdf | name | .txt | 0 | 0 | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) |
+| pdf | name | .txt | 0 (4) | 0 (1) | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) (9) |
 - OK: pdf/name/.txt: 0 Webadresse, 0 Konto, alles Stehende da, Warnpunkt vollständig
-| pdf | name | .docx | 0 | 0 | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) |
+| pdf | name | .docx | 0 (3) | 0 (1) | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) (9) |
 - OK: pdf/name/.docx: 0 Webadresse, 0 Konto, alles Stehende da, Warnpunkt vollständig
-| pdf | reversible | .txt | 0 | 0 | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) |
+| pdf | reversible | .txt | 0 (4) | 0 (1) | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) (9) |
 - OK: pdf/reversible/.txt: 0 Webadresse, 0 Konto, alles Stehende da, Warnpunkt vollständig
-| pdf | reversible | .docx | 0 | 0 | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) |
+| pdf | reversible | .docx | 0 (3) | 0 (1) | 10/10 | ja | 9 (Tannhofen 2, Brandner 3, lern und spiel 3, GYMTH 1) (9) |
 - OK: pdf/reversible/.docx: 0 Webadresse, 0 Konto, alles Stehende da, Warnpunkt vollständig
 
 Erwartete offene Punkte nach PR A (NICHT bestanden, kommt mit PR B/C), Zahl der Vorkommen in der Ausgabe je Format: txt/txt 9, csv/csv 9, docx/docx 9, xlsx/xlsx 9, pdf/txt 9, pdf/docx 9.
@@ -105,10 +105,15 @@ xlsx: Schlüssel mit 7 Platzhaltern, davon Webadresse/Konto: [WEBADRESSE-1] = ww
 - OK: xlsx: lockere Formen erkannt und gemeldet ([Webadresse 1], [Webadresse 2], Konto-1) – [Webadresse 1] → [WEBADRESSE-1]; [Webadresse 2] → [WEBADRESSE-2]; Konto-1 → [KONTO-1]
 - OK: xlsx: lockere Formen nicht geraten (bleiben im Ergebnis stehen, alles andere zurück)
 - OK: xlsx: nach Korrektur wie vorgeschlagen Rückbau exakt – passend
+Kollision: Vorlage: [WEBADRESSE-1] und [KONTO] bleiben so stehen. ⏎ Seite: [WEBADRESSE-2], Instagram: [KONTO-1]
+- OK: Kollision: Original-„[WEBADRESSE-1]“ bleibt, die echte Webadresse bekommt [WEBADRESSE-2]
+- OK: Kollision: Rückbau exakt – passend
 - OK: Schlüsseldatei aus 2.6.1 (docx): Rückbau exakt – passend
 - OK: Schlüsseldatei aus 2.6.1 (txt): Rückbau exakt – passend
 
 - OK: 0 Anfragen ins Netz
 - OK: 0 Fehler in der Seite
 
-**Ergebnis: 59/59 bestanden.** Nur Chromium, Firefox prüft Easy.
+**Ergebnis: 61/61 bestanden.** Nur Chromium, Firefox prüft Easy.
+
+Weitere Messungen (Fehltreffer im ganzen Korpus, Aufzählungsstellen, Laufzeit, Prüfsumme, Link-Ziele vorher): tests/TRAEGER-MESSUNGEN.md

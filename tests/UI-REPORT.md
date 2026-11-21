@@ -8,7 +8,7 @@ Chromium headless, Start per file://. Alle Namen in den Testdateien sind erfunde
 - OK: … mit Antwort und Datei aktiv
 - OK: Alle 12 Fragen mit Taste J beantwortet – Keine Frage offen
 - OK: „2 Datei speichern“ ist vor dem Schlüssel gesperrt
-- OK: Datei gespeichert – Gespeichert: anonymisiert_324H.docx – Schlusscheck ohne Fund.
+- OK: Datei gespeichert – Gespeichert: anonymisiert_C4V4.docx – Schlusscheck ohne Fund.
 - Details nach dem Speichern:  ·  ·  ·  ·  · ; offene Punkte: 1
 - OK: In jedem Schritt genau ein Bildschirm und genau ein Hauptknopf – Start: Bildschirm start, Hauptknopf „Dokument anonymisieren
         Namen durch Platzhalter ersetzen, bevor die Datei an eine KI geht.“ → Datei (leer): Bildschirm a1, Hauptknopf „Weiter zum Prüfen“ → Datei (geladen): Bildschirm a1, Hauptknopf „Weiter zum Prüfen“ → Prüfen: Bildschirm a2, Hauptknopf „Weiter zum Speichern“ → Speichern (vor dem Schlüssel): Bildschirm a3, Hauptknopf „1 Schlüssel speichern“ → Speichern (nach dem Schlüssel): Bildschirm a3, Hauptknopf „2 Datei speichern“ → Gespeichert: Bildschirm a3, Hauptknopf „Nächstes Dokument“
@@ -17,7 +17,7 @@ Chromium headless, Start per file://. Alle Namen in den Testdateien sind erfunde
 ## Durchlauf 2: anonymisieren, einfach (protokoll.txt)
 - OK: Kein Schlüssel-Knopf im Modus „Person A“
 - OK: Datei gespeichert (nach „bewusst stehen lassen“ der bekannten Restfunde) – Gespeichert: anonymisiert_text.txt – mit bestätigten Restfunden.
-- OK: „Hinweis für die KI kopieren“ kopiert den Satz passend zum Modus – Der Text enthält Platzhalter wie „Person A“, „Einrichtung A“ und „[E-MAIL]“ anstelle echter Namen, Einrichtungen und Kontaktdaten. Diese Platzhalter bitte unverändert lassen. Zeige mir nur die Fehler, schreibe den Text nicht neu.
+- OK: „Hinweis für die KI kopieren“ kopiert den Satz passend zum Modus – Der Text enthält Platzhalter wie „Person A“, „Einrichtung A“, „[E-MAIL]“, „[WEBADRESSE]“ und „[KONTO]“ anstelle echter Namen, Einrichtungen, Kontaktdaten, Webadressen und Konten. Diese Platzhalter bitte unverändert lassen. Zeige mir nur die Fehler, schreibe den Text nicht neu.
 - OK: In jedem Schritt genau ein Bildschirm und genau ein Hauptknopf – Start: Bildschirm start, Hauptknopf „Dokument anonymisieren
         Namen durch Platzhalter ersetzen, bevor die Datei an eine KI geht.“ → Datei: Bildschirm a1, Hauptknopf „Weiter zum Prüfen“ → Prüfen: Bildschirm a2, Hauptknopf „Weiter zum Speichern“ → Speichern: Bildschirm a3, Hauptknopf „Datei speichern“ → Gespeichert: Bildschirm a3, Hauptknopf „Nächstes Dokument“
 - OK: „Nächstes Dokument“ führt zum Start und hinterlässt keinen Rest – Bildschirm start; Dokument false; Antwort gewählt false; Reste im Seitentext: keine
@@ -34,7 +34,7 @@ Chromium headless, Start per file://. Alle Namen in den Testdateien sind erfunde
 - OK: Keine JavaScript-Fehler
 
 ## Sperren halten das Speichern weiter auf
-- Offene Punkte: 11 Fragen sind noch offen. Ohne Antwort bleibt jede Stelle so, wie sie im Moment ist. Beantworten | 2 Bilder im Dokument. Das Tool ändert Bilder nicht. Steht auf einem Bild ein Name oder ein Logo, entferne es vorher in Word. Ansehen | „Familienzentrum Sonnenblume“ steht noch in: Kopfzeile Einrichtung aus den Dateiangaben · „… Familienzentrum Sonnenblume…“ Als Einrichtung übernehmen | „Familienzentrum Sonnenblume“ steht noch in: Bildbeschreibung Einrichtung aus den Dateiangaben · „…Logo Familienzentrum Sonnenblume Musterstadt…“ | „Familienzentrum Sonnenblume“ steht noch in: Kopfzeile Einrichtung aus den Dateiangaben · „… Familienzentrum Sonnenblume…“
+- Offene Punkte: 11 Fragen sind noch offen. Ohne Antwort bleibt jede Stelle so, wie sie im Moment ist. Beantworten | Hier könnte eine Einrichtung stehen. Das Tool ersetzt Einrichtungen noch nicht selbst. Bitte prüfen und bei Bedarf als Einrichtung markieren. „Familienzentrum Sonnenblume“ – Kopfzeile Im Text zeigen „Familienzentrum Sonnenblume Musterstadt“ – Bildbeschreibung Im Text zeigen | 2 Bilder im Dokument. Das Tool ändert Bilder nicht. Steht auf einem Bild ein Name oder ein Logo, entferne es vorher in Word. Ansehen | „Familienzentrum Sonnenblume“ steht noch in: Kopfzeile Einrichtung aus den Dateiangaben · „… Familienzentrum Sonnenblume…“ Als Einrichtung übernehmen | „Familienzentrum Sonnenblume“ steht noch in: Bildbeschreibung Einrichtung aus den Dateiangaben · „…Logo Familienzentrum Sonnenblume Musterstadt…“ | „Familienzentrum Sonnenblume“ steht noch in: Kopfzeile Einrichtung aus den Dateiangaben · „… Familienzentrum Sonnenblume…“
 - OK: Offene Punkte ohne Häkchen: Speichern blockiert – Schlusscheck: 3 Klarname(n) noch im Ergebnis. Speichern blockiert – bitte die Punkte oben ansehen und „Ich habe alle Punkte gesehen und speichere so.“ abhaken.
 - OK: Häkchen ist gesperrt, solange die Bilderliste nicht geöffnet wurde
 - OK: Nach dem Öffnen der Bilderliste ist das Häkchen wählbar

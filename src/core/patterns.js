@@ -25,10 +25,12 @@ const WEB_SCHEME = new RegExp('(^|[^\\p{L}\\p{N}])(?:https?|ftp)://' + URL_CHARS
 const WEB_WWW = new RegExp('(^|[^\\p{L}\\p{N}@./-])www\\.[\\p{L}\\p{N}-]+(?:\\.[\\p{L}\\p{N}-]+)+(?:[/?#]' + URL_CHARS + '*)?', 'giu');
 const WEB_BARE = new RegExp('(^|[^\\p{L}\\p{N}@._/-])(?:[\\p{L}\\p{N}](?:[\\p{L}\\p{N}-]*[\\p{L}\\p{N}])?\\.)+(?:' + TLD_ALT + ')(?![\\p{L}\\p{N}-])(?:[/?#]' + URL_CHARS + '*)?', 'gu');
 // Satzzeichen am Ende gehören nicht zur Adresse
+const WEB_BARE_PRE = new RegExp('[\\p{L}\\p{N}]\\.(?:' + TLD_ALT + ')(?![\\p{L}\\p{N}-])', 'u');
 const trimUrl = (t) => t.replace(/[.,;:!?'’]+$/, '');
 // Version 2.7.0: Konten. Kontoname nach einem Plattform-Wort mit Doppelpunkt oder @ (das Plattform-Wort bleibt stehen),
 // dazu ein allein stehendes @name. Ersetzt wird der Kontoname (mit @, falls vorhanden).
 export const PLATFORMS = ['Instagram', 'Facebook', 'TikTok', 'YouTube', 'LinkedIn', 'X', 'Twitter', 'Threads', 'Mastodon', 'Telegram', 'Snapchat', 'WhatsApp-Kanal', 'WhatsApp'];
+const PLATFORM_PRE = /Instagram|Facebook|TikTok|YouTube|LinkedIn|Twitter|Threads|Mastodon|Telegram|Snapchat|WhatsApp|X[ \u00a0]*[:@]/;
 const HANDLE = '@?[\\p{L}\\p{N}_](?:[\\p{L}\\p{N}_.-]*[\\p{L}\\p{N}_])?';
 const ACCOUNT_PLATFORM = new RegExp('(^|[^\\p{L}\\p{N}-])(?:' + PLATFORMS.join('|') + ')(?:[ \\u00a0]*:[ \\u00a0]*|[ \\u00a0]+(?=@)|(?=@))(' + HANDLE + ')', 'gu');
 const ACCOUNT_AT = /(^|[^\p{L}\p{N}._%+@-])@([\p{L}\p{N}_](?:[\p{L}\p{N}_.]*[\p{L}\p{N}_])?)/gu;
@@ -66,8 +68,19 @@ export function findContacts(text, opts) {
   if (opts.email && text.includes('@')) for (const m of text.matchAll(EMAIL)) push(m.index, m.index + m[0].length, 'email');
   // Version 2.7.0: Webadressen und Konten (Schalter „Webadressen und Konten“, opts.web)
   if (opts.web && /[./:@]/.test(text)) {
-    for (const re of [WEB_SCHEME, WEB_WWW, WEB_BARE]) {
-      for (const m of text.matchAll(re)) {
+    // Umbruch mitten in einer Webadresse (PDF: „www.lern-⏎und-spiel.de“): Beginnt das Wort vor dem Zeilenende mit
+    // http(s):// oder www. und endet es auf -, geht die Adresse in der nächsten Zeile weiter. Nur zum Suchen
+    // wird der Umbruch durch ein Zeichen gleicher Länge ersetzt; die Stelle (samt Umbruch) bezieht sich aufs Original.
+    let wt = text;
+    for (let i = 0; i < 5 && wt.includes('\n'); i++) {
+      const nx = wt.replace(/((?:^|[^\S\n])(?:[hH][tT][tT][pP][sS]?:\/\/|[wW][wW][wW]\.)[^\s]*-)\n(?=[\p{Ll}\p{N}])/gu, '$1x');
+      if (nx === wt) break;
+      wt = nx;
+    }
+    // Vorfilter (Geschwindigkeit): jedes Muster nur, wenn sein Kennzeichen im Text steht
+    const use = [/:\/\//.test(wt) && WEB_SCHEME, /www\./i.test(wt) && WEB_WWW, WEB_BARE_PRE.test(wt) && WEB_BARE].filter(Boolean);
+    for (const re of use) {
+      for (const m of wt.matchAll(re)) {
         const st = m.index + m[1].length;
         const t = trimUrl(m[0].slice(m[1].length));
         // Vor der Endung muss ein Buchstabe stehen („3.de“ ist keine Webadresse)
@@ -75,7 +88,7 @@ export function findContacts(text, opts) {
         push(st, st + t.length, 'web');
       }
     }
-    for (const m of text.matchAll(ACCOUNT_PLATFORM)) {
+    if (PLATFORM_PRE.test(text)) for (const m of text.matchAll(ACCOUNT_PLATFORM)) {
       const name = trimUrl(m[2]);
       if (!/\p{L}|\d/u.test(name.replace('@', ''))) continue;
       const st = m.index + m[0].length - m[2].length;

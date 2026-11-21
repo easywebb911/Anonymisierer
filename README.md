@@ -290,7 +290,9 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 - **Webadresse ohne bekannte Endung** (z. B. `kita.example`) oder ohne Punkt wird nicht erkannt. Eine bloße Domain mit GROSS geschriebener Endung („BEISPIEL.DE“) ebenfalls nicht; mit `www.` oder `https://` schon.
 - **Konto ohne Plattform-Wort und ohne @** (z. B. nur „kita_sonne“) wird nicht erkannt.
 - **Mailto-Verknüpfung:** Steht eine E-Mail-Adresse nur im Ziel einer Verknüpfung, wird sie wie bisher als „[E-MAIL]“ ohne Nummer ersetzt und kommt beim Rückbau nicht zurück.
-- **Word und ein Link-Ziel wie „[WEBADRESSE-2]“:** Das Ziel ist danach keine gültige Adresse mehr. LibreOffice öffnet die Datei; Word wurde hier nicht geprüft.
+- **Word und ein Link-Ziel wie „[WEBADRESSE-2]“:** Das Ziel ist danach keine gültige Adresse mehr. LibreOffice öffnet die Datei (geprüft); Word wurde hier nicht geprüft.
+- **Umbruch in einer Webadresse (PDF):** Bricht eine Adresse mit „www.“ oder „http“ am Bindestrich um („www.lern-⏎und-spiel.de“), gilt sie als eine Adresse. Ein Umbruch an anderer Stelle (nach „/“ oder „.“) trennt sie; der Teil in der nächsten Zeile wird dann nur ersetzt, wenn er selbst wie eine Webadresse aussieht.
+- **Schlusscheck:** Er sucht wie bisher nur Namen und Einrichtungen, keine Kontaktdaten. Webadressen und Konten bei ausgeschaltetem Schalter meldet der Punkt „Webadresse oder Konto steht noch im Text“.
 
 **Seit Version 2.6 (Namensspalten, Zeilenende, „von“):**
 - **Unbekannter Vorname im Satz bleibt eine Grenze:** „Leitung: Dimitrios Papadopoulos“ – „Dimitrios“ steht in keiner Liste und ohne Anrede; er wird nicht erkannt. Nur in einer Namensspalte hilft die Spalte.
@@ -414,13 +416,15 @@ Die Datei muss in einem Browser geöffnet werden (z. B. über „Teilen → in S
 
 ## Version und Prüfsumme
 
-Version **2.6.1**, Stand 2026-11-21 (steht auch im Fußbereich des Tools).
+Version **2.7.0**, Stand 2026-11-21 (steht auch im Fußbereich des Tools).
 
 SHA-256 der `index.html` dieser Version:
 
 ```
-d411bf2f0f0b1e0ea0d545e681a1939475a81fb777a912710fb3b74c5fb15f1e
+4f87a11db7b315a7e964ce721972e99704897aa43560b2b0ca01870aaf682060
 ```
+
+Hinweis: Bei Version 2.6.1 stand hier versehentlich ein veralteter Wert (d411bf2f…). Die `index.html` von 2.6.1 hat die Prüfsumme f5b29a3d6cd1127b23a7226fbd44d155471d705c0dc961a6cf8853a983f18cc9.
 
 Eine Datei kann ihre eigene Prüfsumme nicht enthalten, deshalb steht sie nur hier und im PR-Text. Prüfen unter Windows: `certutil -hashfile index.html SHA256`.
 

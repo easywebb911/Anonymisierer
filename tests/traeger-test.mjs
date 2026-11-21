@@ -73,7 +73,9 @@ async function measure(html, ext, mode) {
   const rows = [];
   for (const [f, v] of Object.entries(res.o)) {
     const t = await allText(v);
-    rows.push({ f, web: count(t.toLowerCase(), HOST), acc: count(t, ACCOUNT), open: OPEN.map((w) => count(t, w)), stay: MUST_STAY.filter((w) => t.includes(w)).length, warn: res.warn, q: res.q });
+    // auch über einen Zeilenumbruch getrennt („www.lern-⏎und-spiel…“, PDF) zählen
+    const tj = t.replace(/-\r?\n/g, '-');
+    rows.push({ f, web: count(tj.toLowerCase(), HOST) + count(tj.toLowerCase(), 'www.lern-'), acc: count(t, ACCOUNT), open: OPEN.map((w) => count(t, w)), stay: MUST_STAY.filter((w) => t.includes(w)).length, warn: res.warn, q: res.q });
   }
   return rows;
 }
@@ -346,5 +348,7 @@ await browser.close();
 const ok = results.filter((r) => r[1]).length;
 log('');
 log(`**Ergebnis: ${ok}/${results.length} bestanden.** Nur Chromium, Firefox prüft Easy.`);
+log('');
+log('Weitere Messungen (Fehltreffer im ganzen Korpus, Aufzählungsstellen, Laufzeit, Prüfsumme, Link-Ziele vorher): tests/TRAEGER-MESSUNGEN.md');
 fs.writeFileSync(path.join(here, 'TRAEGER-REPORT.md'), report.join('\n') + '\n');
 process.exit(ok === results.length ? 0 : 1);
