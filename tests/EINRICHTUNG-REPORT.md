@@ -127,8 +127,8 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 - OK: „Astrid-Lindgren-Schule“ = ein Platzhalter; „Astrid Lindgren“ an anderer Stelle bleibt Person – Auch die Einrichtung C macht mit. Frau Vorname B Nachname B liest vor.
 
 ## Art-Wechsel: Einrichtung → Person → Einrichtung (rückbaufähig)
-- OK: „ist eine Person“: Platzhalter, Zählung und Kennung folgen; Schlüssel muss neu gespeichert werden – vorher: 2 Personen/1 Einrichtung, „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“; nachher: 3/0, „Das FZS plant gemeinsam mit dem Vorname B Nachname B ein Fest.“, Kennung M5E4 → A24H
-- OK: „ist eine Einrichtung“ zurück: wieder „Einrichtung A“, Zählung und Kennung folgen – „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“, Kennung A24H → 48C8
+- OK: „ist eine Person“: Platzhalter, Zählung und Kennung folgen; Schlüssel muss neu gespeichert werden – vorher: 2 Personen/1 Einrichtung, „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“; nachher: 3/0, „Das FZS plant gemeinsam mit dem Vorname B Nachname B ein Fest.“, Kennung 5Q5W → H5T3
+- OK: „ist eine Einrichtung“ zurück: wieder „Einrichtung A“, Zählung und Kennung folgen – „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“, Kennung H5T3 → 5Q6J
 
 ## Merkliste mit Art
 - OK: Alte Merkliste ohne Art lädt als Personen; Ausgabe byte-gleich wie in 2.2 – Chips: Sonnenblume · Person; SHA d120ec136c8d / d120ec136c8d
@@ -145,7 +145,7 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 ## Rückwärts-Prüfung für den Revert-Weg: Version 2.2 mit Schlüsseldateien aus 2.3
 - Schlüssel mit Einrichtung (Format-Version 2), Meldung von 2.2: „Unbekannte Version der Schlüsseldatei (2). Bitte eine neuere Version des Tools verwenden.“
 - OK: 2.2 lehnt einen Schlüssel mit Einrichtung klar ab (unbekannte Version) – Prüfen-Knopf gesperrt: true
-- Schlüssel ohne Einrichtung (Format-Version 1), Meldung von 2.2: „Schlüsseldatei geladen: 4 Platzhalter, Kennung E48F (erstellt mit Version 2.3.4, Quelle TXT).“, Urteil „passend“
+- Schlüssel ohne Einrichtung (Format-Version 1), Meldung von 2.2: „Schlüsseldatei geladen: 4 Platzhalter, Kennung 6Z5J (erstellt mit Version 2.4.0, Quelle TXT).“, Urteil „passend“
 - OK: 2.3-Schlüssel ohne Einrichtung: Format-Version 1, 2.2 baut exakt zurück
 
 ## TXT: Einrichtung über einen Zeilenumbruch (Entscheidung Easy), alle drei Modi, Unix- und Windows-Zeilenenden
@@ -306,14 +306,14 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 - OK: briefkopf-und-text, txt, person: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt – Musikschule am
 | im Briefkopf (über zwei Absätze) und im Text | txt | reversible | 1 (1) | Zeile 1 und Zeile 3 (im Original) · Einrichtung aus deiner Liste „Musikschule am Stadtpark“, nicht vollständig ersetzt: „…Musikschule am Stadtpark Die Musikschule am Stad | ja |
 - OK: briefkopf-und-text, txt, reversible: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt – Musikschule am
-| „Freie Waldorfschule“ über zwei Absätze, „Freie“ als Person ersetzt | docx | person | 1 (1) | Text (im Original) · Einrichtung aus deiner Liste „Freie Waldorfschule“, nicht vollständig ersetzt: „…Kita Freie Waldorfschule Rundbrief an alle Eltern.…“ Der Name steht  | ja |
-- OK: freie-person, docx, person: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt („Freie“ als Person ersetzt) – Person A
-| „Freie Waldorfschule“ über zwei Absätze, „Freie“ als Person ersetzt | docx | reversible | 1 (1) | Text (im Original) · Einrichtung aus deiner Liste „Freie Waldorfschule“, nicht vollständig ersetzt: „…Kita Freie Waldorfschule Rundbrief an alle Eltern.…“ Der Name steht  | ja |
-- OK: freie-person, docx, reversible: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt („Freie“ als Person ersetzt) – Vorname A Nachname A
-| „Freie Waldorfschule“ über zwei Absätze, „Freie“ als Person ersetzt | txt | person | 1 (1) | Zeile 1 und Zeile 3 (im Original) · Einrichtung aus deiner Liste „Freie Waldorfschule“, nicht vollständig ersetzt: „…Kita Freie Waldorfschule Rundbrief an alle Eltern. …“ | ja |
-- OK: freie-person, txt, person: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt („Freie“ als Person ersetzt) – Person A
-| „Freie Waldorfschule“ über zwei Absätze, „Freie“ als Person ersetzt | txt | reversible | 1 (1) | Zeile 1 und Zeile 3 (im Original) · Einrichtung aus deiner Liste „Freie Waldorfschule“, nicht vollständig ersetzt: „…Kita Freie Waldorfschule Rundbrief an alle Eltern. …“ | ja |
-- OK: freie-person, txt, reversible: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt („Freie“ als Person ersetzt) – Vorname A Nachname A
+| „Freie Waldorfschule“ über zwei Absätze, davor „Kita“ als Person ersetzt | docx | person | 1 (1) | Text (im Original) · Einrichtung aus deiner Liste „Freie Waldorfschule“, nicht vollständig ersetzt: „…Kita Freie Waldorfschule Rundbrief an alle Eltern.…“ Der Name steht  | ja |
+- OK: freie-person, docx, person: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt („Kita“ als Person ersetzt, „Freie“ bleibt) – Person A Freie
+| „Freie Waldorfschule“ über zwei Absätze, davor „Kita“ als Person ersetzt | docx | reversible | 1 (1) | Text (im Original) · Einrichtung aus deiner Liste „Freie Waldorfschule“, nicht vollständig ersetzt: „…Kita Freie Waldorfschule Rundbrief an alle Eltern.…“ Der Name steht  | ja |
+- OK: freie-person, docx, reversible: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt („Kita“ als Person ersetzt, „Freie“ bleibt) – Nachname A Freie
+| „Freie Waldorfschule“ über zwei Absätze, davor „Kita“ als Person ersetzt | txt | person | 1 (1) | Zeile 1 und Zeile 3 (im Original) · Einrichtung aus deiner Liste „Freie Waldorfschule“, nicht vollständig ersetzt: „…Kita Freie Waldorfschule Rundbrief an alle Eltern. …“ | ja |
+- OK: freie-person, txt, person: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt („Kita“ als Person ersetzt, „Freie“ bleibt) – Person A Freie
+| „Freie Waldorfschule“ über zwei Absätze, davor „Kita“ als Person ersetzt | txt | reversible | 1 (1) | Zeile 1 und Zeile 3 (im Original) · Einrichtung aus deiner Liste „Freie Waldorfschule“, nicht vollständig ersetzt: „…Kita Freie Waldorfschule Rundbrief an alle Eltern. …“ | ja |
+- OK: freie-person, txt, reversible: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt („Kita“ als Person ersetzt, „Freie“ bleibt) – Nachname A Freie
 | in der Liste, aber nicht im Dokument (keine Meldung erwartet) | docx | person | 0 (0) | – | – |
 - OK: nicht-im-dokument, docx, person: 0 Meldung(en) – Rundbrief an alle Eltern.
 | in der Liste, aber nicht im Dokument (keine Meldung erwartet) | docx | reversible | 0 (0) | – | – |
@@ -382,7 +382,7 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 - OK: Gegenprobe: 162 Durchläufe (81 Testdokumente × 2 Modi), kein Fehlalarm, keine fehlende Meldung – 0 Abweichung(en)
 
 ## Ausgaben gegenüber dem vorigen Stand von PR #8 (mit markierten Einrichtungen)
-- OK: Alle 69 Ausgaben (23 Dateien × 3 Modi, mit Einrichtungen) byte-gleich zum vorigen Stand (Kennung festgehalten)
+- OK: Alle 63 Ausgaben (21 Dateien × 3 Modi, mit Einrichtungen) byte-gleich zum vorigen Stand (Kennung festgehalten)
 
 ## Firma aus den Dateiangaben: Frage mit „Ja“ beantwortet, Version 2.2 gegen 2.3
 - meta-word.docx: Fragen 2.2: In den Dateiangaben steht „Rüdiger Spähmann“. Als Namen übernehmen? / In den Dateiangaben steht „Tamara Feldkirch“. Als Namen übernehmen? / In den Dateiangaben steht „Konstantin Abendroth“. Als Namen übernehmen? / In den Dateiangaben steht „Lindenhof Beratung GmbH“. Als Namen übernehmen? / In den Dateiangaben steht „Ottilie Rennwagen“. Als Namen übernehmen? / In den Dateiangaben steht „Wilhelmine Querbach“. Als Namen übernehmen?; 2.3: In den Dateiangaben steht „Rüdiger Spähmann“. Als Namen übernehmen? / In den Dateiangaben steht „Tamara Feldkirch“. Als Namen übernehmen? / In den Dateiangaben steht „Konstantin Abendroth“. Als Namen übernehmen? / In den Dateiangaben steht „Lindenhof Beratung GmbH“. Als Einrichtung übernehmen? / In den Dateiangaben steht „Ottilie Rennwagen“. Als Namen übernehmen? / In den Dateiangaben steht „Wilhelmine Querbach“. Als Namen übernehmen?

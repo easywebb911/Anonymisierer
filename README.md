@@ -239,6 +239,11 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 - **Muster:** Vorname Nachname, „Nachname, Vorname“, Initialen („M. Müller“), Bindestrich-Namen, GROSSSCHREIBUNG, Namenszusätze (von, van der, de la, al-, bin, ibn …), typische Endungen (-ović, -ski, -oğlu, -ov/-ova, -enko, -escu, -poulos, -yan, -shvili, -zadeh …), nachgestellte Anreden („Ahmet Bey“).
 - **Endungen:** „Müllers“, „John’s“ werden mit dem Grundnamen erkannt.
 - **Allerweltswörter** („Rose“, „Mark“, „Winter“, „Paris“, „Koch“ …): nur im Namenskontext sicher, sonst **unsicherer Treffer**.
+- **Gewöhnliche Wörter, die auch als Name vorkommen (seit Version 2.4.0):** 57 weitere Wörter gelten als Allerweltswörter, z. B. „Yoga“, „Kita“, „Campus“, „Mama“, „Papa“, „Termine“, „Kalender“, „Liga“. Steht so ein Wort allein (ohne Anrede, ohne Nachbarnamen), wird es nicht mehr „sicher“, sondern „unsicher“ markiert: Es wird weiter ersetzt (oder nach „der“, „die“, „im“ … nicht), erscheint aber als Frage zur Prüfung. Mit Anrede („Frau Kalender“) bleibt es ein sicherer Name.
+  - **Wie die Liste entstand:** Ausgangspunkt waren Wörter, die zugleich in den Namenslisten stehen und häufige deutsche Haupt- oder Eigenschaftswörter sind (166 Wörter, die bisher nicht als Allerweltswort galten). Herausgenommen wurden die häufigsten echten Namen (alle Nachnamen unter den 3000 häufigsten und alle Vornamen einer frei verfügbaren deutschen Namensliste, z. B. „Müller“, „Horst“) und jedes Wort, das in irgendeiner Sprache ein gebräuchlicher Name ist (z. B. „Ding“, „Adel“, „Alba“, „Islam“, „Maxime“, „Ted“). Jedes verbliebene Wort wurde einzeln angesehen. Die Liste steht fest im Programm (`src/core/lexicon.js`).
+  - **Nur zum Messen genutzt, NICHT im Tool enthalten:** die Häufigkeits- und Namenslisten aus `@zxcvbn-ts/language-de` (npm, MIT; Daten aus OpenSubtitles, ODC-BY) und die Wörterbücher `german-words-dict` und `german-adjectives-dict` (npm, Apache-2.0; Daten aus german-pos-dict, CC-BY-SA-4.0). In der `index.html` steht nur die kurze, von Hand geprüfte Wortliste.
+  - Grenze: Wörter mit Umlaut, die ohne Umlaut einem Namen gleichen („Bücher“/„Bucher“, „Wünsche“, „Blätter“/„Blatter“), stehen bewusst nicht auf der Liste und bleiben wie bisher.
+- **Wochentag vor Uhrzeit oder Datum (seit Version 2.4.0):** Eine Abkürzung **ohne Punkt** direkt vor einer Uhrzeit oder einem Datum („Do 13:30“, „Mo 05.10.“) ist kein Name und erscheint nicht mehr in der Prüfung. Mit Punkt („Do. 13:30“) gilt wie bisher die Regel für Wochentage (unsicher, aus). Mit Anrede („Frau Do 13:30“) bleibt es ein Name.
 - **Anrede allein (seit Version 1.2):** Steht in einem Absatz, einer Zeile oder einer Zelle **nur** „Herr“, „Frau“ (auch „Hr.“, „Fr.“, „Frau Dr.“, „Herr Prof. Dr.“ …), dann gilt der Anfang der **direkt folgenden** Einheit als Name. Er wird **immer ersetzt**:
   - in Word: der nächste Absatz (in derselben Zelle oder im Fließtext) oder die **rechte Nachbarzelle** derselben Tabellenzeile;
   - in TXT: die nächste Zeile; in CSV: das rechte Nachbarfeld.
@@ -332,7 +337,7 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 |---|---|
 | Chromium/Chrome (Desktop) | **geprüft** (automatische Tests, headless) |
 | Chromium mit 390, 1280 und 1920 px Breite | **geprüft** (kein waagrechtes Scrollen, Knöpfe mindestens 44 px, Antippen, Markieren, Tasten J/N) |
-| Edge und Chrome unter Windows (Firmen-PC, `file://`) | Version 1.0 laut Easy **am PC geprüft**; Versionen 1.1 bis 2.3.4 **durch Code ungeprüft** |
+| Edge und Chrome unter Windows (Firmen-PC, `file://`) | Version 1.0 laut Easy **am PC geprüft**; Versionen 1.1 bis 2.4.0 **durch Code ungeprüft** |
 | Microsoft Word / Excel: Öffnen der bereinigten Datei ohne Reparatur-Meldung | **durch Code ungeprüft** (auch die unsichtbare Kennung, seit 2.1). Geprüft: LibreOffice öffnet alle Ausgaben, alle XML-Teile sind wohlgeformt, keine Verweise ins Leere |
 | Firefox (Desktop) | **ungeprüft** |
 | Safari (macOS) | **ungeprüft** |
@@ -345,12 +350,12 @@ Die Datei muss in einem Browser geöffnet werden (z. B. über „Teilen → in S
 
 ## Version und Prüfsumme
 
-Version **2.3.4**, Stand 2026-11-21 (steht auch im Fußbereich des Tools).
+Version **2.4.0**, Stand 2026-11-21 (steht auch im Fußbereich des Tools).
 
 SHA-256 der `index.html` dieser Version:
 
 ```
-2610b9c97c468aaff800276becb869fe4da08bde193a9af86bd9ee255ddf2ddf
+f4162bb516cedf58e77cc2e530dfb993398da89eefb4700e1a53bf496a19c7e7
 ```
 
 Eine Datei kann ihre eigene Prüfsumme nicht enthalten, deshalb steht sie nur hier und im PR-Text. Prüfen unter Windows: `certutil -hashfile index.html SHA256`.
@@ -420,6 +425,10 @@ node tests/make-bilder.mjs   # Bilder-Testdokumente: Word/Excel mit Bildern in T
 node tests/bilder-test.mjs <index.html-2.1>  # Bilder: Liste, Kacheln, Sperre, Bildbeschreibungen, Kreislauf, Breiten → tests/BILDER-REPORT.md
 node tests/make-kennung.mjs  # Vertausch-Testpaar: gleiche Vorlage, andere (erfundene) Personen, vier Formate
 node tests/kennung-test.mjs <index.html-2.0>  # Kennung: Vertausch, Veraltet, Umbenennen, Alt-Schlüssel, LibreOffice, Zufall → tests/KENNUNG-REPORT.md
+node tests/korpus-test.mjs [--zellen] [--src <alter src-Ordner>]  # Messkorpus (seit 2.4.0): Fehltreffer und echte Namen je Wort, Vergleich mit tests/korpus/erwartung.json → tests/KORPUS-REPORT.md
+node tests/wortliste-test.mjs <src-Ordner 2.3.4>  # Wortliste „mehrdeutig“ und Wochentag vor Uhrzeit: Einzelprüfungen, Zusammenspiel → tests/WORTLISTE-REPORT.md
 ```
+
+**Messkorpus (seit 2.4.0):** `tests/korpus/korpus-quelle.mjs` enthält rund 3000 Wörter erfundener Alltagstexte (Kursbeschreibungen, Elternbrief, Protokoll, Einladung, Tabelle, Liste …). Jeder echte Personenname ist dort mit ⟦…⟧ gekennzeichnet. `tests/korpus-test.mjs` zählt je Wort: Fehltreffer (sicher / unsicher an / unsicher aus), echte Namen (ersetzt / nur als Frage / ganz übersehen), Fragen und Schlusscheck-Meldungen. Jede Änderung an der Erkennung muss dieselben Zahlen liefern wie `tests/korpus/erwartung.json`, oder die Abweichung wird gezeigt (Erwartung nur nach bewusster Änderung mit `--update` neu schreiben).
 
 Aufbau: `src/core` (Erkennung, Muster, Namenslisten-Zugriff, `reversible.js` = Modus rückbaufähig und Schlüsseldatei, `restore.js` = Rückbau), `src/formats` (TXT/CSV/DOCX/XLSX/PDF, `meta.js` = versteckte Angaben: Dateieigenschaften, SharePoint-Felder, Bild-Metadaten, `images.js` = Bilderliste und Bildbeschreibungen), `src/ui` (Oberfläche mit den Bildschirmen Start/Datei/Prüfen/Speichern und Rückbau, Netzwerksperre, Vorlage, Stil), `build/` (Build-Skripte), `tests/` (Testdaten, Tests, Bericht).
