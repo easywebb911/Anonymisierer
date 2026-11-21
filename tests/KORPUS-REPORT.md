@@ -11,4 +11,4 @@
 - Namen nur als Frage: –
 - Namen ganz übersehen: Dimitrios (kursbeschreibungen), Dimitrios (liste)
 
-Erwartung geschrieben: tests/korpus/erwartung.json
+Alle Zahlen wie erwartet.

@@ -524,7 +524,9 @@ const LIST = [ORG3, ORG.verein, 'Freie Waldorfschule'];
 const SC = [
   ['nur-briefkopf', 1, 'nur im Briefkopf über zwei Absätze'],
   ['briefkopf-und-text', 1, 'im Briefkopf (über zwei Absätze) und im Text'],
-  ['freie-person', 1, '„Freie Waldorfschule“ über zwei Absätze, „Freie“ als Person ersetzt'],
+  // bis 2.3.4 wurde „Kita Freie“ als eine Person ersetzt; seit 2.4.0 ist „Kita“ ein Allerweltswort, ersetzt wird nur noch
+  // „Kita“ (unsicher, an), „Freie“ bleibt stehen. Der Schlusscheck meldet die Einrichtung wie bisher.
+  ['freie-person', 1, '„Freie Waldorfschule“ über zwei Absätze, davor „Kita“ als Person ersetzt'],
   ['nicht-im-dokument', 0, 'in der Liste, aber nicht im Dokument (keine Meldung erwartet)'],
   ['vollstaendig-ersetzt', 0, 'vollständig ersetzt, auch mit Endung (keine Meldung erwartet)'],
   ['endung-ueber-absaetze', 1, 'mit Endung über zwei Absätze („Lindenauer⏎Bürgervereins“)'],
@@ -558,8 +560,8 @@ for (const [name, want, desc] of SC) {
       const first = r.own[0] ? r.own[0].replace(/^.*?– steht in: /, '').slice(0, 170) : '–';
       log(`| ${desc} | ${fmt} | ${mode} | ${r.own.length} (${want}) | ${first} | ${r.own.length ? (r.blocked ? 'ja' : 'NEIN') : '–'} |`);
       const okHint = !want || r.own.every((x) => (fmt === 'docx' ? /Entferne den Absatz in Word/ : /Entferne die Leerzeile/).test(x));
-      const extra = name === 'freie-person' ? /Person A|Vorname|Name A/.test(r.out.split('\n')[0]) : true;
-      check(`${name}, ${fmt}, ${mode}: ${want} Meldung(en)${want ? ', mit Fundort und Anleitung, Speichern gesperrt' : ''}${name === 'freie-person' ? ' („Freie“ als Person ersetzt)' : ''}`, r.own.length === want && okHint && (!want || r.blocked) && extra, r.out.split('\n')[0]);
+      const extra = name === 'freie-person' ? /^(?:Person A|Nachname A|Vorname A|Name A) Freie$/.test(r.out.split('\n')[0]) : true;
+      check(`${name}, ${fmt}, ${mode}: ${want} Meldung(en)${want ? ', mit Fundort und Anleitung, Speichern gesperrt' : ''}${name === 'freie-person' ? ' („Kita“ als Person ersetzt, „Freie“ bleibt)' : ''}`, r.own.length === want && okHint && (!want || r.blocked) && extra, r.out.split('\n')[0]);
     }
   }
 }
@@ -622,8 +624,9 @@ log('');
 if (prevHtml) {
   log('## Ausgaben gegenüber dem vorigen Stand von PR #8 (mit markierten Einrichtungen)');
   const FULL = [ORG.haupt, ORG.kurz, ORG.verein, ORG.schule, ORG3, 'Freie Waldorfschule'];
-  // einrichtung-gross.* (seit 2.3.3) prüft eine bewusst geänderte Ausgabe; Vergleich dort in tests/platzhalter-test.mjs
-  const files = fs.readdirSync(fx).filter((f) => /^(einrichtung|sc-)/.test(f) && !/^einrichtung-gross/.test(f)).sort();
+  // einrichtung-gross.* (seit 2.3.3) prüft eine bewusst geänderte Ausgabe; Vergleich dort in tests/platzhalter-test.mjs.
+  // sc-freie-person.* (seit 2.4.0): „Kita Freie“ ist kein Personentreffer mehr (Wortliste), siehe tests/wortliste-test.mjs.
+  const files = fs.readdirSync(fx).filter((f) => /^(einrichtung|sc-)/.test(f) && !/^einrichtung-gross|^sc-freie-person/.test(f)).sort();
   const outs = async (html) => {
     const { page, ctx } = await newPage(html);
     const res = {};
