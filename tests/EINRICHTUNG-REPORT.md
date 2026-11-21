@@ -127,8 +127,8 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 - OK: „Astrid-Lindgren-Schule“ = ein Platzhalter; „Astrid Lindgren“ an anderer Stelle bleibt Person – Auch die Einrichtung C macht mit. Frau Vorname B Nachname B liest vor.
 
 ## Art-Wechsel: Einrichtung → Person → Einrichtung (rückbaufähig)
-- OK: „ist eine Person“: Platzhalter, Zählung und Kennung folgen; Schlüssel muss neu gespeichert werden – vorher: 2 Personen/1 Einrichtung, „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“; nachher: 3/0, „Das FZS plant gemeinsam mit dem Vorname B Nachname B ein Fest.“, Kennung 3D6M → H44D
-- OK: „ist eine Einrichtung“ zurück: wieder „Einrichtung A“, Zählung und Kennung folgen – „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“, Kennung H44D → 3Q55
+- OK: „ist eine Person“: Platzhalter, Zählung und Kennung folgen; Schlüssel muss neu gespeichert werden – vorher: 2 Personen/1 Einrichtung, „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“; nachher: 3/0, „Das FZS plant gemeinsam mit dem Vorname B Nachname B ein Fest.“, Kennung X5U6 → 2H3S
+- OK: „ist eine Einrichtung“ zurück: wieder „Einrichtung A“, Zählung und Kennung folgen – „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“, Kennung 2H3S → B25W
 
 ## Merkliste mit Art
 - OK: Alte Merkliste ohne Art lädt als Personen; Ausgabe byte-gleich wie in 2.2 – Chips: Sonnenblume · Person; SHA d120ec136c8d / d120ec136c8d
@@ -145,7 +145,7 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 ## Rückwärts-Prüfung für den Revert-Weg: Version 2.2 mit Schlüsseldateien aus 2.3
 - Schlüssel mit Einrichtung (Format-Version 2), Meldung von 2.2: „Unbekannte Version der Schlüsseldatei (2). Bitte eine neuere Version des Tools verwenden.“
 - OK: 2.2 lehnt einen Schlüssel mit Einrichtung klar ab (unbekannte Version) – Prüfen-Knopf gesperrt: true
-- Schlüssel ohne Einrichtung (Format-Version 1), Meldung von 2.2: „Schlüsseldatei geladen: 4 Platzhalter, Kennung 7F3X (erstellt mit Version 2.3.0, Quelle TXT).“, Urteil „passend“
+- Schlüssel ohne Einrichtung (Format-Version 1), Meldung von 2.2: „Schlüsseldatei geladen: 4 Platzhalter, Kennung 929F (erstellt mit Version 2.3.0, Quelle TXT).“, Urteil „passend“
 - OK: 2.3-Schlüssel ohne Einrichtung: Format-Version 1, 2.2 baut exakt zurück
 
 ## TXT: Einrichtung über einen Zeilenumbruch (Entscheidung Easy), alle drei Modi, Unix- und Windows-Zeilenenden
@@ -277,12 +277,12 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 ## Nur getestet (nicht gebaut): Name auf zwei getrennten Absätzen (Briefkopf)
 - einrichtung-absatz.txt, person: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 1×; Schlusscheck meldet: NEIN
 - einrichtung-absatz.txt, reversible: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 1×; Schlusscheck meldet: NEIN
-- einrichtung-absatz.docx, person: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 0×; Schlusscheck meldet: NEIN
-- einrichtung-absatz.docx, reversible: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 0×; Schlusscheck meldet: NEIN
+- einrichtung-absatz.docx, person: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 1×; Schlusscheck meldet: NEIN
+- einrichtung-absatz.docx, reversible: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 1×; Schlusscheck meldet: NEIN
 - einrichtung-absatz-text.txt, person: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 1×; Schlusscheck meldet: ja – „Musikschule am Stadtpark – steht in: Text · bestätigte Einrichtung, Einrichtung A: „…Musikschule am Stadtpark Rundbrief an alle Eltern. Die……“
 - einrichtung-absatz-text.txt, reversible: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 1×; Schlusscheck meldet: ja – „Musikschule am Stadtpark – steht in: Text · bestätigte Einrichtung, Einrichtung A: „…Musikschule am Stadtpark Rundbrief an alle Eltern. Die……“
-- einrichtung-absatz-text.docx, person: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 0×; Schlusscheck meldet: ja – „Musikschule am Stadtpark – steht in: Text (word/document.xml) · bestätigte Einrichtung, Einrichtung A: „…Musikschule am Stadtpark Rundbrief …“
-- einrichtung-absatz-text.docx, reversible: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 0×; Schlusscheck meldet: ja – „Musikschule am Stadtpark – steht in: Text (word/document.xml) · bestätigte Einrichtung, Einrichtung A: „…Musikschule am Stadtpark Rundbrief …“
+- einrichtung-absatz-text.docx, person: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 1×; Schlusscheck meldet: ja – „Musikschule am Stadtpark – steht in: Text (word/document.xml) · bestätigte Einrichtung, Einrichtung A: „…Musikschule am Stadtpark Rundbrief …“
+- einrichtung-absatz-text.docx, reversible: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 1×; Schlusscheck meldet: ja – „Musikschule am Stadtpark – steht in: Text (word/document.xml) · bestätigte Einrichtung, Einrichtung A: „…Musikschule am Stadtpark Rundbrief …“
 - Befund: Steht die Einrichtung NUR im Briefkopf (über zwei Absätze), meldet der Schlusscheck sie NICHT (er sucht nur Einrichtungen, die im Dokument gefunden wurden). Steht sie zusätzlich im Text, meldet er den Briefkopf ja.
 - OK: Briefkopf über zwei Absätze: Befund wie gemeldet (nur Briefkopf: nicht gemeldet; mit Text: gemeldet)
 
