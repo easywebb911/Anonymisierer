@@ -23,6 +23,7 @@ export function defaultState() {
     overrides: {}, // "s:e" -> true/false (Treffer an/aus)
     merges: {}, // entityKey -> Ziel-entityKey
     unlinks: [], // Kurzformen, die NICHT zugeordnet werden sollen (Schlüssel "S|…")
+    nameColumns: {}, // Version 2.6.0: Spalte von Hand: Spalten-Kennung -> true (enthält Namen) / false (keine Namensspalte)
   };
 }
 
@@ -129,7 +130,10 @@ function parseSeq(toks, j, ctx, text, base, covered, exceptions) {
       const leadOk = comps.length > 0 || ctx.strong || ctx.weak || (tk.cap && lex.LEADING_PARTICLES.has(inf.key));
       if (nx && nx.word && nx.cap && !covered[m] && leadOk && m - k <= 3) {
         const ni = info(nx, exceptions);
-        if (!ni.stop && !ni.title && !ni.exception && (comps.length > 0 || ctx.strong || ni.known || ni.shaped)) {
+        // Version 2.6.0: Ein FÜHRENDER Namenszusatz gehört nur zum Namen, wenn danach ein Nachname folgt, nicht ein reiner
+        // Vorname („Schwester von Lena Winter“ behält sein „von“; „Frau von Bodelschwingh“ bleibt ein Name)
+        const firstNameOnly = comps.length === 0 && ni.F && !ni.L && !ni.shaped;
+        if (!firstNameOnly && !ni.stop && !ni.title && !ni.exception && (comps.length > 0 || ctx.strong || ni.known || ni.shaped)) {
           for (let q = k; q < m; q++) comps.push({ type: 'P', s: toks[q].s, e: toks[q].e, key: fold(toks[q].t) });
           k = m;
           continue;
@@ -276,6 +280,22 @@ function a2Candidate(u, toks, base, cov, exceptions) {
   return { comps, endTok: k, unsure };
 }
 
+// Version 2.6.0: Endet der Text auf eine Anrede (Herr/Herrn/Frau/Fräulein/Hr./Fr./Frl., ggf. mit Titeln), ohne Artikel davor?
+function endsWithAnrede(text) {
+  if (!/\S/.test(text)) return false;
+  const t = tokenize(text);
+  let k = t.length - 1;
+  if (k >= 0 && t[k].t === '.') k--;
+  while (k >= 0 && t[k].word) {
+    const key = fold(t[k].t);
+    if (ANREDE.has(key) && isCap(t[k].t)) return !nounContext(t, k, false);
+    if (!ANREDE_TITLES.has(key)) return false;
+    k--;
+    if (k >= 0 && t[k].t === '.') k--;
+  }
+  return false;
+}
+
 // ---------- Regel b2: Wochentage und Monate allein -> "unsicher, aus" ----------
 const CALENDAR = new Set(['montag', 'dienstag', 'mittwoch', 'donnerstag', 'freitag', 'samstag', 'sonnabend', 'sonntag',
   'januar', 'janner', 'februar', 'feber', 'marz', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'dezember']);
@@ -332,13 +352,18 @@ export function analyze(units, state) {
 
   // 2) Automatische Namenserkennung
   const mentions = [];
+  // Version 2.6.0: Namensspalten in Tabellen (Excel, CSV, Word) – vor allen übrigen Regeln (Vorrang vor „mehrdeutig“,
+  // Regel b2 und Regel a2)
+  const columns = nameColumnRule(units, unitToks, covered, tokHit, hits, mentions, exceptions, fullText, st.nameColumns || {});
   units.forEach((u, ui) => {
     const base = unitStarts[ui];
     const toks = unitToks[ui];
     const cov = covered[ui];
     const prevText = ui > 0 ? units[ui - 1].text : '';
     // Regel a2: vorige Einheit besteht nur aus einer Anrede und diese Einheit folgt direkt darauf
-    if (ui > 0 && u.follows && !u.heading && isAnredeOnly(units[ui - 1].text)) {
+    // Version 2.6.0 (Excel): Anrede allein in der linken Nachbarzelle (bei gemeinsamem Text: in irgendeiner seiner Zellen)
+    const a2Left = u.leftUnits && u.leftUnits.some((li) => li !== ui && isAnredeOnly(units[li].text));
+    if (((ui > 0 && u.follows && isAnredeOnly(units[ui - 1].text)) || a2Left) && !u.heading) {
       const c = a2Candidate(u, toks, base, cov, exceptions);
       if (c) {
         const comps = c.comps;
@@ -349,6 +374,26 @@ export function analyze(units, state) {
           mk: mentionKey(comps, null), titled: true, a2: true, defaultOff: false };
         // Gruppe: alle Vorkommen dieses Worts werden in der Prüfansicht gemeinsam an-/ausgeschaltet
         if (c.unsure) h.a2group = 'a2|' + lastWc.key;
+        hits.push(h);
+        mentions.push(h);
+        toks.forEach((t2, k) => { if (t2.s < e && t2.e > s) { cov[k] = true; tokHit[ui][k] = h; } });
+      }
+    }
+    // Version 2.6.0 (Textdateien und eingefügter Text): Die vorige Zeile endet auf eine Anrede (ggf. mit Titel, ohne
+    // Artikel davor) -> der Anfang dieser Zeile ist ein Name. Variante „eng“: wie Regel a2 (Entscheidung E).
+    if (ui > 0 && units[ui - 1].joinNext && !isAnredeOnly(units[ui - 1].text) && endsWithAnrede(units[ui - 1].text)
+      && toks[0] && toks[0].word && toks[0].cap && !cov[0]) {
+      const { comps } = parseSeq(toks, 0, { strong: true, weak: false, post: false }, u.text, base, cov, exceptions);
+      const Wl = comps.filter((c) => c.type === 'W');
+      const skip = !Wl.length || Wl.every((c) => c.A) || (Wl.length === 1 && isCalendarWord(toks, Wl[0].tokIdx));
+      if (!skip) {
+        const lastWc = [...comps].reverse().find((x) => x.type === 'W');
+        const s = comps[0].s;
+        const e = lastWc.e;
+        const unsure = Wl.length === 1 && !Wl[0].known && !Wl[0].shaped;
+        const h = { s, e, type: 'person', cert: unsure ? 'unsicher' : 'sicher', origin: 'auto', unit: ui, suffix: lastWc.suffix || '', comps,
+          mk: mentionKey(comps, null), titled: true, lineBreak: true, defaultOff: false };
+        if (unsure) h.a2group = 'a2|' + lastWc.key;
         hits.push(h);
         mentions.push(h);
         toks.forEach((t2, k) => { if (t2.s < e && t2.e > s) { cov[k] = true; tokHit[ui][k] = h; } });
@@ -664,7 +709,7 @@ export function analyze(units, state) {
   }
   for (const og of orgs.values()) og.count = og.hits.length;
 
-  const result = { fullText, unitStarts, hits, entities, orgs, placeholderWords };
+  const result = { fullText, unitStarts, hits, entities, orgs, placeholderWords, columns };
   // Modus "rückbaufähig": Platzhalter je Namensteil und nummerierte Kontaktdaten
   if (st.settings.mode === MODE_REVERSIBLE) assignReversible(result);
   return result;
@@ -1108,4 +1153,238 @@ function makeReversibleGeneric(result, settings) {
     }
     return reps.length ? applyReplacements(str, reps) : str;
   };
+}
+
+// ---------- Namensspalten (Version 2.6.0) ----------
+// Kopfwörter: Ein Kopf zählt nur, wenn ALLE seine Wörter Kopfwörter (oder Füllwörter) sind. Teile eines Wortes zählen
+// nicht („Dateiname“, „Benutzername“, „Kursname“, „Firmenname“) und auch nicht Wortgruppen mit anderen Wörtern
+// („Name der Schule“).
+export const NAME_HEADERS_STRONG = ['name', 'namen', 'nachname', 'nachnamen', 'vorname', 'vornamen', 'familienname', 'rufname', 'rufnamen', 'geburtsname'];
+export const NAME_HEADERS_WEAK = ['lehrkraft', 'lehrkrafte', 'lehrer', 'lehrerin', 'lehrerinnen', 'kursleitung', 'kursleiter', 'kursleiterin',
+  'leitung', 'teilnehmer', 'teilnehmerin', 'teilnehmerinnen', 'teilnehmende', 'kind', 'kinder', 'schuler', 'schulerin', 'schulerinnen',
+  'mitarbeiter', 'mitarbeiterin', 'mitarbeitende', 'ansprechpartner', 'ansprechpartnerin', 'person', 'personen', 'eltern',
+  'erziehungsberechtigte', 'erziehungsberechtigter', 'trainer', 'trainerin', 'referent', 'referentin', 'dozent', 'dozentin',
+  'betreuer', 'betreuerin', 'bearbeiter', 'bearbeiterin', 'verantwortlich', 'verantwortliche'];
+const HEAD_STRONG = new Set(NAME_HEADERS_STRONG);
+const HEAD_WEAK = new Set(NAME_HEADERS_WEAK);
+const HEAD_FILL = new Set(['und', 'bzw', 'oder', 'sowie', 'in', 'innen', 'n']);
+const ROLE_GIVEN = new Set(['vorname', 'vornamen', 'rufname', 'rufnamen']);
+const ROLE_SUR = new Set(['nachname', 'nachnamen', 'familienname', 'geburtsname']);
+// Übliche Spaltenköpfe (nur um eine Kopfzeile zu erkennen; sie machen keine Spalte zur Namensspalte)
+const HEAD_GENERAL = new Set(['nr', 'nummer', 'lfd', 'anrede', 'titel', 'e-mail', 'email', 'mail', 'telefon', 'telefonnummer', 'tel', 'handy',
+  'mobil', 'fax', 'kurs', 'kurse', 'termin', 'termine', 'datum', 'uhrzeit', 'zeit', 'beginn', 'start', 'ende', 'bemerkung', 'bemerkungen',
+  'notiz', 'notizen', 'anmerkung', 'anmerkungen', 'kommentar', 'hinweis', 'adresse', 'anschrift', 'strasse', 'plz', 'ort', 'wohnort', 'raum',
+  'fach', 'klasse', 'gruppe', 'beschreibung', 'thema', 'rolle', 'funktion', 'abteilung', 'status', 'betrag', 'preis', 'alter',
+  'geburtsdatum', 'geboren', 'text', 'art', 'typ', 'kategorie', 'id', 'kennung', 'formel', 'kontakt', 'tag', 'wochentag', 'stunde']);
+// Übliche Füllwerte in Namensspalten: nie ein Name
+export const NAME_FILLERS = ['n.n.', 'nn', 'n. n.', 'offen', 'vakant', 'alle', 'siehe oben', 's. o.', 's.o.', 'dito', 'do.', 'frei', 'keine', 'keiner',
+  'niemand', 'unbekannt', 'folgt', 'entfallt', 'tbd', 'tba', 'k. a.', 'k.a.', 'ka', 'x', '-', '–', '—', '?', '...', '…'];
+const FILLER_SET = new Set(NAME_FILLERS);
+function headWords(text) {
+  return tokenize(text).filter((t) => t.word).map((t) => fold(t.t)).filter((w) => !HEAD_FILL.has(w));
+}
+// Kopf einer Spalte: {kind: 'stark'|'schwach'|null, role: 'Vorname'|'Nachname'|null}
+function classifyHeader(text) {
+  const ws = headWords(text);
+  if (!ws.length || !ws.every((w) => HEAD_STRONG.has(w) || HEAD_WEAK.has(w))) return { kind: null, role: null };
+  const kind = ws.some((w) => HEAD_STRONG.has(w)) ? 'stark' : 'schwach';
+  const g = ws.some((w) => ROLE_GIVEN.has(w));
+  const sur = ws.some((w) => ROLE_SUR.has(w) || w === 'name' || w === 'namen');
+  return { kind, role: g && !sur ? 'Vorname' : sur && !g && ws.some((w) => ROLE_SUR.has(w)) ? 'Nachname' : null };
+}
+function isHeaderLike(text) {
+  const ws = headWords(text);
+  return ws.length > 0 && ws.some((w) => HEAD_STRONG.has(w) || HEAD_WEAK.has(w) || HEAD_GENERAL.has(w));
+}
+function hasNameHeader(text) { return classifyHeader(text).kind !== null; }
+// Reine Namenszelle: 1–4 großgeschriebene Wörter oder Namenszusätze (Anrede/Titel davor erlaubt), keine Ziffern, kein
+// Satz, kein Füllwert. Liefert die Gruppen (bei „Nachname, Vorname“ zwei) als Token-Indizes oder null.
+function pureNameGroups(text, toks, exceptions) {
+  const t = text.trim();
+  if (!t || /\d/.test(t) || !/^[\p{L}\p{M}\s.,'’-]+$/u.test(t)) return null;
+  if (FILLER_SET.has(fold(t).replace(/\s+/g, ' '))) return null;
+  // Wiederholter Spaltenkopf (z. B. zweite Kopfzeile oder Zwischenüberschrift „Nachname“) ist kein Name
+  const hw = headWords(t);
+  if (hw.length && hw.every((w) => HEAD_STRONG.has(w) || HEAD_WEAK.has(w) || HEAD_GENERAL.has(w))) return null;
+  const groups = [[]];
+  let lead = true;
+  let words = 0;
+  let strongTitle = false;
+  let titled = false;
+  for (let k = 0; k < toks.length; k++) {
+    const tk = toks[k];
+    if (!tk.word) {
+      if (tk.t === ',') { if (!groups[groups.length - 1].length) return null; groups.push([]); lead = false; continue; }
+      if (tk.t === '.' || tk.t === '-' || tk.t === "'" || tk.t === '’') continue;
+      return null;
+    }
+    const inf = info(tk, exceptions);
+    if (inf.exception) return null;
+    if (lead && inf.title && groups.length === 1 && !groups[0].length) { if (inf.strong) strongTitle = true; titled = true; continue; } // Anrede/Titel vor dem Namen
+    lead = false;
+    if (inf.particle && !tk.cap && !tk.allcaps) { groups[groups.length - 1].push(k); continue; }
+    if (!tk.cap && !tk.allcaps) return null;
+    if (inf.title || (inf.stop && !inf.particle)) return null;
+    groups[groups.length - 1].push(k);
+    words++;
+  }
+  if (groups.length > 2 || !words || words > 4) return null;
+  for (const g of groups) {
+    while (g.length && info(toks[g[g.length - 1]], exceptions).particle && !toks[g[g.length - 1]].cap) g.pop();
+    if (!g.length || !g.some((k) => toks[k].cap || toks[k].allcaps)) return null;
+  }
+  groups.strongTitle = strongTitle;
+  groups.titled = titled;
+  return groups;
+}
+function cellComps(toks, idxs, exceptions) {
+  return idxs.map((k) => {
+    const tk = toks[k];
+    const inf = info(tk, exceptions);
+    if (inf.particle && !tk.cap && !tk.allcaps) return { type: 'P', s: tk.s, e: tk.e, key: fold(tk.t) };
+    return { type: 'W', s: tk.s, e: tk.e, stemEnd: tk.e, suffix: '', key: fold(tk.t), F: inf.F, L: inf.L, A: inf.A, known: inf.known,
+      shaped: inf.shaped, allcaps: tk.allcaps, tokIdx: k };
+  });
+}
+function nameColumnRule(units, unitToks, covered, tokHit, hits, mentions, exceptions, fullText, manual) {
+  const tables = new Map(); // t -> Map(r -> Map(c -> {units:Set, c2}))
+  units.forEach((u, ui) => {
+    if (!u.tcells || !u.text.trim()) return;
+    for (const tc of u.tcells) {
+      if (!tables.has(tc.t)) tables.set(tc.t, new Map());
+      const tb = tables.get(tc.t);
+      if (!tb.has(tc.r)) tb.set(tc.r, new Map());
+      const row = tb.get(tc.r);
+      if (!row.has(tc.c)) row.set(tc.c, { units: new Set(), c2: tc.c2 === undefined ? tc.c : tc.c2 });
+      row.get(tc.c).units.add(ui);
+    }
+  });
+  const columns = [];
+  const plan = new Map(); // ui -> {kind, roles:Set, rows:[{t,r}]}
+  const textOf = (cell) => [...cell.units].map((ui) => units[ui].text).join(' ').trim();
+  for (const [t, tb] of tables) {
+    const rnums = [...tb.keys()].sort((a, b) => a - b);
+    const filled = (r) => { const s = new Set(); for (const [c, cell] of tb.get(r)) for (let x = c; x <= cell.c2; x++) s.add(x); return s; };
+    const allCols = new Set();
+    let maxCols = 0;
+    for (const r of rnums) { const f = filled(r); f.forEach((x) => allCols.add(x)); maxCols = Math.max(maxCols, f.size); }
+    // Kopfzeile: die erste Zeile, in der mindestens die Hälfte der Spalten gefüllt ist (Titelzeilen darüber zählen nicht),
+    // und nur, wenn sie wie eine Kopfzeile aussieht (mindestens ein üblicher Spaltenkopf). Eine direkt folgende Zeile mit
+    // einem Namens-Kopfwort ist eine zweite Kopfzeile.
+    const headRows = [];
+    const ri = rnums.findIndex((r) => filled(r).size >= Math.max(1, Math.ceil(maxCols / 2)));
+    if (ri >= 0 && [...tb.get(rnums[ri]).values()].some((cell) => isHeaderLike(textOf(cell)))) {
+      headRows.push(rnums[ri]);
+      const r1 = rnums[ri + 1];
+      // Zweite Kopfzeile nur, wenn ALLE ihre Zellen Spaltenköpfe sind (eine Datenzeile wie „Anna | Müller | Leitung“ ist keine)
+      if (r1 !== undefined && filled(r1).size >= Math.max(1, Math.ceil(maxCols / 2)) && [...tb.get(r1).values()].some((cell) => hasNameHeader(textOf(cell)))
+        && [...tb.get(r1).values()].every((cell) => isHeaderLike(textOf(cell)))) headRows.push(r1);
+    }
+    const head = new Map(); // c -> {text, kind, role}
+    const rank = { stark: 2, schwach: 1 };
+    for (const r of headRows) {
+      for (const [c, cell] of tb.get(r)) {
+        const tx = textOf(cell);
+        const cl = classifyHeader(tx);
+        for (let x = c; x <= cell.c2; x++) {
+          const old = head.get(x) || { text: '', kind: null, role: null };
+          head.set(x, { text: old.text ? old.text + ' / ' + tx : tx, kind: (rank[cl.kind] || 0) > (rank[old.kind] || 0) ? cl.kind : old.kind, role: cl.role || old.role });
+        }
+      }
+    }
+    const headUnits = new Set(headRows.flatMap((r) => [...tb.get(r).values()].flatMap((cell) => [...cell.units])));
+    const lastHead = headRows.length ? headRows[headRows.length - 1] : -1;
+    for (const c of [...allCols].sort((a, b) => a - b)) {
+      const id = t + '|' + c;
+      const hd = head.get(c) || { text: '', kind: null, role: null };
+      const man = manual[id];
+      const kind = man === true ? 'hand' : man === false ? null : hd.kind;
+      columns.push({ id, t, c, header: hd.text, auto: hd.kind, role: hd.role, manual: man === true ? true : man === false ? false : undefined, kind, headerRow: lastHead });
+      if (!kind) continue;
+      for (const r of rnums) {
+        if (r <= lastHead) continue;
+        const cell = tb.get(r).get(c);
+        if (!cell) continue;
+        for (const ui of cell.units) {
+          if (headUnits.has(ui)) continue;
+          const p = plan.get(ui) || { kind: null, roles: new Set(), rows: [], col: id };
+          if (kind === 'hand' || kind === 'stark' || !p.kind) { if (!p.kind || p.kind === 'schwach') { p.kind = kind; p.col = id; } }
+          p.roles.add(hd.role || '');
+          p.rows.push(t + '|' + r);
+          plan.set(ui, p);
+        }
+      }
+    }
+  }
+  // Treffer je Zelle
+  const cellHits = new Map(); // ui -> Treffer
+  for (const [ui, p] of plan) {
+    const u = units[ui];
+    const toks = unitToks[ui];
+    if (toks.some((tk, k) => tk.word && covered[ui][k])) continue; // Kontaktdaten/Einrichtung haben Vorrang
+    const groups = pureNameGroups(u.text, toks, exceptions);
+    if (!groups) continue;
+    const role = p.roles.size === 1 && [...p.roles][0] ? [...p.roles][0] : null;
+    let comps;
+    let mk;
+    if (groups.length === 2) { // „Nachname, Vorname“ in einer Zelle
+      const sur = cellComps(toks, groups[0], exceptions);
+      const giv = cellComps(toks, groups[1], exceptions);
+      const comma = toks.find((tk) => tk.t === ',' && tk.s >= sur[sur.length - 1].e);
+      comps = [...sur, { type: 'SEP', s: comma.s, e: comma.e }, ...giv];
+      mk = { full: true, given: giv.filter((x) => x.type === 'W').map((x) => x.key).join(' '), sur: sur.map((x) => x.key).join(' ') };
+    } else {
+      comps = cellComps(toks, groups[0], exceptions);
+      mk = role ? { full: false, single: comps.map((x) => x.key).join(' ') } : mentionKey(comps, null);
+    }
+    const W = comps.filter((x) => x.type === 'W');
+    const strong = p.kind === 'stark' || p.kind === 'hand';
+    // Schwaches Kopfwort: sicher mit Namenslisten-Wort, mit zwei Namenswörtern oder mit Anrede/Titel in der Zelle („Dr. Haberkorn“)
+    const cert = strong || W.length >= 2 || W.some((x) => x.known) || groups.strongTitle ? 'sicher' : 'unsicher';
+    const s = comps[0].s;
+    const e = comps[comps.length - 1].e;
+    // Mit Anrede (in der Zelle, im Absatz davor derselben Zelle oder in der linken Nachbarzelle) gilt ein Einzelwort wie
+    // bisher als Nachname (Rolle im Modus rückbaufähig)
+    const titled = !!groups.titled || (ui > 0 && !!u.follows && isAnredeOnly(units[ui - 1].text))
+      || (!!u.leftUnits && u.leftUnits.some((li) => li !== ui && isAnredeOnly(units[li].text)));
+    const h = { s, e, type: 'person', cert, origin: 'auto', unit: ui, suffix: '', comps, mk, titled, defaultOff: false, column: p.col, columnKind: p.kind };
+    if (role && groups.length === 1) h.role = role;
+    hits.push(h);
+    mentions.push(h);
+    cellHits.set(ui, { h, p });
+    toks.forEach((tk, k) => { if (tk.s < e && tk.e > s) { covered[ui][k] = true; tokHit[ui][k] = h; } });
+  }
+  // Vor- und Nachname in derselben Zeile = eine Person. Bei gleichem Zelltext in mehreren Zeilen (gemeinsamer Text in
+  // Excel) nur, wenn der Partner in allen diesen Zeilen derselbe ist.
+  const rowRoles = new Map(); // "t|r" -> {Vorname: [ui], Nachname: [ui]}
+  for (const [ui, { h, p }] of cellHits) {
+    if (!h.role) continue;
+    for (const rk of p.rows) {
+      if (!rowRoles.has(rk)) rowRoles.set(rk, { Vorname: [], Nachname: [] });
+      rowRoles.get(rk)[h.role].push(ui);
+    }
+  }
+  const partners = new Map(); // ui -> Set(Partner-ui | -1)
+  for (const rr of rowRoles.values()) {
+    const ok = rr.Vorname.length === 1 && rr.Nachname.length === 1;
+    for (const ui of [...rr.Vorname, ...rr.Nachname]) {
+      if (!partners.has(ui)) partners.set(ui, new Set());
+      if (!ok) { partners.get(ui).add(-1); continue; }
+      partners.get(ui).add(rr.Vorname[0] === ui ? rr.Nachname[0] : rr.Vorname[0]);
+    }
+  }
+  for (const [ui, ps] of partners) {
+    const h = cellHits.get(ui).h;
+    if (h.role !== 'Vorname' || ps.size !== 1 || ps.has(-1)) continue;
+    const pu = [...ps][0];
+    const ps2 = partners.get(pu);
+    if (!ps2 || ps2.size !== 1 || !ps2.has(ui)) continue;
+    const ph = cellHits.get(pu).h;
+    const mk = { full: true, given: h.mk.single, sur: ph.mk.single };
+    h.mk = mk;
+    ph.mk = { ...mk };
+    h.rowPerson = true;
+    ph.rowPerson = true;
+  }
+  return columns;
 }

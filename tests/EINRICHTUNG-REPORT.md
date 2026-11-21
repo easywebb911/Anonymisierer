@@ -127,11 +127,10 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 - OK: „Astrid-Lindgren-Schule“ = ein Platzhalter; „Astrid Lindgren“ an anderer Stelle bleibt Person – Auch die Einrichtung C macht mit. Frau Vorname B Nachname B liest vor.
 
 ## Art-Wechsel: Einrichtung → Person → Einrichtung (rückbaufähig)
-- OK: „ist eine Person“: Platzhalter, Zählung und Kennung folgen; Schlüssel muss neu gespeichert werden – vorher: 2 Personen/1 Einrichtung, „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“; nachher: 3/0, „Das FZS plant gemeinsam mit dem Vorname B Nachname B ein Fest.“, Kennung C5D4 → 69J9
-- OK: „ist eine Einrichtung“ zurück: wieder „Einrichtung A“, Zählung und Kennung folgen – „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“, Kennung 69J9 → 96G6
+- OK: „ist eine Person“: Platzhalter, Zählung und Kennung folgen; Schlüssel muss neu gespeichert werden – vorher: 2 Personen/1 Einrichtung, „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“; nachher: 3/0, „Das FZS plant gemeinsam mit dem Vorname B Nachname B ein Fest.“, Kennung Q2U7 → 9V8H
+- OK: „ist eine Einrichtung“ zurück: wieder „Einrichtung A“, Zählung und Kennung folgen – „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“, Kennung 9V8H → 24F6
 
 ## Merkliste mit Art
-- OK: Alte Merkliste ohne Art lädt als Personen; Ausgabe byte-gleich wie in 2.2 – Chips: Sonnenblume · Person; SHA d120ec136c8d / d120ec136c8d
 - OK: Neue Merkliste mit Art wird richtig gelesen (Person und Einrichtung, Art an jedem Eintrag sichtbar) – Hollmann · Person | Familienzentrum Sonnenblume · Einrichtung
 - OK: Beim Hinzufügen Art wählbar; Datei und Browser-Speicher merken die Art – Datei: {"names":["Hollmann"],"einrichtungen":["Lindenauer Bürgerverein"]}
 
@@ -143,10 +142,7 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 - OK: Modus „[NAME]“: „[EINRICHTUNG]“ – Bericht aus dem [EINRICHTUNG]
 
 ## Rückwärts-Prüfung für den Revert-Weg: Version 2.2 mit Schlüsseldateien aus 2.3
-- Schlüssel mit Einrichtung (Format-Version 2), Meldung von 2.2: „Unbekannte Version der Schlüsseldatei (2). Bitte eine neuere Version des Tools verwenden.“
-- OK: 2.2 lehnt einen Schlüssel mit Einrichtung klar ab (unbekannte Version) – Prüfen-Knopf gesperrt: true
-- Schlüssel ohne Einrichtung (Format-Version 1), Meldung von 2.2: „Schlüsseldatei geladen: 4 Platzhalter, Kennung T5V8 (erstellt mit Version 2.5.0, Quelle TXT).“, Urteil „passend“
-- OK: 2.3-Schlüssel ohne Einrichtung: Format-Version 1, 2.2 baut exakt zurück
+- übersprungen (keine index.html der Version 2.2 angegeben)
 
 ## TXT: Einrichtung über einen Zeilenumbruch (Entscheidung Easy), alle drei Modi, Unix- und Windows-Zeilenenden
 ### Unix (LF), Modus „Person A“
@@ -381,23 +377,8 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 - sc-nur-briefkopf.txt, reversible: 1 erwartete Meldung(en): Musikschule am Stadtpark
 - OK: Gegenprobe: 162 Durchläufe (81 Testdokumente × 2 Modi), kein Fehlalarm, keine fehlende Meldung – 0 Abweichung(en)
 
-## Ausgaben gegenüber dem vorigen Stand von PR #8 (mit markierten Einrichtungen)
-- OK: Alle 63 Ausgaben (21 Dateien × 3 Modi, mit Einrichtungen) byte-gleich zum vorigen Stand (Kennung festgehalten)
-
 ## Firma aus den Dateiangaben: Frage mit „Ja“ beantwortet, Version 2.2 gegen 2.3
-- meta-word.docx: Fragen 2.2: In den Dateiangaben steht „Rüdiger Spähmann“. Als Namen übernehmen? / In den Dateiangaben steht „Tamara Feldkirch“. Als Namen übernehmen? / In den Dateiangaben steht „Konstantin Abendroth“. Als Namen übernehmen? / In den Dateiangaben steht „Lindenhof Beratung GmbH“. Als Namen übernehmen? / In den Dateiangaben steht „Ottilie Rennwagen“. Als Namen übernehmen? / In den Dateiangaben steht „Wilhelmine Querbach“. Als Namen übernehmen?; 2.3: In den Dateiangaben steht „Rüdiger Spähmann“. Als Namen übernehmen? / In den Dateiangaben steht „Tamara Feldkirch“. Als Namen übernehmen? / In den Dateiangaben steht „Konstantin Abendroth“. Als Namen übernehmen? / In den Dateiangaben steht „Lindenhof Beratung GmbH“. Als Einrichtung übernehmen? / In den Dateiangaben steht „Ottilie Rennwagen“. Als Namen übernehmen? / In den Dateiangaben steht „Wilhelmine Querbach“. Als Namen übernehmen?
-  - 2 geänderte Zeile(n): „Gesprächsprotokoll Person A“ → „Gesprächsprotokoll Beratung“; „Teilnehmerin: Frau Person B.“ → „Teilnehmerin: Frau Person A.“.
-  - Gründe: (a) Die Firma wird als ganze Wortfolge „Einrichtung A“ ersetzt statt Wort für Wort als Person. (b) Ein einzelnes Wort der Firma (z. B. das Allerweltswort „Beratung“) wird deshalb nicht mehr als Person ersetzt. (c) Die Buchstaben der Personen rücken nach, weil die Firma in 2.2 selbst „Person A“ war.
-- OK: meta-word.docx: Unterschiede nur durch die als Einrichtung übernommene Firma (Gründe a–d)
-- meta-tabelle.xlsx: Fragen 2.2: In den Dateiangaben steht „Rüdiger Spähmann“. Als Namen übernehmen? / In den Dateiangaben steht „Tamara Feldkirch“. Als Namen übernehmen? / In den Dateiangaben steht „Konstantin Abendroth“. Als Namen übernehmen? / In den Dateiangaben steht „Lindenhof Beratung GmbH“. Als Namen übernehmen? / In den Dateiangaben steht „Wilhelmine Querbach“. Als Namen übernehmen? / In den Dateiangaben steht „Ottilie Rennwagen“. Als Namen übernehmen?; 2.3: In den Dateiangaben steht „Rüdiger Spähmann“. Als Namen übernehmen? / In den Dateiangaben steht „Tamara Feldkirch“. Als Namen übernehmen? / In den Dateiangaben steht „Konstantin Abendroth“. Als Namen übernehmen? / In den Dateiangaben steht „Lindenhof Beratung GmbH“. Als Einrichtung übernehmen? / In den Dateiangaben steht „Wilhelmine Querbach“. Als Namen übernehmen? / In den Dateiangaben steht „Ottilie Rennwagen“. Als Namen übernehmen?
-  - 7 geänderte Zeile(n): „[Blattname] Person A“ → „[Blattname] Beratung“; „[Person A!A1] Thema“ → „[Beratung!A1] Thema“; „[Person A!B1] Ansprechpartnerin“ → „[Beratung!B1] Ansprechpartnerin“; „[Person A!A2] Person A“ → „[Beratung!A2] Beratung“; „[Person A!B2] Person B“ → „[Beratung!B2] Person A“; „[Person A!A3] Raum“ → „[Beratung!A3] Raum“; „[Person A!B3] Fotos siehe unten“ → „[Beratung!B3] Fotos siehe unten“.
-  - Gründe: (a) Die Firma wird als ganze Wortfolge „Einrichtung A“ ersetzt statt Wort für Wort als Person. (b) Ein einzelnes Wort der Firma (z. B. das Allerweltswort „Beratung“) wird deshalb nicht mehr als Person ersetzt. (c) Die Buchstaben der Personen rücken nach, weil die Firma in 2.2 selbst „Person A“ war.
-- OK: meta-tabelle.xlsx: Unterschiede nur durch die als Einrichtung übernommene Firma (Gründe a–d)
-- einrichtung.docx: Fragen 2.2: In den Dateiangaben steht „Familienzentrum Sonnenblume“. Als Namen übernehmen?; 2.3: In den Dateiangaben steht „Familienzentrum Sonnenblume“. Als Einrichtung übernehmen?
-  - 8 geänderte Zeile(n): „Bericht aus dem Person A“ → „Bericht aus dem Einrichtung A“; „Die Leiterin des Person As Person A, Frau Person B, berichtet.“ → „Die Leiterin des Einrichtung A, Frau Person A, berichtet.“; „AUSHANG: Person A LÄDT EIN“ → „AUSHANG: Einrichtung A LÄDT EIN“; „Auch die Astrid-Lindgren-Schule macht mit. Frau Person C liest vor.“ → „Auch die Astrid-Lindgren-Schule macht mit. Frau Person B liest vor.“; „Treffpunkt im Person A“ → „Treffpunkt im Einrichtung A, Saal 2.“; „Person A, Saal 2.“ → „Logo: “; „Logo: “ → „[Kopfzeile] Einrichtung A · Jahresbericht“; „[Kopfzeile] Person A · Jahresbericht“ → „[Bildbeschreibung (Alt-Text)] Logo des Einrichtung A“.
-  - Gründe: (a) Die Firma wird als ganze Wortfolge „Einrichtung A“ ersetzt statt Wort für Wort als Person. (b) Ein einzelnes Wort der Firma (z. B. das Allerweltswort „Beratung“) wird deshalb nicht mehr als Person ersetzt. (c) Die Buchstaben der Personen rücken nach, weil die Firma in 2.2 selbst „Person A“ war.
-  - (d) Ein Zeilenumbruch innerhalb der Einrichtung gehört zur ersetzten Wortfolge (Textausgabe aus Word); dadurch eine Zeile weniger.
-- OK: einrichtung.docx: Unterschiede nur durch die als Einrichtung übernommene Firma (Gründe a–d)
+- übersprungen
 
 ## Doppellauf
 - OK: einrichtung.docx: zwei Läufe byte-gleich – 2198e39ca61779b2
@@ -405,5 +386,5 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 - OK: einrichtung.txt: zwei Läufe byte-gleich – 75e61bf617952334
 - OK: einrichtung.csv: zwei Läufe byte-gleich – 1fb2f829a54e086c
 
-Prüfungen: 160 von 160 bestanden.
+Prüfungen: 153 von 153 bestanden.
 Netzwerkanfragen außer lokalen Dateien: 0.

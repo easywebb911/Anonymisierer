@@ -257,8 +257,27 @@ for (const [file, manual] of allFiles) {
     if (mode === 'reversible') { nOut++; if (a.key !== b.key) diffs.push(`${path.basename(file)}${manual.length ? ' (mit eigenen Namen)' : ''}, Schlüsseldatei`); }
   }
 }
-log(`- ${nOut} Ausgaben (inkl. Schlüsseldateien) verglichen, ${diffs.length} unterschiedlich${diffs.length ? ': ' + diffs.slice(0, 20).join('; ') : ''}`);
-check('Ohne Bedienung sind alle Ausgaben und Schlüsseldateien byte-gleich zu 2.4.1 (Kennung fest)', diffs.length === 0);
+// Version 2.6.0: Diese Dokumente ändern sich ohne Bedienung gewollt durch die neuen Regeln (Grund je Dokument; Einzelheiten
+// zeilengenau im PR-Text und in tests/SPALTEN-REPORT.md). Alle übrigen Ausgaben müssen byte-gleich bleiben.
+const CHANGED_260 = {
+  'a2-risiko.txt': 'Anrede am Zeilenende: „Liebe Frau⏎Vielen Dank …“ und „Gesprächspartner: Herr⏎Schulleitung“ jetzt ersetzt (unsicher, an); Buchstaben danach verschoben',
+  'a2-uebertragung.csv': 'Spalte „Name“ ist Namensspalte (starkes Kopfwort): „Hartungs Antrag“ (reine Namenszelle) wird eine Person; Buchstaben danach verschoben',
+  'mitarbeiter.csv': 'Spalten „Vorname“/„Nachname“: Vor- und Nachname einer Zeile sind eine Person (ein Buchstabe, rückbaufähig „Vorname X“/„Nachname X“)',
+  'mitarbeiter.xlsx': 'wie mitarbeiter.csv (eine Person je Zeile)',
+  'vertausch-1.csv': 'Spalte „Nachname“: „Achterberg“ (in keiner Liste) jetzt ersetzt; eine Person je Zeile',
+  'vertausch-1.xlsx': 'wie vertausch-1.csv',
+  'vertausch-2.csv': 'Spalten „Vorname“/„Nachname“: „Brinkhaus“, „Tilmann“, „Overkamp“ jetzt ersetzt; eine Person je Zeile',
+  'vertausch-2.xlsx': 'wie vertausch-2.csv',
+  'pfade-phase0.xlsx': 'nur Modus rückbaufähig: „Thi Lan“ unter „Vorname“ ist jetzt ganz „Vorname C“ (vorher „Vorname C Nachname C“, Rolle aus der Spalte)',
+};
+const docOf = (d) => d.split(/[ ,]/)[0];
+const unexplained = diffs.filter((d) => !CHANGED_260[docOf(d)]);
+log(`- ${nOut} Ausgaben (inkl. Schlüsseldateien) verglichen, ${diffs.length} unterschiedlich${diffs.length ? ': ' + diffs.join('; ') : ''}`);
+for (const [doc, why] of Object.entries(CHANGED_260)) {
+  const n = diffs.filter((d) => docOf(d) === doc).length;
+  log(`  - ${doc}: ${n} Ausgabe(n) geändert – Grund (Version 2.6.0): ${why}`);
+}
+check('Ohne Bedienung byte-gleich zu 2.4.1 (Kennung fest), außer den Dokumenten mit Grund aus Version 2.6.0', unexplained.length === 0, unexplained.join('; '));
 log('');
 
 // ---------- 4. Sperren, Eigene Namen, 1366×768 ----------

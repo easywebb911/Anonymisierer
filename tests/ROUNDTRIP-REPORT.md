@@ -1,18 +1,18 @@
 # Rückbau: Kreislauf-Beweis und Fallen
 
-Chromium headless gegen index.html (SHA-256 3d1acf7ceaf96b21…). Alle Namen sind erfunden.
+Chromium headless gegen index.html (SHA-256 d411bf2f0f0b1e0e…). Alle Namen sind erfunden.
 
 ## TXT (protokoll.txt)
-- Anonymisiert (rückbaufähig): 57 Platzhalter in der Schlüsseldatei; Status „Gespeichert: anonymisiert_465A.txt – mit bestätigten Restfunden.“
+- Anonymisiert (rückbaufähig): 57 Platzhalter in der Schlüsseldatei; Status „Gespeichert: anonymisiert_Q247.txt – mit bestätigten Restfunden.“
 - Simulierte Korrektur: Wort geändert, Satz mit Nachname A, Vorname A, [E-MAIL-1] und Endung „Nachname As“ eingefügt, Abschnitt TOP 3 vor TOP 2 verschoben
 - Rückbau: 76 Platzhalter ersetzt; abweichende Zeilen gegenüber Erwartung: 0
 - Bericht meldete: Vorname A 2→3, Nachname A 4→7, [E-MAIL-1] 1→2; Auffälligkeiten 0
 - Dateiname: wiederhergestellt_text.txt; JS-Fehler: keine
 
 ## CSV (mitarbeiter.csv)
-- Schlüsseldatei: 35 Platzhalter (E-Mail-Platzhalter: [E-MAIL-1], [E-MAIL-2])
-- Korrektur: Zelle geändert, zwei Zeilen getauscht, neue Zeile mit Vorname A Nachname B, [E-MAIL-1], „Nachname Bs“ eingefügt
-- Rückbau: 39 Platzhalter ersetzt; abweichende Zeilen: 0
+- Schlüsseldatei: 32 Platzhalter (E-Mail-Platzhalter: [E-MAIL-1], [E-MAIL-2])
+- Korrektur: Zelle geändert, zwei Zeilen getauscht, neue Zeile mit Vorname A Nachname A, [E-MAIL-1], „Nachname As“ eingefügt
+- Rückbau: 36 Platzhalter ersetzt; abweichende Zeilen: 0
 - JS-Fehler: keine
 
 ## DOCX (protokoll.docx)
@@ -26,9 +26,9 @@ Chromium headless gegen index.html (SHA-256 3d1acf7ceaf96b21…). Alle Namen sin
 - JS-Fehler: keine
 
 ## XLSX (mitarbeiter.xlsx)
-- Schlüsseldatei: 31 Platzhalter; ausgeblendetes Blatt „Yılmaz“ hieß anonymisiert „Nachname C“
+- Schlüsseldatei: 30 Platzhalter; ausgeblendetes Blatt „Yılmaz“ hieß anonymisiert „Nachname C“
 - Korrektur: Zelltext geändert, Text mit Platzhaltern in eine Zelle eingefügt, Zeilen 3/4 getauscht
-- Rückbau: 48 Platzhalter ersetzt; abweichende Zellen/Blattnamen/Formeln/Kommentare/Kopfzeilen: 0
+- Rückbau: 47 Platzhalter ersetzt; abweichende Zellen/Blattnamen/Formeln/Kommentare/Kopfzeilen: 0
 - Blattnamen und Bezüge nach Rückbau: Blatt 1: Mitarbeiter · Blatt 2: Yılmaz · Blatt 3: Notizen · Name: 'Yılmaz'!$A$1 · S1!E3: Notizen zu Mehmet Yılmaz | f='Yılmaz'!A1 · app: Mitarbeiter · app: Yılmaz · app: Notizen
 - JS-Fehler: keine
 
@@ -39,7 +39,7 @@ Chromium headless gegen index.html (SHA-256 3d1acf7ceaf96b21…). Alle Namen sin
 - JS-Fehler: keine
 
 ## Risiko-Test Anrede allein (a2-risiko.txt/.csv/.docx, unverändert zurückgebaut)
-- TXT: 15 Platzhalter; D-Namen ersetzt 8/8 (Hartung → Nachname F, Hornung → Nachname G, Kubik → Nachname H, Pawlik → Nachname I, Homburg → Nachname J, Steineck → Nachname K, Kronfeld → Nachname L, Tannheim → Nachname M); Rückbau 16 Platzhalter, abweichende Zeilen: 0
+- TXT: 17 Platzhalter; D-Namen ersetzt 8/8 (Hartung → Nachname H, Hornung → Nachname I, Kubik → Nachname J, Pawlik → Nachname K, Homburg → Nachname L, Steineck → Nachname M, Kronfeld → Nachname N, Tannheim → Nachname O); Rückbau 18 Platzhalter, abweichende Zeilen: 0
 - CSV: 12 Platzhalter; D-Namen ersetzt 8/8 (Hartung → Nachname E, Hornung → Nachname F, Kubik → Nachname G, Pawlik → Nachname H, Homburg → Nachname I, Steineck → Nachname J, Kronfeld → Nachname K, Tannheim → Nachname L); Rückbau 12 Platzhalter, abweichende Zeilen: 0
 - DOCX: 16 Platzhalter; D-Namen ersetzt 8/8 (Hartung → Nachname E, Hornung → Nachname F, Kubik → Nachname G, Pawlik → Nachname H, Homburg → Nachname I, Steineck → Nachname J, Kronfeld → Nachname K, Tannheim → Nachname L); Rückbau 25 Platzhalter, abweichende Absätze: 0
 
@@ -90,11 +90,20 @@ Hartung und Tannheim stehen nach allein stehender Anrede und später im Text (au
 - OK: Ergebnis entspricht exakt der Erwartung (alle exakten Platzhalter zurück, Auffälliges unverändert)
 - Rückbau-Bericht: 79 ersetzt; Auffälligkeiten: verändert: nachname ac | unbekannt: Nachname ZZ | gebeugt: Nachnamens A | verändert: [E-Mail-1] | getrennt: Nachname | A
 - OK: falsche Schlüsseldatei (vom Protokoll) erkannt – Urteil: zweifelhaft; Meldung: Wahrscheinlich die falsche Schlüsseldatei: 47 von 57 Platzhaltern gefunden, nur bei 33 stimmt die Anzahl, 28 unbekannte Platzhalter in der Datei.
-- OK: Datei ohne passende Platzhalter: kein Ergebnis – Rückbau nicht möglich.Im Dokument steht keine Kennung. Der Schlüssel hat die Kennung 39A4. Prüfe, ob beide zusammengehör
+- OK: Datei ohne passende Platzhalter: kein Ergebnis – Rückbau nicht möglich.Im Dokument steht keine Kennung. Der Schlüssel hat die Kennung 4K6P. Prüfe, ob beide zusammengehör
 - OK: alte Zuordnungstabelle (CSV) wird abgelehnt – Das ist die alte Zuordnungstabelle (zuordnung_VERTRAULICH.csv). Sie reicht für einen Rückbau NICHT: Sie enthäl
 - OK: Rückbau deterministisch (Doppellauf byte-gleich) – ac385ab26ac6aaf2 / ac385ab26ac6aaf2
 - OK: Anonymisierung rückbaufähig deterministisch (Datei und Schlüssel ohne Kennung) – 6e6b33171283923f / 6e6b33171283923f
-- OK: Kennungen zweier Läufe verschieden (Zufall) – 39A4 / Q42G
+- OK: Kennungen zweier Läufe verschieden (Zufall) – 4K6P / 789W
+
+## Namensspalten und Anrede am Zeilenende (Version 2.6.0, tests/fixtures-spalten)
+- protokoll.txt: Sonnleitner → Nachname D; 9 Platzhalter; bearbeitet (Zeile mit dem Platzhalter angefügt); 15 zurückgebaut, Abweichungen: 0
+- protokoll-lf.txt: Kirchbichler → Nachname E; 9 Platzhalter; bearbeitet (Zeile mit dem Platzhalter angefügt); 15 zurückgebaut, Abweichungen: 0
+- tabellen-stark.csv: Brzęczek → Nachname F; 18 Platzhalter; bearbeitet (Zeile mit dem Platzhalter angefügt); 27 zurückgebaut, Abweichungen: 0
+- brief.docx: Trzaskalik → Name M; 17 Platzhalter; bearbeitet („Kurs“ → „Angebot“); 25 zurückgebaut, Abweichungen: 0
+- tabellen.docx: Dimitrios → Vorname H; 34 Platzhalter; bearbeitet („Kurs“ → „Angebot“); 65 zurückgebaut, Abweichungen: 0
+- liste.xlsx: Kirchbichler → Nachname J; 30 Platzhalter; bearbeitet („Kurs“ → „Angebot“); 35 zurückgebaut, Abweichungen: 0
+- tabellen.xlsx: Brzęczek → Nachname E; 32 Platzhalter; bearbeitet („Kurs“ → „Angebot“); 41 zurückgebaut, Abweichungen: 0
 - OK: Modus „Person A“ zeigt „nicht rückbaufähig“ (true) und keine Schlüsseldatei (true)
 - OK: Modus „[NAME]“ zeigt „nicht rückbaufähig“ (true) und keine Schlüsseldatei (true)
 
@@ -102,17 +111,24 @@ Hartung und Tannheim stehen nach allein stehender Anrede und später im Text (au
 | Format | Werte gesamt (ersetzte Platzhalter) | exakt zurück | Abweichungen |
 |---|---|---|---|
 | TXT | 76 | 76 | 0 |
-| CSV | 39 | 39 | 0 |
+| CSV | 36 | 36 | 0 |
 | DOCX | 98 | 98 | 0 |
-| XLSX | 48 | 48 | 0 |
+| XLSX | 47 | 47 | 0 |
 | DOCX Kurs-Tabelle | 23 | 23 | 0 |
-| Risiko-Test TXT | 16 | 16 | 0 |
+| Risiko-Test TXT | 18 | 18 | 0 |
 | Risiko-Test CSV | 12 | 12 | 0 |
 | Risiko-Test DOCX | 25 | 25 | 0 |
 | Übertragung DOCX | 22 | 22 | 0 |
 | Übertragung TXT | 22 | 22 | 0 |
 | Übertragung CSV | 21 | 21 | 0 |
 | Fallen-TXT | 79 | 79 | 0 |
+| 2.6.0 protokoll.txt | 15 | 15 | 0 |
+| 2.6.0 protokoll-lf.txt | 15 | 15 | 0 |
+| 2.6.0 tabellen-stark.csv | 27 | 27 | 0 |
+| 2.6.0 brief.docx | 25 | 25 | 0 |
+| 2.6.0 tabellen.docx | 65 | 65 | 0 |
+| 2.6.0 liste.xlsx | 35 | 35 | 0 |
+| 2.6.0 tabellen.xlsx | 41 | 41 | 0 |
 
 Fallen-Prüfungen: 36 von 36 bestanden.
 Netzwerkanfragen außer lokalen Dateien: 0.

@@ -231,6 +231,36 @@ export async function readXlsx(bytes) {
       }
     }
   }
+  // Version 2.6.0: Lage jeder Zelle (Blatt, Zeile, Spalte; verbundene Zellen) für die Namensspalten und die linke
+  // Nachbarzelle (Anrede in der Nachbarzelle, Regel a2). Ein gemeinsamer Text (sharedStrings) wird nur EINMAL gelesen
+  // und steht für alle Zellen mit diesem Text: Er sammelt die Lage aller seiner Zellen und alle linken Nachbarn.
+  for (const sh of sheets) {
+    const sv = view.find((v) => v.name === sh.name);
+    const sdoc = sh.part ? docs.get(sh.part) : null;
+    if (!sv || !sdoc) continue;
+    const span = new Map();
+    for (const mc of allElements(sdoc).filter((e) => isS(e) && e.localName === 'mergeCell')) {
+      const m = /^([A-Z]+)(\d+):([A-Z]+)(\d+)$/.exec(mc.getAttribute('ref') || '');
+      if (m) span.set((Number(m[2]) - 1) + '|' + (colIndex(m[1])), colIndex(m[3]));
+    }
+    const at = new Map();
+    for (const cell of sv.cells) {
+      const m = /^([A-Z]+)(\d+)$/.exec(cell.ref || '');
+      if (!m) continue;
+      const c = colIndex(m[1]);
+      const r = Number(m[2]) - 1;
+      at.set(r + '|' + c, cell);
+      if (cell.u === undefined) continue;
+      const u = units[cell.u];
+      (u.tcells = u.tcells || []).push({ t: 'x|' + sh.name, r, c, c2: span.has(r + '|' + c) ? span.get(r + '|' + c) : c });
+    }
+    for (const [k, cell] of at) {
+      if (cell.u === undefined) continue;
+      const [r, c] = k.split('|').map(Number);
+      const left = at.get(r + '|' + (c - 1));
+      if (left && left.u !== undefined) { const u = units[cell.u]; (u.leftUnits = u.leftUnits || []).push(left.u); }
+    }
+  }
   siList.forEach((si, i) => { if (!siDone.has(i)) push(groupUnit(si, 'Gemeinsamer Text (nicht verwendet)', owned), null, ssPart.target); });
 
   // Definierte Namen mit Text
@@ -328,6 +358,7 @@ function cellString(sheetDoc, ref, siList) {
   if (t === 'str' && v) return v.textContent;
   return null;
 }
+const colIndex = (c) => colToNum(c) - 1;
 function colToNum(c) { let n = 0; for (const ch of c) n = n * 26 + (ch.charCodeAt(0) - 64); return n; }
 function numToCol(n) { let s = ''; while (n > 0) { const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); } return s; }
 

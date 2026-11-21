@@ -1030,7 +1030,7 @@ Gezählt wird nur bei bestätigten Namen (mindestens ein eingeschalteter Treffer
 - OK: Ersetzer außerhalb der Prüfansicht (reversible): „MÜLLERS“ ersetzt oder gemeldet
 
 ## Schlusscheck-Vergleich über alle Testdokumente (Modus „Person A“ und „rückbaufähig“; Ausgabe im eigenen Format)
-- 87 Dokumente, je zwei Modi: Meldungen vorher 298, nachher 52; neu 52, entfallen 298
+- 87 Dokumente, je zwei Modi: Meldungen vorher 298, nachher 50; neu 50, entfallen 298
   - neu: einrichtung.csv (person): „Astrid-Lindgren-Schule“ in Zeile 7, Spalte 1 – „Auch die Astrid-Lindgren-Schule macht mit. Frau Person B lies“
   - neu: einrichtung.csv (reversible): „Astrid-Lindgren-Schule“ in Zeile 7, Spalte 1 – „Auch die Astrid-Lindgren-Schule macht mit. Frau Vorname B Nac“
   - neu: einrichtung.docx (person): „Familienzentrum Sonnenblume“ in Text – „Bericht aus dem Familienzentrum Sonnenblume“
@@ -1076,11 +1076,9 @@ Sonnenblume“ in Blatt Familienzentrum Sonnenblume, Zelle A7 – „Treffpunkt 
   - neu: meta-falle.docx (reversible): „Rüdiger“ in Bild (versteckte Bildangaben) – „      ;    �          Rüdiger Spähmann  �   �   ����“
   - neu: meta-falle.docx (reversible): „Spähmann“ in Bild (versteckte Bildangaben) – „;    �          Rüdiger Spähmann  �   �   ����“
   - neu: mitarbeiter.csv (person): „Mai“ in Zeile 4, Spalte 5 – „Elternzeit ab Mai“
-  - neu: mitarbeiter.csv (person): „Rose“ in Zeile 9, Spalte 5 – „Die Rose auf dem Tisch ist Deko“
   - neu: mitarbeiter.csv (reversible): „Mai“ in Zeile 4, Spalte 5 – „Elternzeit ab Mai“
-  - neu: mitarbeiter.csv (reversible): „Rose“ in Zeile 9, Spalte 5 – „Die Rose auf dem Tisch ist Deko“
-  - neu: mitarbeiter.xlsx (person): „Mai“ in Blatt Yılmaz (ausgeblendet), Zelle A2 – „Gespräch mit Person S am 3. Mai“
-  - neu: mitarbeiter.xlsx (reversible): „Mai“ in Blatt Yılmaz (ausgeblendet), Zelle A2 – „it Vorname S Nachname S am 3. Mai“
+  - neu: mitarbeiter.xlsx (person): „Mai“ in Blatt Yılmaz (ausgeblendet), Zelle A2 – „Gespräch mit Person O am 3. Mai“
+  - neu: mitarbeiter.xlsx (reversible): „Mai“ in Blatt Yılmaz (ausgeblendet), Zelle A2 – „it Vorname O Nachname O am 3. Mai“
   - neu: protokoll.docx (person): „Mai“ in Text – „(Leitung: Person U) bietet ab Mai wieder Suppe an. Auf dem Tisc“
   - neu: protokoll.docx (reversible): „Mai“ in Text – „rname U Nachname U) bietet ab Mai wieder Suppe an. Auf dem Tisc“
   - neu: protokoll.pdf (person): „Mai“ in Seite 1 – „(Leitung: Person U) bietet ab Mai wieder Suppe an. Auf dem Tisc“

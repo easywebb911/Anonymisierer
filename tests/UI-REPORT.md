@@ -6,9 +6,9 @@ Chromium headless, Start per file://. Alle Namen in den Testdateien sind erfunde
 - OK: „Weiter zum Prüfen“ ist ohne Antwort und Datei gesperrt
 - OK: … und mit Antwort, aber ohne Datei weiter gesperrt
 - OK: … mit Antwort und Datei aktiv
-- OK: Alle 15 Fragen mit Taste J beantwortet – Keine Frage offen
+- OK: Alle 12 Fragen mit Taste J beantwortet – Keine Frage offen
 - OK: „2 Datei speichern“ ist vor dem Schlüssel gesperrt
-- OK: Datei gespeichert – Gespeichert: anonymisiert_U7P9.docx – Schlusscheck ohne Fund.
+- OK: Datei gespeichert – Gespeichert: anonymisiert_F8F8.docx – Schlusscheck ohne Fund.
 - Details nach dem Speichern:  ·  ·  ·  ·  · ; offene Punkte: 1
 - OK: In jedem Schritt genau ein Bildschirm und genau ein Hauptknopf – Start: Bildschirm start, Hauptknopf „Dokument anonymisieren
         Namen durch Platzhalter ersetzen, bevor die Datei an eine KI geht.“ → Datei (leer): Bildschirm a1, Hauptknopf „Weiter zum Prüfen“ → Datei (geladen): Bildschirm a1, Hauptknopf „Weiter zum Prüfen“ → Prüfen: Bildschirm a2, Hauptknopf „Weiter zum Speichern“ → Speichern (vor dem Schlüssel): Bildschirm a3, Hauptknopf „1 Schlüssel speichern“ → Speichern (nach dem Schlüssel): Bildschirm a3, Hauptknopf „2 Datei speichern“ → Gespeichert: Bildschirm a3, Hauptknopf „Nächstes Dokument“
@@ -34,7 +34,7 @@ Chromium headless, Start per file://. Alle Namen in den Testdateien sind erfunde
 - OK: Keine JavaScript-Fehler
 
 ## Sperren halten das Speichern weiter auf
-- Offene Punkte: 14 Fragen sind noch offen. Ohne Antwort bleibt jede Stelle so, wie sie im Moment ist. Beantworten | 2 Bilder im Dokument. Das Tool ändert Bilder nicht. Steht auf einem Bild ein Name oder ein Logo, entferne es vorher in Word. Ansehen | „Familienzentrum Sonnenblume“ steht noch in: Kopfzeile Einrichtung aus den Dateiangaben · „… Familienzentrum Sonnenblume…“ Als Einrichtung übernehmen | „Familienzentrum Sonnenblume“ steht noch in: Bildbeschreibung Einrichtung aus den Dateiangaben · „…Logo Familienzentrum Sonnenblume Musterstadt…“ | „Familienzentrum Sonnenblume“ steht noch in: Kopfzeile Einrichtung aus den Dateiangaben · „… Familienzentrum Sonnenblume…“
+- Offene Punkte: 11 Fragen sind noch offen. Ohne Antwort bleibt jede Stelle so, wie sie im Moment ist. Beantworten | 2 Bilder im Dokument. Das Tool ändert Bilder nicht. Steht auf einem Bild ein Name oder ein Logo, entferne es vorher in Word. Ansehen | „Familienzentrum Sonnenblume“ steht noch in: Kopfzeile Einrichtung aus den Dateiangaben · „… Familienzentrum Sonnenblume…“ Als Einrichtung übernehmen | „Familienzentrum Sonnenblume“ steht noch in: Bildbeschreibung Einrichtung aus den Dateiangaben · „…Logo Familienzentrum Sonnenblume Musterstadt…“ | „Familienzentrum Sonnenblume“ steht noch in: Kopfzeile Einrichtung aus den Dateiangaben · „… Familienzentrum Sonnenblume…“
 - OK: Offene Punkte ohne Häkchen: Speichern blockiert – Schlusscheck: 3 Klarname(n) noch im Ergebnis. Speichern blockiert – bitte die Punkte oben ansehen und „Ich habe alle Punkte gesehen und speichere so.“ abhaken.
 - OK: Häkchen ist gesperrt, solange die Bilderliste nicht geöffnet wurde
 - OK: Nach dem Öffnen der Bilderliste ist das Häkchen wählbar
@@ -53,9 +53,9 @@ Chromium headless, Start per file://. Alle Namen in den Testdateien sind erfunde
 
 ## Fragekarte, Tasten J/N, Markieren
 - OK: Taste J wirkt nicht auf dem Bildschirm „Datei“
-- OK: Keine Frage zu „Montag“ (Regel b2), alle Vorkommen bleiben stehen – Fragen zu: Vogel, Lieder, Kirchbichler, Yoga, Tesfamariam, Schneider, Ton, Engel, Brzęczek, Sonnleitner, Fuchs, Gisela Musterfrau, Bernd Beispielmann, Familienzentrum Sonnenblume
-- OK: Taste J (Ja) schaltet alle Stellen der Frage an – true
-- OK: Taste N schaltet die Stellen wieder aus – false
+- OK: Keine Frage zu „Montag“ (Regel b2), alle Vorkommen bleiben stehen – Fragen zu: Lieder, Kirchbichler, Yoga, Tesfamariam, Ton, Brzęczek, Sonnleitner, Fuchs, Gisela Musterfrau, Bernd Beispielmann, Familienzentrum Sonnenblume
+- OK: Taste J (Ja) schaltet alle Stellen der Frage an – true,true
+- OK: Taste N schaltet die Stellen wieder aus – false,false
 - OK: Taste J wirkt nicht, wenn ein Eingabefeld (Auswahlliste) den Fokus hat
 - OK: Knopf „Als Name markieren“ erscheint direkt neben der Stelle – Abstand 17 px
 - OK: Von Hand markierter Name wird überall ersetzt (auch „Uchendus“, „UCHENDU“) – 4 Vorkommen im Original, 0 im Ergebnis

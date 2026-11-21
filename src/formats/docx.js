@@ -50,8 +50,26 @@ function directlyFollows(a, b) {
   return cells.indexOf(b.cell) === cells.indexOf(a.cell) + 1;
 }
 
+// Version 2.6.0 (Namensspalten): Spalte einer Zelle im Tabellenraster (verbundene Zellen über w:gridSpan, w:gridBefore)
+function gridAttr(el, name) {
+  const x = el ? Array.from(el.getElementsByTagNameNS('*', name)).find((g) => g.parentNode && g.parentNode.parentNode === el) : null;
+  if (!x) return null;
+  const v = x.getAttributeNS(x.namespaceURI, 'val') || x.getAttribute('w:val');
+  return v === null || v === '' ? null : Number(v);
+}
+function cellGrid(row, cell) {
+  let col = gridAttr(row, 'gridBefore') || 0;
+  for (const c of Array.from(row.childNodes).filter((x) => x.nodeType === 1 && isW(x) && x.localName === 'tc')) {
+    const span = Math.max(1, gridAttr(c, 'gridSpan') || 1);
+    if (c === cell) return { c: col, c2: col + span - 1 };
+    col += span;
+  }
+  return { c: col, c2: col };
+}
+
 function paragraphUnits(doc, baseLabel) {
   const units = [];
+  const tblIds = new Map();
   const owned = new Set();
   let pi = -1;
   let prevPos = null;
@@ -94,6 +112,11 @@ function paragraphUnits(doc, baseLabel) {
       if (!rowIds.has(pos.row)) rowIds.set(pos.row, rowIds.size);
       unit.row = rowIds.get(pos.row);
       unit.cell = Array.from(pos.row.childNodes).filter((c) => c.nodeType === 1 && isW(c) && c.localName === 'tc').indexOf(pos.cell);
+      // Version 2.6.0: Lage in der Tabelle (Tabelle, Zeile, Rasterspalte) für die Namensspalten
+      const tbl = pos.row.parentNode;
+      if (!tblIds.has(tbl)) tblIds.set(tbl, tblIds.size + 1);
+      const g = cellGrid(pos.row, pos.cell);
+      unit.tcells = [{ t: String(tblIds.get(tbl)), r: Array.from(tbl.childNodes).filter((c) => c.nodeType === 1 && isW(c) && c.localName === 'tr').indexOf(pos.row), c: g.c, c2: g.c2 }];
     }
     prevPos = pos;
     units.push(unit);
@@ -146,7 +169,7 @@ export async function readDocx(bytes) {
   const owned = new Set();
   for (const [n, label] of unitParts) {
     const r = paragraphUnits(docs.get(n), label);
-    r.units.forEach((u) => { u.part = n; units.push(u); });
+    r.units.forEach((u) => { u.part = n; if (u.tcells) for (const tc of u.tcells) tc.t = 'w|' + n + '|' + tc.t; units.push(u); });
     r.owned.forEach((x) => owned.add(x));
   }
   // Bildbeschreibungen (Alt-Text, Titel von Bildern und Formen): eigene Abschnitte am Ende, damit die übrigen
