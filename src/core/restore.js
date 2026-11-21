@@ -9,11 +9,16 @@ const NAME_RE = /(^|[^\p{L}\p{N}])((?:Vorname|Nachname|Initiale|Name) [A-Z]{1,3}
 // arbeiten (sonst würde z. B. „Einrichtung B“ im Text plötzlich als unbekannter Platzhalter gemeldet).
 const NAME_ORG_RE = /(^|[^\p{L}\p{N}])((?:Vorname|Nachname|Initiale|Name|Einrichtung) [A-Z]{1,3}\d*)(?=(?:'s|’s|'|’|s|es|ns|n)?(?![\p{L}\p{N}]))/gu;
 const CONTACT_RE = /\[(?:E-MAIL|TELEFON|IBAN|ADRESSE)-\d+\]/g;
+// Version 2.7.0: mit Webadressen und Konten. Nur für Schlüssel MIT diesen Arten verwendet, damit ältere Schlüssel genau
+// wie bisher arbeiten (wie bei den Einrichtungen seit 2.3)
+const CONTACT_WEB_RE = /\[(?:E-MAIL|TELEFON|IBAN|ADRESSE|WEBADRESSE|KONTO)-\d+\]/g;
+const contactRe = (key) => (key.hasWeb ? CONTACT_WEB_RE : CONTACT_RE);
 // Veränderte Formen (Kleinschreibung, Genitiv, Bindestrich, ohne Leerzeichen, Zeilenumbruch dazwischen)
 const LOOSE_NAME_RE = /(^|[^\p{L}\p{N}])(vorname|nachname|initiale|name)(ns|s|n)?([\s -]*)([a-z]{1,3})(\d*)(?![\p{L}\p{N}])/giu;
 const LOOSE_NAME_ORG_RE = /(^|[^\p{L}\p{N}])(vorname|nachname|initiale|name|einrichtung)(ns|s|n|en)?([\s -]*)([a-z]{1,3})(\d*)(?![\p{L}\p{N}])/giu;
 const nameRe = (key) => (key.hasOrg ? NAME_ORG_RE : NAME_RE);
 const LOOSE_CONTACT_RE = /\[?\s*(e-?mail|telefon|iban|adresse)\s*[-–_ ]?\s*(\d+)\s*\]?/giu;
+const LOOSE_CONTACT_WEB_RE = /\[?\s*(e-?mail|telefon|iban|webadresse|web-adresse|adresse|konto)\s*[-–_ ]?\s*(\d+)\s*\]?/giu;
 
 // Schlüsseldatei lesen. Liefert {ok:true, key} oder {ok:false, error}
 export function parseKeyFile(text) {
@@ -37,12 +42,13 @@ export function parseKeyFile(text) {
   }
   if (!entries.size) return { ok: false, error: 'Die Schlüsseldatei enthält keine Platzhalter.' };
   const hasOrg = [...entries.keys()].some((ph) => /^Einrichtung [A-Z]{1,3}\d*$/.test(ph));
+  const hasWeb = [...entries.keys()].some((ph) => /^\[(?:WEBADRESSE|KONTO)-\d+\]$/.test(ph));
   // Version 2.3.4 (Zusatzfeld): Wörter, die schon im Original wie ein Platzhalter aussahen -> bleiben unberührt
   const original = new Map();
   for (const x of Array.isArray(data.imOriginal) ? data.imOriginal : []) {
     if (x && typeof x.text === 'string' && !entries.has(x.text)) original.set(x.text, Number(x.anzahl) || 0);
   }
-  return { ok: true, key: { entries, hasOrg, original, toolVersion: data.toolVersion || '?', kind: data.quelle && data.quelle.dateityp } };
+  return { ok: true, key: { entries, hasOrg, hasWeb, original, toolVersion: data.toolVersion || '?', kind: data.quelle && data.quelle.dateityp } };
 }
 
 const ctx = (text, s, e) => text.slice(Math.max(0, s - 25), Math.min(text.length, e + 25)).replace(/\s+/g, ' ');
@@ -67,7 +73,7 @@ export function scanUnit(text, key, where) {
     if (key.entries.has(ph)) { reps.push({ s, e, text: key.entries.get(ph).wert }); found.push(ph); }
     else if (!isOriginal(key, text, s, e)) issues.push({ art: 'unbekannt', text: ph, where, kontext: ctx(text, s, e) });
   }
-  for (const m of text.matchAll(CONTACT_RE)) {
+  for (const m of text.matchAll(contactRe(key))) {
     const s = m.index;
     const e = s + m[0].length;
     taken.push([s, e]);
@@ -86,13 +92,16 @@ export function scanUnit(text, key, where) {
     issues.push({ art, text: m[0].slice(m[1].length), vermutlich: guess, where, kontext: ctx(text, s, e) });
     taken.push([s, e]);
   }
-  for (const m of text.matchAll(LOOSE_CONTACT_RE)) {
+  for (const m of text.matchAll(key.hasWeb ? LOOSE_CONTACT_WEB_RE : LOOSE_CONTACT_RE)) {
     const s = m.index;
     const e = s + m[0].length;
     if (!free(s, e)) continue;
-    const base = { 'e-mail': 'E-MAIL', email: 'E-MAIL', telefon: 'TELEFON', iban: 'IBAN', adresse: 'ADRESSE' }[m[1].toLowerCase()];
+    const base = { 'e-mail': 'E-MAIL', email: 'E-MAIL', telefon: 'TELEFON', iban: 'IBAN', adresse: 'ADRESSE', webadresse: 'WEBADRESSE', 'web-adresse': 'WEBADRESSE', konto: 'KONTO' }[m[1].toLowerCase()];
     const guess = `[${base}-${m[2]}]`;
-    if (!key.entries.has(guess) || !/[[\]]/.test(m[0])) continue;
+    // Version 2.7.0: die neuen Arten auch ohne Klammer, wenn Bindestrich/Unterstrich direkt vor der Nummer steht
+    // („Konto-1“, „Webadresse_2“) und das Wort allein steht (nicht „Bankkonto-1“)
+    const bare = key.hasWeb && (base === 'WEBADRESSE' || base === 'KONTO') && /^[\p{L}-]+[-–_]\d+$/u.test(m[0].trim()) && !/[\p{L}\p{N}]/u.test(text.charAt(s + m[0].search(/\S/) - 1)) && !/[\p{L}\p{N}]/u.test(text.charAt(e));
+    if (!key.entries.has(guess) || !(/[[\]]/.test(m[0]) || bare)) continue;
     issues.push({ art: 'verändert', text: m[0], vermutlich: guess, where, kontext: ctx(text, s, e) });
   }
   return { reps, found, issues };
@@ -184,7 +193,7 @@ export function findLeftovers(key, texts) {
   const left = [];
   for (const { where, text } of texts) {
     for (const m of text.matchAll(nameRe(key))) if (key.entries.has(m[2])) left.push({ where, text: m[2], kontext: ctx(text, m.index, m.index + m[0].length) });
-    for (const m of text.matchAll(CONTACT_RE)) if (key.entries.has(m[0])) left.push({ where, text: m[0], kontext: ctx(text, m.index, m.index + m[0].length) });
+    for (const m of text.matchAll(contactRe(key))) if (key.entries.has(m[0])) left.push({ where, text: m[0], kontext: ctx(text, m.index, m.index + m[0].length) });
   }
   return left;
 }

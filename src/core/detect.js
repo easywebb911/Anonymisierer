@@ -12,11 +12,11 @@ const TOKEN_RE = /[\p{L}\p{M}]+(?:['’][\p{L}\p{M}]+)*(?:-[\p{L}\p{M}]+(?:['’
 const HYPHEN_PREFIX = new Set(['al', 'el', 'ul', 'ad', 'ar', 'as', 'ash', 'at', 'az', 'abd', 'abu', 'ben', 'bin', 'ibn']);
 const ACADEMIC = new Set(['med', 'dent', 'vet', 'rer', 'nat', 'phil', 'jur', 'oec', 'pol', 'hc', 'ing', 'habil']);
 
-export const CONTACT_LABELS = { email: '[E-MAIL]', phone: '[TELEFON]', iban: '[IBAN]', address: '[ADRESSE]' };
+export const CONTACT_LABELS = { email: '[E-MAIL]', phone: '[TELEFON]', iban: '[IBAN]', address: '[ADRESSE]', web: '[WEBADRESSE]', account: '[KONTO]' };
 
 export function defaultState() {
   return {
-    settings: { mode: 'person', email: true, phone: true, iban: true, address: true, unsureOn: true },
+    settings: { mode: 'person', email: true, phone: true, iban: true, address: true, web: true, unsureOn: true },
     manualTerms: [], // vom Nutzer markierte Namen (Reihenfolge = Reihenfolge der Markierung)
     orgTerms: [], // vom Nutzer (oder aus den Dateiangaben) als Einrichtung übernommene Bezeichnungen (Version 2.3)
     exceptions: [], // nie anonymisieren
@@ -319,7 +319,7 @@ function letterFor(n) {
 }
 
 // Hauptfunktion
-export function analyze(units, state) {
+export function analyze(units, state, extra = {}) {
   const st = state;
   const exceptions = new Set(st.exceptions.map((x) => fold(x.trim())).filter(Boolean));
   const unitStarts = [];
@@ -710,6 +710,8 @@ export function analyze(units, state) {
   for (const og of orgs.values()) og.count = og.hits.length;
 
   const result = { fullText, unitStarts, hits, entities, orgs, placeholderWords, columns };
+  // Version 2.7.0: Webadressen/Konten in Link-Zielen, Link-Hinweisen und Feldfunktionen (nur bei eingeschaltetem Schalter)
+  if (st.settings.web && extra.linkTexts && extra.linkTexts.length) result.linkTexts = extra.linkTexts;
   // Modus "rückbaufähig": Platzhalter je Namensteil und nummerierte Kontaktdaten
   if (st.settings.mode === MODE_REVERSIBLE) assignReversible(result);
   return result;

@@ -1,0 +1,70 @@
+﻿{
+  "format": "anonymisierer-rueckbau-schluessel",
+  "formatVersion": 1,
+  "warnung": "Enthält echte Namen. Nie weitergeben, nie an eine KI.",
+  "hinweis": "Rückbau-Schlüsseldatei des Anonymisierers. Ohne diese Datei ist kein Rückbau möglich.",
+  "toolVersion": "2.6.1",
+  "modus": "rückbaufähig",
+  "quelle": {
+    "dateityp": "docx"
+  },
+  "kennung": "E79X",
+  "platzhalter": [
+    {
+      "platzhalter": "Nachname B",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "B",
+      "wert": "Klasse",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname C",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "C",
+      "wert": "Ton",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname D",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "D",
+      "wert": "Dauer",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname D",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "D",
+      "wert": "der Teilnahme",
+      "anzahl": 1
+    }
+  ],
+  "personen": [
+    {
+      "person": "B",
+      "anzeige": "Klasse",
+      "platzhalter": [
+        "Nachname B"
+      ]
+    },
+    {
+      "person": "C",
+      "anzeige": "Ton",
+      "platzhalter": [
+        "Vorname C"
+      ]
+    },
+    {
+      "person": "D",
+      "anzeige": "Dauer der Teilnahme",
+      "platzhalter": [
+        "Vorname D",
+        "Nachname D"
+      ]
+    }
+  ]
+}

@@ -9,6 +9,9 @@ import {
 } from '../core/detect.js';
 import { fold } from '../core/fold.js';
 import { readTxt, writeTxt, readCsv, writeCsv, encodeText, encodeTextPlain } from '../formats/text.js';
+import { collectLinkTexts } from '../formats/links.js';
+import { findContacts } from '../core/patterns.js';
+import { findOrgHints } from '../core/hints.js';
 import { MODE_REVERSIBLE, buildRestoreKey } from '../core/reversible.js';
 import { parseKeyFile, planRestore, makeRestoreString, findLeftovers, findPlaceholderRests } from '../core/restore.js';
 import { readDocx, writeDocx, buildDocx } from '../formats/docx.js';
@@ -32,9 +35,9 @@ const SAVE_HINT_WORD = 'Lade die Datei direkt hoch. Wenn du sie vorher in Word �
 const SAVE_HINT_EXCEL = 'Lade die Datei direkt hoch. Wenn du sie vorher in Excel öffnest und speicherst, trägt Excel deinen Namen wieder ein.';
 // Hinweis für die KI, passend zum Modus
 const KI_HINT = {
-  reversible: 'Der Text enthält Platzhalter wie „Vorname A“, „Nachname A“, „Name A“, „Initiale A.“, „Einrichtung A“ und „[E-MAIL-1]“. Diese Platzhalter bitte nie verändern, nicht beugen, nicht übersetzen und nicht trennen. Zeige mir nur die Fehler, schreibe den Text nicht neu.',
-  person: 'Der Text enthält Platzhalter wie „Person A“, „Einrichtung A“ und „[E-MAIL]“ anstelle echter Namen, Einrichtungen und Kontaktdaten. Diese Platzhalter bitte unverändert lassen. Zeige mir nur die Fehler, schreibe den Text nicht neu.',
-  name: 'Der Text enthält Platzhalter wie „[NAME]“, „[EINRICHTUNG]“ und „[E-MAIL]“ anstelle echter Namen, Einrichtungen und Kontaktdaten. Diese Platzhalter bitte unverändert lassen. Zeige mir nur die Fehler, schreibe den Text nicht neu.',
+  reversible: 'Der Text enthält Platzhalter wie „Vorname A“, „Nachname A“, „Name A“, „Initiale A.“, „Einrichtung A“, „[E-MAIL-1]“, „[WEBADRESSE-1]“ und „[KONTO-1]“. Diese Platzhalter bitte nie verändern, nicht beugen, nicht übersetzen und nicht trennen. Zeige mir nur die Fehler, schreibe den Text nicht neu.',
+  person: 'Der Text enthält Platzhalter wie „Person A“, „Einrichtung A“, „[E-MAIL]“, „[WEBADRESSE]“ und „[KONTO]“ anstelle echter Namen, Einrichtungen, Kontaktdaten, Webadressen und Konten. Diese Platzhalter bitte unverändert lassen. Zeige mir nur die Fehler, schreibe den Text nicht neu.',
+  name: 'Der Text enthält Platzhalter wie „[NAME]“, „[EINRICHTUNG]“, „[E-MAIL]“, „[WEBADRESSE]“ und „[KONTO]“ anstelle echter Namen, Einrichtungen, Kontaktdaten, Webadressen und Konten. Diese Platzhalter bitte unverändert lassen. Zeige mir nur die Fehler, schreibe den Text nicht neu.',
 };
 
 function h(tag, attrs, ...kids) {
@@ -197,14 +200,16 @@ async function loadBytes(bytes, name) {
   if (bytes.length > WARN_BYTES) warnings.push(`Große Datei (${(bytes.length / 1048576).toFixed(1)} MB): Auf dem iPhone kann die Verarbeitung langsam sein oder abbrechen.`);
   // Bilder (nur Word/Excel): Liste mit Fundort, Typ und Beschreibung; Bildinhalte werden erst beim Ansehen gelesen
   const images = doc.imageCtx ? await listImages(kind, doc.zip, doc.docs, doc.imageCtx) : [];
-  return { kind, units, warnings, bytes, info: doc.info || '', raw: doc, metaNames: doc.metaNames || [], images };
+  // Version 2.7.0: Link-Ziele, Link-Hinweise, Feldfunktionen (Word/Excel) für exakte Nummern im Modus „rückbaufähig“
+  const linkTexts = doc.zip ? await collectLinkTexts(doc.zip, doc.docs) : [];
+  return { kind, units, warnings, bytes, info: doc.info || '', raw: doc, metaNames: doc.metaNames || [], images, linkTexts };
 }
 
 // ---------- Analyse ----------
 function runAnalysis() {
   if (!app.doc) return;
   const qBefore = app.result && !app.inAnswer ? new Set(questions().map((q) => q.id)) : null;
-  app.result = analyze(app.doc.units, app.state);
+  app.result = analyze(app.doc.units, app.state, { linkTexts: app.doc.linkTexts });
   // Version 2.6.1 (Entscheidung Easy): Liste geändert (Eigene Namen, Einrichtungen, Ausnahmen) -> Antworten bleiben gültig;
   // ein über „Ja“ bei Dateiangaben übernommener und wieder entfernter Eintrag gilt als „Nein“; Antworten zu Fragen, die
   // dadurch wegfallen, werden verworfen (samt ihrer Wirkung)
@@ -1246,10 +1251,23 @@ function ampelRow(state, title, text, ...extra) {
 function savePoints() {
   const r = app.result;
   const pts = [];
-  if (!r.hits.some((x) => x.on)) pts.push({ id: 'nichts', text: 'Es wird nichts ersetzt.', small: 'Prüfe im Schritt „Prüfen“, ob Namen fehlen.', acts: [['Prüfen', () => show('a2')]] });
+  // Version 2.7.0 (Sperre Punkt 1)
+  if (!r.hits.some((x) => x.on)) pts.push({ id: 'nichts', text: 'In dieser Datei wird nichts ersetzt. Bitte prüfe Schulname, Firma, Webadresse und Konto und markiere sie von Hand.', acts: [['Prüfen', () => show('a2')]] });
+  // Version 2.7.0 (Sperre Punkt 2): Schalter „Webadressen und Konten“ aus, aber im Text steht eine
+  const web = webPlaces();
+  if (web.length) {
+    pts.push({ id: 'web:' + web.map((x) => x.unit + ':' + x.text).join('|'), text: `${web.length === 1 ? 'Eine Webadresse oder ein Konto steht' : web.length + ' Webadressen oder Konten stehen'} noch im Text.`,
+      small: 'Der Schalter „Webadressen und Konten“ ist aus.', items: placeItems(web), acts: [['Ersetzen', () => setWebSwitch(true)]] });
+  }
   const open = openQuestions().length;
   if (open) pts.push({ id: 'fragen:' + open, text: `${open === 1 ? 'Eine Frage ist' : open + ' Fragen sind'} noch offen.`, small: 'Ohne Antwort bleibt jede Stelle so, wie sie im Moment ist.', acts: [['Beantworten', () => { app.qCurrent = null; show('a2'); }]] });
   for (const w of allWarnings()) if (!isInfoWarning(w)) pts.push({ id: 'w:' + w, text: plainWarning(w) });
+  // Version 2.7.0 (PR A): Warnpunkt „Hier könnte eine Einrichtung stehen“ (nur Hinweis, ändert keine Ausgabe)
+  const oh = orgHintPlaces();
+  if (oh.length) {
+    pts.push({ id: 'einr:' + oh.map((x) => x.unit + ':' + x.text).join('|'), text: 'Hier könnte eine Einrichtung stehen. Das Tool ersetzt Einrichtungen noch nicht selbst. Bitte prüfen und bei Bedarf als Einrichtung markieren.',
+      items: placeItems(oh) });
+  }
   if (app.doc.images && app.doc.images.length) {
     const n = app.doc.images.length;
     pts.push({ id: 'bilder', text: `${n === 1 ? 'Ein Bild' : n + ' Bilder'} im Dokument.`, small: `Das Tool ändert Bilder nicht. Steht auf einem Bild ein Name oder ein Logo, entferne es vorher in ${app.doc.kind === 'xlsx' ? 'Excel' : 'Word'}.`,
@@ -1261,6 +1279,69 @@ function savePoints() {
   else { const offered = new Set(); p.leaks.slice(0, 200).forEach((l, i) => pts.push(leakPoint(l, i, offered))); }
   if (p && !p.busy && p.leaks.length > 200) pts.push({ id: 'more', text: `… und ${p.leaks.length - 200} weitere Fundstellen.` });
   return pts;
+}
+// Version 2.7.0: Stellen im Text (Original), die von keinem eingeschalteten Treffer berührt werden
+function freeSpans(find) {
+  const r = app.result;
+  const out = [];
+  const byUnit = new Map();
+  for (const x of r.hits) {
+    if (!x.on) continue;
+    for (const k of [x.unit, x.unit2]) if (k !== undefined) { if (!byUnit.has(k)) byUnit.set(k, []); byUnit.get(k).push(x); }
+  }
+  app.doc.units.forEach((u, ui) => {
+    const base = r.unitStarts[ui];
+    const on = byUnit.get(ui) || [];
+    for (const x of find(u.text)) {
+      if (on.some((o) => o.s < base + x.e && o.e > base + x.s)) continue;
+      out.push({ unit: ui, s: x.s, e: x.e, text: u.text.slice(x.s, x.e) });
+    }
+  });
+  return out;
+}
+// Sperre Punkt 2: nur bei ausgeschaltetem Schalter
+// Zwischenspeicher je Analyse-Stand (savePoints wird oft aufgerufen)
+const spanCache = new Map();
+function cachedSpans(name, find) {
+  const k = name + '#' + app.stamp;
+  if (spanCache.get(name + '@') !== app.result || !spanCache.has(k)) {
+    for (const key of [...spanCache.keys()]) if (key.startsWith(name)) spanCache.delete(key);
+    spanCache.set(k, freeSpans(find));
+    spanCache.set(name + '@', app.result);
+  }
+  return spanCache.get(k);
+}
+function webPlaces() {
+  if (app.state.settings.web) return [];
+  return cachedSpans('web', (t) => findContacts(t, { web: true }).filter((c) => c.type === 'web' || c.type === 'account'));
+}
+function orgHintPlaces() { return cachedSpans('einr', findOrgHints); }
+// höchstens zehn Stellen, dann „und n weitere“; jede mit Fundort und „Im Text zeigen“
+function placeItems(list) {
+  const items = list.slice(0, 10).map((x) => ({ text: `${/^[„“"»«]/.test(x.text) ? x.text.replace(/\s+/g, ' ') : '„' + x.text.replace(/\s+/g, ' ') + '“'} – ${unitPlace(x.unit)}`, act: ['Im Text zeigen', () => showUnit(x.unit)] }));
+  if (list.length > 10) items.push({ text: `und ${list.length - 10} weitere` });
+  return items;
+}
+function showUnit(ui) {
+  show('a2');
+  const sheets = app.doc.kind === 'xlsx' && app.doc.raw.view ? app.doc.raw.view : null;
+  if (sheets) {
+    const si = sheets.findIndex((sh) => sh.cells.some((c) => c.u === ui));
+    if (si >= 0 && si !== app.sheetTab) { app.sheetTab = si; renderDoc(); }
+  }
+  requestAnimationFrame(() => {
+    const el = document.querySelector(`#docview [data-u="${ui}"]`);
+    if (!el) return;
+    const top = $('.top') ? $('.top').getBoundingClientRect().bottom : 0;
+    el.style.scrollMarginTop = Math.ceil(top) + 'px';
+    el.scrollIntoView({ block: 'center', inline: 'center', behavior: 'auto' });
+  });
+}
+function setWebSwitch(on) {
+  const cb = $('#opt-web');
+  if (cb.checked === on) return;
+  cb.checked = on;
+  cb.dispatchEvent(new Event('change'));
 }
 // Ausgeschaltete Stellen im selben Abschnitt mit diesem Wort (für „Ersetzen“)
 function offHitsFor(l) {
@@ -1297,7 +1378,8 @@ function renderSave() {
   const lead = who ? `${who} ${persons + orgsOn === 1 ? 'ist' : 'sind'} ersetzt.` : (r.hits.some((x) => x.on) ? 'Kontaktdaten sind ersetzt.' : 'Es wird nichts ersetzt.');
   $('#save-lead').textContent = lead + (n ? ` ${countWord(n)} ${n === 1 ? 'Punkt' : 'Punkte'} bitte noch ansehen:` : pts.some((p) => p.busy) ? ' Der Schlusscheck läuft …' : '');
   $('#points').replaceChildren(...pts.filter((p) => !p.busy).map((p) => h('li', { class: p.leak ? 'bad' : '' },
-    h('span', { class: 'ptext' }, ...(Array.isArray(p.text) ? p.text : [p.text]), p.small ? h('small', {}, p.small) : null, p.hint ? h('small', {}, p.hint) : null),
+    h('span', { class: 'ptext' }, ...(Array.isArray(p.text) ? p.text : [p.text]), p.small ? h('small', {}, p.small) : null, p.hint ? h('small', {}, p.hint) : null,
+      p.items ? h('ul', { class: 'plist' }, ...p.items.map((it) => h('li', {}, h('span', {}, it.text), it.act ? h('button', { type: 'button', class: 'secondary small', onclick: it.act[1] }, it.act[0]) : null))) : null),
     p.acts && p.acts.length ? h('span', { class: 'pact' }, ...p.acts.map(([label, fn, id]) => h('button', { type: 'button', class: 'secondary small', id: id || null, onclick: fn }, label))) : null)));
   // Bilderliste (aufgeklappt unter der Fläche)
   $('#imgbox').replaceChildren(...(app.imagesOpen && app.doc.images && app.doc.images.length ? [h('ul', { class: 'imglist', id: 'img-list' }, ...app.doc.images.map((im) => imageTile(im, app.doc.kind === 'xlsx' ? 'Excel' : 'Word')))] : []));
@@ -1640,7 +1722,7 @@ function init() {
     st.className = 'status ok';
     renderA1();
   });
-  for (const id of ['email', 'phone', 'iban', 'address', 'unsureOn']) {
+  for (const id of ['email', 'phone', 'iban', 'address', 'web', 'unsureOn']) {
     const cb = $('#opt-' + id);
     cb.checked = app.state.settings[id];
     cb.addEventListener('change', () => {
