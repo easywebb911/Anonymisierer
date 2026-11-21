@@ -8,7 +8,7 @@ Chromium headless, Start per file://. Alle Namen in den Testdateien sind erfunde
 - OK: … mit Antwort und Datei aktiv
 - OK: Alle 16 Fragen mit Taste J beantwortet – Keine Frage offen
 - OK: „2 Datei speichern“ ist vor dem Schlüssel gesperrt
-- OK: Datei gespeichert – Gespeichert: anonymisiert_2B96.docx – Schlusscheck ohne Fund.
+- OK: Datei gespeichert – Gespeichert: anonymisiert_8T2J.docx – Schlusscheck ohne Fund.
 - Ampel nach dem Speichern: grün: Ersetzte Personen und Stellen · grün: Fragen · grün: Versteckte Angaben werden geleert · grün: Bilder · grün: Schlüsseldatei · grün: Schlusscheck · grün: Gespeichert
 - OK: In jedem Schritt genau ein Bildschirm und genau ein Hauptknopf – Start: Bildschirm start, Hauptknopf „Dokument anonymisieren
         Namen durch Platzhalter ersetzen, bevor die Datei an eine KI geht.“ → Datei (leer): Bildschirm a1, Hauptknopf „Weiter zum Prüfen“ → Datei (geladen): Bildschirm a1, Hauptknopf „Weiter zum Prüfen“ → Prüfen: Bildschirm a2, Hauptknopf „Weiter zum Speichern“ → Speichern (vor dem Schlüssel): Bildschirm a3, Hauptknopf „1 Schlüssel speichern“ → Speichern (nach dem Schlüssel): Bildschirm a3, Hauptknopf „2 Datei speichern“ → Gespeichert: Bildschirm a3, Hauptknopf „Nächstes Dokument“
@@ -17,7 +17,7 @@ Chromium headless, Start per file://. Alle Namen in den Testdateien sind erfunde
 ## Durchlauf 2: anonymisieren, einfach (protokoll.txt)
 - OK: Kein Schlüssel-Knopf im Modus „Person A“
 - OK: Datei gespeichert (nach „bewusst stehen lassen“ der bekannten Restfunde) – Gespeichert: anonymisiert_text.txt – mit bestätigten Restfunden.
-- OK: „Hinweis für die KI kopieren“ kopiert den Satz passend zum Modus – Der Text enthält Platzhalter wie „Person A“ und „[E-MAIL]“ anstelle echter Namen und Kontaktdaten. Diese Platzhalter bitte unverändert lassen. Zeige mir nur die Fehler, schreibe den Text nicht neu.
+- OK: „Hinweis für die KI kopieren“ kopiert den Satz passend zum Modus – Der Text enthält Platzhalter wie „Person A“, „Einrichtung A“ und „[E-MAIL]“ anstelle echter Namen, Einrichtungen und Kontaktdaten. Diese Platzhalter bitte unverändert lassen. Zeige mir nur die Fehler, schreibe den Text nicht neu.
 - OK: In jedem Schritt genau ein Bildschirm und genau ein Hauptknopf – Start: Bildschirm start, Hauptknopf „Dokument anonymisieren
         Namen durch Platzhalter ersetzen, bevor die Datei an eine KI geht.“ → Datei: Bildschirm a1, Hauptknopf „Weiter zum Prüfen“ → Prüfen: Bildschirm a2, Hauptknopf „Weiter zum Speichern“ → Speichern: Bildschirm a3, Hauptknopf „Datei speichern“ → Gespeichert: Bildschirm a3, Hauptknopf „Nächstes Dokument“
 - OK: „Nächstes Dokument“ führt zum Start und hinterlässt keinen Rest – Bildschirm start; Dokument false; Antwort gewählt false; Reste im Seitentext: keine
