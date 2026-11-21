@@ -7,7 +7,7 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 ### einrichtung.docx
 - OK: Frage zur Firma lautet „… Als Einrichtung übernehmen?“ – In den Dateiangaben steht „Familienzentrum Sonnenblume“. Als Einrichtung übernehmen?
 - OK: Beim Markieren erscheinen zwei Knöpfe: „Als Name markieren“ und „Als Einrichtung markieren“ – Als Name markieren | Als Einrichtung markieren | Abbrechen
-- OK: Gruppe „Einrichtungen“ mit eigenen Zeilen (Schalter, Name, Zahl, drei Punkte); Personen getrennt – Einrichtungen: Familienzentrums Sonnenblume Einrichtung A 6/6 | Lindenauer Bürgerverein Einrichtung B 2/2 | Astrid-Lindgren-Schule Einrichtung C 1/1; Personen: Petra Hollmann, Astrid Lindgren
+- OK: Gruppe „Einrichtungen“ mit eigenen Zeilen (Schalter, Name, Zahl, drei Punkte); Personen getrennt – Einrichtungen: Familienzentrum Sonnenblume Einrichtung A 6/6 | Lindenauer Bürgerverein Einrichtung B 2/2 | Astrid-Lindgren-Schule Einrichtung C 1/1; Personen: Petra Hollmann, Astrid Lindgren
 - OK: Ampel: „2 Personen und 3 Einrichtungen ersetzt“
 - OK: Schlüsseldatei: Einrichtungen als eigene Art (kategorie „Einrichtung“, Liste „einrichtungen“) – Einrichtung A = „Familienzentrum Sonnenblume“ (2×); Einrichtung A2 = „Familienzentrums Sonnenblume“ (2×); Einrichtung A3 = „FZS“ (1×); Einrichtung B = „Lindenauer Bürgerverein“ (2×); Einrichtung A4 = „FAMILIENZENTRUM SONNENBLUME“ (1×); Einrichtung C = „Astrid-Lindgren-Schule“ (1×)
 
@@ -39,7 +39,7 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 
 ### einrichtung.xlsx
 - OK: Frage zur Firma lautet „… Als Einrichtung übernehmen?“ – In den Dateiangaben steht „Familienzentrum Sonnenblume“. Als Einrichtung übernehmen?
-- OK: Gruppe „Einrichtungen“ mit eigenen Zeilen (Schalter, Name, Zahl, drei Punkte); Personen getrennt – Einrichtungen: Familienzentrums Sonnenblume Einrichtung A 7/7 | Lindenauer Bürgerverein Einrichtung B 2/2 | Astrid-Lindgren-Schule Einrichtung C 1/1; Personen: Petra Hollmann, Astrid Lindgren
+- OK: Gruppe „Einrichtungen“ mit eigenen Zeilen (Schalter, Name, Zahl, drei Punkte); Personen getrennt – Einrichtungen: Familienzentrum Sonnenblume Einrichtung A 7/7 | Lindenauer Bürgerverein Einrichtung B 2/2 | Astrid-Lindgren-Schule Einrichtung C 1/1; Personen: Petra Hollmann, Astrid Lindgren
 - OK: Ampel: „2 Personen und 3 Einrichtungen ersetzt“
 - OK: Schlüsseldatei: Einrichtungen als eigene Art (kategorie „Einrichtung“, Liste „einrichtungen“) – Einrichtung A = „Familienzentrum Sonnenblume“ (2×); Einrichtung A2 = „Familienzentrums Sonnenblume“ (2×); Einrichtung A3 = „FZS“ (1×); Einrichtung B = „Lindenauer Bürgerverein“ (2×); Einrichtung A4 = „FAMILIENZENTRUM SONNENBLUME“ (1×); Einrichtung C = „Astrid-Lindgren-Schule“ (1×); Einrichtung A5 = „Familienzentrum⏎Sonnenblume“ (1×)
 
@@ -70,7 +70,7 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 - OK: xlsx: keine Reste
 
 ### einrichtung.txt
-- OK: Gruppe „Einrichtungen“ mit eigenen Zeilen (Schalter, Name, Zahl, drei Punkte); Personen getrennt – Einrichtungen: Familienzentrums Sonnenblume Einrichtung A 4/4 | Lindenauer Bürgerverein Einrichtung B 2/2 | Astrid-Lindgren-Schule Einrichtung C 1/1; Personen: Petra Hollmann, Astrid Lindgren
+- OK: Gruppe „Einrichtungen“ mit eigenen Zeilen (Schalter, Name, Zahl, drei Punkte); Personen getrennt – Einrichtungen: Familienzentrum Sonnenblume Einrichtung A 4/4 | Lindenauer Bürgerverein Einrichtung B 2/2 | Astrid-Lindgren-Schule Einrichtung C 1/1; Personen: Petra Hollmann, Astrid Lindgren
 - OK: Ampel: „2 Personen und 3 Einrichtungen ersetzt“
 - OK: Schlüsseldatei: Einrichtungen als eigene Art (kategorie „Einrichtung“, Liste „einrichtungen“) – Einrichtung A = „Familienzentrum Sonnenblume“ (1×); Einrichtung A2 = „Familienzentrums Sonnenblume“ (1×); Einrichtung A3 = „FZS“ (1×); Einrichtung B = „Lindenauer Bürgerverein“ (2×); Einrichtung A4 = „FAMILIENZENTRUM SONNENBLUME“ (1×); Einrichtung C = „Astrid-Lindgren-Schule“ (1×)
 
@@ -97,7 +97,7 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 - OK: txt: keine Reste außer dem gemeldeten Zeilenumbruch-Fall – Familienzentrum 1× (Text); Sonnenblume 1× (Text)
 
 ### einrichtung.csv
-- OK: Gruppe „Einrichtungen“ mit eigenen Zeilen (Schalter, Name, Zahl, drei Punkte); Personen getrennt – Einrichtungen: Familienzentrums Sonnenblume Einrichtung A 5/5 | Lindenauer Bürgerverein Einrichtung B 2/2 | Astrid-Lindgren-Schule Einrichtung C 1/1; Personen: Petra Hollmann, Astrid Lindgren
+- OK: Gruppe „Einrichtungen“ mit eigenen Zeilen (Schalter, Name, Zahl, drei Punkte); Personen getrennt – Einrichtungen: Familienzentrum Sonnenblume Einrichtung A 5/5 | Lindenauer Bürgerverein Einrichtung B 2/2 | Astrid-Lindgren-Schule Einrichtung C 1/1; Personen: Petra Hollmann, Astrid Lindgren
 - OK: Ampel: „2 Personen und 3 Einrichtungen ersetzt“
 - OK: Schlüsseldatei: Einrichtungen als eigene Art (kategorie „Einrichtung“, Liste „einrichtungen“) – Einrichtung A = „Familienzentrum Sonnenblume“ (1×); Einrichtung A2 = „Familienzentrums Sonnenblume“ (1×); Einrichtung A3 = „FZS“ (1×); Einrichtung B = „Lindenauer Bürgerverein“ (2×); Einrichtung A4 = „FAMILIENZENTRUM SONNENBLUME“ (1×); Einrichtung C = „Astrid-Lindgren-Schule“ (1×); Einrichtung A5 = „Familienzentrum⏎Sonnenblume“ (1×)
 
@@ -127,8 +127,8 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 - OK: „Astrid-Lindgren-Schule“ = ein Platzhalter; „Astrid Lindgren“ an anderer Stelle bleibt Person – Auch die Einrichtung C macht mit. Frau Vorname B Nachname B liest vor.
 
 ## Art-Wechsel: Einrichtung → Person → Einrichtung (rückbaufähig)
-- OK: „ist eine Person“: Platzhalter, Zählung und Kennung folgen; Schlüssel muss neu gespeichert werden – vorher: 2 Personen/1 Einrichtung, „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“; nachher: 3/0, „Das FZS plant gemeinsam mit dem Vorname B Nachname B ein Fest.“, Kennung 8Y7Z → P8H6
-- OK: „ist eine Einrichtung“ zurück: wieder „Einrichtung A“, Zählung und Kennung folgen – „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“, Kennung P8H6 → Y9F9
+- OK: „ist eine Person“: Platzhalter, Zählung und Kennung folgen; Schlüssel muss neu gespeichert werden – vorher: 2 Personen/1 Einrichtung, „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“; nachher: 3/0, „Das FZS plant gemeinsam mit dem Vorname B Nachname B ein Fest.“, Kennung 3S69 → 7S2T
+- OK: „ist eine Einrichtung“ zurück: wieder „Einrichtung A“, Zählung und Kennung folgen – „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“, Kennung 7S2T → A9N4
 
 ## Merkliste mit Art
 - OK: Alte Merkliste ohne Art lädt als Personen; Ausgabe byte-gleich wie in 2.2 – Chips: Sonnenblume · Person; SHA d120ec136c8d / d120ec136c8d
@@ -143,7 +143,7 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 - OK: Modus „[NAME]“: „[EINRICHTUNG]“ – Bericht aus dem [EINRICHTUNG]
 
 ## Rückwärts-Prüfung für den Revert-Weg: Version 2.2 mit Schlüsseldatei aus 2.3
-- Version 2.2 lädt die Schlüsseldatei: „Schlüsseldatei geladen: 10 Platzhalter, Kennung Y9X8 (erstellt mit Version 2.3.0, Quelle TXT).“
+- Version 2.2 lädt die Schlüsseldatei: „Schlüsseldatei geladen: 10 Platzhalter, Kennung T948 (erstellt mit Version 2.3.0, Quelle TXT).“
 - Urteil der bisherigen Prüfung: „zweifelhaft“, Zeilen: Einrichtung A: 0/1, Einrichtung A2: 0/1, Vorname A: 1/1, Nachname A: 1/1, Einrichtung A3: 0/1, Einrichtung B: 0/2, Einrichtung A4: 0/1, Einrichtung C: 0/1, Vorname B: 1/1, Nachname B: 1/1
 - Ergebnis: Personen und Kontaktdaten zurück; Einrichtungs-Platzhalter bleiben stehen: Einrichtung A, Einrichtung A2, Einrichtung A3, Einrichtung B, Einrichtung A4, Einrichtung C
 - OK: 2.2 lädt den Schlüssel, baut Personen zurück, Einrichtungen bleiben als Platzhalter (gemeldet als Anzahl-Abweichung)

@@ -45,11 +45,11 @@ Das Tool zeigt immer **nur einen Bildschirm**. Oben siehst du, in welchem Schrit
   | grau durchgestrichen | aus |
 
 - Einen Treffer **antippen** schaltet ihn an oder aus.
-- Einen **nicht erkannten Namen** antippen oder markieren: Direkt daneben erscheint **„Als Name markieren“**. Danach wird er **überall** ersetzt, auch mit Endung („Müllers“) und in GROSSSCHREIBUNG.
+- Einen **nicht erkannten Namen** antippen oder markieren: Direkt daneben erscheinen **„Als Name markieren“** und **„Als Einrichtung markieren“** (seit Version 2.3, siehe unten). Danach wird er **überall** ersetzt, auch mit Endung („Müllers“) und in GROSSSCHREIBUNG.
 - **Fragekarte** rechts: Das Tool fragt bei jedem unsicheren Wort bzw. jeder unsicheren Person **einmal**: „Ist „…“ hier ein Name?“.
   - **„Ja, Name“** schaltet alle unsicheren Stellen dieses Worts bzw. dieser Person an, **„Nein“** schaltet sie aus. **Sicher erkannte Stellen derselben Person bleiben in jedem Fall an**; ein „Nein“ gibt also keinen sicher erkannten Namen frei.
   - Am PC gehen auch die Tasten **J** und **N**, aber nur auf diesem Bildschirm und nicht, während du in einem Eingabefeld bist.
-  - Namen aus den **Dateiangaben** (Autor, Bearbeiter, Firma, Kommentar-Autoren, SharePoint-Personen) erscheinen ebenfalls als Frage: „Als Namen übernehmen?“. Aus der Datei werden sie so oder so entfernt; mit „Ja“ werden sie auch im Text ersetzt.
+  - Namen aus den **Dateiangaben** (Autor, Bearbeiter, Firma, Kommentar-Autoren, SharePoint-Personen) erscheinen ebenfalls als Frage: „Als Namen übernehmen?“, bei der Firma (seit 2.3) „Als Einrichtung übernehmen?“. Aus der Datei werden sie so oder so entfernt; mit „Ja“ werden sie auch im Text ersetzt.
 - **Personenliste**:
   - eine Zeile pro Person mit Schalter und Trefferzahl
   - hinter **„⋯“**: Schreibweisen, Zuordnung lösen, **zusammenführen mit …**, **nie anonymisieren**, **für nächstes Mal merken** (kommt in „Eigene Namen“)
@@ -94,8 +94,26 @@ Das Tool zeigt immer **nur einen Bildschirm**. Oben siehst du, in welchem Schrit
 - Namen darin werden erkannt, lassen sich wie im Text markieren und werden beim Speichern ersetzt, **auch wenn der Name sonst nirgends im Text steht**.
 - Der Rückbau setzt sie exakt zurück.
 
+### Einrichtungen (seit Version 2.3)
+Schulen, Vereine, Firmen und Behörden bekommen einen **eigenen Platzhalter**, damit eine KI sie nicht für eine Person hält.
+- **Das Tool sucht Einrichtungen nicht selbst.** Eine Einrichtung entsteht nur so:
+  - **von Hand:** die Bezeichnung markieren und **„Als Einrichtung markieren“** wählen (z. B. „Familienzentrum Sonnenblume“),
+  - **aus den Dateiangaben:** Steht in Word/Excel eine Firma, fragt das Tool: „In den Dateiangaben steht „…“. Als Einrichtung übernehmen?“ (Autor, Bearbeiter und Manager bleiben Personen-Fragen),
+  - **aus der Merkliste „Eigene Namen“:** Beim Hinzufügen wählst du die Art, Person oder Einrichtung.
+- **Umstellen:** Im Menü hinter den drei Punkten steht „ist eine Einrichtung“ bzw. „ist eine Person“.
+- **Platzhalter:**
+  - Modus „Person A“: „Einrichtung A“, „Einrichtung B“ … (eigene Buchstaben, getrennt von den Personen),
+  - Modus „[NAME]“: „[EINRICHTUNG]“,
+  - Modus „rückbaufähig“: der **ganze Name** wird **ein** Platzhalter „Einrichtung A“. Jede andere Schreibweise derselben Einrichtung bekommt eine Nummer: „des Familienzentrums Sonnenblume“ wird „des Einrichtung A2“, „FAMILIENZENTRUM SONNENBLUME“ wird „Einrichtung A3“. So ist der Rückbau an jeder Stelle exakt. Eine Endung am Schluss bleibt wie bei Personen stehen („des Einrichtung Bs“).
+- **Abkürzungen** („FZS“) erkennt das Tool nicht von selbst. Markiere sie ebenfalls als Einrichtung und führe sie im Menü („zusammenführen mit …“) mit der Einrichtung zusammen.
+- Ein mehrteiliger Name wird **immer als Ganzes** ersetzt, nie Wort für Wort, auch in Kopf-/Fußzeilen, Bildbeschreibungen und Blattnamen.
+- **Vorrang:** Steckt ein Personenname in der Einrichtung („Astrid-Lindgren-Schule“), wird die ganze Einrichtung ein Platzhalter; „Astrid Lindgren“ an anderer Stelle bleibt eine Person.
+- Im Schritt „Prüfen“ stehen Einrichtungen in einer eigenen Gruppe **„Einrichtungen“**. Ihre Markierung hat einen **doppelten Rahmen** (violett), damit sie auch ohne Farbe von den anderen zu unterscheiden ist.
+- Die Ampel meldet z. B. „6 Personen und 1 Einrichtung ersetzt“. Der „Hinweis für die KI“ nennt auch „Einrichtung A“.
+
 ### Eigene Namen und Ausnahmen (unter „Erweitert“)
-- **Eigene Namen (Merkliste):** Namen, die das Tool nicht kennt. Sie werden bei jedem weiteren Dokument automatisch mit ersetzt. Auch „Als Name markieren“ und „für nächstes Mal merken“ tragen dort ein.
+- **Eigene Namen (Merkliste):** Namen, die das Tool nicht kennt. Sie werden bei jedem weiteren Dokument automatisch mit ersetzt. Auch „Als Name markieren“, „Als Einrichtung markieren“ und „für nächstes Mal merken“ tragen dort ein.
+  - Jeder Eintrag hat eine **Art** (Person oder Einrichtung), beim Hinzufügen wählbar. Datei und Browser-Speicher merken die Art. Ältere Merklisten (ohne Art) laden wie bisher als Personen.
   - **Achtung: Die Liste enthält echte Namen.**
   - Sie bleibt auch nach „Nächstes Dokument“ bestehen, und zwar so lange, bis du den Tab (bzw. den Browser) schließt oder sie löschst („Merkliste löschen“ oder einzelne Namen mit „×“ entfernen).
   - Nur wenn du den Schalter „im Browser speichern“ einschaltest, bleibt sie auch nach dem Schließen erhalten, bis du sie löschst.
@@ -122,6 +140,7 @@ Das Tool zeigt immer **nur einen Bildschirm**. Oben siehst du, in welchem Schrit
 - Jede Schreibweise hat genau einen Platzhalter. Eine weitere Schreibweise derselben Person bekommt eine Nummer: „MÜLLER“ wird „Nachname A2“, „Müller“ bleibt „Nachname A“.
 - Endungen und Anreden bleiben im Text stehen („Herrn Nachname As“) und kommen beim Rückbau genauso zurück („Herrn Müllers“).
 - Kontaktdaten werden nummeriert: [E-MAIL-1], [TELEFON-2], [IBAN-1], [ADRESSE-1]. Gleicher Wert bekommt die gleiche Nummer.
+- Einrichtungen (seit 2.3): „Einrichtung A“ für den ganzen Namen, weitere Schreibweisen „Einrichtung A2“ … Sie stehen als eigene Art in der Schlüsseldatei. Schlüsseldateien aus früheren Versionen funktionieren unverändert.
 
 **Kennung (seit Version 2.1)**
 - Jede rückbaufähige Anonymisierung bekommt eine **Kennung** aus 4 Zeichen, z. B. **K7F3**. Die Dateien heißen dann `anonymisiert_K7F3.docx` und `schluessel_K7F3.json`. So siehst du sofort, was zusammengehört.
@@ -226,6 +245,14 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 
 ## Grenzen (bitte lesen)
 
+- **Einrichtungen (seit Version 2.3):**
+  - Es gibt **keine eigene Suche** nach Einrichtungen. Was du nicht markierst (oder aus den Dateiangaben übernimmst), bleibt stehen.
+  - Gefunden wird die **ganze Wortfolge**, auch mit den üblichen Endungen („des Familienzentrums Sonnenblume“, „des Lindenauer Bürgervereins“) und in GROSSSCHREIBUNG. **Andere gebeugte Formen** (z. B. Mehrzahl) und **Teile** des Namens allein („die Sonnenblume“, „Lindenhof“) werden **nicht** gefunden und nicht gemeldet. Bitte als weitere Schreibweise markieren und zusammenführen.
+  - **Zeilenumbruch mitten im Namen:** in Word (Umschalt+Enter) und Excel-Zellen wird der Name ersetzt. Ausnahmen, bei denen der Name **stehen bleibt**, der **Schlusscheck ihn aber meldet** und das Speichern sperrt, bis du ihn bewusst stehen lässt:
+    - TXT-Dateien, wenn der Name auf zwei Zeilen verteilt ist,
+    - Word im Modus „rückbaufähig“ (dort könnte der Zeilenumbruch beim Rückbau nicht exakt zurückkommen).
+  - Mit einer Schlüsseldatei aus 2.3, die Einrichtungen enthält, setzt **Version 2.2** nur die Personen zurück; die Einrichtungs-Platzhalter bleiben stehen (im Rückbau-Bericht als fehlend gemeldet).
+
 - **Bedienung (seit Version 2.0):**
   - Es gibt kein dunkles Farbschema mehr; die Farben sind fest hell.
   - Rückbaufähig wird mit zwei Klicks gespeichert („1 Schlüssel“, „2 Datei“), weil Browser zwei Downloads aus einem Klick blockieren oder nachfragen können.
@@ -281,7 +308,7 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 |---|---|
 | Chromium/Chrome (Desktop) | **geprüft** (automatische Tests, headless) |
 | Chromium mit 390, 1280 und 1920 px Breite | **geprüft** (kein waagrechtes Scrollen, Knöpfe mindestens 44 px, Antippen, Markieren, Tasten J/N) |
-| Edge und Chrome unter Windows (Firmen-PC, `file://`) | Version 1.0 laut Easy **am PC geprüft**; Versionen 1.1 bis 2.2 **durch Code ungeprüft** |
+| Edge und Chrome unter Windows (Firmen-PC, `file://`) | Version 1.0 laut Easy **am PC geprüft**; Versionen 1.1 bis 2.3 **durch Code ungeprüft** |
 | Microsoft Word / Excel: Öffnen der bereinigten Datei ohne Reparatur-Meldung | **durch Code ungeprüft** (auch die unsichtbare Kennung, seit 2.1). Geprüft: LibreOffice öffnet alle Ausgaben, alle XML-Teile sind wohlgeformt, keine Verweise ins Leere |
 | Firefox (Desktop) | **ungeprüft** |
 | Safari (macOS) | **ungeprüft** |
@@ -294,7 +321,7 @@ Die Datei muss in einem Browser geöffnet werden (z. B. über „Teilen → in S
 
 ## Version und Prüfsumme
 
-Version **2.2.0**, Stand 2026-11-20 (steht auch im Fußbereich des Tools).
+Version **2.3.0**, Stand 2026-11-21 (steht auch im Fußbereich des Tools).
 
 SHA-256 der `index.html` dieser Version:
 
@@ -361,6 +388,8 @@ node tests/ui-flow.mjs       # geführte Bedienung: Durchläufe, Sperren, Fragek
 node tests/run-tests.mjs     # End-to-End-Tests in Chromium → tests/REPORT.md
 node tests/roundtrip.mjs     # Rückbau: Kreislauf-Beweis und Fallen → tests/ROUNDTRIP-REPORT.md
 node tests/regression.mjs <alte-index.html>  # alle Testdokumente, alle Modi byte-gleich zur Referenz (Ausnahmen einzeln mit Grund: Kennung; Dokumente mit Bildbeschreibungen)?
+node tests/make-einrichtung.mjs  # Einrichtungs-Testdokumente: Word/Excel/TXT/CSV (erfunden)
+node tests/einrichtung-test.mjs <index.html-2.2>  # Einrichtungen: Fälle, Vorrang, Art-Wechsel, Merkliste, Rückwärts-Prüfung → tests/EINRICHTUNG-REPORT.md
 node tests/make-bilder.mjs   # Bilder-Testdokumente: Word/Excel mit Bildern in Text, Kopfzeile, Tabelle, Name nur im Alt-Text/Titel, EMF, verknüpft, SVG (erfunden)
 node tests/bilder-test.mjs <index.html-2.1>  # Bilder: Liste, Kacheln, Sperre, Bildbeschreibungen, Kreislauf, Breiten → tests/BILDER-REPORT.md
 node tests/make-kennung.mjs  # Vertausch-Testpaar: gleiche Vorlage, andere (erfundene) Personen, vier Formate
