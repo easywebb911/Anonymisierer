@@ -8,8 +8,8 @@ Chromium headless, Start per file://. Alle Namen in den Testdateien sind erfunde
 - OK: … mit Antwort und Datei aktiv
 - OK: Alle 16 Fragen mit Taste J beantwortet – Keine Frage offen
 - OK: „2 Datei speichern“ ist vor dem Schlüssel gesperrt
-- OK: Datei gespeichert – Gespeichert: anonymisiert_H56V.docx – Schlusscheck ohne Fund.
-- Ampel nach dem Speichern: grün: Ersetzte Personen und Stellen · grün: Fragen · grün: Versteckte Angaben werden geleert · grün: Hinweis zur Datei · grün: Schlüsseldatei · grün: Schlusscheck · grün: Gespeichert
+- OK: Datei gespeichert – Gespeichert: anonymisiert_2B96.docx – Schlusscheck ohne Fund.
+- Ampel nach dem Speichern: grün: Ersetzte Personen und Stellen · grün: Fragen · grün: Versteckte Angaben werden geleert · grün: Bilder · grün: Schlüsseldatei · grün: Schlusscheck · grün: Gespeichert
 - OK: In jedem Schritt genau ein Bildschirm und genau ein Hauptknopf – Start: Bildschirm start, Hauptknopf „Dokument anonymisieren
         Namen durch Platzhalter ersetzen, bevor die Datei an eine KI geht.“ → Datei (leer): Bildschirm a1, Hauptknopf „Weiter zum Prüfen“ → Datei (geladen): Bildschirm a1, Hauptknopf „Weiter zum Prüfen“ → Prüfen: Bildschirm a2, Hauptknopf „Weiter zum Speichern“ → Speichern (vor dem Schlüssel): Bildschirm a3, Hauptknopf „1 Schlüssel speichern“ → Speichern (nach dem Schlüssel): Bildschirm a3, Hauptknopf „2 Datei speichern“ → Gespeichert: Bildschirm a3, Hauptknopf „Nächstes Dokument“
 - OK: Keine JavaScript-Fehler
@@ -34,10 +34,11 @@ Chromium headless, Start per file://. Alle Namen in den Testdateien sind erfunde
 - OK: Keine JavaScript-Fehler
 
 ## Sperren halten das Speichern weiter auf
-- OK: Offener Datei-Hinweis blockiert – Bitte zuerst alle Hinweise in der Liste oben abhaken.
+- OK: Bilder nicht angesehen: Speichern blockiert (neu in 2.2) – Bitte zuerst die Bilder ansehen und abhaken („Bilder ansehen“ in der Liste oben).
+- kurse.docx hat seit 2.2 keinen allgemeinen Datei-Hinweis mehr (Bilder jetzt in eigener Zeile); die Sperre „offener Datei-Hinweis“ prüft tests/bilder-test.mjs (bilder-word.docx, bilder-excel.xlsx).
 - OK: Offene Fragen blockieren ohne ausdrückliche Bestätigung – Es sind noch Fragen offen. Beantworte sie in Schritt 2 oder bestätige oben, dass du trotzdem speichern willst.
 - OK: Schlusscheck-Fund blockiert – Schlusscheck: 3 Klarname(n) noch im Ergebnis gefunden (bestätigte Namen oder Namen aus den Dateiangaben). Export blockiert – bitte prüfen (siehe Liste oben).
-- OK: Schlusscheck-Fund blockiert auch „Als .txt speichern“ – Schlusscheck: 1 Klarname(n) noch im Ergebnis gefunden (bestätigte Namen oder Namen aus den Dateiangaben). Export blockiert – bitte prüfen (siehe Liste oben).
+- OK: Schlusscheck-Fund blockiert auch „Als .txt speichern“ – Schlusscheck: 2 Klarname(n) noch im Ergebnis gefunden (bestätigte Namen oder Namen aus den Dateiangaben). Export blockiert – bitte prüfen (siehe Liste oben).
 - OK: Nach „bewusst stehen lassen“ wird gespeichert – Gespeichert: anonymisiert_dokument.docx – mit bestätigten Restfunden.
 - OK: Fehlende Schlüsseldatei blockiert auch „Als .docx speichern“ – Bitte zuerst „1 Schlüssel speichern“. Ohne Schlüsseldatei ist kein Rückbau möglich.
 - OK: „2 Datei speichern“ gesperrt, solange der Schlüssel fehlt

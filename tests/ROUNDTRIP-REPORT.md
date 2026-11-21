@@ -1,9 +1,9 @@
 # Rückbau: Kreislauf-Beweis und Fallen
 
-Chromium headless gegen index.html (SHA-256 7a3445ae6f77f61f…). Alle Namen sind erfunden.
+Chromium headless gegen index.html (SHA-256 559e1a56a1c5c350…). Alle Namen sind erfunden.
 
 ## TXT (protokoll.txt)
-- Anonymisiert (rückbaufähig): 57 Platzhalter in der Schlüsseldatei; Status „Gespeichert: anonymisiert_K88N.txt – mit bestätigten Restfunden.“
+- Anonymisiert (rückbaufähig): 57 Platzhalter in der Schlüsseldatei; Status „Gespeichert: anonymisiert_2W32.txt – mit bestätigten Restfunden.“
 - Simulierte Korrektur: Wort geändert, Satz mit Nachname A, Vorname A, [E-MAIL-1] und Endung „Nachname As“ eingefügt, Abschnitt TOP 3 vor TOP 2 verschoben
 - Rückbau: 76 Platzhalter ersetzt; abweichende Zeilen gegenüber Erwartung: 0
 - Bericht meldete: Vorname A 2→3, Nachname A 4→7, [E-MAIL-1] 1→2; Auffälligkeiten 0
@@ -35,7 +35,7 @@ Chromium headless gegen index.html (SHA-256 7a3445ae6f77f61f…). Alle Namen sin
 ## DOCX Kurs-Tabelle (kurse.docx, Namen nur über Anrede im Absatz/der Zelle davor erkannt)
 - Platzhalter der nur so erkannten Namen: Kirchbichler → Nachname D, Tesfamariam → Nachname F, Brzęczek → Nachname L, Sonnleitner → Nachname T
 - Korrektur: Wort geändert, Satz mit Nachname D und Nachname F eingefügt, zwei Tabellenzeilen getauscht
-- Rückbau: 21 Platzhalter ersetzt; abweichende Absätze: 0
+- Rückbau: 23 Platzhalter ersetzt; abweichende Absätze: 0
 - JS-Fehler: keine
 
 ## Risiko-Test Anrede allein (a2-risiko.txt/.csv/.docx, unverändert zurückgebaut)
@@ -89,11 +89,11 @@ Hartung und Tannheim stehen nach allein stehender Anrede und später im Text (au
 - OK: Ergebnis entspricht exakt der Erwartung (alle exakten Platzhalter zurück, Auffälliges unverändert)
 - Rückbau-Bericht: 79 ersetzt; Auffälligkeiten: verändert: nachname ac | unbekannt: Nachname ZZ | gebeugt: Nachnamens A | verändert: [E-Mail-1] | getrennt: Nachname | A
 - OK: falsche Schlüsseldatei (vom Protokoll) erkannt – Urteil: zweifelhaft; Meldung: Wahrscheinlich die falsche Schlüsseldatei47 von 57 Platzhaltern gefunden, nur bei 33 stimmt die Anzahl, 28 unbekannte Platzhalter in der Datei.
-- OK: Datei ohne passende Platzhalter: kein Ergebnis – KennungIm Dokument steht keine Kennung. Der Schlüssel hat die Kennung G67F. Bitte prüfe, ob beide zusammengehören. Ich h
+- OK: Datei ohne passende Platzhalter: kein Ergebnis – KennungIm Dokument steht keine Kennung. Der Schlüssel hat die Kennung W3L2. Bitte prüfe, ob beide zusammengehören. Ich h
 - OK: alte Zuordnungstabelle (CSV) wird abgelehnt – Das ist die alte Zuordnungstabelle (zuordnung_VERTRAULICH.csv). Sie reicht für einen Rückbau NICHT: Sie enthäl
 - OK: Rückbau deterministisch (Doppellauf byte-gleich) – ac385ab26ac6aaf2 / ac385ab26ac6aaf2
 - OK: Anonymisierung rückbaufähig deterministisch (Datei und Schlüssel ohne Kennung) – 6e6b33171283923f / 6e6b33171283923f
-- OK: Kennungen zweier Läufe verschieden (Zufall) – G67F / 6E75
+- OK: Kennungen zweier Läufe verschieden (Zufall) – W3L2 / P54B
 - OK: Modus „Person A“ zeigt „nicht rückbaufähig“ (true) und keine Schlüsseldatei (true)
 - OK: Modus „[NAME]“ zeigt „nicht rückbaufähig“ (true) und keine Schlüsseldatei (true)
 
@@ -104,7 +104,7 @@ Hartung und Tannheim stehen nach allein stehender Anrede und später im Text (au
 | CSV | 39 | 39 | 0 |
 | DOCX | 98 | 98 | 0 |
 | XLSX | 48 | 48 | 0 |
-| DOCX Kurs-Tabelle | 21 | 21 | 0 |
+| DOCX Kurs-Tabelle | 23 | 23 | 0 |
 | Risiko-Test TXT | 16 | 16 | 0 |
 | Risiko-Test CSV | 12 | 12 | 0 |
 | Risiko-Test DOCX | 25 | 25 | 0 |

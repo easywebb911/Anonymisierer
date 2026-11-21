@@ -48,7 +48,7 @@ const csp = [
   "default-src 'none'",
   `script-src ${sha(js)}`,
   `style-src ${sha(css)}`,
-  "img-src 'none'", "font-src 'none'", "connect-src 'none'", "media-src 'none'", "object-src 'none'",
+  "img-src blob:", "font-src 'none'", "connect-src 'none'", "media-src 'none'", "object-src 'none'",
   "frame-src 'none'", "worker-src 'none'", "manifest-src 'none'", "form-action 'none'", "base-uri 'none'",
 ].join('; ');
 

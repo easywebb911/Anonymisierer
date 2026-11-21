@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { startAnon, loadIn, goTo, ackAll, exportOnce, exportWithAck, saveKey, screenOf, visiblePrimaries, visibleScreens } from './ui-helpers.mjs';
+import { startAnon, loadIn, goTo, ackAll, ackImages, exportOnce, exportWithAck, saveKey, screenOf, visiblePrimaries, visibleScreens } from './ui-helpers.mjs';
 
 const { chromium } = createRequire('/opt/node22/lib/node_modules/')('playwright');
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -176,7 +176,14 @@ log('## Sperren halten das Speichern weiter auf');
   await loadIn(page, path.join(fx, 'kurse.docx'));
   await goTo(page, 'a3');
   let r = await exportOnce(page, 'docx');
-  check('Offener Datei-Hinweis blockiert', !r.dl && /Hinweise/.test(r.status), r.status);
+  // Seit 2.2 steht der Bilder-Hinweis nicht mehr als allgemeiner Datei-Hinweis da, sondern in der Zeile „Bilder“
+  // (Liste ansehen, dann abhaken). Jede übrige Sperre wird danach weiter einzeln geprüft.
+  check('Bilder nicht angesehen: Speichern blockiert (neu in 2.2)', !r.dl && /Bilder ansehen/.test(r.status), r.status);
+  await ackImages(page);
+  if (await page.$('#ampel .docwarn input:not(:checked)')) {
+    r = await exportOnce(page, 'docx');
+    check('Offener Datei-Hinweis blockiert', !r.dl && /Hinweise/.test(r.status), r.status);
+  } else log('- kurse.docx hat seit 2.2 keinen allgemeinen Datei-Hinweis mehr (Bilder jetzt in eigener Zeile); die Sperre „offener Datei-Hinweis“ prüft tests/bilder-test.mjs (bilder-word.docx, bilder-excel.xlsx).');
   for (let i = 0; i < 20; i++) { const b = await page.$('#ampel .docwarn input:not(:checked)'); if (!b) break; await b.click(); }
   r = await exportOnce(page, 'docx');
   check('Offene Fragen blockieren ohne ausdrückliche Bestätigung', !r.dl && /Fragen/.test(r.status), r.status);
