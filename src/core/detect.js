@@ -281,6 +281,9 @@ const CALENDAR = new Set(['montag', 'dienstag', 'mittwoch', 'donnerstag', 'freit
   'januar', 'janner', 'februar', 'feber', 'marz', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'dezember']);
 // Abkürzungen zählen nur mit Punkt ("Jan." ist Januar, "Jan" ist ein Vorname)
 const CALENDAR_ABBR = new Set(['mo', 'di', 'mi', 'do', 'fr', 'sa', 'so', 'jan', 'feb', 'mar', 'mrz', 'apr', 'jun', 'jul', 'aug', 'sep', 'sept', 'okt', 'nov', 'dez']);
+// Weg d (2.4.0): Wochentags-Abkürzungen und was direkt danach als Uhrzeit oder Datum gilt („13:30“, „13.30“, „05.10.“, „5.“)
+const WEEKDAY_ABBR = new Set(['mo', 'di', 'mi', 'do', 'fr', 'sa', 'so']);
+const TIME_OR_DATE = /^[ \u00a0]*\d{1,2}(?:[:.]\d{2}|\.\d{1,2}\.?|\.)/;
 function isCalendarWord(toks, k) {
   const tk = toks[k];
   const key = fold(tk.t);
@@ -406,6 +409,10 @@ export function analyze(units, state) {
       // Regel b2: Wochentag/Monat allein (ohne Anrede, ohne Nachbarnamen) -> unsicher und standardmäßig aus
       const calendarOnly = cert && W.length === 1 && comps.length === 1 && !ctx.strong && !ctx.weak && !ctx.post && isCalendarWord(toks, W[0].tokIdx);
       if (calendarOnly) cert = 'unsicher';
+      // Version 2.4.0 (Weg d): Wochentags-Abkürzung OHNE Punkt direkt vor einer Uhrzeit oder einem Datum („Do 13:30“,
+      // „Mo 05.10.“) ist kein Name. Mit Punkt („Do.“) gilt weiter Regel b2; mit Anrede („Frau Do“) bleibt es ein Name.
+      if (cert && W.length === 1 && comps.length === 1 && !ctx.strong && !ctx.weak && !ctx.post && !swapped
+        && WEEKDAY_ABBR.has(W[0].key) && TIME_OR_DATE.test(u.text.slice(W[0].e - base))) cert = null;
       if (cert) {
         const s = comps[0].s;
         const lastWc = [...comps].reverse().find((c) => c.type === 'W');

@@ -5,6 +5,16 @@ import { fold } from './fold.js';
 const F = new Set(FIRST.split('|'));
 const L = new Set(LAST.split('|'));
 const A = new Set(AMBIGUOUS.split('|'));
+// Version 2.4.0 (Weg a″): Gewöhnliche Wörter, die zugleich in den Namenslisten stehen, zusätzlich als „mehrdeutig“.
+// Von Hand geprüfte, feste Liste (Schlüssel wie fold(): klein, ohne Akzente). Entstehung siehe README; beim Messen
+// genutzte fremde Wörterbuch- und Häufigkeitsdaten sind NICHT enthalten. Häufige echte Vor- und Nachnamen und
+// Zweifelsfälle (auch in anderen Sprachen gebräuchliche Namen) stehen bewusst nicht hier.
+export const EXTRA_AMBIGUOUS = ['amen', 'apollo', 'arena', 'atlas', 'aura', 'bares', 'bars', 'blick', 'buddha', 'campus', 'cola',
+  'delta', 'dock', 'dolch', 'faktor', 'frauen', 'gala', 'harter', 'hort', 'inder', 'jazz', 'judin', 'kalender', 'kardinal', 'kita',
+  'klemme', 'krabbe', 'lama', 'landen', 'lava', 'liga', 'los', 'machtig', 'mama', 'manns', 'monde', 'papa', 'patrone', 'perle',
+  'pole', 'pop', 'raucher', 'reale', 'reine', 'schimmer', 'schlangen', 'skala', 'soda', 'spinner', 'tat', 'termine', 'tode',
+  'treff', 'truben', 'volle', 'wale', 'yoga'];
+for (const k of EXTRA_AMBIGUOUS) A.add(k);
 const S = new Set(STOP.split('|'));
 const SR = new Set(STOP_RAW.split('|'));
 // Funktionswort in genau dieser Schreibweise ("Văn" ist nicht "van")
