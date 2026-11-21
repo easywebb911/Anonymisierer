@@ -1,7 +1,7 @@
 // Rückbau: Platzhalter des Modus "rückbaufähig" werden mit Hilfe der Schlüsseldatei wieder durch die
 // ursprüngliche Schreibweise ersetzt. Nur exakte Platzhalter werden ersetzt; veränderte, getrennte und
 // unbekannte Platzhalter werden gemeldet, nie geraten.
-import { KEY_FORMAT } from './reversible.js';
+import { KEY_FORMAT, findPlaceholderLike } from './reversible.js';
 
 // Exakte Platzhalter (Endung wie "s" bleibt im Text stehen und gehört nicht zum Platzhalter)
 const NAME_RE = /(^|[^\p{L}\p{N}])((?:Vorname|Nachname|Initiale|Name) [A-Z]{1,3}\d*)(?=(?:'s|’s|'|’|s|es|ns|n)?(?![\p{L}\p{N}]))/gu;
@@ -37,10 +37,21 @@ export function parseKeyFile(text) {
   }
   if (!entries.size) return { ok: false, error: 'Die Schlüsseldatei enthält keine Platzhalter.' };
   const hasOrg = [...entries.keys()].some((ph) => /^Einrichtung [A-Z]{1,3}\d*$/.test(ph));
-  return { ok: true, key: { entries, hasOrg, toolVersion: data.toolVersion || '?', kind: data.quelle && data.quelle.dateityp } };
+  // Version 2.3.4 (Zusatzfeld): Wörter, die schon im Original wie ein Platzhalter aussahen -> bleiben unberührt
+  const original = new Map();
+  for (const x of Array.isArray(data.imOriginal) ? data.imOriginal : []) {
+    if (x && typeof x.text === 'string' && !entries.has(x.text)) original.set(x.text, Number(x.anzahl) || 0);
+  }
+  return { ok: true, key: { entries, hasOrg, original, toolVersion: data.toolVersion || '?', kind: data.quelle && data.quelle.dateityp } };
 }
 
 const ctx = (text, s, e) => text.slice(Math.max(0, s - 25), Math.min(text.length, e + 25)).replace(/\s+/g, ' ');
+
+// Steht an dieser Stelle ein Wort aus dem Original, das nur wie ein Platzhalter aussieht (Schlüssel ab 2.3.4)?
+function isOriginal(key, text, s, e) {
+  if (!key.original || !key.original.size) return false;
+  return findPlaceholderLike(text).some((x) => x.s <= s && x.e >= e && key.original.has(x.text));
+}
 
 // Untersucht eine Texteinheit. Liefert Ersetzungen und Auffälligkeiten.
 export function scanUnit(text, key, where) {
@@ -54,14 +65,14 @@ export function scanUnit(text, key, where) {
     const e = s + ph.length;
     taken.push([s, e]);
     if (key.entries.has(ph)) { reps.push({ s, e, text: key.entries.get(ph).wert }); found.push(ph); }
-    else issues.push({ art: 'unbekannt', text: ph, where, kontext: ctx(text, s, e) });
+    else if (!isOriginal(key, text, s, e)) issues.push({ art: 'unbekannt', text: ph, where, kontext: ctx(text, s, e) });
   }
   for (const m of text.matchAll(CONTACT_RE)) {
     const s = m.index;
     const e = s + m[0].length;
     taken.push([s, e]);
     if (key.entries.has(m[0])) { reps.push({ s, e, text: key.entries.get(m[0]).wert }); found.push(m[0]); }
-    else issues.push({ art: 'unbekannt', text: m[0], where, kontext: ctx(text, s, e) });
+    else if (!isOriginal(key, text, s, e)) issues.push({ art: 'unbekannt', text: m[0], where, kontext: ctx(text, s, e) });
   }
   const free = (s, e) => !taken.some(([a, b]) => s < b && e > a);
   for (const m of text.matchAll(key.hasOrg ? LOOSE_NAME_ORG_RE : LOOSE_NAME_RE)) {
@@ -87,22 +98,11 @@ export function scanUnit(text, key, where) {
   return { reps, found, issues };
 }
 
-// Version 2.3.3: Sicherheitsnetz nach dem Rückbau. Alles, was wie ein Platzhalter des Tools aussieht, gilt als Rest:
-// Vorname/Nachname/Name/Initiale/Person/Einrichtung + Großbuchstaben (auch mit angehängten Buchstaben oder Ziffern:
-// „Einrichtung A2S“, „Nachname AS“, „Vorname B9“) sowie Kontakt-, [NAME]- und [EINRICHTUNG]-Platzhalter („[E-MAIL-99]“).
-// Absichtlich weit gefasst: Auch ein solches Wort aus dem Originaltext wird gemeldet (der Mensch entscheidet).
-// Nach den Großbuchstaben: weitere Großbuchstaben oder Ziffern, dann höchstens eine Endung der Liste („Nachname As“).
-// Ein gewöhnliches Wort („Name Rolle“) passt nicht.
-const REST_NAME_RE = /(^|[^\p{L}\p{N}])((?:Vorname|Nachname|Initiale|Name|Person|Einrichtung)[ \u00a0][A-Z][A-Z\d]*(?:'s|’s|'|’|s|es|ns|n)?)(?![\p{L}\p{N}])/gu;
-const REST_BRACKET_RE = /\[(?:E-MAIL|TELEFON|IBAN|ADRESSE|NAME|EINRICHTUNG)(?:-[\p{L}\p{N}]*)?\][\p{L}\p{N}]*/gu;
+// Version 2.3.3: Sicherheitsnetz nach dem Rückbau. Alles, was wie ein Platzhalter des Tools aussieht, gilt als Rest
+// (Suchmuster seit 2.3.4 in reversible.js, findPlaceholderLike). Wörter, die laut Schlüssel schon im Original standen,
+// zählt planRestore getrennt (Version 2.3.4).
 export function findPlaceholderRests(text) {
-  const out = [];
-  for (const m of text.matchAll(REST_NAME_RE)) {
-    const s = m.index + m[1].length;
-    out.push({ text: m[2], s, e: s + m[2].length, kontext: ctx(text, s, s + m[2].length) });
-  }
-  for (const m of text.matchAll(REST_BRACKET_RE)) out.push({ text: m[0], s: m.index, e: m.index + m[0].length, kontext: ctx(text, m.index, m.index + m[0].length) });
-  return out.sort((a, b) => a.s - b.s);
+  return findPlaceholderLike(text).map((x) => ({ ...x, kontext: ctx(text, x.s, x.e) }));
 }
 function applyReps(text, reps) {
   let out = '';
@@ -154,8 +154,16 @@ export function planRestore(units, key) {
   const anomalies = issues.length + rows.filter((r) => r.status !== 'ok').length;
   // Sicherheitsnetz (2.3.3): Reste im Ergebnis nach dem Rückbau, je Abschnitt mit Fundstelle
   const rests = [];
-  units.forEach((u, i) => { for (const r of findPlaceholderRests(applyReps(u.text, repsPerUnit[i]))) rests.push({ ...r, unit: i, where: u.label || `Abschnitt ${i + 1}` }); });
-  return { repsPerUnit, rows, issues, rests, totalFound, matchedKeys, okRows, unknown, verdict, needsConfirm: anomalies > 0 || verdict !== 'passend' };
+  // Version 2.3.4: Wörter aus dem Original (laut Schlüssel) sind keine Reste; sie werden gezählt (Anzahl wie erwartet?)
+  const origFound = new Map();
+  units.forEach((u, i) => {
+    for (const r of findPlaceholderRests(applyReps(u.text, repsPerUnit[i]))) {
+      if (key.original && key.original.has(r.text)) { origFound.set(r.text, (origFound.get(r.text) || 0) + 1); continue; }
+      rests.push({ ...r, unit: i, where: u.label || `Abschnitt ${i + 1}` });
+    }
+  });
+  const originals = [...(key.original || new Map())].map(([text, erwartet]) => ({ text, erwartet, gefunden: origFound.get(text) || 0 }));
+  return { repsPerUnit, rows, issues, rests, originals, totalFound, matchedKeys, okRows, unknown, verdict, needsConfirm: anomalies > 0 || verdict !== 'passend' };
 }
 
 // Ersetzt exakte Platzhalter in beliebigem Text (für Alternativtexte, Feldfunktionen, Verweise)

@@ -15,6 +15,40 @@ export const CONTACT_PH_RE = /\[(?:E-MAIL|TELEFON|IBAN|ADRESSE)-\d+\]/g;
 // Einrichtungen (Version 2.3): der ganze Name als EIN Platzhalter, weitere Schreibweisen mit Nummer
 export const ORG_PH_RE = /(^|[^\p{L}\p{N}])(Einrichtung [A-Z]{1,3}\d*)(?=(?:'s|’s|'|’|s|es|ns|n)?(?![\p{L}\p{N}]))/gu;
 
+// Version 2.3.3/2.3.4: Alles, was wie ein Platzhalter des Tools aussieht (für das Sicherheitsnetz beim Rückbau und,
+// seit 2.3.4, für Wörter, die schon im Original stehen): Vorname/Nachname/Name/Initiale/Person/Einrichtung +
+// Großbuchstaben, danach weitere Großbuchstaben oder Ziffern und höchstens eine Endung der Liste; dazu Platzhalter in
+// eckigen Klammern („[E-MAIL-1]“, „[NAME]“, „[EINRICHTUNG]“).
+const LIKE_NAME_RE = /(^|[^\p{L}\p{N}])((?:Vorname|Nachname|Initiale|Name|Person|Einrichtung)[ \u00a0][A-Z][A-Z\d]*(?:'s|’s|'|’|s|es|ns|n)?)(?![\p{L}\p{N}])/gu;
+const LIKE_BRACKET_RE = /\[(?:E-MAIL|TELEFON|IBAN|ADRESSE|NAME|EINRICHTUNG)(?:-[\p{L}\p{N}]*)?\][\p{L}\p{N}]*/gu;
+export function findPlaceholderLike(text) {
+  const out = [];
+  for (const m of text.matchAll(LIKE_NAME_RE)) { const s = m.index + m[1].length; out.push({ text: m[2], s, e: s + m[2].length }); }
+  for (const m of text.matchAll(LIKE_BRACKET_RE)) out.push({ text: m[0], s: m.index, e: m.index + m[0].length });
+  return out.sort((a, b) => a.s - b.s);
+}
+// Version 2.3.4: Platzhalter, die das Tool NICHT vergeben darf, weil sie (oder sie mit einer kleinen Endung) schon im
+// Original stehen. „Nachname As“ im Original sperrt auch „Nachname A“ (der Platzhalter + „s“ sähe gleich aus).
+export function reservedPlaceholders(fullText) {
+  const words = new Map(); // Wort -> Anzahl im Original
+  const reserved = new Set();
+  for (const x of findPlaceholderLike(fullText)) {
+    words.set(x.text, (words.get(x.text) || 0) + 1);
+    reserved.add(x.text);
+    const base = x.text.match(/^(.*?[A-Z\d\]])(?:'s|’s|'|’|s|es|ns|n)$/u);
+    if (base) reserved.add(base[1]);
+  }
+  return { words, reserved };
+}
+// Nächster freier Platzhalter: base, base2, base3 … ohne die gesperrten (ohne Sperre wie bisher: 1. = base, 2. = base2)
+function numbered(state, value, base, reserved) {
+  if (state.map.has(value)) return state.map.get(value);
+  let ph;
+  do { state.n++; ph = state.n > 1 ? base + state.n : base; } while (reserved.has(ph));
+  state.map.set(value, ph);
+  return ph;
+}
+
 // Rolle eines einzelnen Namenswortes innerhalb einer Person
 function roleOfSingle(h, comp, entityKey, singleRoles) {
   if (h.link === 'nur Vorname') return 'Vorname';
@@ -72,7 +106,9 @@ export function assignReversible(result) {
   for (const h of hits) {
     if (h.type === 'person' && h.titled && h.entity && h.entity.startsWith('S|')) singleRoles.set(h.entity, 'Nachname');
   }
-  const variants = new Map(); // "A|Nachname" -> [Schreibweise, ...]
+  // Version 2.3.4: Platzhalter, die schon im Original stehen, werden nicht vergeben (nächste freie Nummer)
+  const reserved = (result.placeholderWords && result.placeholderWords.reserved) || new Set();
+  const variants = new Map(); // "A|Nachname" -> {map: Schreibweise -> Platzhalter, n}
   const placeholderInfo = new Map(); // Platzhalter -> {wert, rolle, person, kategorie}
   const contactNums = new Map(); // "email|Wert" -> Platzhalter
   const contactCount = {};
@@ -84,15 +120,15 @@ export function assignReversible(result) {
       // Version 2.3.3: Endung mit Großbuchstaben („BÜRGERVEREINS“) gehört wie bei Personen zur Schreibweise des
       // Platzhalters („Einrichtung A2“ = „… BÜRGERVEREINS“); dahinter („Einrichtung A2S“) erkennt der Rückbau sie nicht
       if (/\p{Lu}/u.test(h.suffix || '')) h.suffixInPh = true;
-      const stemEnd = h.e - (h.suffix && !h.suffixInPh ? h.suffix.length : 0);
+      // Version 2.3.4: Ziffern/Buchstaben direkt dahinter („Bürgerverein2“) gehören zur Schreibweise (sonst „Einrichtung A2“)
+      const tail = trailing(h, hits, fullText);
+      if (tail) h.suffixInPh = true;
+      const stemEnd = h.e + tail - (h.suffix && !h.suffixInPh ? h.suffix.length : 0);
       // Über einen Zeilenumbruch (TXT): eigene Schreibweise mit dem echten Zeilenende, damit der Rückbau es herstellt
       const value = h.unit2 !== undefined ? fullText.slice(h.s, h.split) + h.eol + fullText.slice(h.split + 1, stemEnd) : fullText.slice(h.s, stemEnd);
       const vk = 'O|' + og.letter;
-      if (!variants.has(vk)) variants.set(vk, []);
-      const list = variants.get(vk);
-      let idx = list.indexOf(value);
-      if (idx < 0) { list.push(value); idx = list.length - 1; }
-      const ph = `Einrichtung ${og.letter}${idx > 0 ? idx + 1 : ''}`;
+      if (!variants.has(vk)) variants.set(vk, { map: new Map(), n: 0 });
+      const ph = numbered(variants.get(vk), value, `Einrichtung ${og.letter}`, reserved);
       if (!placeholderInfo.has(ph)) placeholderInfo.set(ph, { wert: value, kategorie: 'Einrichtung', einrichtung: og.letter });
       orgExact.set(og.letter + '|' + value, ph);
       h.parts = [{ s: h.s, e: stemEnd, text: ph }];
@@ -102,15 +138,23 @@ export function assignReversible(result) {
       // Version 2.3.2: Endung mit Großbuchstaben („MÜLLERS“) gehört zur Schreibweise des Platzhalters („Nachname A2“ =
       // „MÜLLERS“). Stünde sie dahinter („Nachname AS“), läse der Rückbau einen anderen Platzhalter.
       if (/\p{Lu}/u.test(h.suffix || '')) h.suffixInPh = true;
-      const parts = splitHit(h.suffixInPh ? { ...h, suffix: '' } : h, h.origEntity || h.entity, singleRoles);
+      // Version 2.3.4: Ziffern direkt hinter dem Namen („Müller2“) gehören zur Schreibweise des Platzhalters; dahinter
+      // („Nachname A“ + „2“) sähe er aus wie die Schreibweise „Nachname A2“
+      const tail = trailing(h, hits, fullText);
+      let hx = h;
+      if (tail) {
+        h.suffixInPh = true;
+        const comps = (h.comps || []).map((c) => ({ ...c }));
+        const last = comps.filter((c) => c.type === 'W').pop();
+        if (last) { last.e = h.e + tail; delete last.stemEnd; }
+        hx = { ...h, e: h.e + tail, comps, suffix: '' };
+      } else if (h.suffixInPh) hx = { ...h, suffix: '' };
+      const parts = splitHit(hx, h.origEntity || h.entity, singleRoles);
       h.parts = parts.map((p) => {
         const value = fullText.slice(p.s, p.e);
         const vk = en.letter + '|' + p.role;
-        if (!variants.has(vk)) variants.set(vk, []);
-        const list = variants.get(vk);
-        let idx = list.indexOf(value);
-        if (idx < 0) { list.push(value); idx = list.length - 1; }
-        const ph = `${p.role} ${en.letter}${idx > 0 ? idx + 1 : ''}`;
+        if (!variants.has(vk)) variants.set(vk, { map: new Map(), n: 0 });
+        const ph = numbered(variants.get(vk), value, `${p.role} ${en.letter}`, reserved);
         if (!placeholderInfo.has(ph)) placeholderInfo.set(ph, { wert: value, rolle: p.role, person: en.letter, kategorie: 'Name' });
         return { s: p.s, e: p.e, text: ph };
       });
@@ -119,8 +163,8 @@ export function assignReversible(result) {
       const value = fullText.slice(h.s, h.e);
       const ck = h.type + '|' + value;
       if (!contactNums.has(ck)) {
-        contactCount[h.type] = (contactCount[h.type] || 0) + 1;
-        const ph = `[${CONTACT_BASE[h.type]}-${contactCount[h.type]}]`;
+        let ph;
+        do { contactCount[h.type] = (contactCount[h.type] || 0) + 1; ph = `[${CONTACT_BASE[h.type]}-${contactCount[h.type]}]`; } while (reserved.has(ph));
         contactNums.set(ck, ph);
         placeholderInfo.set(ph, { wert: value, kategorie: CONTACT_NAMES[h.type] });
       }
@@ -128,13 +172,17 @@ export function assignReversible(result) {
     }
   }
   result.reversible = { placeholderInfo, contactNums, orgExact };
-  // Warnung: Platzhalter-ähnlicher Text steht schon im Original -> Rückbau würde ihn ebenfalls ersetzen
-  const clashes = new Set();
-  for (const m of fullText.matchAll(NAME_PH_RE)) clashes.add(m[2]);
-  for (const m of fullText.matchAll(CONTACT_PH_RE)) clashes.add(m[0]);
-  // "Einrichtung A" nur prüfen, wenn es Einrichtungen gibt (sonst bleibt alles wie bisher)
-  if (result.orgs && result.orgs.size) for (const m of fullText.matchAll(ORG_PH_RE)) clashes.add(m[2]);
-  result.reversible.clashes = [...clashes];
+  // Bis 2.3.3 stand hier eine Warnung „Beim Rückbau würde dieser Text ebenfalls ersetzt“. Seit 2.3.4 vergibt das Tool
+  // solche Platzhalter nicht mehr (siehe reserved); der Hinweis steht im Speichern-Schritt (result.placeholderWords).
+}
+// Länge der Ziffern/Buchstaben, die direkt (ohne Leerraum) auf den Treffer folgen und nicht zu einem anderen Treffer
+// gehören. Wörter enden an Buchstaben, deshalb sind das praktisch nur Ziffern („Müller2“, „Müller2b“).
+function trailing(h, hits, fullText) {
+  const m = fullText.slice(h.e).match(/^[\p{L}\p{N}]+/u);
+  if (!m) return 0;
+  const e = h.e + m[0].length;
+  if (hits.some((o) => o !== h && o.s < e && o.e > h.e)) return 0;
+  return m[0].length;
 }
 
 // Schlüsseldatei (JSON). Zählt nur eingeschaltete Treffer im Text.
@@ -157,6 +205,10 @@ export function buildRestoreKey(result, meta) {
     if (vs.length) personen.push({ person: en.letter, anzeige: en.display, platzhalter: vs });
   }
   // Einrichtungen als eigene Art (nur wenn es welche gibt: Schlüssel ohne Einrichtung bleiben wie bisher)
+  // Platzhalter-Wörter aus dem Original mit Anzahl. Nach einem exakten Rückbau stehen sie wieder genau so da (auch wenn
+  // ein Teil davon zwischendurch als Name ersetzt war, z. B. „Name“ in „Name A“).
+  const imOriginal = [];
+  if (result.placeholderWords) for (const [text, anzahl] of result.placeholderWords.words) imOriginal.push({ text, anzahl });
   const einrichtungen = [];
   for (const og of (result.orgs || new Map()).values()) {
     const vs = eintraege.filter((x) => x.einrichtung === og.letter).map((x) => x.platzhalter);
@@ -175,5 +227,8 @@ export function buildRestoreKey(result, meta) {
     platzhalter: eintraege,
     personen,
     ...(einrichtungen.length ? { einrichtungen } : {}),
+    // Version 2.3.4 (Zusatzfeld, nur wenn vorhanden; Format-Version unverändert): Wörter, die schon im Original wie ein
+    // Platzhalter aussehen und in der Ausgabe stehen bleiben. Der Rückbau lässt sie unberührt.
+    ...(imOriginal.length ? { imOriginal } : {}),
   };
 }

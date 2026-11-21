@@ -5,7 +5,7 @@
 import { fold, umlautVariant } from './fold.js';
 import * as lex from './lexicon.js';
 import { findContacts } from './patterns.js';
-import { assignReversible, MODE_REVERSIBLE } from './reversible.js';
+import { assignReversible, MODE_REVERSIBLE, reservedPlaceholders } from './reversible.js';
 
 const TOKEN_RE = /[\p{L}\p{M}]+(?:['’][\p{L}\p{M}]+)*(?:-[\p{L}\p{M}]+(?:['’][\p{L}\p{M}]+)*)*|\p{N}+|\S/gu;
 // Arabische Namenspräfixe mit Bindestrich: al-Hassan, el-Masri, Abd-ar-…
@@ -585,9 +585,17 @@ export function analyze(units, state) {
     const surface = fullText.slice(h.s, h.e - (h.suffix ? h.suffix.length : 0));
     og.forms.set(surface, (og.forms.get(surface) || 0) + 1);
   }
-  let no = 0;
+  // Version 2.3.4: Platzhalter-Wörter, die schon im Original stehen („Person A“, „Einrichtung A“, „Nachname A“ …), werden
+  // nicht vergeben. Modus „Person A“: nächster freier Buchstabe; rückbaufähig: nächste freie Nummer (reversible.js).
+  const placeholderWords = reservedPlaceholders(fullText);
+  const freeLetter = (counter, prefix) => {
+    let L;
+    do { L = letterFor(counter.n++); } while (st.settings.mode === 'person' && placeholderWords.reserved.has(prefix + L));
+    return L;
+  };
+  const orgCounter = { n: 0 };
   for (const og of orgs.values()) {
-    og.letter = letterFor(no++);
+    og.letter = freeLetter(orgCounter, 'Einrichtung ');
     og.label = st.settings.mode === 'name' ? '[EINRICHTUNG]' : 'Einrichtung ' + og.letter;
     // Anzeige: die markierte Bezeichnung selbst (bei zusammengeführten die des Ziels), sonst die häufigste Schreibweise
     const own = og.hits.find((x) => x.origEntity === og.key);
@@ -605,9 +613,9 @@ export function analyze(units, state) {
     en.forms.set(surface, (en.forms.get(surface) || 0) + 1);
     if (h.link || h.ambiguousLink) en.linkable.push(h);
   }
-  let n = 0;
+  const personCounter = { n: 0 };
   for (const en of entities.values()) {
-    en.letter = letterFor(n++);
+    en.letter = freeLetter(personCounter, 'Person ');
     en.label = st.settings.mode === 'name' ? '[NAME]' : 'Person ' + en.letter;
     en.display = [...en.forms.entries()].sort((a, b) => b[1] - a[1] || b[0].length - a[0].length || (a[0] < b[0] ? -1 : 1))[0][0];
   }
@@ -623,7 +631,7 @@ export function analyze(units, state) {
   for (const en of entities.values()) en.count = en.hits.length;
   for (const og of orgs.values()) og.count = og.hits.length;
 
-  const result = { fullText, unitStarts, hits, entities, orgs };
+  const result = { fullText, unitStarts, hits, entities, orgs, placeholderWords };
   // Modus "rückbaufähig": Platzhalter je Namensteil und nummerierte Kontaktdaten
   if (st.settings.mode === MODE_REVERSIBLE) assignReversible(result);
   return result;
@@ -859,7 +867,7 @@ export function replacementsByUnit(result, units) {
       // Platzhalter am Ende von Zeile 1, Rest des Namens am Anfang von Zeile 2 entfällt, die Zeilen werden verbunden
       const label = h.parts ? h.parts[0].text : h.label;
       per[h.unit].push({ s: h.s - base, e: h.split - base, text: label + (h.suffixInPh ? '' : outSuffix(h.suffix)) });
-      per[h.unit2].push({ s: 0, e: h.e - result.unitStarts[h.unit2], text: '' });
+      per[h.unit2].push({ s: 0, e: (h.parts ? h.parts[0].e : h.e) - result.unitStarts[h.unit2], text: '' });
       result.joins.add(h.unit);
       continue;
     }
@@ -1046,6 +1054,16 @@ function makeReversibleGeneric(result, settings) {
     }
     for (const tk of tokenize(str)) {
       if (!tk.word || reps.some((r) => tk.s < r.e && tk.e > r.s)) continue;
+      // Version 2.3.4: Ziffern direkt dahinter („Müller2“): nur die ganze Schreibweise exakt, sonst „Name X“ samt Ziffern
+      // (nie „Nachname A“ + „2“, das sähe aus wie die Schreibweise „Nachname A2“)
+      const dg = str.slice(tk.e).match(/^[\p{L}\p{N}]+/u);
+      if (dg) {
+        const whole = tk.t + dg[0];
+        const f2 = forms.get(fold(tk.t));
+        if (exact.has(whole)) reps.push({ s: tk.s, e: tk.e + dg[0].length, text: exact.get(whole) });
+        else if (f2 && !(f2.ambiguous && !isCap(tk.t))) reps.push({ s: tk.s, e: tk.e + dg[0].length, text: f2.label });
+        continue;
+      }
       const m = tk.t.match(/^(.+?)(['’]s|s)$/u);
       if (exact.has(tk.t)) { reps.push({ s: tk.s, e: tk.e, text: exact.get(tk.t) }); continue; }
       if (m && exact.has(m[1])) { reps.push({ s: tk.s, e: tk.e, text: exact.get(m[1]) + m[2] }); continue; }
