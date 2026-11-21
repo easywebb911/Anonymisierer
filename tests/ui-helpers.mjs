@@ -38,19 +38,34 @@ export async function waitPreview(page) {
 // die Bilderliste geöffnet (sonst ist das Häkchen nicht wählbar). questions = false: nichts bestätigen (Sperre prüfen).
 export async function ackAll(page, { questions = true, images = true } = {}) {
   await goTo(page, 'a3');
+  if (!(await page.$('#ack-all'))) return ackAllOld(page, { questions, images });
   if (images) await ackImages(page);
   if (questions) await ackPoints(page);
+}
+// Ältere Versionen (bis 2.4.1, für Vergleiche vorher/nachher): je Hinweis, Fragen und Bilder einzeln abhaken
+async function ackAllOld(page, { questions, images }) {
+  for (let i = 0; i < 50; i++) {
+    const box = await page.$('#ampel .docwarn input[type=checkbox]:not(:checked)');
+    if (!box) break;
+    await box.click();
+  }
+  if (questions && await page.$('#ack-questions')) { if (!(await page.isChecked('#ack-questions'))) await page.check('#ack-questions'); }
+  if (images && await page.$('#ack-images')) {
+    if (await page.isDisabled('#ack-images')) { await page.click('#btn-images'); await page.waitForSelector('#img-list'); }
+    if (!(await page.isChecked('#ack-images'))) await page.check('#ack-images');
+  }
 }
 // Schlusscheck abwarten, dann das eine Häkchen setzen (falls offene Punkte da sind)
 export async function ackPoints(page) {
   await waitCheck(page);
-  if (await page.isVisible('#ack-all-row') && !(await page.isChecked('#ack-all'))) await page.check('#ack-all');
+  if (await page.isVisible('#ack-all-row') && !(await page.isDisabled('#ack-all')) && !(await page.isChecked('#ack-all'))) await page.check('#ack-all');
 }
 export async function waitCheck(page) {
   await page.waitForFunction(() => { const p = window.__anon.app.preview; return p && !p.busy; }, null, { timeout: 600000 });
 }
 // Bilderliste öffnen (wie ein Mensch); danach ist das Häkchen wählbar
 export async function ackImages(page) {
+  if (!(await page.$('#ack-all'))) { await ackAllOld(page, { questions: false, images: true }); return !!(await page.$('#ack-images')); }
   if (!(await page.$('#btn-images'))) return false;
   if (!(await page.$('#img-list'))) {
     await page.click('#btn-images');
@@ -91,8 +106,9 @@ export async function exportWithAck(page, fmt) {
   let { dl, status } = await exportOnce(page, fmt);
   let blocked = null;
   if (!dl && /blockiert|abhaken/.test(status)) {
-    blocked = { status, items: await page.$$eval('#points > li.bad', (els) => els.map((e) => e.innerText.replace(/\s+/g, ' ').trim())) };
-    await page.check('#ack-all');
+    const neu = !!(await page.$('#ack-all'));
+    blocked = { status, items: await page.$$eval(neu ? '#points > li.bad' : '#leaks li', (els) => els.map((e) => e.innerText.replace(/\s+/g, ' ').trim())) };
+    await page.check(neu ? '#ack-all' : '#leak-ack');
     ({ dl, status } = await exportOnce(page, fmt));
   }
   return { dl, status, blocked };
@@ -103,6 +119,12 @@ export const visibleScreens = (page) => page.$$eval('.screen', (els) => els.filt
 // Rückbau (Version 2.5.0): Schritt „Prüfen“ abwarten (Schlusscheck nach dem Rückbau läuft dort), Reste und
 // Fundstellen festhalten, dann das EINE Häkchen setzen (confirm = false: nicht bestätigen)
 export async function rbConfirm(page, confirm = true) {
+  if (!(await page.$('#scr-r2 #rb-report'))) return {};
+  if (await page.evaluate(() => !('left' in window.__anon.rb))) { // ältere Versionen: Einzel-Häkchen
+    const rests = await page.$$eval('#rb-rests li strong', (l) => l.map((x) => x.textContent));
+    if (confirm) for (const id of ['#rb-kennung-ack', '#rb-confirm', '#rb-rest-ack']) if (await page.$(id)) await page.check(id);
+    return { rests, left: [], old: true };
+  }
   await page.waitForFunction(() => { const r = window.__anon.rb; return !r.plan || r.plan.verdict === 'falsch' || r.left !== null; }, null, { timeout: 120000 });
   const info = await page.evaluate(() => {
     const r = window.__anon.rb;

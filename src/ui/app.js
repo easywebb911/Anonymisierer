@@ -1014,7 +1014,7 @@ function savePoints() {
   for (const w of allWarnings()) if (!isInfoWarning(w)) pts.push({ id: 'w:' + w, text: plainWarning(w) });
   if (app.doc.images && app.doc.images.length) {
     const n = app.doc.images.length;
-    pts.push({ id: 'bilder', text: `${n === 1 ? 'Ein Bild' : n + ' Bilder'} im Dokument.`, small: `Das Tool ändert Bilder nicht. Steht auf einem Bild ein Name, entferne es vorher in ${app.doc.kind === 'xlsx' ? 'Excel' : 'Word'}.`,
+    pts.push({ id: 'bilder', text: `${n === 1 ? 'Ein Bild' : n + ' Bilder'} im Dokument.`, small: `Das Tool ändert Bilder nicht. Steht auf einem Bild ein Name oder ein Logo, entferne es vorher in ${app.doc.kind === 'xlsx' ? 'Excel' : 'Word'}.`,
       acts: [[app.imagesOpen ? 'Ausblenden' : 'Ansehen', () => openImages(!app.imagesOpen), 'btn-images']] });
   }
   const p = app.preview;
@@ -1137,7 +1137,7 @@ function imageTile(im, prog) {
     h('div', { class: 'imginfo' },
       h('p', {}, h('strong', {}, `Bild ${im.nr}`), ` · ${im.linked ? 'verknüpft' : im.type}`),
       h('p', {}, 'Fundort: ', im.place),
-      im.alt ? h('p', {}, 'Beschreibung: „', im.alt, '“') : null,
+      im.alt ? h('p', {}, 'Beschreibung (Alt-Text): „', im.alt, '“') : null,
       im.title ? h('p', {}, 'Titel: „', im.title, '“') : null,
       !im.alt && !im.title ? h('p', { class: 'hint' }, 'Keine Beschreibung.') : h('p', { class: 'hint' }, 'Die Beschreibung wird wie Text geprüft und ersetzt (Schritt 2).')));
 }
@@ -1645,11 +1645,10 @@ function rbPoints() {
   const pts = [];
   const k = kennungState();
   const extra = k.conflict ? ' ' + k.conflict : '';
-  if (k.state === 'other') pts.push({ id: 'kennung', text: `Diese Schlüsseldatei gehört zu einem anderen Dokument (Dokument: ${k.doc}, Schlüssel: ${k.key}).${extra}` });
+  if (k.state === 'other') pts.push({ id: 'kennung', cls: 'bad', text: `Diese Schlüsseldatei gehört zu einem anderen Dokument (Dokument: ${k.doc}, Schlüssel: ${k.key}).${extra}` });
   else if (k.state === 'none') pts.push({ id: 'kennung', text: `Im Dokument steht keine Kennung. Der Schlüssel hat die Kennung ${k.key}. Prüfe, ob beide zusammengehören.${extra}` });
   else if (k.state === 'oldkey') pts.push({ id: 'kennung', text: `Schlüssel ohne Kennung (erstellt vor Version 2.1). Prüfe selbst, ob Datei und Schlüssel zusammengehören.${k.doc ? ` Das Dokument hat die Kennung ${k.doc}.` : ''}${extra}` });
-  else if (extra) pts.push({ id: 'kennung', text: extra.trim() });
-  if (plan.verdict === 'falsch') { pts.push({ id: 'falsch', fatal: true, text: 'Kein einziger Platzhalter aus der Schlüsseldatei wurde in der Datei gefunden. Es wird nichts erzeugt. Prüfe, ob Datei und Schlüsseldatei zusammengehören.' }); return pts; }
+  if (plan.verdict === 'falsch') { pts.push({ id: 'falsch', fatal: true, text: 'Die Schlüsseldatei passt nicht: Kein einziger Platzhalter aus der Schlüsseldatei wurde in der Datei gefunden. Es wird nichts erzeugt. Prüfe, ob Datei und Schlüsseldatei zusammengehören.' }); return pts; }
   if (plan.verdict === 'zweifelhaft') pts.push({ id: 'zweifel', text: `Wahrscheinlich die falsche Schlüsseldatei: ${plan.matchedKeys} von ${rb.key.entries.size} Platzhaltern gefunden, nur bei ${plan.okRows} stimmt die Anzahl, ${plan.unknown} unbekannte Platzhalter in der Datei.` });
   for (const r of plan.rows.filter((x) => x.status !== 'ok')) pts.push({ id: 'row:' + r.platzhalter, text: `„${r.platzhalter}“ (${r.kategorie}): erwartet ${r.erwartet}, gefunden ${r.gefunden} – ${STATUS[r.status] || r.status}` });
   plan.issues.slice(0, 300).forEach((x, i) => pts.push({ id: 'issue:' + i, text: `„${x.text}“ – ${ART[x.art] || x.art}${x.vermutlich ? ' (gemeint vermutlich „' + x.vermutlich + '“)' : ''}`, small: `${rbWhere(x.where)}: „…${x.kontext}…“` }));
@@ -1672,7 +1671,7 @@ function renderR2() {
   const n = pts.length;
   const lead = fatal ? 'Rückbau nicht möglich.' : n ? `${countWord(n)} ${n === 1 ? 'Punkt' : 'Punkte'} bitte ansehen:` : rb.left === null ? 'Prüfe …' : 'Alles passt.';
   const kids = [h('p', { class: 'lead', id: 'rb-lead2' }, lead)];
-  if (n) kids.push(h('ul', { class: 'points', id: 'rb-points' }, ...pts.map((p) => h('li', { class: p.fatal || p.rest ? 'bad' : '' },
+  if (n) kids.push(h('ul', { class: 'points', id: 'rb-points' }, ...pts.map((p) => h('li', { class: p.fatal || p.rest || p.cls === 'bad' ? 'bad' : '', 'data-id': p.id },
     h('span', { class: 'ptext' }, p.rest ? h('strong', {}, p.text) : p.text, p.small ? h('small', {}, p.small) : null)))));
   if (n && !fatal) {
     kids.push(h('label', { class: 'check ackrow' }, h('input', { type: 'checkbox', id: 'rb-ack', checked: rb.ackSig === rbSig(pts), onchange: (e) => { rb.ackSig = e.target.checked ? rbSig(rbPoints()) : null; renderR2(); } }),
@@ -1683,7 +1682,7 @@ function renderR2() {
   if (!fatal) {
     const k = kennungState();
     const info = [];
-    if (k.state === 'ok') info.push(ampelRow('ok', 'Kennung', `Kennung ${k.doc} passt.`));
+    if (k.state === 'ok') { const li = ampelRow('ok', 'Kennung', `Kennung ${k.doc} passt.${k.conflict ? ' ' + k.conflict : ''}`); li.id = 'rb-kennung-ok'; info.push(li); }
     info.push(ampelRow('ok', 'Platzhalter', `${plan.totalFound} Platzhalter werden ersetzt (${plan.matchedKeys} verschiedene).`));
     if (!plan.issues.length) info.push(ampelRow('ok', 'Auffällige Stellen', 'Keine.'));
     if (!plan.rests.length) info.push(ampelRow('ok', 'Platzhalter-Reste nach dem Rückbau', 'Keine.'));

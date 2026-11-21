@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url';
 import JSZip from 'jszip';
 import { META_PEOPLE } from './make-meta.mjs';
 import { startAnon, loadIn, goTo, ackAll, exportOnce, exportWithAck, saveKey, screenOf } from './ui-helpers.mjs';
+import { waitCheck } from './ui-helpers.mjs';
 
 const { chromium } = createRequire('/opt/node22/lib/node_modules/')('playwright');
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -258,14 +259,17 @@ log('## Schlusscheck-Falle (meta-falle.docx: TIFF-Bild mit Autor, das das Tool n
   const { page, ctx, errors } = await newPage();
   await loadFile(page, path.join(fx, 'meta-falle.docx'));
   const warnings = await page.evaluate(() => window.__anon.app.doc.warnings);
-  await ackAll(page);
-  const rowText = await page.textContent('#ampel');
+  // Version 2.5.0: nicht bestätigen, damit der Schlusscheck sperrt; der Hinweis steht als offener Punkt
+  await ackAll(page, { questions: false });
+  await waitCheck(page);
+  const rowText = await page.textContent('#points');
   check('Hinweis auf dem Speichern-Bildschirm nennt den Bildtyp TIFF', warnings.some((w) => /TIFF/.test(w)) && /TIFF/.test(rowText), warnings.find((w) => /TIFF/.test(w)) || '');
   const { status } = await exportOnce(page, 'docx');
-  const leaks = await page.$$eval('#leaks li', (els) => els.map((e) => e.textContent));
+  const leaks = await page.$$eval('#points li.bad', (els) => els.map((e) => e.textContent));
   check('Schlusscheck blockiert den Export', /blockiert/.test(status), status);
-  check('Schlusscheck nennt die Fundstelle „Bild“ im TIFF-Teil', leaks.some((l) => /Bild/.test(l) && /scan4\.tiff/.test(l)), leaks.filter((l) => /tiff/.test(l)).slice(0, 2).join(' | '));
-  const others = leaks.filter((l) => !/scan4\.tiff/.test(l));
+  // Version 2.5.0: Fundort in einfacher Sprache ohne Dateipfad („Bild (versteckte Bildangaben)“)
+  check('Schlusscheck nennt die Fundstelle „Bild“ (versteckte Bildangaben)', leaks.some((l) => /steht noch in: Bild \(versteckte Bildangaben\)/.test(l)), leaks.slice(0, 2).join(' | '));
+  const others = leaks.filter((l) => !/steht noch in: Bild \(versteckte Bildangaben\)/.test(l));
   check('Schlusscheck meldet nur das TIFF (alles andere ist bereinigt)', !others.length, others.join(' | '));
   if (errors.length) log(`  - JS-Fehler: ${errors.join(' | ')}`);
   await ctx.close();
@@ -280,7 +284,7 @@ log('## Oberfläche');
   await ackAll(page);
   await exportWithAck(page, 'docx');
   const after1 = await page.textContent('.after');
-  check('Hinweis nach dem Speichern im Kasten „Danach“ (du-Form, Word)', after1.includes('Lade die Datei direkt hoch. Wenn du sie vorher in Word öffnest und speicherst, trägt Word deinen Namen wieder ein.'), after1.trim().slice(0, 140));
+  check('Hinweis „direkt hochladen“ (du-Form, Word)', after1.includes('Lade die Datei danach direkt hoch, ohne sie vorher in Word zu öffnen. Sonst trägt Word deinen Namen wieder ein.'), after1.trim().slice(0, 140));
   // Frage zu einem Namen aus den Dateiangaben auf dem Prüfen-Bildschirm mit „Ja, übernehmen“ beantworten
   await goTo(page, 'a2');
   for (let i = 0; i < 20; i++) {
@@ -298,7 +302,7 @@ log('## Oberfläche');
   await ackAll(page);
   await exportWithAck(page, 'xlsx');
   const after1 = await page.textContent('.after');
-  check('Hinweis nach dem Speichern im Kasten „Danach“ (du-Form, Excel)', after1.includes('Lade die Datei direkt hoch. Wenn du sie vorher in Excel öffnest und speicherst, trägt Excel deinen Namen wieder ein.'), after1.trim().slice(0, 140));
+  check('Hinweis „direkt hochladen“ (du-Form, Excel)', after1.includes('Lade die Datei danach direkt hoch, ohne sie vorher in Excel zu öffnen. Sonst trägt Excel deinen Namen wieder ein.'), after1.trim().slice(0, 140));
   await ctx.close();
 }
 // ---------- Firmenname aus den Dateiangaben im sichtbaren Text (kurse.docx, Entscheidung A) ----------
@@ -307,14 +311,15 @@ log('## Firmenname aus den Dateiangaben im sichtbaren Text (kurse.docx)');
 {
   const { page, ctx } = await newPage();
   await loadFile(page, path.join(fx, 'kurse.docx'));
-  await ackAll(page);
+  await ackAll(page, { questions: false });
   const { status } = await exportOnce(page, 'docx');
-  const box = await page.textContent('#leaks');
-  const items = await page.$$eval('#leaks li', (els) => els.map((e) => e.textContent));
+  const box = await page.textContent('#scr-a3');
+  const items = await page.$$eval('#points li.bad', (els) => els.map((e) => e.textContent));
   check('Schlusscheck blockiert wegen des Firmennamens', /blockiert/.test(status) && items.length > 0 && items.every((t) => t.includes('Familienzentrum Sonnenblume')), items.length + ' Fund(e)');
-  check('Meldung nennt den Ort in einfacher Sprache („Kopfzeile“)', items.every((t) => /steht in: Kopfzeile/.test(t)), items[0] || '');
-  check('Meldung nennt beide Wege: als Namen übernehmen oder bewusst stehen lassen', /als Namen übernehmen/.test(box) && /bewusst stehen lassen/.test(box));
-  await page.click('#leaks button');
+  // Version 2.5.0: Fundort in einfacher Sprache; der Alt-Text des Logos in der Kopfzeile heißt jetzt „Bildbeschreibung“
+  check('Meldung nennt den Ort in einfacher Sprache („Kopfzeile“, „Bildbeschreibung“)', items.every((t) => /steht noch in: (Kopfzeile|Bildbeschreibung)/.test(t)), items.join(' | '));
+  check('Meldung nennt beide Wege: als Einrichtung übernehmen oder bewusst stehen lassen (Häkchen)', /Als Einrichtung übernehmen/.test(box) && /Ich habe alle Punkte gesehen und speichere so/.test(box));
+  await page.click('#points li.bad button');
   const after = await page.evaluate(async () => { const o = await window.__anon.buildOutput('docx'); return (await window.__anon.finalCheck(o)).length; });
   check('Knopf in der Meldung übernimmt den Firmennamen, danach Schlusscheck ohne Fund', after === 0);
   await ctx.close();

@@ -7,6 +7,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { startAnon, loadIn, goTo, ackAll, ackImages, exportOnce, exportWithAck, saveKey, screenOf, visiblePrimaries, visibleScreens } from './ui-helpers.mjs';
+import { waitCheck, savePoints, rbConfirm } from './ui-helpers.mjs';
 
 const { chromium } = createRequire('/opt/node22/lib/node_modules/')('playwright');
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -73,8 +74,8 @@ let anonPath1;
   await page.waitForFunction(() => { const p = window.__anon.app.preview; return p && !p.busy; });
   ok = (await stepCheck(page, 'Speichern (vor dem Schlüssel)', steps)) && ok;
   await ackAll(page);
-  // Firmenname im Schlusscheck: als Namen übernehmen (Knopf in der Ampel)
-  if (await page.$('#leaks button')) await page.click('#leaks button');
+  // Firmenname im Schlusscheck: als Einrichtung übernehmen (Knopf in der Zeile des offenen Punkts)
+  if (await page.$('#points li.bad button')) await page.click('#points li.bad button');
   await page.waitForFunction(() => { const p = window.__anon.app.preview; return p && !p.busy; });
   check('„2 Datei speichern“ ist vor dem Schlüssel gesperrt', await page.$eval('#btn-save', (b) => b.disabled));
   const kd = await saveKey(page);
@@ -84,8 +85,8 @@ let anonPath1;
   check('Datei gespeichert', !!r.dl, r.status);
   anonPath1 = r.dl ? await saveDl(r.dl, 'kurse-anonym.docx') : null;
   ok = (await stepCheck(page, 'Gespeichert', steps)) && ok;
-  const amp = await page.$$eval('#ampel > li', (els) => els.map((e) => `${e.classList.contains('warn') ? 'Achtung' : e.classList.contains('bad') ? 'rot' : 'grün'}: ${e.querySelector('.title').textContent}`));
-  log(`- Ampel nach dem Speichern: ${amp.join(' · ')}`);
+  const amp = await page.$$eval('#ampel > li', (els) => els.map((e) => e.innerText.replace(/\s+/g, ' ').split(' – ')[0]));
+  log(`- Details nach dem Speichern: ${amp.join(' · ')}; offene Punkte: ${(await savePoints(page)).length}`);
   check('In jedem Schritt genau ein Bildschirm und genau ein Hauptknopf', ok, steps.join(' → '));
   check('Keine JavaScript-Fehler', !errors.length, errors.join(' | '));
   await ctx.close();
@@ -175,27 +176,33 @@ log('## Sperren halten das Speichern weiter auf');
   await startAnon(page, 'person');
   await loadIn(page, path.join(fx, 'kurse.docx'));
   await goTo(page, 'a3');
+  // Version 2.5.0: alle offenen Punkte (Bilder, Fragen, Schlusscheck-Funde) mit EINEM Häkchen; das Häkchen ist erst
+  // wählbar, wenn die Bilderliste geöffnet wurde, und fällt bei jeder Änderung zurück
+  await waitCheck(page);
+  const pts = await savePoints(page);
+  log(`- Offene Punkte: ${pts.join(' | ')}`);
   let r = await exportOnce(page, 'docx');
-  // Seit 2.2 steht der Bilder-Hinweis nicht mehr als allgemeiner Datei-Hinweis da, sondern in der Zeile „Bilder“
-  // (Liste ansehen, dann abhaken). Jede übrige Sperre wird danach weiter einzeln geprüft.
-  check('Bilder nicht angesehen: Speichern blockiert (neu in 2.2)', !r.dl && /Bilder ansehen/.test(r.status), r.status);
+  check('Offene Punkte ohne Häkchen: Speichern blockiert', !r.dl && /blockiert/.test(r.status), r.status);
+  check('Häkchen ist gesperrt, solange die Bilderliste nicht geöffnet wurde', await page.$eval('#ack-all', (b) => b.disabled));
   await ackImages(page);
-  if (await page.$('#ampel .docwarn input:not(:checked)')) {
-    r = await exportOnce(page, 'docx');
-    check('Offener Datei-Hinweis blockiert', !r.dl && /Hinweise/.test(r.status), r.status);
-  } else log('- kurse.docx hat seit 2.2 keinen allgemeinen Datei-Hinweis mehr (Bilder jetzt in eigener Zeile); die Sperre „offener Datei-Hinweis“ prüft tests/bilder-test.mjs (bilder-word.docx, bilder-excel.xlsx).');
-  for (let i = 0; i < 20; i++) { const b = await page.$('#ampel .docwarn input:not(:checked)'); if (!b) break; await b.click(); }
+  check('Nach dem Öffnen der Bilderliste ist das Häkchen wählbar', !(await page.$eval('#ack-all', (b) => b.disabled)));
   r = await exportOnce(page, 'docx');
-  check('Offene Fragen blockieren ohne ausdrückliche Bestätigung', !r.dl && /Fragen/.test(r.status), r.status);
-  await page.check('#ack-questions');
-  r = await exportOnce(page, 'docx');
-  check('Schlusscheck-Fund blockiert', !r.dl && /Schlusscheck/.test(r.status) && /blockiert/.test(r.status), r.status);
+  check('Offene Fragen und Schlusscheck-Fund blockieren weiter ohne Häkchen', !r.dl && /blockiert/.test(r.status) && pts.some((x) => /Fragen sind noch offen/.test(x)) && pts.some((x) => /steht noch in/.test(x)), r.status);
   // Auch die anderen Wege sind gesperrt
   r = await exportOnce(page, 'txt');
-  check('Schlusscheck-Fund blockiert auch „Als .txt speichern“', !r.dl && /blockiert/.test(r.status), r.status);
-  await page.check('#leak-ack');
+  check('Offene Punkte blockieren auch „Als .txt speichern“', !r.dl && /blockiert/.test(r.status), r.status);
+  await page.check('#ack-all');
+  // Änderung der Treffer: das Häkchen fällt zurück
+  await goTo(page, 'a2');
+  await page.locator('#docview mark.hit.on').first().click();
+  await goTo(page, 'a3');
+  await waitCheck(page);
+  check('Nach einer Änderung der Treffer fällt das Häkchen zurück', !(await page.isChecked('#ack-all')));
   r = await exportOnce(page, 'docx');
-  check('Nach „bewusst stehen lassen“ wird gespeichert', !!r.dl, r.status);
+  check('… und Speichern ist wieder blockiert', !r.dl && /blockiert/.test(r.status), r.status);
+  await page.check('#ack-all');
+  r = await exportOnce(page, 'docx');
+  check('Mit Häkchen wird gespeichert', !!r.dl, r.status);
   await ctx.close();
 }
 {
@@ -236,10 +243,10 @@ log('## Sperren halten das Speichern weiter auf');
   await p2.page.setInputFiles('#rb-key', kp);
   await p2.page.waitForFunction(() => document.querySelector('#rb-key-status').textContent);
   await p2.page.click('#rb-btn-check');
-  if (await p2.page.$('#rb-kennung-ack')) await p2.page.check('#rb-kennung-ack'); // umbenannte .txt: Kennung bestätigen
+  await rbConfirm(p2.page, false);
   const needs = await p2.page.evaluate(() => window.__anon.rb.plan.needsConfirm);
   check('Rückbau-Auffälligkeit verlangt Bestätigung: „Weiter“ gesperrt', needs && await p2.page.$eval('#r2-next', (b) => b.disabled));
-  await p2.page.check('#rb-confirm');
+  await p2.page.check('#rb-ack'); // EIN Häkchen (Version 2.5.0)
   check('Nach der Bestätigung ist „Weiter“ frei', !(await p2.page.$eval('#r2-next', (b) => b.disabled)));
   await p2.ctx.close();
   // falsche Schlüsseldatei: Text ohne einen einzigen passenden Platzhalter
@@ -268,23 +275,23 @@ log('## Fragekarte, Tasten J/N, Markieren');
   await page.keyboard.press('j');
   check('Taste J wirkt nicht auf dem Bildschirm „Datei“', (await page.evaluate(() => window.__anon.app.answers.size)) === a0);
   await goTo(page, 'a2');
-  // Frage zu „Montag“ (3 Vorkommen, aus) suchen und mit Ja beantworten
-  let found = false;
-  for (let i = 0; i < 20; i++) {
-    const t = await page.textContent('#qcard');
-    if (/„Montag“/.test(t)) { found = true; break; }
-    await page.click('#q-yes');
-  }
-  const before = await page.evaluate(() => { const r = window.__anon.app.result; return r.hits.filter((h) => r.fullText.slice(h.s, h.e) === 'Montag').map((h) => h.on); });
-  await page.click('#q-yes');
-  const after = await page.evaluate(() => { const r = window.__anon.app.result; return r.hits.filter((h) => r.fullText.slice(h.s, h.e) === 'Montag').map((h) => h.on); });
-  check('„Ja, Name“ schaltet ALLE Vorkommen an (eine Frage pro Wort)', found && before.length === 3 && before.every((x) => !x) && after.every((x) => x), `vorher ${before.join(',')} → nachher ${after.join(',')}`);
-  for (let i = 0; i < 30 && !(await page.$('#q-again')); i++) await page.click('#q-yes'); // restliche Fragen beantworten
+  // Version 2.5.0 (D.4): keine Frage mehr zu Wochentagen/Monaten (Regel b2); „Montag“ bleibt stehen und ist unmarkiert
+  const qsAll = await page.evaluate(() => window.__anon.questions().map((q) => q.word || q.name || ''));
+  const mon = await page.evaluate(() => { const r = window.__anon.app.result; return r.hits.filter((h) => r.fullText.slice(h.s, h.e) === 'Montag').map((h) => h.on); });
+  check('Keine Frage zu „Montag“ (Regel b2), alle Vorkommen bleiben stehen', !qsAll.includes('Montag') && mon.length === 3 && mon.every((x) => !x), `Fragen zu: ${qsAll.join(', ')}`);
+  // „Ja“ bei der ersten Frage zum Wort schaltet alle ihre Stellen an, „Nein“ (Taste N) wieder aus
+  const q0 = await page.evaluate(() => { const q = window.__anon.questions().find((x) => x.kind === 'word'); return q ? q.id : null; });
+  const st = (v) => page.evaluate((id) => { const q = window.__anon.questions().find((x) => x.id === id); return q.hits.map((h) => h.on); }, v);
+  for (let i = 0; i < 30; i++) { const cur = await page.evaluate(() => { const qs = window.__anon.questions(); const i2 = qs.findIndex((q) => !window.__anon.app.answers.has(q.id)); return i2 >= 0 ? qs[i2].id : null; }); if (cur === q0) break; await page.click('#q-yes'); }
+  await page.keyboard.press('j');
+  const afterJ = await st(q0);
+  check('Taste J (Ja) schaltet alle Stellen der Frage an', afterJ.every((x) => x), afterJ.join(','));
+  for (let i = 0; i < 40 && !(await page.$('#q-again')); i++) await page.click('#q-yes'); // restliche Fragen beantworten
   await page.click('#q-again'); // „Fragen noch einmal zeigen“
-  for (let i = 0; i < 30; i++) { if (/„Montag“/.test(await page.textContent('#qcard'))) break; await page.click('#q-yes'); }
   await page.keyboard.press('n');
-  const afterN = await page.evaluate(() => { const r = window.__anon.app.result; return r.hits.filter((h) => r.fullText.slice(h.s, h.e) === 'Montag').map((h) => h.on); });
-  check('Taste N schaltet alle Vorkommen wieder aus', afterN.every((x) => !x), afterN.join(','));
+  const afterN = await st(q0);
+  check('Taste N schaltet die Stellen wieder aus', afterN.every((x) => !x), afterN.join(','));
+  if (await page.isHidden('#entities')) await page.click('#tgl-entities');
   // J/N wirken nicht, wenn ein Eingabefeld den Fokus hat
   await page.click('.entity .menubtn');
   await page.focus('.emenu select');
@@ -355,8 +362,8 @@ log('## Zurück und Weiter ohne Verlust');
 log('');
 
 // ---------- Breiten ----------
-log('## Breiten 390, 1280, 1920 px');
-for (const w of [390, 1280, 1920]) {
+log('## Breiten 390, 1280, 1366, 1920 px');
+for (const w of [390, 1280, 1366, 1920]) {
   const { page, ctx } = await newPage({ width: w, height: 900 });
   const res = [];
   const shot = async (name) => {
@@ -376,9 +383,9 @@ for (const w of [390, 1280, 1920]) {
   await page.click('#scr-a3 [data-back]'); await page.click('#scr-a2 [data-back]'); await page.click('#scr-a1 [data-back]');
   await page.click('#go-restore');
   ok = (await shot('rueckbau')) && ok;
-  const small = w === 390 ? await page.evaluate(() => [...document.querySelectorAll('button')].filter((b) => b.offsetParent && b.getBoundingClientRect().height < 44).map((b) => b.textContent.trim())) : [];
+  const small = w === 390 ? await page.evaluate(() => [...document.querySelectorAll('button')].filter((b) => b.offsetParent && b.getBoundingClientRect().height < 36).map((b) => b.textContent.trim())) : [];
   check(`${w} px: kein waagrechtes Scrollen`, ok, res.join(', '));
-  if (w === 390) check('390 px: alle sichtbaren Knöpfe mindestens 44 px hoch', !small.length, small.join(', '));
+  if (w === 390) check('390 px: alle sichtbaren Knöpfe mindestens 36 px hoch (Version 2.5.0: 36 px statt 44 px erlaubt)', !small.length, small.join(', '));
   if (w === 1280) {
     await page.click('#scr-r1 [data-back]'); await page.click('#go-anon'); await goTo(page, 'a2');
     const side = await page.evaluate(() => { window.scrollTo(0, 300); const r = document.querySelector('.side').getBoundingClientRect(); return { top: Math.round(r.top) }; });
@@ -386,7 +393,7 @@ for (const w of [390, 1280, 1920]) {
     const scroll = await page.evaluate(() => { const v = document.querySelector('#docview'); return getComputedStyle(v).overflowY; });
     check('Dokumenttext ohne eigenen Scrollkasten', scroll === 'visible', `overflow-y: ${scroll}`);
     const tab = await page.evaluate(() => /(^|\n)Tabelle\n/.test(document.querySelector('#docview').innerText));
-    check('Kein Wort „Tabelle“ vor den Absätzen; Tabellenzeilen als Zeilen', !tab && await page.$$eval('.trow', (r) => r.length) > 5);
+    check('Kein Wort „Tabelle“ vor den Absätzen; Word-Tabellen als Tabelle', !tab && await page.$$eval('#docview table.wtable tr', (r) => r.length) > 5);
   }
   await ctx.close();
 }
