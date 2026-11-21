@@ -6,6 +6,8 @@
   --keybg: #FDECEC; --keyline: #B3261E; --keyfg: #8C1D18;
   --sure: #FFE39A; --unsure: #FFF4E5; --unsure-line: #B4530A; --manual: #DCE7FF; --manual-line: #2A4FB0;
   --off: #E6E9ED; --radius: 14px;
+  /* Einrichtungen (2.3): Violett, deutlich anders als Gelb (Person), Blau (von dir markiert) und Türkis (Kontakt) */
+  --org: #F0E6FA; --org-line: #6A2C9C;
 }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
@@ -120,6 +122,8 @@ mark.hit::after { content: attr(data-l); font-size: .65em; vertical-align: super
 mark.sure.on { background: var(--sure); }
 mark.unsure.on { background: var(--unsure); outline: 2px dashed var(--unsure-line); outline-offset: -2px; }
 mark.manual.on { background: var(--manual); box-shadow: inset 0 -3px 0 var(--manual-line); }
+/* Einrichtung: doppelter Rahmen – auch ohne Farbe von allen anderen Markierungen zu unterscheiden */
+mark.org.on { background: var(--org); outline: 3px double var(--org-line); outline-offset: 0; }
 mark.contact.on { background: var(--accent-light); outline: 1px solid var(--accent); outline-offset: -1px; }
 mark.off { background: var(--off); text-decoration: line-through; color: var(--muted); }
 .side { position: sticky; top: 5.5rem; max-height: calc(100vh - 6.5rem); overflow: auto; }
@@ -212,3 +216,9 @@ mark.off { background: var(--off); text-decoration: line-through; color: var(--m
 .imgph { display: flex; flex-direction: column; gap: .15rem; padding: .35rem; text-align: center; font-size: 13px; line-height: 1.3; color: var(--muted); overflow-wrap: anywhere; }
 .imgph strong { color: var(--fg); font-size: 14px; }
 label.check.disabled { color: var(--muted); }
+
+/* Einrichtungen (Version 2.3) */
+button.markbtn.orgbtn { background: var(--org-line); border-color: var(--org-line); }
+.addform select { width: auto; flex: none; }
+.chip .kind { color: var(--muted); }
+.chip.orgchip { background: var(--org); box-shadow: inset 0 0 0 2px var(--org-line); }

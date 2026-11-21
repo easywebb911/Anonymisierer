@@ -113,17 +113,17 @@ export async function collectZipTexts(zip, opts = {}) {
       let doc;
       try { doc = parseXml(str, name); } catch { texts.push({ where: name, text: str }); continue; }
       const parts = [];
+      const plain = []; // nur Textknoten (Version 2.3: für Einrichtungen über mehrere Textläufe hinweg)
       const walk = (n) => {
         for (const c of Array.from(n.childNodes)) {
-          if (c.nodeType === 3 || c.nodeType === 4) parts.push(c.nodeValue);
-          else if (c.nodeType === 1) {
+          if (c.nodeType === 3 || c.nodeType === 4) { parts.push(c.nodeValue); plain.push(c.nodeValue); } else if (c.nodeType === 1) {
             for (const a of Array.from(c.attributes)) if (!/^xmlns/.test(a.name)) parts.push(a.value);
             walk(c);
           }
         }
       };
       walk(doc);
-      texts.push({ where: name, text: parts.join('\n') });
+      texts.push({ where: name, text: parts.join('\n'), plain: plain.join('\n') });
     } else {
       const bytes = await zip.file(name).async('uint8array');
       if (bytes.length > 8 * 1024 * 1024) { texts.push({ where: name, text: '', skipped: true }); continue; }

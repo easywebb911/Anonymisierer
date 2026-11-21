@@ -5,9 +5,14 @@ import { KEY_FORMAT } from './reversible.js';
 
 // Exakte Platzhalter (Endung wie "s" bleibt im Text stehen und gehört nicht zum Platzhalter)
 const NAME_RE = /(^|[^\p{L}\p{N}])((?:Vorname|Nachname|Initiale|Name) [A-Z]{1,3}\d*)(?=(?:'s|’s|'|’|s|es|ns|n)?(?![\p{L}\p{N}]))/gu;
+// Version 2.3: mit Einrichtungen. Nur für Schlüssel MIT Einrichtung verwendet, damit ältere Schlüssel genau wie bisher
+// arbeiten (sonst würde z. B. „Einrichtung B“ im Text plötzlich als unbekannter Platzhalter gemeldet).
+const NAME_ORG_RE = /(^|[^\p{L}\p{N}])((?:Vorname|Nachname|Initiale|Name|Einrichtung) [A-Z]{1,3}\d*)(?=(?:'s|’s|'|’|s|es|ns|n)?(?![\p{L}\p{N}]))/gu;
 const CONTACT_RE = /\[(?:E-MAIL|TELEFON|IBAN|ADRESSE)-\d+\]/g;
 // Veränderte Formen (Kleinschreibung, Genitiv, Bindestrich, ohne Leerzeichen, Zeilenumbruch dazwischen)
 const LOOSE_NAME_RE = /(^|[^\p{L}\p{N}])(vorname|nachname|initiale|name)(ns|s|n)?([\s -]*)([a-z]{1,3})(\d*)(?![\p{L}\p{N}])/giu;
+const LOOSE_NAME_ORG_RE = /(^|[^\p{L}\p{N}])(vorname|nachname|initiale|name|einrichtung)(ns|s|n|en)?([\s -]*)([a-z]{1,3})(\d*)(?![\p{L}\p{N}])/giu;
+const nameRe = (key) => (key.hasOrg ? NAME_ORG_RE : NAME_RE);
 const LOOSE_CONTACT_RE = /\[?\s*(e-?mail|telefon|iban|adresse)\s*[-–_ ]?\s*(\d+)\s*\]?/giu;
 
 // Schlüsseldatei lesen. Liefert {ok:true, key} oder {ok:false, error}
@@ -23,7 +28,7 @@ export function parseKeyFile(text) {
     if (data && Array.isArray(data.names)) return { ok: false, error: 'Das ist eine Merkliste („Eigene Namen“), keine Rückbau-Schlüsseldatei.' };
     return { ok: false, error: 'Die Datei ist keine Rückbau-Schlüsseldatei des Anonymisierers.' };
   }
-  if (data.formatVersion !== 1) return { ok: false, error: `Unbekannte Version der Schlüsseldatei (${data.formatVersion}). Bitte eine neuere Version des Tools verwenden.` };
+  if (data.formatVersion !== 1 && data.formatVersion !== 2) return { ok: false, error: `Unbekannte Version der Schlüsseldatei (${data.formatVersion}). Bitte eine neuere Version des Tools verwenden.` };
   const entries = new Map();
   for (const e of data.platzhalter || []) {
     if (!e || typeof e.platzhalter !== 'string' || typeof e.wert !== 'string') return { ok: false, error: 'Die Schlüsseldatei ist beschädigt (Eintrag ohne Platzhalter oder Wert).' };
@@ -31,7 +36,8 @@ export function parseKeyFile(text) {
     entries.set(e.platzhalter, { wert: e.wert, anzahl: Number(e.anzahl) || 0, kategorie: e.kategorie || '' });
   }
   if (!entries.size) return { ok: false, error: 'Die Schlüsseldatei enthält keine Platzhalter.' };
-  return { ok: true, key: { entries, toolVersion: data.toolVersion || '?', kind: data.quelle && data.quelle.dateityp } };
+  const hasOrg = [...entries.keys()].some((ph) => /^Einrichtung [A-Z]{1,3}\d*$/.test(ph));
+  return { ok: true, key: { entries, hasOrg, toolVersion: data.toolVersion || '?', kind: data.quelle && data.quelle.dateityp } };
 }
 
 const ctx = (text, s, e) => text.slice(Math.max(0, s - 25), Math.min(text.length, e + 25)).replace(/\s+/g, ' ');
@@ -42,7 +48,7 @@ export function scanUnit(text, key, where) {
   const found = [];
   const issues = [];
   const taken = [];
-  for (const m of text.matchAll(NAME_RE)) {
+  for (const m of text.matchAll(nameRe(key))) {
     const s = m.index + m[1].length;
     const ph = m[2];
     const e = s + ph.length;
@@ -58,7 +64,7 @@ export function scanUnit(text, key, where) {
     else issues.push({ art: 'unbekannt', text: m[0], where, kontext: ctx(text, s, e) });
   }
   const free = (s, e) => !taken.some(([a, b]) => s < b && e > a);
-  for (const m of text.matchAll(LOOSE_NAME_RE)) {
+  for (const m of text.matchAll(key.hasOrg ? LOOSE_NAME_ORG_RE : LOOSE_NAME_RE)) {
     const s = m.index + m[1].length;
     const e = m.index + m[0].length;
     if (!free(s, e)) continue;
@@ -85,7 +91,7 @@ export function scanUnit(text, key, where) {
 function splitAcrossUnits(units, key) {
   const issues = [];
   for (let i = 0; i + 1 < units.length; i++) {
-    const a = units[i].text.match(/(Vorname|Nachname|Initiale|Name)\s*$/);
+    const a = units[i].text.match(key.hasOrg ? /(Vorname|Nachname|Initiale|Name|Einrichtung)\s*$/ : /(Vorname|Nachname|Initiale|Name)\s*$/);
     const b = units[i + 1].text.match(/^\s*([A-Z]{1,3}\d*)(?![\p{L}\p{N}])/u);
     if (a && b && key.entries.has(`${a[1]} ${b[1]}`)) {
       issues.push({ art: 'getrennt', text: `${a[1]} | ${b[1]}`, vermutlich: `${a[1]} ${b[1]}`, where: units[i].label || `Abschnitt ${i + 1}`, kontext: units[i].text.slice(-30) + ' ⏎ ' + units[i + 1].text.slice(0, 30) });
@@ -142,7 +148,7 @@ export function makeRestoreString(key) {
 export function findLeftovers(key, texts) {
   const left = [];
   for (const { where, text } of texts) {
-    for (const m of text.matchAll(NAME_RE)) if (key.entries.has(m[2])) left.push({ where, text: m[2], kontext: ctx(text, m.index, m.index + m[0].length) });
+    for (const m of text.matchAll(nameRe(key))) if (key.entries.has(m[2])) left.push({ where, text: m[2], kontext: ctx(text, m.index, m.index + m[0].length) });
     for (const m of text.matchAll(CONTACT_RE)) if (key.entries.has(m[0])) left.push({ where, text: m[0], kontext: ctx(text, m.index, m.index + m[0].length) });
   }
   return left;

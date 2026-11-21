@@ -26,7 +26,9 @@ const FIXTURES = [['protokoll.txt', ['txt', 'docx']], ['mitarbeiter.csv', ['csv'
   ['kurse.docx', ['docx', 'txt']], ['a2-risiko.docx', ['docx', 'txt']], ['a2-risiko.txt', ['txt']], ['a2-risiko.csv', ['csv']],
   ['a2-uebertragung.docx', ['docx', 'txt']], ['a2-uebertragung.txt', ['txt']], ['a2-uebertragung.csv', ['csv']],
   ['meta-word.docx', ['docx', 'txt']], ['meta-tabelle.xlsx', ['xlsx', 'txt']], ['meta-falle.docx', ['docx', 'txt']],
-  ['bilder-word.docx', ['docx', 'txt']], ['bilder-excel.xlsx', ['xlsx', 'txt']]];
+  ['bilder-word.docx', ['docx', 'txt']], ['bilder-excel.xlsx', ['xlsx', 'txt']],
+  // Version 2.3: Einrichtungs-Testdateien OHNE markierte Einrichtung (Zwei-Zeilen-Suche darf nichts ändern)
+  ['einrichtung-umbruch.txt', ['txt', 'docx']], ['einrichtung-umbruch-crlf.txt', ['txt']], ['einrichtung.txt', ['txt']], ['einrichtung.docx', ['docx', 'txt']]];
 const sha = (b) => crypto.createHash('sha256').update(b).digest('hex');
 
 const browser = await chromium.launch();

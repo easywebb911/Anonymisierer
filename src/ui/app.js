@@ -5,7 +5,7 @@ import './lockdown.js';
 import JSZip from 'jszip';
 import {
   analyze, defaultState, replacementsByUnit, applyReplacements, leakForms, findLeaks, makeGenericReplacer,
-  metaLeakForms, makeNameTest,
+  metaLeakForms, makeNameTest, orgLeakPhrases, orgTermTokens, orgCoverageLeaks,
 } from '../core/detect.js';
 import { fold } from '../core/fold.js';
 import { readTxt, writeTxt, readCsv, writeCsv, encodeText, encodeTextPlain } from '../formats/text.js';
@@ -31,9 +31,9 @@ const SAVE_HINT_WORD = 'Lade die Datei direkt hoch. Wenn du sie vorher in Word �
 const SAVE_HINT_EXCEL = 'Lade die Datei direkt hoch. Wenn du sie vorher in Excel öffnest und speicherst, trägt Excel deinen Namen wieder ein.';
 // Hinweis für die KI, passend zum Modus
 const KI_HINT = {
-  reversible: 'Der Text enthält Platzhalter wie „Vorname A“, „Nachname A“, „Name A“, „Initiale A.“ und „[E-MAIL-1]“. Diese Platzhalter bitte nie verändern, nicht beugen, nicht übersetzen und nicht trennen. Zeige mir nur die Fehler, schreibe den Text nicht neu.',
-  person: 'Der Text enthält Platzhalter wie „Person A“ und „[E-MAIL]“ anstelle echter Namen und Kontaktdaten. Diese Platzhalter bitte unverändert lassen. Zeige mir nur die Fehler, schreibe den Text nicht neu.',
-  name: 'Der Text enthält Platzhalter wie „[NAME]“ und „[E-MAIL]“ anstelle echter Namen und Kontaktdaten. Diese Platzhalter bitte unverändert lassen. Zeige mir nur die Fehler, schreibe den Text nicht neu.',
+  reversible: 'Der Text enthält Platzhalter wie „Vorname A“, „Nachname A“, „Name A“, „Initiale A.“, „Einrichtung A“ und „[E-MAIL-1]“. Diese Platzhalter bitte nie verändern, nicht beugen, nicht übersetzen und nicht trennen. Zeige mir nur die Fehler, schreibe den Text nicht neu.',
+  person: 'Der Text enthält Platzhalter wie „Person A“, „Einrichtung A“ und „[E-MAIL]“ anstelle echter Namen, Einrichtungen und Kontaktdaten. Diese Platzhalter bitte unverändert lassen. Zeige mir nur die Fehler, schreibe den Text nicht neu.',
+  name: 'Der Text enthält Platzhalter wie „[NAME]“, „[EINRICHTUNG]“ und „[E-MAIL]“ anstelle echter Namen, Einrichtungen und Kontaktdaten. Diese Platzhalter bitte unverändert lassen. Zeige mir nur die Fehler, schreibe den Text nicht neu.',
 };
 
 function h(tag, attrs, ...kids) {
@@ -115,13 +115,23 @@ function loadStored() {
   try {
     const d = JSON.parse(raw);
     app.state.manualTerms = Array.isArray(d.names) ? d.names.filter((x) => typeof x === 'string') : [];
+    // Version 2.3: Einrichtungen getrennt gemerkt; ältere Merklisten ohne dieses Feld enthalten nur Personen
+    app.state.orgTerms = Array.isArray(d.einrichtungen) ? d.einrichtungen.filter((x) => typeof x === 'string') : [];
     app.state.exceptions = Array.isArray(d.exceptions) ? d.exceptions.filter((x) => typeof x === 'string') : [];
     app.persist = true;
   } catch { storeDel(); }
 }
 function saveStored() {
   if (!app.persist) return;
-  storeSet(JSON.stringify({ names: app.state.manualTerms, exceptions: app.state.exceptions }));
+  storeSet(JSON.stringify(listData()));
+}
+
+// Merkliste (Datei und Browser-Speicher): Personen in „names“ wie bisher, Einrichtungen in „einrichtungen“
+function listData(extra) {
+  const d = { ...(extra || {}), names: app.state.manualTerms };
+  if (app.state.orgTerms.length) d.einrichtungen = app.state.orgTerms;
+  d.exceptions = app.state.exceptions;
+  return d;
 }
 
 // ---------- Datei erkennen und lesen ----------
@@ -163,8 +173,12 @@ async function loadBytes(bytes, name) {
   else if (kind === 'xlsx') doc = await readXlsx(bytes);
   else if (kind === 'pdf') doc = await readPdf(bytes);
   // row/cell nur für die Anzeige (Tabellenzeilen als Zeilen); die Erkennung nutzt nur text/label/follows/heading
-  const units = doc.units.map((u) => ({ text: u.text, label: u.label || '', follows: !!u.follows, heading: !!u.heading,
-    row: u.row !== undefined ? (u.part || '') + '#' + u.row : null, cell: u.cell }));
+  // fixed: Stellen fester Zeichen der Vorlage (z. B. Zeilenumbruch in Word), die beim Ersetzen stehen bleiben
+  // TXT (2.3): joinNext/eol – Einrichtungen dürfen über genau einen Zeilenumbruch gehen (nur markierte Einrichtungen)
+  const units = doc.units.map((u, i) => ({ text: u.text, label: u.label || '', follows: !!u.follows, heading: !!u.heading,
+    row: u.row !== undefined ? (u.part || '') + '#' + u.row : null, cell: u.cell,
+    ...(kind === 'txt' ? { joinNext: i + 1 < doc.units.length, eol: doc.eols[i] || '\n' } : {}),
+    fixed: u.segments && u.segments.some((sg) => !sg.writable) ? u.segments.filter((sg) => !sg.writable).map((sg) => sg.start) : null }));
   const warnings = [...(doc.warnings || [])];
   if (bytes.length > WARN_BYTES) warnings.push(`Große Datei (${(bytes.length / 1048576).toFixed(1)} MB): Auf dem iPhone kann die Verarbeitung langsam sein oder abbrechen.`);
   // Bilder (nur Word/Excel): Liste mit Fundort, Typ und Beschreibung; Bildinhalte werden erst beim Ansehen gelesen
@@ -200,7 +214,7 @@ function plainTextExport() {
   const d = app.doc;
   // Beschriftungen können Namen enthalten (z. B. Blattname "Müller!A1") -> ebenfalls ersetzen
   const generic = makeGenericReplacer(app.result, app.state.settings);
-  if (d.kind === 'txt') return writeTxt(d.raw, texts);
+  if (d.kind === 'txt') return writeTxt(joinedRaw(d.raw), texts);
   if (d.kind === 'csv') return writeCsv(d.raw, texts);
   if (d.kind === 'pdf') return d.units.map((u, i) => `--- ${u.label} ---\n${texts[i]}`).join('\n\n');
   const main = /^(Text|Tabelle|Textfeld)$/;
@@ -211,14 +225,21 @@ function docxSections() {
   const d = app.doc;
   if (d.kind === 'pdf') return d.units.map((u, i) => ({ heading: u.label, pageBreak: true, paragraphs: texts[i].split('\n') }));
   if (d.kind === 'csv') return [{ paragraphs: writeCsv(d.raw, texts).split(/\r\n|\n|\r/).map((l) => l.split(d.raw.delim).join('\t')) }];
-  return [{ paragraphs: writeTxt(d.raw, texts).split(/\r\n|\n|\r/) }];
+  return [{ paragraphs: writeTxt(joinedRaw(d.raw), texts).split(/\r\n|\n|\r/) }];
+}
+// TXT (Version 2.3): Steht eine Einrichtung über einen Zeilenumbruch, werden die beiden Zeilen in der Ausgabe eine
+// (der Platzhalter steht für den ganzen Namen samt Umbruch; der Rückbau stellt den Umbruch wieder her)
+function joinedRaw(raw) {
+  const j = app.result && app.result.joins;
+  return j && j.size ? { ...raw, eols: raw.eols.map((e, i) => (j.has(i) ? '' : e)) } : raw;
 }
 // Suchformen für den Schlusscheck: bestätigte Namen + Namen aus den Original-Metadaten (Dateiangaben)
 function checkForms() {
   const forms = leakForms(app.result);
   const meta = metaLeakForms(app.doc.metaNames);
   for (const [k, f] of meta.forms) if (!forms.has(k)) forms.set(k, f);
-  return { forms, phrases: meta.phrases };
+  // Einrichtungen: jede Schreibweise als ganze Wortfolge
+  return { forms, phrases: [...orgLeakPhrases(app.result), ...meta.phrases] };
 }
 async function buildOutput(format) {
   const d = app.doc;
@@ -246,7 +267,45 @@ async function finalCheck(out) {
   let texts;
   if (out.zip) texts = (await collectZipTexts(await JSZip.loadAsync(out.bytes), { inflatePng: true })).map((t) => ({ ...t, where: describePart(t.where) }));
   else texts = [{ where: 'Text', text: out.text }];
-  return findLeaks(forms, texts, phrases);
+  const leaks = findLeaks(forms, texts, phrases);
+  // Version 2.3: jede Einrichtung aus der Liste im Originaltext; nicht vollständig ersetzte Fundstellen melden
+  const org = orgCheckLeaks();
+  if (!org.length) return leaks;
+  const norm = (w) => w.replace(/\s+/g, ' ').trim().toLowerCase();
+  const have = new Set(org.map((l) => norm(l.word)));
+  // dieselbe Stelle nicht doppelt melden (die Suche in der Ausgabe findet sie ggf. auch)
+  return [...org, ...leaks.filter((l) => !(l.org && have.has(norm(l.word))))];
+}
+// Fundort eines Abschnitts in einfacher Sprache
+function unitPlace(ui) {
+  const u = app.doc.units[ui];
+  const k = app.doc.kind;
+  if (k === 'txt') return `Zeile ${ui + 1}`;
+  if (k === 'csv') return u.label || `Abschnitt ${ui + 1}`;
+  if (k === 'docx' && (u.label === 'Text' || !u.label)) return 'Text';
+  return u.label || `Abschnitt ${ui + 1}`;
+}
+function orgCheckLeaks() {
+  if (!app.result || !app.state.orgTerms.length) return [];
+  const k = app.doc.kind;
+  const prog = k === 'xlsx' ? 'Excel' : k === 'docx' ? 'Word' : '';
+  return orgCoverageLeaks(app.result, app.state.orgTerms).map((f) => {
+    const t = app.result.fullText;
+    const where = f.units.map(unitPlace).filter((x, i, a) => a.indexOf(x) === i).join(' und ');
+    let hint;
+    if (f.units.length > 1) {
+      hint = k === 'docx' ? 'Der Name steht über zwei Absätze. Entferne den Absatz in Word oder markiere die Teile einzeln.'
+        : k === 'txt' ? (/\n[ \t\r]*\n/.test(f.text) ? 'Der Name steht über zwei Absätze (Leerzeile dazwischen). Entferne die Leerzeile in der Datei oder markiere die Teile einzeln.'
+          : 'Der Name steht über mehrere Zeilen. Füge die Zeilen in der Datei zusammen oder markiere die Teile einzeln.')
+          : `Der Name steht über zwei Abschnitte (z. B. zwei Zellen). ${prog ? 'Fasse sie in ' + prog + ' zusammen' : 'Fasse sie zusammen'} oder markiere die Teile einzeln.`;
+    } else if (/[\r\n]/.test(f.text)) {
+      hint = `Der Name steht über einen Zeilenumbruch. Entferne den Umbruch ${prog ? 'in ' + prog : 'in der Datei'} oder markiere die Teile einzeln.`;
+    } else {
+      hint = 'Ein Teil des Namens ist nicht als Einrichtung ersetzt (z. B. als Person ersetzt oder ausgeschaltet). Schalte im Schritt „Prüfen“ die Einrichtung ein oder markiere die Bezeichnung als Einrichtung.';
+    }
+    return { where: where + ' – im Original', word: f.text, entity: '„' + f.term + '“', full: f.term, org: true, orgCheck: true, hint,
+      context: t.slice(Math.max(0, f.s - 30), Math.min(t.length, f.e + 30)) };
+  });
 }
 // Ausgabe + Schlusscheck; rückbaufähig: nicht exakt rückbaubare Blattnamen zählen als Fund (wie bisher)
 async function outputWithCheck(format) {
@@ -306,8 +365,10 @@ function questions() {
     qs.push({ id: 'p:' + en.key, kind: 'hit', en, hits: unsure, word, first: unsure[0] });
   }
   for (const m of app.doc.metaNames || []) {
-    const taken = app.state.manualTerms.some((t) => fold(t) === fold(m.name));
-    qs.push({ id: 'm:' + fold(m.name), kind: 'meta', name: m.name, where: m.where, taken });
+    // Firma/Organisation (Version 2.3): als Einrichtung übernehmen; Autor, Bearbeiter, Manager bleiben Personen
+    const org = m.kind === 'org';
+    const taken = (org ? app.state.orgTerms : app.state.manualTerms).some((t) => fold(t) === fold(m.name));
+    qs.push({ id: 'm:' + fold(m.name), kind: 'meta', org, name: m.name, where: m.where, taken });
   }
   return qs;
 }
@@ -317,7 +378,7 @@ function answer(q, yes) {
   app.answers.set(q.id, yes ? 'ja' : 'nein');
   if (app.qReview >= 0) app.qReview += 1;
   if (q.kind === 'hit') setHits(q.hits, yes);
-  else if (yes && !q.taken) addManual(q.name); // rechnet neu und zeichnet alles
+  else if (yes && !q.taken) { if (q.org) addOrg(q.name); else addManual(q.name); } // rechnet neu und zeichnet alles
   renderQuestions();
   renderA2Info();
 }
@@ -357,8 +418,8 @@ function renderQuestions() {
     kids.push(contextOf(q.first), h('p', { class: 'qask' }, `Ist „${q.word}“ hier ein Name?`));
     if (q.hits.length > 1) kids.push(h('p', { class: 'hint' }, `Gilt für alle ${q.hits.length} unsicheren Stellen dieser Person.`));
   } else {
-    kids.push(h('p', { class: 'qask' }, `In den Dateiangaben steht „${q.name}“. Als Namen übernehmen?`),
-      h('p', { class: 'hint' }, `${q.where}. Bei „Ja“ wird der Name überall im Text ersetzt. Aus den Dateiangaben wird er so oder so entfernt.`));
+    kids.push(h('p', { class: 'qask' }, `In den Dateiangaben steht „${q.name}“. ${q.org ? 'Als Einrichtung übernehmen?' : 'Als Namen übernehmen?'}`),
+      h('p', { class: 'hint' }, `${q.where}. Bei „Ja“ wird ${q.org ? 'die Einrichtung' : 'der Name'} überall im Text ersetzt. Aus den Dateiangaben wird ${q.org ? 'sie' : 'er'} so oder so entfernt.`));
   }
   if (prev) kids.push(h('p', { class: 'hint' }, `Bisherige Antwort: ${prev === 'ja' ? 'Ja' : 'Nein'}`));
   kids.push(h('div', { class: 'qbtns' },
@@ -428,11 +489,13 @@ function renderSummary() {
   const persons = r.hits.filter((x) => x.type === 'person');
   const sure = persons.filter((x) => x.cert === 'sicher').length;
   const contacts = r.hits.length - persons.length;
-  $('#summary').textContent = `${app.doc.name || 'Eingefügter Text'} · ${r.entities.size} ${r.entities.size === 1 ? 'Person' : 'Personen'} · ${persons.length} Namens-Treffer (${sure} sicher, ${persons.length - sure} unsicher) · ${contacts} Kontaktdaten · aktiv: ${r.hits.filter((x) => x.on).length}` + (app.doc.info ? ' · ' + app.doc.info : '');
+  const orgHits = r.hits.filter((x) => x.type === 'org').length;
+  const orgPart = r.orgs.size ? ` · ${r.orgs.size} ${r.orgs.size === 1 ? 'Einrichtung' : 'Einrichtungen'} (${orgHits} Stellen)` : '';
+  $('#summary').textContent = `${app.doc.name || 'Eingefügter Text'} · ${r.entities.size} ${r.entities.size === 1 ? 'Person' : 'Personen'} · ${persons.length} Namens-Treffer (${sure} sicher, ${persons.length - sure} unsicher)${orgPart} · ${contacts - orgHits} Kontaktdaten · aktiv: ${r.hits.filter((x) => x.on).length}` + (app.doc.info ? ' · ' + app.doc.info : '');
 }
 
 function hitTitle(x) {
-  return (x.on ? 'wird ersetzt durch: ' + x.label : 'bleibt stehen (aus)') + (x.cert === 'unsicher' ? ' · unsicherer Treffer' : '') + (x.origin === 'manual' ? ' · von dir markiert' : '') + (x.link ? ' · zugeordnet über ' + x.link : '') + ' · Tippen = an/aus';
+  return (x.on ? 'wird ersetzt durch: ' + x.label : 'bleibt stehen (aus)') + (x.type === 'org' ? ' · Einrichtung' : '') + (x.cert === 'unsicher' ? ' · unsicherer Treffer' : '') + (x.origin === 'manual' ? ' · von dir markiert' : '') + (x.link ? ' · zugeordnet über ' + x.link : '') + ' · Tippen = an/aus';
 }
 
 // Schnelles Umschalten ohne Neuberechnung (Treffer bleiben gleich, nur an/aus ändert sich)
@@ -440,8 +503,7 @@ function setHits(list, on) {
   for (const x of list) {
     x.on = on;
     app.state.overrides[x.key] = on;
-    const m = document.querySelector(`mark[data-h="${x.id}"]`);
-    if (m) { m.classList.toggle('on', on); m.classList.toggle('off', !on); m.title = hitTitle(x); }
+    for (const m of document.querySelectorAll(`mark[data-h="${x.id}"]`)) { m.classList.toggle('on', on); m.classList.toggle('off', !on); m.title = hitTitle(x); }
   }
   changed();
   renderSummary();
@@ -486,6 +548,7 @@ function renderDoc() {
   let rowKey = null;
   let cellEl = null;
   let cellKey = null;
+  const contOf = new Map(hits.filter((x) => x.unit2 !== undefined).map((x) => [x.unit2, x]));
   app.doc.units.forEach((u, ui) => {
     if (!u.text.trim()) return;
     const v = unitView(u);
@@ -500,14 +563,22 @@ function renderDoc() {
     if (v.note) box.append(h('span', { class: 'cellref' }, v.note));
     const tx = h('div', { class: 'utext', 'data-u': ui });
     let pos = 0;
+    // Fortsetzung einer Einrichtung aus der vorigen Zeile (TXT, über einen Zeilenumbruch)
+    const cont = contOf.get(ui);
+    if (cont) {
+      pos = cont.e - base;
+      tx.append(h('mark', { class: 'hit org' + (cont.on ? ' on' : ' off'), 'data-h': cont.id, 'data-l': '', title: hitTitle(cont) }, u.text.slice(0, pos)));
+    }
     while (hi < hits.length && hits[hi].s < base) hi++;
     while (hi < hits.length && hits[hi].s < base + u.text.length + 1) {
       const x = hits[hi];
       const s = x.s - base;
-      const e = x.e - base;
+      const e = Math.min(x.e - base, u.text.length);
       if (s > pos) tx.append(document.createTextNode(u.text.slice(pos, s)));
-      const cls = ['hit', x.type === 'person' ? (x.cert === 'sicher' ? 'sure' : 'unsure') : 'contact', x.origin === 'manual' ? 'manual' : '', x.on ? 'on' : 'off'].filter(Boolean).join(' ');
-      tx.append(h('mark', { class: cls, 'data-h': x.id, 'data-l': x.type === 'person' ? (app.state.settings.mode === 'name' ? 'NAME' : r.entities.get(x.entity).letter) : x.label.replace(/[[\]]/g, ''), title: hitTitle(x) }, u.text.slice(s, e)));
+      const cls = ['hit', x.type === 'person' ? (x.cert === 'sicher' ? 'sure' : 'unsure') : x.type === 'org' ? 'org' : 'contact', x.origin === 'manual' ? 'manual' : '', x.on ? 'on' : 'off'].filter(Boolean).join(' ');
+      const tag = x.type === 'person' ? (app.state.settings.mode === 'name' ? 'NAME' : r.entities.get(x.entity).letter)
+        : x.type === 'org' ? (app.state.settings.mode === 'name' ? 'EINR.' : 'Einr. ' + r.orgs.get(x.entity).letter) : x.label.replace(/[[\]]/g, '');
+      tx.append(h('mark', { class: cls, 'data-h': x.id, 'data-l': tag, title: hitTitle(x) }, u.text.slice(s, e)));
       pos = e;
       hi++;
     }
@@ -530,24 +601,30 @@ function renderEntities() {
   const r = app.result;
   const list = $('#entities');
   const ents = [...r.entities.values()];
-  list.replaceChildren(...ents.map((en) => {
+  const orgs = [...r.orgs.values()];
+  const rowsOf = (arr) => arr.map((en) => {
     const active = en.hits.filter((x) => x.on).length;
     const unsure = en.hits.filter((x) => x.cert === 'unsicher').length;
     const open = app.openMenu === en.key;
     const row = h('div', { class: 'entity' + (active ? '' : ' muted') },
       h('label', { class: 'switch' }, h('input', { type: 'checkbox', checked: active > 0, 'aria-label': `${en.label} (${en.display}) an/aus`, onchange: (e) => setHits(en.hits, e.target.checked) })),
-      h('span', { class: 'ename' }, h('strong', {}, en.display), h('small', {}, en.label + (unsure ? ` · ${unsure} unsicher` : '') + (en.manual ? ' · von dir markiert' : ''))),
+      h('span', { class: 'ename' }, h('strong', {}, en.display), h('small', {}, en.label + (unsure ? ` · ${unsure} unsicher` : '') + (en.org ? '' : en.manual ? ' · von dir markiert' : ''))),
       h('span', { class: 'count', title: 'Treffer (aktiv / gesamt)' }, `${active}/${en.count}`),
       h('button', { type: 'button', class: 'menubtn', 'aria-label': `Mehr zu ${en.display}`, 'aria-expanded': open ? 'true' : 'false', onclick: () => { app.openMenu = open ? null : en.key; renderEntities(); } }, icon('dots')));
-    if (open) row.append(entityMenu(en, ents));
+    if (open) row.append(entityMenu(en, en.org ? orgs : ents));
     return row;
-  }));
-  if (!ents.length) list.replaceChildren(h('p', { class: 'muted' }, 'Keine Personen erkannt. Nicht erkannte Namen bitte im Text markieren.'));
+  });
+  const kids = ents.length ? rowsOf(ents) : [h('p', { class: 'muted' }, 'Keine Personen erkannt. Nicht erkannte Namen bitte im Text markieren.')];
+  // Version 2.3: eigene Gruppe „Einrichtungen“ (nur vom Nutzer markiert oder aus den Dateiangaben übernommen)
+  kids.push(h('h2', { class: 'small-h', id: 'orgs-h' }, 'Einrichtungen'),
+    h('div', { id: 'orgs' }, ...(orgs.length ? rowsOf(orgs) : [h('p', { class: 'muted' }, 'Keine Einrichtungen. Eine Bezeichnung markieren und „Als Einrichtung markieren“ wählen.')])));
+  list.replaceChildren(...kids);
 }
 function entityMenu(en, ents) {
   const r = app.result;
   const forms = [...en.forms.entries()].map(([f, c]) => `${f} (${c})`).join(', ');
   const linked = en.hits.filter((x) => x.link);
+  if (en.org) return orgMenu(en, ents);
   const remembered = app.state.manualTerms.some((t) => fold(t) === fold(en.display));
   const sel = h('select', { 'aria-label': 'zusammenführen mit', onchange: (e) => { if (e.target.value) { app.state.merges[en.key] = e.target.value; app.openMenu = null; runAnalysis(); } } },
     h('option', { value: '' }, 'zusammenführen mit …'),
@@ -570,17 +647,73 @@ function entityMenu(en, ents) {
       if (!app.state.manualTerms.some((t) => fold(t) === fold(en.display))) app.state.manualTerms.push(en.display);
       saveStored();
       runAnalysis();
-    } }, 'für nächstes Mal merken'));
+    } }, 'für nächstes Mal merken'),
+    h('button', { type: 'button', class: 'secondary small kindbtn', onclick: () => personToOrg(en) }, 'ist eine Einrichtung'));
+}
+// Menü einer Einrichtung: Schreibweisen, zusammenführen (nur mit Einrichtungen), Art umstellen, nicht mehr ersetzen
+function orgMenu(en, orgs) {
+  const forms = [...en.forms.entries()].map(([f, c]) => `${f} (${c})`).join(', ');
+  const sel = h('select', { 'aria-label': 'zusammenführen mit', onchange: (e) => { if (e.target.value) { app.state.merges[en.key] = e.target.value; app.openMenu = null; runAnalysis(); } } },
+    h('option', { value: '' }, 'zusammenführen mit …'),
+    ...orgs.filter((o) => o !== en).map((o) => h('option', { value: o.key }, `${o.label}: ${o.display}`)));
+  return h('div', { class: 'emenu' },
+    h('p', { class: 'forms' }, 'Schreibweisen: ' + forms),
+    orgs.length > 1 ? sel : null,
+    h('button', { type: 'button', class: 'secondary small kindbtn', onclick: () => orgToPerson(en) }, 'ist eine Person'),
+    h('button', { type: 'button', class: 'secondary small', onclick: () => {
+      removeOrgTerms(en);
+      app.openMenu = null;
+      saveStored();
+      runAnalysis();
+    } }, 'nicht als Einrichtung ersetzen'),
+    h('p', { class: 'forms' }, 'In „Eigene Namen“ als Einrichtung gemerkt.'));
+}
+// Bezeichnungen (Einträge der Merkliste), aus denen diese Einrichtung entstanden ist, entfernen
+function orgTermKeysOf(en) {
+  const keys = new Set();
+  for (const x of en.hits) keys.add(x.origEntity || x.entity);
+  return keys;
+}
+function removeOrgTerms(en) {
+  const keys = orgTermKeysOf(en);
+  const terms = app.state.orgTerms.filter((t) => keys.has(orgKeyOf(t)));
+  app.state.orgTerms = app.state.orgTerms.filter((t) => !keys.has(orgKeyOf(t)));
+  for (const k of keys) delete app.state.merges[k];
+  return terms;
+}
+// Art umstellen: Person -> Einrichtung. Alle Schreibweisen werden Einrichtungen derselben Einrichtung
+function personToOrg(en) {
+  const forms = [...en.forms.keys()].sort((a, b) => (a === en.display ? -1 : b === en.display ? 1 : 0));
+  const main = forms[0];
+  app.state.manualTerms = app.state.manualTerms.filter((m) => !forms.some((f) => fold(f) === fold(m)));
+  for (const f of forms) {
+    if (!app.state.orgTerms.some((t) => fold(t) === fold(f))) app.state.orgTerms.push(f);
+    if (f !== main) app.state.merges[orgKeyOf(f)] = orgKeyOf(main);
+  }
+  app.openMenu = null;
+  saveStored();
+  runAnalysis();
+}
+// Art umstellen: Einrichtung -> Person (wie „Als Name markieren“ für jede Schreibweise)
+function orgToPerson(en) {
+  const terms = removeOrgTerms(en);
+  for (const t of [...new Set([...terms, ...en.forms.keys()])]) if (!app.state.manualTerms.some((m) => fold(m) === fold(t))) app.state.manualTerms.push(t);
+  app.openMenu = null;
+  saveStored();
+  runAnalysis();
 }
 
-function chipList(arr, onRemove) {
-  return arr.map((t, i) => h('span', { class: 'chip' }, t, h('button', { type: 'button', class: 'x', 'aria-label': t + ' entfernen', onclick: () => onRemove(i) }, '×')));
+function chipList(arr, onRemove, kind) {
+  return arr.map((t, i) => h('span', { class: 'chip' + (kind === 'Einrichtung' ? ' orgchip' : ''), 'data-kind': kind || '' }, t, kind ? h('small', { class: 'kind' }, ' · ' + kind) : null,
+    h('button', { type: 'button', class: 'x', 'aria-label': t + ' entfernen', onclick: () => onRemove(i) }, '×')));
 }
 function renderLists() {
-  $('#names-chips').replaceChildren(...chipList(app.state.manualTerms, (i) => { app.state.manualTerms.splice(i, 1); saveStored(); runAnalysisOrRender(); }));
+  // Jeder Eintrag mit seiner Art (Person oder Einrichtung)
+  $('#names-chips').replaceChildren(...chipList(app.state.manualTerms, (i) => { app.state.manualTerms.splice(i, 1); saveStored(); runAnalysisOrRender(); }, 'Person'),
+    ...chipList(app.state.orgTerms, (i) => { app.state.orgTerms.splice(i, 1); saveStored(); runAnalysisOrRender(); }, 'Einrichtung'));
   $('#exc-chips').replaceChildren(...chipList(app.state.exceptions, (i) => { app.state.exceptions.splice(i, 1); saveStored(); runAnalysisOrRender(); }));
   $('#persist').checked = app.persist;
-  $('#names-empty').hidden = app.state.manualTerms.length > 0;
+  $('#names-empty').hidden = app.state.manualTerms.length + app.state.orgTerms.length > 0;
   $('#exc-empty').hidden = app.state.exceptions.length > 0;
 }
 function runAnalysisOrRender() { if (app.doc) runAnalysis(); else renderLists(); }
@@ -602,8 +735,10 @@ function offsetFromDom(node, offset) {
   return { ui, off: n };
 }
 let pendingTerm = null;
-function showMarkBar(term, rect) {
+let pendingTermRaw = null; // ausgewählter Text ohne Kürzung (für Einrichtungen, z. B. „e.V.“ mit Punkt)
+function showMarkBar(term, rect, raw) {
   pendingTerm = term;
+  pendingTermRaw = raw || term;
   const bar = $('#markbar');
   if (!term) { bar.hidden = true; return; }
   $('#markterm').textContent = term.length > 60 ? term.slice(0, 60) + '…' : term;
@@ -628,8 +763,8 @@ function selectionTerm() {
   const b = offsetFromDom(r.endContainer, r.endOffset);
   if (!a || !b) return null;
   const texts = app.doc.units;
-  if (a.ui !== b.ui) return { term: cleanTerm(sel.toString()), rect: r.getBoundingClientRect() };
-  return { term: cleanTerm(texts[a.ui].text.slice(a.off, b.off)), rect: r.getBoundingClientRect() };
+  if (a.ui !== b.ui) return { term: cleanTerm(sel.toString()), raw: sel.toString(), rect: r.getBoundingClientRect() };
+  return { term: cleanTerm(texts[a.ui].text.slice(a.off, b.off)), raw: texts[a.ui].text.slice(a.off, b.off), rect: r.getBoundingClientRect() };
 }
 function wordAt(ui, off) {
   const t = app.doc.units[ui].text;
@@ -654,6 +789,7 @@ function caretOffsetAt(x, y) {
 function addManual(term) {
   const t = cleanTerm(term || '');
   if (!t || !/\p{L}{2,}/u.test(t)) { showMarkBar(null); return; }
+  app.state.orgTerms = app.state.orgTerms.filter((m) => fold(m) !== fold(t)); // Art: Person (nicht beides)
   if (!app.state.manualTerms.some((m) => fold(m) === fold(t))) app.state.manualTerms.push(t);
   app.state.exceptions = app.state.exceptions.filter((e) => fold(e) !== fold(t));
   saveStored();
@@ -662,6 +798,25 @@ function addManual(term) {
   if (sel) sel.removeAllRanges();
   runAnalysis();
 }
+
+// Als Einrichtung markieren (Version 2.3): ganze Wortfolge, eigener Platzhalter „Einrichtung A“
+function addOrg(term) {
+  const t = cleanOrgTerm(term || '');
+  if (!t || !/\p{L}{2,}/u.test(t)) { showMarkBar(null); return; }
+  app.state.manualTerms = app.state.manualTerms.filter((m) => fold(m) !== fold(t)); // Art: Einrichtung (nicht beides)
+  if (!app.state.orgTerms.some((m) => fold(m) === fold(t))) app.state.orgTerms.push(t);
+  app.state.exceptions = app.state.exceptions.filter((e) => fold(e) !== fold(t));
+  saveStored();
+  showMarkBar(null);
+  const sel = window.getSelection();
+  if (sel) sel.removeAllRanges();
+  runAnalysis();
+}
+// Wie cleanTerm, aber ein Punkt am Ende bleibt (z. B. „e.V.“)
+function cleanOrgTerm(s) {
+  return s.replace(/\s+/g, ' ').trim().replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}.)]+$/gu, '');
+}
+const orgKeyOf = (t) => orgTermTokens(t).key;
 
 // ---------- Speichern-Bildschirm (Ampel) ----------
 function allWarnings() {
@@ -686,10 +841,16 @@ function renderSave() {
   const r = app.result;
   const rows = [];
   const persons = [...r.entities.values()].filter((en) => en.hits.some((x) => x.on)).length;
+  const orgsOn = [...r.orgs.values()].filter((og) => og.hits.some((x) => x.on)).length;
   const spots = r.hits.filter((x) => x.on && x.type === 'person').length;
-  const contacts = r.hits.filter((x) => x.on && x.type !== 'person').length;
-  rows.push(spots || contacts
-    ? ampelRow('ok', 'Ersetzte Personen und Stellen', `${persons} ${persons === 1 ? 'Person' : 'Personen'} · ${spots} Namens-Stellen · ${contacts} Kontaktdaten werden ersetzt. In Ordnung.`)
+  const orgSpots = r.hits.filter((x) => x.on && x.type === 'org').length;
+  const contacts = r.hits.filter((x) => x.on && x.type !== 'person' && x.type !== 'org').length;
+  // Version 2.3: „6 Personen und 1 Einrichtung ersetzt“ (ohne Einrichtung wie bisher)
+  const who = orgsOn
+    ? `${persons} ${persons === 1 ? 'Person' : 'Personen'} und ${orgsOn} ${orgsOn === 1 ? 'Einrichtung' : 'Einrichtungen'} ersetzt · ${spots} Namens-Stellen · ${orgSpots} Einrichtungs-Stellen · ${contacts} Kontaktdaten werden ersetzt. In Ordnung.`
+    : `${persons} ${persons === 1 ? 'Person' : 'Personen'} · ${spots} Namens-Stellen · ${contacts} Kontaktdaten werden ersetzt. In Ordnung.`;
+  rows.push(spots || contacts || orgSpots
+    ? ampelRow('ok', 'Ersetzte Personen und Stellen', who)
     : ampelRow('warn', 'Ersetzte Personen und Stellen', 'Es wird nichts ersetzt. Prüfe in Schritt 2, ob Namen fehlen.'));
   // Fragen
   const qs = questions();
@@ -815,11 +976,14 @@ function leaksBox(leaks) {
   const offered = new Set(); // „als Namen übernehmen“ nur einmal je Name anbieten
   const items = leaks.slice(0, 200).map((l) => {
     const pl = place(l.where);
-    const taken = !l.full || offered.has(fold(l.full)) || app.state.manualTerms.some((t) => fold(t) === fold(l.full));
+    const taken = !l.full || offered.has(fold(l.full)) || app.state.manualTerms.some((t) => fold(t) === fold(l.full)) || app.state.orgTerms.some((t) => fold(t) === fold(l.full));
     if (l.full) offered.add(fold(l.full));
     return h('li', {}, h('strong', {}, l.word), ' – steht in: ', h('strong', {}, pl.ort), pl.teil ? ` (${pl.teil})` : '',
-      ` · ${l.meta ? 'Name ' + l.entity : 'bestätigter Name, ' + l.entity}: „…${l.context.replace(/\s+/g, ' ')}…“ `,
-      l.meta && !taken ? h('button', { type: 'button', class: 'secondary small', onclick: () => addManual(l.full) }, `„${l.full}“ als Namen übernehmen`) : null);
+      ` · ${l.orgCheck ? 'Einrichtung aus deiner Liste ' + l.entity + ', nicht vollständig ersetzt' : l.meta ? (l.metaOrg ? 'Einrichtung ' : 'Name ') + l.entity : l.org ? 'bestätigte Einrichtung, ' + l.entity : 'bestätigter Name, ' + l.entity}: „…${l.context.replace(/\s+/g, ' ')}…“ `,
+      l.hint ? h('p', { class: 'hint lbhint' }, l.hint) : l.org && /[\r\n]/.test(l.word) ? h('p', { class: 'hint lbhint' }, `Der Name steht über einen Zeilenumbruch. Entferne den Umbruch ${app.doc.kind === 'xlsx' ? 'in Excel' : app.doc.kind === 'docx' ? 'in Word' : 'in der Datei'} oder markiere die Teile einzeln.`) : null,
+      l.meta && !taken ? (l.metaOrg
+        ? h('button', { type: 'button', class: 'secondary small', onclick: () => addOrg(l.full) }, `„${l.full}“ als Einrichtung übernehmen`)
+        : h('button', { type: 'button', class: 'secondary small', onclick: () => addManual(l.full) }, `„${l.full}“ als Namen übernehmen`)) : null);
   });
   return h('div', { id: 'leaks', class: 'leaks' },
     h('p', {}, 'Bestätigte Namen (z. B. weil einzelne Treffer ausgeschaltet sind) oder Namen aus den Dateiangaben der Originaldatei (Autor, Bearbeiter, Firma …).'),
@@ -935,8 +1099,8 @@ function exportKey() {
   const ok = window.confirm('ACHTUNG: Die Rückbau-Schlüsseldatei enthält die ECHTEN NAMEN und Kontaktdaten.\n\nNie weitergeben, nie an eine KI. Getrennt vom anonymisierten Dokument sicher aufbewahren.\n\nOhne diese Datei ist kein Rückbau möglich.\n\nJetzt speichern?');
   if (!ok) return;
   // Die Kennung kommt als Feld in die Schlüsseldatei (gleich hinter die Tool-Version)
-  const { platzhalter, personen, ...kopf } = buildRestoreKey(app.result, { version: VERSION, kind: app.doc.kind });
-  const key = { ...kopf, kennung: app.kennung, platzhalter, personen };
+  const { platzhalter, personen, einrichtungen, ...kopf } = buildRestoreKey(app.result, { version: VERSION, kind: app.doc.kind });
+  const key = { ...kopf, kennung: app.kennung, platzhalter, personen, ...(einrichtungen ? { einrichtungen } : {}) };
   app.keyStamp = app.stamp;
   app.keyKennung = app.kennung;
   app.keyNote = `Schlüsseldatei gespeichert (${key.platzhalter.length} Platzhalter). Wenn du danach noch Treffer änderst, musst du sie erneut speichern.`;
@@ -1096,9 +1260,10 @@ function init() {
   document.addEventListener('selectionchange', () => {
     if (app.screen !== 'a2') return;
     const t = selectionTerm();
-    if (t && t.term) showMarkBar(t.term, t.rect);
+    if (t && t.term) showMarkBar(t.term, t.rect, t.raw);
   });
   $('#btn-mark').addEventListener('click', () => addManual(pendingTerm));
+  $('#btn-mark-org').addEventListener('click', () => addOrg(pendingTermRaw || pendingTerm));
   $('#btn-mark-cancel').addEventListener('click', () => showMarkBar(null));
   $('#a2-next').addEventListener('click', () => show('a3'));
   // Tasten J/N: nur auf dem Prüfen-Bildschirm und nur, wenn kein Eingabefeld den Fokus hat
@@ -1112,7 +1277,19 @@ function init() {
     if (btn) { e.preventDefault(); btn.click(); }
   });
   // Listen (Erweitert)
-  $('#name-add').addEventListener('submit', (e) => { e.preventDefault(); const v = $('#name-input').value; $('#name-input').value = ''; if (app.doc) addManual(v); else { const t = cleanTerm(v); if (t && !app.state.manualTerms.some((m) => fold(m) === fold(t))) app.state.manualTerms.push(t); saveStored(); renderLists(); } });
+  // Eigene Namen: beim Hinzufügen die Art wählen (Person oder Einrichtung)
+  $('#name-add').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const v = $('#name-input').value;
+    const org = $('#name-kind').value === 'org';
+    $('#name-input').value = '';
+    if (app.doc) { if (org) addOrg(v); else addManual(v); return; }
+    const t = org ? cleanOrgTerm(v) : cleanTerm(v);
+    if (t && org) { app.state.manualTerms = app.state.manualTerms.filter((m) => fold(m) !== fold(t)); if (!app.state.orgTerms.some((m) => fold(m) === fold(t))) app.state.orgTerms.push(t); }
+    else if (t) { app.state.orgTerms = app.state.orgTerms.filter((m) => fold(m) !== fold(t)); if (!app.state.manualTerms.some((m) => fold(m) === fold(t))) app.state.manualTerms.push(t); }
+    saveStored();
+    renderLists();
+  });
   $('#exc-add').addEventListener('submit', (e) => {
     e.preventDefault();
     const t = cleanTerm($('#exc-input').value);
@@ -1135,6 +1312,7 @@ function init() {
   $('#btn-clear').addEventListener('click', () => {
     if (!window.confirm('Merkliste „Eigene Namen“ und Ausnahmeliste wirklich löschen (auch im Browser-Speicher)?')) return;
     app.state.manualTerms = [];
+    app.state.orgTerms = [];
     app.state.exceptions = [];
     storeDel();
     app.persist = false;
@@ -1142,7 +1320,7 @@ function init() {
   });
   $('#btn-list-export').addEventListener('click', () => {
     if (!window.confirm('Die Datei enthält ECHTE NAMEN (Merkliste). Sicher aufbewahren. Speichern?')) return;
-    const data = JSON.stringify({ hinweis: 'Enthält echte Namen', names: app.state.manualTerms, exceptions: app.state.exceptions }, null, 1);
+    const data = JSON.stringify(listData({ hinweis: 'Enthält echte Namen' }), null, 1);
     download(encodeText(data), 'merkliste_VERTRAULICH.json', 'application/json');
   });
   $('#btn-list-import').addEventListener('click', () => $('#list-file').click());
@@ -1153,6 +1331,8 @@ function init() {
     try {
       const d = JSON.parse(new TextDecoder().decode(new Uint8Array(await f.arrayBuffer())).replace(/^﻿/, ''));
       for (const n of (d.names || [])) if (typeof n === 'string' && !app.state.manualTerms.some((m) => fold(m) === fold(n))) app.state.manualTerms.push(n);
+      // Version 2.3: Einrichtungen; ältere Merklisten ohne „einrichtungen“ laden wie bisher nur Personen
+      for (const n of (Array.isArray(d.einrichtungen) ? d.einrichtungen : [])) if (typeof n === 'string' && !app.state.orgTerms.some((m) => fold(m) === fold(n))) app.state.orgTerms.push(n);
       for (const n of (d.exceptions || [])) if (typeof n === 'string' && !app.state.exceptions.some((m) => fold(m) === fold(n))) app.state.exceptions.push(n);
       saveStored();
       runAnalysisOrRender();
@@ -1418,6 +1598,6 @@ function initRestore() {
 }
 
 // Für automatische Tests (nur lesend nutzbar, kein Netzwerk)
-window.__anon = { app, openBytes, imagesPending, buildOutput, finalCheck, addManual, runAnalysis, rb, rbLoadFile, rbLoadKey, rbCheck, show, questions, newKennung };
+window.__anon = { app, openBytes, imagesPending, buildOutput, finalCheck, addManual, addOrg, KI_HINT, runAnalysis, rb, rbLoadFile, rbLoadKey, rbCheck, show, questions, newKennung };
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();

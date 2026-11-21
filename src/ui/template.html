@@ -98,7 +98,7 @@
             <h3>Eigene Namen (immer anonymisieren)</h3>
             <div id="names-chips" class="chips"></div>
             <p id="names-empty" class="muted">Noch keine eigenen Namen.</p>
-            <form id="name-add" class="addform"><label class="sr" for="name-input">Name hinzufügen</label><input id="name-input" placeholder="Name hinzufügen" autocomplete="off"><button type="submit" class="secondary">Hinzufügen</button></form>
+            <form id="name-add" class="addform"><label class="sr" for="name-input">Name hinzufügen</label><input id="name-input" placeholder="Name hinzufügen" autocomplete="off"><label class="sr" for="name-kind">Art</label><select id="name-kind"><option value="person">Person</option><option value="org">Einrichtung</option></select><button type="submit" class="secondary">Hinzufügen</button></form>
           </div>
           <div>
             <h3>Ausnahmen (nie anonymisieren)</h3>
@@ -135,11 +135,12 @@
           <mark class="hit sure on" data-l="A">sicher</mark>
           <mark class="hit unsure on" data-l="A">unsicher</mark>
           <mark class="hit sure manual on" data-l="A">von dir markiert</mark>
+          <mark class="hit org on" data-l="Einr. A">Einrichtung</mark>
           <mark class="hit contact on" data-l="E-MAIL">Kontakt</mark>
           <mark class="hit sure off" data-l="A">aus</mark>
         </p>
       </div>
-      <p class="hint">Treffer antippen schaltet ihn an oder aus. Ein Wort antippen oder markieren, um es als Namen zu markieren.</p>
+      <p class="hint">Treffer antippen schaltet ihn an oder aus. Ein Wort antippen oder markieren, um es als Namen oder als Einrichtung (Schule, Verein, Firma, Behörde) zu markieren.</p>
       <div class="cols">
         <div id="docview" class="docview" lang="de"></div>
         <aside class="side">
@@ -262,9 +263,10 @@
   </section>
 </main>
 
-<div id="markbar" class="markbar" role="dialog" aria-label="Als Name markieren" hidden>
+<div id="markbar" class="markbar" role="dialog" aria-label="Als Name oder Einrichtung markieren" hidden>
   <span class="markterm">„<span id="markterm"></span>“</span>
   <button type="button" id="btn-mark" class="markbtn small">Als Name markieren</button>
+  <button type="button" id="btn-mark-org" class="markbtn orgbtn small">Als Einrichtung markieren</button>
   <button type="button" id="btn-mark-cancel" class="secondary small">Abbrechen</button>
 </div>
 <footer class="foot">Anonymisierer · Version __VERSION__ · Stand __DATE__ · läuft vollständig offline · Das Tool findet nie alle Namen. Die Prüfung in Schritt 2 gehört immer dazu. · Lizenzen und Prüfsumme siehe README</footer>
