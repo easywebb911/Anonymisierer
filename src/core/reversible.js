@@ -51,6 +51,7 @@ function numbered(state, value, base, reserved) {
 
 // Rolle eines einzelnen Namenswortes innerhalb einer Person
 function roleOfSingle(h, comp, entityKey, singleRoles) {
+  if (h.role) return h.role; // Version 2.6.0: Rolle aus der Namensspalte (Vorname/Nachname)
   if (h.link === 'nur Vorname') return 'Vorname';
   if (h.link === 'nur Nachname') return 'Nachname';
   if (entityKey.startsWith('N|')) {
@@ -72,6 +73,8 @@ function splitHit(h, entityKey, singleRoles) {
   const sep = comps.findIndex((c) => c.type === 'SEP');
   const real = comps.filter((c) => c.type !== 'SEP');
   const W = real.filter((c) => c.type === 'W');
+  // Version 2.6.0: ganze Zelle einer Vor- bzw. Nachnamensspalte („Thi Lan“, „von der Heide“) = ein Teil mit dieser Rolle
+  if (h.role && sep < 0) return [{ s: real[0].s, e: Math.min(real[real.length - 1].e, stemEnd), role: h.role }];
   if (real.length === 1 && W.length === 1) {
     return [{ s: real[0].s, e: Math.min(real[0].e, stemEnd), role: roleOfSingle(h, W[0], entityKey, singleRoles) }];
   }

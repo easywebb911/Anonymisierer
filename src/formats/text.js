@@ -102,7 +102,8 @@ export function readCsv(bytes) {
     if (c.value.trim()) {
       // follows: rechtes Nachbarfeld derselben Zeile (leeres Feld dazwischen unterbricht)
       const prev = map[map.length - 1];
-      units.push({ text: c.value, label: `Zeile ${ri + 1}, Spalte ${ci + 1}`, follows: !!prev && prev[0] === ri && prev[1] === ci - 1 });
+      units.push({ text: c.value, label: `Zeile ${ri + 1}, Spalte ${ci + 1}`, follows: !!prev && prev[0] === ri && prev[1] === ci - 1,
+        tcells: [{ t: 'csv', r: ri, c: ci, c2: ci }] });
       map.push([ri, ci]);
     }
   }));

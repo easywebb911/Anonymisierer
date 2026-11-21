@@ -232,3 +232,8 @@ button.markbtn.orgbtn { background: var(--org-line); border-color: var(--org-lin
 .addform select { width: auto; flex: none; }
 .chip .kind { color: var(--muted); }
 .chip.orgchip { background: var(--org); box-shadow: inset 0 0 0 2px var(--org-line); }
+/* Version 2.6.0: Spalte von Hand (Schalter „Namen“ im Spaltenkopf) */
+label.coltgl { display: block; font-weight: 400; font-size: 12px; white-space: nowrap; cursor: pointer; }
+label.coltgl input { margin: 0 .2rem 0 0; vertical-align: middle; }
+th.namecol { background: var(--hl, #fff4c2); color: var(--fg, inherit); }
+table.wtable th { border: 1px solid var(--line); padding: .1rem .45rem; font-size: 12px; text-align: left; color: var(--muted); }

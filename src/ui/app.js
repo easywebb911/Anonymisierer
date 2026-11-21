@@ -182,6 +182,8 @@ async function loadBytes(bytes, name) {
   // TXT (2.3): joinNext/eol – Einrichtungen dürfen über genau einen Zeilenumbruch gehen (nur markierte Einrichtungen)
   const units = doc.units.map((u, i) => ({ text: u.text, label: u.label || '', follows: !!u.follows, heading: !!u.heading,
     row: u.row !== undefined ? (u.part || '') + '#' + u.row : null, cell: u.cell,
+    // Version 2.6.0: Lage in Tabellen (Namensspalten) und linke Nachbarzellen in Excel (Anrede in der Nachbarzelle)
+    ...(u.tcells ? { tcells: u.tcells } : {}), ...(u.leftUnits ? { leftUnits: u.leftUnits } : {}),
     ...(kind === 'txt' ? { joinNext: i + 1 < doc.units.length, eol: doc.eols[i] || '\n' } : {}),
     fixed: u.segments && u.segments.some((sg) => !sg.writable) ? u.segments.filter((sg) => !sg.writable).map((sg) => sg.start) : null }));
   const warnings = [...(doc.warnings || [])];
@@ -685,13 +687,35 @@ function docContext() {
 const placeLine = (label, content) => h('div', { class: 'placeline' }, h('span', { class: 'where' }, label), h('span', {}, content));
 const colNum = (c) => { let n = 0; for (const ch of c) n = n * 26 + (ch.charCodeAt(0) - 64); return n; };
 const colName = (n) => { let s = ''; while (n > 0) { const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); } return s; };
+// Version 2.6.0: Spalte von Hand – Schalter „Namen“ an jedem Spaltenkopf der Prüfansicht. Eine erkannte Namensspalte
+// ist angehakt und gekennzeichnet. Umschalten gilt als Änderung der Treffer (neu rechnen, Häkchen fällt zurück).
+function columnInfo(id) { return app.result && app.result.columns ? app.result.columns.find((c) => c.id === id) : null; }
+function columnToggle(id) {
+  const col = columnInfo(id);
+  if (!col) return null;
+  const on = !!col.kind;
+  const why = col.manual === true ? 'von dir als Namensspalte gekennzeichnet'
+    : col.manual === false ? 'von dir ausgeschaltet'
+      : col.auto ? `erkannte Namensspalte (Kopf „${col.header}“${col.auto === 'schwach' ? ', unbekannte Einzelwörter als Frage' : ''})` : 'keine Namensspalte';
+  const cb = h('input', { type: 'checkbox', 'data-col': id });
+  cb.checked = on;
+  cb.addEventListener('change', () => {
+    (app.state.nameColumns = app.state.nameColumns || {})[id] = cb.checked;
+    runAnalysis();
+  });
+  return h('label', { class: 'coltgl' + (on ? ' on' : ''), title: 'Diese Spalte enthält Namen – ' + why }, cb, ' Namen');
+}
 // Tabelle aus Zellen {r, c, u | value}: Spaltenköpfe, Zeilennummern, kompakte Zellen, lange Texte umbrechen
-function gridTable(cells, ctx, colLabel) {
+function gridTable(cells, ctx, colLabel, colId) {
   if (!cells.length) return null;
   const rows = [...new Set(cells.map((x) => x.r))].sort((a, b) => a - b);
   const maxC = Math.max(...cells.map((x) => x.c));
   const at = new Map(cells.map((x) => [x.r + ':' + x.c, x]));
-  const head = h('tr', {}, h('th', { class: 'rn' }, ''), ...Array.from({ length: maxC }, (_, i) => h('th', {}, colLabel(i + 1))));
+  const head = h('tr', {}, h('th', { class: 'rn' }, ''), ...Array.from({ length: maxC }, (_, i) => {
+    const id = colId ? colId(i + 1) : null;
+    const col = id ? columnInfo(id) : null;
+    return h('th', { class: col && col.kind ? 'namecol' : '' }, colLabel(i + 1), id ? columnToggle(id) : null);
+  }));
   const body = rows.map((r) => h('tr', {}, h('th', { class: 'rn' }, String(r)), ...Array.from({ length: maxC }, (_, i) => {
     const x = at.get(r + ':' + (i + 1));
     if (!x) return h('td', {});
@@ -715,11 +739,11 @@ function renderDoc() {
       onclick: () => { app.sheetTab = i; renderDoc(); } }, sh.name + (sh.hidden ? ' (ausgeblendet)' : '')))));
     const sh = sheets[app.sheetTab];
     const cells = sh.cells.map((c) => { const m = c.ref.match(/^([A-Z]+)(\d+)$/); return m ? { r: Number(m[2]), c: colNum(m[1]), u: c.u, value: c.value } : null; }).filter(Boolean);
-    frag.append(gridTable(cells, ctx, colName) || h('p', { class: 'muted' }, 'Dieses Blatt ist leer.'));
+    frag.append(gridTable(cells, ctx, colName, (i) => 'x|' + sh.name + '|' + (i - 1)) || h('p', { class: 'muted' }, 'Dieses Blatt ist leer.'));
   } else if (kind === 'csv') {
     const cells = [];
     units.forEach((u, ui) => { const m = u.label.match(/^Zeile (\d+), Spalte (\d+)$/); if (m && u.text.trim()) { cells.push({ r: Number(m[1]), c: Number(m[2]), u: ui }); shown.add(ui); } });
-    const t = gridTable(cells, ctx, (i) => String(i));
+    const t = gridTable(cells, ctx, (i) => String(i), (i) => 'csv|' + (i - 1));
     if (t) frag.append(t);
   }
   // übrige Abschnitte: Absätze, Word-Tabellen, benannte Stellen (Kopfzeile, Kommentar, Bildbeschreibung …)
@@ -740,9 +764,30 @@ function renderDoc() {
     const box = h('div', { class: 'unit' }, label !== u.label ? h('small', { class: 'muted' }, 'gelöschter Text aus der Änderungsverfolgung: ') : null, unitText(ui, ctx));
     if (kind === 'docx' && u.row !== null && u.row !== undefined) {
       const tk = String(u.row).replace(/#.*$/, '') + '|' + section;
-      if (!table || tableKey !== tk) { table = h('table', { class: 'wtable' }, h('tbody')); tableKey = tk; frag.append(h('div', { class: 'tscroll plain' }, table)); rowKey = null; }
+      if (!table || tableKey !== tk) {
+        table = h('table', { class: 'wtable' }, h('tbody'));
+        // Version 2.6.0: Kopf mit dem Schalter „Namen“ je Spalte (Spaltenbezeichnung „Spalte 1“, „Spalte 2“ …)
+        const tid = u.tcells && u.tcells[0] ? u.tcells[0].t : null;
+        const cols = tid && app.result.columns ? app.result.columns.filter((c) => c.t === tid) : [];
+        if (cols.length) {
+          const maxC = Math.max(...cols.map((c) => c.c));
+          table.prepend(h('thead', {}, h('tr', {}, ...Array.from({ length: maxC + 1 }, (_, i) => {
+            const col = cols.find((c) => c.c === i);
+            return h('th', { class: col && col.kind ? 'namecol' : '' }, 'Spalte ' + (i + 1), col ? columnToggle(col.id) : null);
+          }))));
+        }
+        tableKey = tk; frag.append(h('div', { class: 'tscroll plain' }, table)); rowKey = null;
+      }
       if (u.row !== rowKey) { rowKey = u.row; rowEl = h('tr'); table.tBodies[0].append(rowEl); cellKey = null; }
-      if (u.cell !== cellKey) { cellKey = u.cell; rowEl.append(h('td')); }
+      if (u.cell !== cellKey) {
+        cellKey = u.cell;
+        // Version 2.6.0: leere Zellen davor als leere Felder zeigen, damit jede Zelle unter ihrem Spaltenkopf steht
+        const tc = u.tcells && u.tcells[0];
+        if (tc && table.tHead) { let n = 0; for (const td of rowEl.children) n += td.colSpan || 1; for (; n < tc.c; n++) rowEl.append(h('td')); }
+        const td = h('td');
+        if (tc && table.tHead && tc.c2 > tc.c) td.colSpan = tc.c2 - tc.c + 1;
+        rowEl.append(td);
+      }
       rowEl.lastChild.append(box);
     } else {
       table = null;
@@ -1326,6 +1371,7 @@ function resetDoc() {
   app.state.overrides = {};
   app.state.merges = {};
   app.state.unlinks = [];
+  app.state.nameColumns = {};
   $('#docview').replaceChildren();
   $('#entities').replaceChildren();
   $('#qcard').replaceChildren();

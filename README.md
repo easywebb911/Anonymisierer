@@ -96,6 +96,18 @@ Schulen, Vereine, Firmen und Behörden bekommen einen **eigenen Platzhalter**, d
 - Im Schritt „Prüfen“ stehen Einrichtungen in der Liste als eigene Gruppe **„Einrichtungen“**. Im Text sind sie seit 2.5 wie jede ersetzte Stelle gelb markiert; beim Überfahren steht „Einrichtung“ und der Platzhalter.
 - Der Speichern-Bildschirm meldet z. B. „6 Personen und 1 Einrichtung sind ersetzt.“ Der „Hinweis für die KI“ nennt auch „Einrichtung A“.
 
+### Namensspalten in Tabellen (seit Version 2.6)
+In Excel, CSV und Word-Tabellen schaut das Tool auf die **Überschrift einer Spalte**. Steht dort ein Namenswort, gilt jede **reine Namenszelle** darunter als Name, auch wenn der Name in keiner Liste steht (z. B. „Brzęczek“ unter „Nachname“, „Dimitrios“ unter „Vorname“).
+- **Kopfzeile:** die erste Zeile, in der mindestens die Hälfte der Spalten gefüllt ist (Titelzeilen darüber zählen nicht). Sie muss wie eine Kopfzeile aussehen (mindestens ein üblicher Spaltenkopf wie „Name“, „Kurs“, „E-Mail“). Folgt direkt eine zweite Zeile nur aus Spaltenköpfen mit einem Namenswort („Nachname | Vorname“ unter „Teilnehmer“), zählt sie mit. Verbundene Zellen in der Kopfzeile gelten für alle Spalten darunter.
+- **Starke Kopfwörter:** Name, Namen, Nachname, Vorname, Familienname, Rufname, Geburtsname. Jede reine Namenszelle darunter ist **„sicher“** ein Name, auch „Koch“, „Winter“ oder „Mai“ (die Spalte hat Vorrang vor „mehrdeutig“ und vor der Regel für Wochentage und Monate).
+- **Schwache Kopfwörter:** Lehrkraft, Lehrer/in, Kursleitung, Kursleiter/in, Leitung, Teilnehmer/in, Teilnehmende, Kind, Kinder, Schüler/in, Mitarbeiter/in, Ansprechpartner/in, Person, Eltern, Erziehungsberechtigte, Trainer/in, Referent/in, Dozent/in, Betreuer/in, Bearbeiter/in, verantwortlich. Eine reine Namenszelle darunter ist **„sicher“**, wenn ein Wort in einer Namensliste steht, wenn es zwei Namenswörter sind oder eine Anrede/ein Titel davor steht („Dr. Haberkorn“). Sonst **„unsicher, an“** (ersetzt und als Frage).
+- **Nur ganze Kopfwörter zählen:** „Dateiname“, „Benutzername“, „Kursname“, „Firmenname“ oder „Name der Schule“ machen **keine** Namensspalte.
+- **Reine Namenszelle:** 1 bis 4 großgeschriebene Wörter oder Namenszusätze („von der Heide“), davor darf eine Anrede stehen. Keine Ziffern, kein Satz. „Koch, Sabine“ in einer Zelle ist eine Person (Nachname, Vorname).
+- **Nie ein Name:** leere Zellen, die Kopfzeile selbst und übliche Füllwerte: N.N., NN, offen, vakant, alle, siehe oben, s. o., dito, do., frei, keine, keiner, niemand, unbekannt, folgt, entfällt, tbd, tba, k. A., x, Striche („-“, „–“, „—“), „?“, „…“.
+- **Eine Person je Zeile:** Vorname (Spalte „Vorname“/„Rufname“) und Nachname (Spalte „Nachname“/„Familienname“/„Geburtsname“) in derselben Zeile sind **eine** Person: ein Buchstabe („Person F“), im Modus „rückbaufähig“ „Vorname F“ und „Nachname F“. Kommt dieselbe Person woanders im Dokument vor („Frau Koch“), bekommt sie denselben Buchstaben.
+- **Spalte von Hand:** Im Schritt „Prüfen“ steht an jeder Spaltenüberschrift der Tabelle ein Schalter **„Namen“** (bei Word-Tabellen „Spalte 1“, „Spalte 2“ …). Eine erkannte Namensspalte ist angehakt und farbig. Anhaken wirkt wie ein starkes Kopfwort (auch bei Tabellen ohne Kopfzeile: dann alle Zeilen); Abhaken schaltet die Regel für diese Spalte aus. Das gilt als Änderung der Treffer: Das Häkchen beim Speichern muss neu gesetzt werden, und wurde schon eine Schlüsseldatei gespeichert, gibt es eine neue Kennung.
+- **Anrede in der Nachbarzelle (Excel):** Steht in einer Zelle nur „Frau“ oder „Herr“, gilt die rechte Nachbarzelle wie in Word und CSV als Name (Regel „Anrede allein“). Ist die Spalte eine Namensspalte, gilt die Namensspalte.
+
 ### Eigene Namen und Ausnahmen (unter „Einstellungen und eigene Namen“)
 - **Eigene Namen (Merkliste):** Namen, die das Tool nicht kennt. Sie werden bei jedem weiteren Dokument automatisch mit ersetzt. Auch „Als Name markieren“, „Als Einrichtung markieren“ und „für nächstes Mal merken“ tragen dort ein.
   - Jeder Eintrag hat eine **Art** (Person oder Einrichtung), beim Hinzufügen wählbar. Datei und Browser-Speicher merken die Art. Ältere Merklisten (ohne Art) laden wie bisher als Personen.
@@ -237,6 +249,8 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
   - **Markierung:** Steht das Wort in einer Namensliste (z. B. „Kubik“) oder sind es mehrere Wörter (z. B. „Lieselotte Steineck“), ist der Treffer **„sicher“** (wie bisher). Ist es **ein einzelnes unbekanntes Wort** (z. B. „Hartung“, aber auch „Mathematik“ oder „Turnhalle“), wird es ersetzt und als **„unsicher, an“** markiert (gestrichelt). Ein Fehltreffer aus dieser Regel ist also nie „sicher“.
   - **Übertragung:** Ein solches „unsicher, an“ markiertes Wort wird im **ganzen Dokument** ersetzt, auch mit Endung („Hartungs“), in GROSSSCHREIBUNG, in Kopf- und Fußzeilen und Fußnoten, immer mit demselben Platzhalter und ebenfalls „unsicher, an“. Treffer, die nicht aus dieser Regel stammen, ändern sich dadurch nicht.
   - **Ein Klick für alle:** Tippt man im Schritt „Prüfen“ eines dieser Vorkommen an, gehen **alle** Vorkommen des Worts aus (bzw. wieder an).
+- **Anrede am Zeilenende (seit Version 2.6, Textdateien und eingefügter Text):** Endet eine Zeile auf „Herr“, „Herrn“ oder „Frau“ (auch mit Titel, z. B. „Herrn Dr.“) und steht kein Artikel davor („der Herr“, „eine Frau“ zählen nicht), ist der Anfang der nächsten Zeile ein Name: „… Papadakis, Frau⏎Sonnleitner, Herr⏎Kirchbichler“. Wörter der Liste „mehrdeutig“, Wochentage und Monate zählen nicht. Ein einzelnes unbekanntes Wort wird ersetzt und als **„unsicher, an“** gefragt (auch ein Sachwort wie „Herr⏎Danach“ oder „Herr⏎Mathematik“: bitte prüfen). In Word mit Zeilenumbruch (Umschalt+Enter) und in PDF galt das schon vorher.
+- **„von“ (seit Version 2.6):** Ein Namenszusatz am **Anfang** („von“, „van“, „de“ …) gehört nur dann zum Namen, wenn danach ein Nachname folgt, nicht ein reiner Vorname. „Schwester von Lena Winter“ behält sein „von“; „Frau von Bodelschwingh“ bleibt ein Name.
 - **Wochentage und Monate (seit Version 1.2):** „Montag“ … „Sonntag“, „Januar“ … „Dezember“ (auch „Jänner“, „Feber“) und Abkürzungen **mit Punkt** („Mo.“, „Jan.“, „Sept.“ …) werden **nicht automatisch ersetzt**, wenn sie allein stehen (ohne Anrede, ohne Namen daneben). Sie erscheinen im Schritt „Prüfen“ als „unsicher, aus“ und lassen sich einschalten. „Herr Montag“ oder „Trần Thị Mai“ gelten weiter als Name. „Jan“ ohne Punkt bleibt ein Vorname.
 - **Gleiche Person = gleiches Pseudonym** im ganzen Dokument. „Herr Yılmaz“ wird „Mehmet Yılmaz“ zugeordnet, wenn der Nachname eindeutig ist (im Schritt „Prüfen“ sichtbar und lösbar).
 - **Deterministisch:** gleiche Eingabe + gleiche Einstellungen = gleiche Pseudonyme und byte-gleiche Ausgabe (im Test per Doppellauf belegt).
@@ -244,6 +258,15 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 ---
 
 ## Grenzen (bitte lesen)
+
+**Seit Version 2.6 (Namensspalten, Zeilenende, „von“):**
+- **Unbekannter Vorname im Satz bleibt eine Grenze:** „Leitung: Dimitrios Papadopoulos“ – „Dimitrios“ steht in keiner Liste und ohne Anrede; er wird nicht erkannt. Nur in einer Namensspalte hilft die Spalte.
+- **Sachwörter in einer Namensspalte** werden ersetzt (unter starkem Kopfwort „sicher“, ohne Frage), z. B. „Turnhalle“ unter „Nachname“ oder ein Notizsatz-Teil wie „Hartungs Antrag“ unter „Name“. Bitte im Schritt „Prüfen“ abschalten oder die Spalte über den Schalter „Namen“ ausschalten. Ein so ersetztes Wort wird wie jeder sichere Name auch an anderen Stellen ersetzt.
+- **Excel, gleicher Zelltext in mehreren Zeilen:** Excel speichert gleiche Texte nur einmal. Steht z. B. „Winter“ in zwei Zeilen mit verschiedenen Vornamen (Lukas, Lena), kann „Winter“ nicht beiden Personen zugleich gehören: Dann bleibt „Winter“ eine eigene Person, Lukas und Lena ebenfalls. Ersetzt wird trotzdem alles. In CSV und Word gilt das nicht (jede Zelle für sich).
+- **Spalte „Name“ neben „Vorname“:** Eine Spalte „Name“ hat keine feste Rolle (sie kann den ganzen Namen oder nur den Nachnamen enthalten). Deshalb werden „Name“ und „Vorname“ einer Zeile **nicht** zu einer Person zusammengefasst; beide werden ersetzt.
+- **Kopf mit weiteren Wörtern:** „Name des Kindes“ oder „Name der Schule“ zählen nicht als Namensspalte. Dann hilft der Schalter „Namen“.
+- **Kopfzeile wird nicht erkannt**, wenn die erste ausreichend gefüllte Zeile keinen üblichen Spaltenkopf hat (z. B. die Tabelle beginnt direkt mit Namen). Dann gibt es keine automatische Namensspalte; der Schalter „Namen“ hilft.
+- **Anrede am Zeilenende** gilt nur für Textdateien und eingefügten Text. Zwischen zwei Word-Absätzen gilt sie nicht (nur „Anrede allein“).
 
 **Seit Version 2.5 (Bedienung und Fragen):**
 - **Gebeugte Formen wie „Rosen“** bei einer Person Rose werden wie bisher **ohne Antwort ersetzt** (Entscheidung Easy: ein stehen gebliebener Name wiegt schwerer als ein verfälschtes Wort). Sie werden aber je Stelle gefragt; „Nein“ lässt das Wort stehen.
@@ -271,7 +294,7 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 - **Anrede allein, danach ein Sachwort:** Steht nach einer allein stehenden Anrede ein einzelnes Wort, das kein Name ist (z. B. ein Fach „Mathematik“, ein Ort „Lübeck“, „Turnhalle“, in TXT eine Überschrift), wird es als Name ersetzt, und zwar **überall im Dokument**. Es ist immer „unsicher“ markiert. Bitte im Schritt „Prüfen“ prüfen und mit einem Klick abschalten (dann ist es überall wieder Klartext).
 - **Mitgenommenes Nachbarwort:** Steht ein übertragenes Wort direkt hinter einem unbekannten großgeschriebenen Wort (z. B. „Treffpunkt Turnhalle“), wird das Nachbarwort mit ersetzt, wie bei der bisherigen Übertragung von Namen. Auch das ist „unsicher“ markiert und geht mit dem Klick aus.
 - **Wort schon anderweitig als Name bekannt:** Ist dasselbe Wort im Dokument schon durch einen anderen sicheren Treffer bekannt (z. B. „Anna Hartung“), gilt für die weiteren Vorkommen die bisherige Übertragung dieses Namens („sicher“).
-- **Anrede allein in Excel:** Die Regel gilt dort (noch) nicht. Ein Name in der Nachbarzelle einer Anrede-Zelle wird nur erkannt, wenn er in einer Namensliste steht.
+- **Anrede allein in Excel:** gilt seit Version 2.6 (siehe „Namensspalten in Tabellen“).
 - **Anrede allein ohne direkte Folge:** Ein leerer Absatz, eine leere Zelle oder ein Zeilenende zwischen Anrede und Name unterbricht die Regel (der Name wird dann nur erkannt, wenn er in einer Liste steht).
 - **Personen mit Monatsnamen** („Mai“, „April“, „August“): Stehen sie allein ohne Anrede, ist der Treffer standardmäßig aus. Im Schritt „Prüfen“ prüfen und einschalten.
 - **Nie 100 %.** Seltene Namen, die in keiner Liste stehen und ohne Anrede vorkommen (im Test z. B. „Ijeoma Uchendu“, „Xiong Wenjie“), werden **nicht** erkannt → im Schritt „Prüfen“ von Hand markieren.
@@ -345,7 +368,7 @@ Der Schlusscheck sucht nur dort, wo Nutzertext stehen kann. Formatangaben meldet
 |---|---|
 | Chromium/Chrome (Desktop) | **geprüft** (automatische Tests, headless) |
 | Chromium mit 390, 1280 und 1920 px Breite | **geprüft** (kein waagrechtes Scrollen, Knöpfe mindestens 44 px, Antippen, Markieren, Tasten J/N) |
-| Edge und Chrome unter Windows (Firmen-PC, `file://`) | Version 1.0 laut Easy **am PC geprüft**; Versionen 1.1 bis 2.5.0 **durch Code ungeprüft** |
+| Edge und Chrome unter Windows (Firmen-PC, `file://`) | Version 1.0 laut Easy **am PC geprüft**; Versionen 1.1 bis 2.6.0 **durch Code ungeprüft** |
 | Microsoft Word / Excel: Öffnen der bereinigten Datei ohne Reparatur-Meldung | **durch Code ungeprüft** (auch die unsichtbare Kennung, seit 2.1). Geprüft: LibreOffice öffnet alle Ausgaben, alle XML-Teile sind wohlgeformt, keine Verweise ins Leere |
 | Firefox (Desktop) | **durch Code ungeprüft** (Firefox ließ sich in der Testumgebung nicht starten; Befund zu Version 2.4.1 siehe PR) |
 | Safari (macOS) | **ungeprüft** |
@@ -358,12 +381,12 @@ Die Datei muss in einem Browser geöffnet werden (z. B. über „Teilen → in S
 
 ## Version und Prüfsumme
 
-Version **2.5.0**, Stand 2026-11-21 (steht auch im Fußbereich des Tools).
+Version **2.6.0**, Stand 2026-11-21 (steht auch im Fußbereich des Tools).
 
 SHA-256 der `index.html` dieser Version:
 
 ```
-3d1acf7ceaf96b218ff1f5698124cd13833ee05d0ed5f5276ef6d348e9beab0b
+d411bf2f0f0b1e0ea0d545e681a1939475a81fb777a912710fb3b74c5fb15f1e
 ```
 
 Eine Datei kann ihre eigene Prüfsumme nicht enthalten, deshalb steht sie nur hier und im PR-Text. Prüfen unter Windows: `certutil -hashfile index.html SHA256`.
@@ -438,6 +461,8 @@ node tests/wortliste-test.mjs <src-Ordner 2.3.4>  # Wortliste „mehrdeutig“ u
 node tests/make-pfade.mjs    # Teile an ungewöhnlicher Stelle (seit 2.4.1): Excel/Word, üblich/ungewöhnlich/Hauptteil, Phase-0-Datei, Gegenprobe (erfunden) → tests/fixtures-pfade/
 node tests/pfade-test.mjs <index.html-2.4.0>  # Namen je Teil vorher/nachher, Kreislauf, Gegenprobe, Sicherheitsbeweis Schlusscheck, Doppellauf → tests/PFADE-REPORT.md
 node tests/make-bedienung.mjs  # Testdokumente zu Easys Befunden (seit 2.5.0): Winter/Rosen, Montag, Do 13:30, GROSS-Form eines übernommenen Namens, ausgeblendetes Blatt, Bilder → tests/fixtures-bedienung/
+node tests/make-spalten.mjs   # Testdokumente 2.6.0: Brief/Liste/Protokoll aus der Diagnose, Tabellenfälle in Excel/CSV/Word, Zeilenende-Risiken → tests/fixtures-spalten/
+node tests/spalten-test.mjs [--alt <index.html-2.5.0>]  # Namensspalten, Spalte von Hand, Anrede in der Nachbarzelle, Zeilenende, „von“, Ziel-Test → tests/SPALTEN-REPORT.md
 node tests/bedienung-test.mjs <index.html-2.4.1>  # Fragen und Speichern vorher/nachher, Beweis D.5, ohne Bedienung byte-gleich, Sperren, Eigene Namen, 1366×768 → tests/BEDIENUNG-REPORT.md
 ```
 

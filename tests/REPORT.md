@@ -1,6 +1,6 @@
 # Testbericht Anonymisierer
 
-Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.html (SHA-256 3d1acf7ceaf96b21…). Alle Testpersonen sind erfunden.
+Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.html (SHA-256 d411bf2f0f0b1e0e…). Alle Testpersonen sind erfunden.
 
 ## protokoll.txt
 - Laden: Gelesen: protokoll.txt (TXT, 22 Textabschnitte).
@@ -25,8 +25,8 @@ Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.h
 - Nicht (vollständig) erkannt: keine
 - Fehltreffer (aktiv, kein Name bzw. Falle): 0
 - Fallen im Text: 3, davon als unsicher markiert aber AUS (richtig stehen gelassen): 3
-- Personen in der Prüfansicht: 27; Treffer gesamt: 32 (sicher 27, unsicher 5)
-- Schlusscheck vor Nacharbeit hat den Export BLOCKIERT („Schlusscheck-Funde mit dem Häkchen bestätigt“). Fundstellen: „Mai“ steht noch in: Zeile 4, Spalte 5 bestätigter Name · „…Elternzeit ab Mai…“ Ersetzen | „Rose“ steht noch in: Zeile 9, Spalte 5 bestätigter Name · „…Die Rose auf dem Tisch ist Deko…“ Ersetzen. Nach Bestätigung exportiert.
+- Personen in der Prüfansicht: 17; Treffer gesamt: 32 (sicher 29, unsicher 3)
+- Schlusscheck vor Nacharbeit hat den Export BLOCKIERT („Schlusscheck-Funde mit dem Häkchen bestätigt“). Fundstellen: „Mai“ steht noch in: Zeile 4, Spalte 5 bestätigter Name · „…Elternzeit ab Mai…“ Ersetzen. Nach Bestätigung exportiert.
 - Export (.csv) vor Nacharbeit: Status „Gespeichert: anonymisiert_tabelle.csv – mit bestätigten Restfunden.“
   - Unabhängige Nachprüfung der Ausgabedatei: 0 Klarnamen-Vorkommen übrig
   - Zusätzlich .txt-Export: Klarnamen übrig: 0
@@ -57,8 +57,8 @@ Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.h
 - Nicht (vollständig) erkannt: keine
 - Fehltreffer (aktiv, kein Name bzw. Falle): 0
 - Fallen im Text: 5, davon als unsicher markiert aber AUS (richtig stehen gelassen): 5
-- Personen in der Prüfansicht: 23; Treffer gesamt: 39 (sicher 33, unsicher 6)
-- Schlusscheck vor Nacharbeit hat den Export BLOCKIERT („Schlusscheck-Funde mit dem Häkchen bestätigt“). Fundstellen: „Mai“ steht noch in: Blatt Yılmaz (ausgeblendet), Zelle A2 bestätigter Name · „…Gespräch mit Person S am 3. Mai…“ Ersetzen. Nach Bestätigung exportiert.
+- Personen in der Prüfansicht: 19; Treffer gesamt: 39 (sicher 34, unsicher 5)
+- Schlusscheck vor Nacharbeit hat den Export BLOCKIERT („Schlusscheck-Funde mit dem Häkchen bestätigt“). Fundstellen: „Mai“ steht noch in: Blatt Yılmaz (ausgeblendet), Zelle A2 bestätigter Name · „…Gespräch mit Person O am 3. Mai…“ Ersetzen. Nach Bestätigung exportiert.
 - Export (.xlsx) vor Nacharbeit: Status „Gespeichert: anonymisiert_tabelle.xlsx – mit bestätigten Restfunden.“
   - Unabhängige Nachprüfung der Ausgabedatei: 0 Klarnamen-Vorkommen übrig
   - LibreOffice öffnet die Ausgabe: ja; Klarnamen im LibreOffice-Text: 0
@@ -106,16 +106,16 @@ Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.h
 |---|---|---|
 | docProps/core.xml | <dc:creator>Gisela Prüferin</dc:creator> <cp:lastModifiedBy>Bernd Bearbeiter</cp:lastModifiedBy> | (leer) |
 | docProps/app.xml | <Company>Beispiel GmbH</Company> <vt:lpstr>Mitarbeiter</vt:lpstr> <vt:lpstr>Yılmaz</vt:lpstr> <vt:lpstr>Notizen</vt:lpstr> | <vt:lpstr>Mitarbeiter</vt:lpstr> <vt:lpstr>Person C</vt:lpstr> <vt:lpstr>Notizen</vt:lpstr> |
-| xl/comments1.xml | <author>Gisela Prüferin</author> <t xml:space="preserve">Gisela Prüferin: Prüfen mit Ngozi Eze</t> | <author>Autor</author> <t xml:space="preserve">Person V: Prüfen mit Person W</t> |
+| xl/comments1.xml | <author>Gisela Prüferin</author> <t xml:space="preserve">Gisela Prüferin: Prüfen mit Ngozi Eze</t> | <author>Autor</author> <t xml:space="preserve">Person R: Prüfen mit Person S</t> |
 | xl/workbook.xml | <sheet name="Mitarbeiter" <sheet name="Yılmaz" <sheet name="Notizen" <definedName name="NotizBlatt">'Yılmaz'!$A$1</definedName> | <sheet name="Mitarbeiter" <sheet name="Person C" <sheet name="Notizen" <definedName name="NotizBlatt">'Person C'!$A$1</definedName> |
-| xl/worksheets/sheet1.xml | <f>"Ansprechpartner: "&amp;"Herr Kowalczyk"</f> <f>'Yılmaz'!A1</f> <f>LEN(B4)</f> <oddHeader>&amp;LListe von Anna Müller&amp;RSeite &amp;P</oddHeader> <oddFooter>&amp;CErstellt: Fatima Haddad</oddFooter> | <f>"Ansprechpartner: "&amp;"Herr Person B"</f> <f>'Person C'!A1</f> <f>LEN(B4)</f> <oddHeader>&amp;LListe von Person A&amp;RSeite &amp;P</oddHeader> <oddFooter>&amp;CErstellt: Person M</oddFooter> |
+| xl/worksheets/sheet1.xml | <f>"Ansprechpartner: "&amp;"Herr Kowalczyk"</f> <f>'Yılmaz'!A1</f> <f>LEN(B4)</f> <oddHeader>&amp;LListe von Anna Müller&amp;RSeite &amp;P</oddHeader> <oddFooter>&amp;CErstellt: Fatima Haddad</oddFooter> | <f>"Ansprechpartner: "&amp;"Herr Person B"</f> <f>'Person C'!A1</f> <f>LEN(B4)</f> <oddHeader>&amp;LListe von Person A&amp;RSeite &amp;P</oddHeader> <oddFooter>&amp;CErstellt: Person J</oddFooter> |
 - Vorschaubild/Thumbnail vorhanden nachher: nein
 
 ## Determinismus (Doppellauf)
 - protokoll.txt: Lauf 1 a29844c8bb3ee675 / Lauf 2 a29844c8bb3ee675; Pseudonym-Zuordnung 0e36160d38ce70ac / 0e36160d38ce70ac → identisch
-- mitarbeiter.csv: Lauf 1 48dff6cc89e7ed3c / Lauf 2 48dff6cc89e7ed3c; Pseudonym-Zuordnung d6daf99b6ceba931 / d6daf99b6ceba931 → identisch
+- mitarbeiter.csv: Lauf 1 44b3e4b748d34dbd / Lauf 2 44b3e4b748d34dbd; Pseudonym-Zuordnung 326b38db990fe99c / 326b38db990fe99c → identisch
 - protokoll.docx: Lauf 1 93b6f8c7c9a57aa1 / Lauf 2 93b6f8c7c9a57aa1; Pseudonym-Zuordnung e86fa7d93e8f4d7a / e86fa7d93e8f4d7a → identisch
-- mitarbeiter.xlsx: Lauf 1 6674c3ca1d4aaa0d / Lauf 2 6674c3ca1d4aaa0d; Pseudonym-Zuordnung 862622377e2eb6cb / 862622377e2eb6cb → identisch
+- mitarbeiter.xlsx: Lauf 1 ac4f3a36a00c8be6 / Lauf 2 ac4f3a36a00c8be6; Pseudonym-Zuordnung 13a16e26ee4e1c67 / 13a16e26ee4e1c67 → identisch
 - protokoll.pdf: Lauf 1 3a3977dfea99ec6d / Lauf 2 3a3977dfea99ec6d; Pseudonym-Zuordnung 074aa110b73adf3a / 074aa110b73adf3a → identisch
 
 ## Nicht unterstützte Dateien (müssen klar abgelehnt werden)
@@ -137,10 +137,10 @@ Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.h
 - Nach „Merkliste löschen“: localStorage 0 Einträge
 
 ## Größe/Geschwindigkeit (Desktop-Chromium, headless)
-- TXT 1 MB: Laden+Analyse 1.0 s, Export+Schlusscheck 2.9 s, JS-Speicher ca. 54 MB – Gelesen: gross.txt (TXT, 13289 Textabschnitte).
-- TXT 5 MB: Laden+Analyse 4.1 s, Export+Schlusscheck 14.5 s, JS-Speicher ca. 202 MB – Gelesen: gross.txt (TXT, 66419 Textabschnitte).
-- TXT 10 MB: Laden+Analyse 8.0 s, Export+Schlusscheck 44.7 s, JS-Speicher ca. 497 MB – Gelesen: gross.txt (TXT, 132815 Textabschnitte).
-- XLSX mit 20 000 Zeilen × 4 Spalten (0.5 MB gepackt): Laden+Analyse 2.5 s, Export+Schlusscheck 4.1 s, JS-Speicher ca. 215 MB – Gelesen: gross.xlsx (XLSX, 60052 Textabschnitte).
+- TXT 1 MB: Laden+Analyse 1.2 s, Export+Schlusscheck 2.9 s, JS-Speicher ca. 73 MB – Gelesen: gross.txt (TXT, 13289 Textabschnitte).
+- TXT 5 MB: Laden+Analyse 5.4 s, Export+Schlusscheck 14.1 s, JS-Speicher ca. 215 MB – Gelesen: gross.txt (TXT, 66419 Textabschnitte).
+- TXT 10 MB: Laden+Analyse 10.0 s, Export+Schlusscheck 48.1 s, JS-Speicher ca. 257 MB – Gelesen: gross.txt (TXT, 132815 Textabschnitte).
+- XLSX mit 20 000 Zeilen × 4 Spalten (0.5 MB gepackt): Laden+Analyse 2.9 s, Export+Schlusscheck 4.5 s, JS-Speicher ca. 257 MB – Gelesen: gross.xlsx (XLSX, 60052 Textabschnitte).
 
 ## Netzwerkzugriffe während aller Tests
 - Anfragen gesamt: 23; davon nicht lokal (http/https/ws …): 0

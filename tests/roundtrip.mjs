@@ -56,10 +56,13 @@ async function download(page, clickSel, statusSel, okRe) {
   await dl.saveAs(p);
   return { status, bytes: fs.readFileSync(p), name: dl.suggestedFilename(), file: p };
 }
-async function anonymize(file, manual = []) {
+// Version 2.6.0: cols = Spalte von Hand ({Spalten-Kennung: true/false}), z. B. Namensspalte ausschalten
+const setCols = (page, cols) => page.evaluate((c) => { Object.assign(window.__anon.app.state.nameColumns, c); window.__anon.runAnalysis(); }, cols);
+async function anonymize(file, manual = [], cols = null) {
   const { page, ctx, errors } = await newPage();
   await setMode(page, 'reversible');
   await loadFile(page, file);
+  if (cols) await setCols(page, cols);
   for (const m of manual) await page.evaluate((x) => window.__anon.addManual(x), m);
   await ack(page);
   // Version 2: erst „1 Schlüssel speichern“, dann „2 Datei speichern“ (die Datei ist vorher gesperrt)
@@ -394,6 +397,11 @@ globalThis.__uebChecks = [];
     // 1) Prüfansicht: Markierung, Übertragung, An/Aus der ganzen Gruppe
     const { page, ctx, errors } = await newPage();
     await loadFile(page, file);
+    // Version 2.6.0: In der CSV ist „Name“ (Spalte 2) jetzt eine Namensspalte (starkes Kopfwort, Vorrang vor Regel a2).
+    // Dieser Test prüft Regel a2 samt Übertragung; deshalb wird die Spalte hier von Hand ausgeschaltet („wie ohne Regel“).
+    // Die Namensspalte selbst prüft tests/spalten-test.mjs.
+    const cols = ext === 'csv' ? { 'csv|1': false } : null;
+    if (cols) await setCols(page, cols);
     await goTo(page, 'a2');
     const hits = await page.evaluate(() => { const r = window.__anon.app.result; return r.hits.filter((h) => h.type === 'person').map((h) => ({ t: r.fullText.slice(h.s, h.e), cert: h.cert, on: h.on, a2: !!h.a2, g: h.a2group || '' })); });
     const exportTxt = async () => page.evaluate(async () => (await window.__anon.buildOutput('txt')).text);
@@ -415,7 +423,7 @@ globalThis.__uebChecks = [];
     log(`  - ${okMark ? 'OK' : 'FEHLER'}: ${groupHits.length} Treffer aus „Anrede allein“ samt Übertragung, alle „unsicher, an“: ${groupHits.map((h) => h.t + (h.a2 ? '' : '*')).join(', ')} (* = übertragen)`);
     log(`  - ${okToggle ? 'OK' : 'FEHLER'}: ein „Mathematik“ angetippt → überall Klartext (${off.Mathematik}/${orig.Mathematik}), anderes Vorkommen angetippt → überall wieder ersetzt (${on2.Mathematik})`);
     // 2) Rückbau: alle übertragenen Vorkommen mit demselben Platzhalter, exakt zurück
-    const a = await anonymize(file);
+    const a = await anonymize(file, [], cols);
     const anonText = await textOf(a.anon);
     const phH = phFor(a.key, 'Hartung');
     const phT = phFor(a.key, 'Tannheim');
@@ -532,6 +540,59 @@ log('## Fallen (einzeln geprüft)');
   chk('Anonymisierung rückbaufähig deterministisch (Datei und Schlüssel ohne Kennung)', sha(a.anon) === sha(a2.anon) && ohneKennung(a.key) === ohneKennung(a2.key), `${sha(a.anon)} / ${sha(a2.anon)}`);
   chk('Kennungen zweier Läufe verschieden (Zufall)', a.key.kennung && a2.key.kennung && a.key.kennung !== a2.key.kennung, `${a.key.kennung} / ${a2.key.kennung}`);
   globalThis.__checks = checks;
+}
+
+// ---------- Version 2.6.0: Namensspalten, Anrede in der Nachbarzelle, Anrede am Zeilenende ----------
+log('');
+log('## Namensspalten und Anrede am Zeilenende (Version 2.6.0, tests/fixtures-spalten)');
+{
+  const fxs = path.join(here, 'fixtures-spalten');
+  const zipEdit = async (bytes, part, from, to) => {
+    const z = await JSZip.loadAsync(bytes);
+    z.file(part, (await z.file(part).async('string')).split(from).join(to));
+    return z.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
+  };
+  const items = [
+    ['protokoll.txt', 'Sonnleitner'], ['protokoll-lf.txt', 'Kirchbichler'], ['tabellen-stark.csv', 'Brzęczek'],
+    ['brief.docx', 'Trzaskalik'], ['tabellen.docx', 'Dimitrios'], ['liste.xlsx', 'Kirchbichler'], ['tabellen.xlsx', 'Brzęczek'],
+  ];
+  for (const [f, name] of items) {
+    const file = path.join(fxs, f);
+    const ext = path.extname(f).slice(1);
+    const origBytes = fs.readFileSync(file);
+    const a = await anonymize(file);
+    const ph = phFor(a.key, name);
+    let corrected;
+    let expected;
+    let got;
+    let r;
+    if (ext === 'txt' || ext === 'csv') {
+      const eol = /\r\n/.test(origBytes.toString('utf8')) ? '\r\n' : '\n';
+      const add = (t, n) => t + (ext === 'csv' ? `12;;${n};Neu;Yoga;` : `Nachtrag: ${n} kommt später.`) + eol;
+      corrected = add(decodeTxt(a.anon), ph);
+      expected = add(decodeTxt(origBytes), name);
+      r = await restore(Buffer.from(corrected, 'utf8'), 'korrigiert.' + ext, a.keyPath);
+      got = decodeTxt(r.bytes).split(/\r?\n/);
+      expected = expected.split(/\r?\n/);
+    } else if (ext === 'docx') {
+      corrected = await zipEdit(a.anon, 'word/document.xml', '>Kurs<', '>Angebot<');
+      r = await restore(corrected, 'korrigiert.docx', a.keyPath);
+      got = await docxParagraphs(r.bytes);
+      expected = await docxParagraphs(await zipEdit(origBytes, 'word/document.xml', '>Kurs<', '>Angebot<'));
+    } else {
+      corrected = await zipEdit(a.anon, 'xl/sharedStrings.xml', '>Kurs<', '>Angebot<');
+      r = await restore(corrected, 'korrigiert.xlsx', a.keyPath);
+      got = await xlsxCells(r.bytes);
+      expected = await xlsxCells(await zipEdit(origBytes, 'xl/sharedStrings.xml', '>Kurs<', '>Angebot<'));
+    }
+    const dev = diffLists(got, expected);
+    const anonText = ext === 'txt' || ext === 'csv' ? decodeTxt(a.anon) : ext === 'docx' ? (await docxParagraphs(a.anon)).join('\n') : (await xlsxCells(a.anon)).join('\n');
+    const leaked = anonText.includes(name);
+    if (!ph || leaked) dev.push({ erwartet: `${name} ersetzt`, ergebnis: ph ? 'im Ergebnis stehen geblieben' : 'kein Platzhalter' });
+    summary.push([`2.6.0 ${f}`, r.plan.totalFound, r.plan.totalFound - dev.length, dev]);
+    log(`- ${f}: ${name} → ${ph}; ${a.key.platzhalter.length} Platzhalter; bearbeitet (${ext === 'txt' || ext === 'csv' ? 'Zeile mit dem Platzhalter angefügt' : '„Kurs“ → „Angebot“'}); ${r.plan.totalFound} zurückgebaut, Abweichungen: ${dev.length}`);
+    for (const d of dev.slice(0, 5)) log(`  - erwartet „${d.erwartet}“ / erhalten „${d.ergebnis}“`);
+  }
 }
 
 // ---------- Modi ohne Rückbau ----------

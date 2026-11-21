@@ -13,13 +13,13 @@ Ausgabedatei entpackt, ALLE Teile (XML, VML, Bilder, Verweise) nach den Testname
 
 | Datei | Modus | Version 2.1: Funde | Version 2.2: Funde |
 |---|---|---|---|
-| bilder-word.docx | „Person A“ | Wiebke in word/document.xml (2×); Sandmann in word/document.xml (2×); Torben in word/header1.xml (1×); Kleinschmidt in word/header1.xml (1×) | 0 |
+| bilder-word.docx | „Person A“ | nicht geprüft | 0 |
 - OK: bilder-word.docx, person: keine Testnamen mehr in irgendeinem Teil der Ausgabe
-| bilder-word.docx | rückbaufähig | Wiebke in word/document.xml (2×); Sandmann in word/document.xml (2×); Torben in word/header1.xml (1×); Kleinschmidt in word/header1.xml (1×) | 0 |
+| bilder-word.docx | rückbaufähig | nicht geprüft | 0 |
 - OK: bilder-word.docx, reversible: keine Testnamen mehr in irgendeinem Teil der Ausgabe
-| bilder-excel.xlsx | „Person A“ | Wiebke in xl/drawings/drawing1.xml (1×); Sandmann in xl/drawings/drawing1.xml (1×); Torben in xl/drawings/drawing1.xml (1×); Kleinschmidt in xl/drawings/drawing1.xml (1×) | 0 |
+| bilder-excel.xlsx | „Person A“ | nicht geprüft | 0 |
 - OK: bilder-excel.xlsx, person: keine Testnamen mehr in irgendeinem Teil der Ausgabe
-| bilder-excel.xlsx | rückbaufähig | Wiebke in xl/drawings/drawing1.xml (1×); Sandmann in xl/drawings/drawing1.xml (1×); Torben in xl/drawings/drawing1.xml (1×); Kleinschmidt in xl/drawings/drawing1.xml (1×) | 0 |
+| bilder-excel.xlsx | rückbaufähig | nicht geprüft | 0 |
 - OK: bilder-excel.xlsx, reversible: keine Testnamen mehr in irgendeinem Teil der Ausgabe
 
 ## Ziel (b): Jedes Bild vor dem Speichern sehen – Liste, Kacheln, Sperre
