@@ -657,7 +657,7 @@ export function analyze(units, state) {
     const ws = (h.comps || []).filter((c) => c.type === 'W');
     if (ws.length !== 1 || (h.comps || []).length !== 1 || !lex.isAmbiguous(ws[0].key)) continue;
     const toks = unitToks[h.unit];
-    const ti = toks.findIndex((t) => t.s === h.s - unitStarts[h.unit]);
+    const ti = toks.findIndex((t) => t.s === h.s);
     if (ti < 0) continue;
     if (nounContext(toks, ti)) h.sachkontext = 'artikel';
     else if (h.suffix) h.sachkontext = 'gebeugt';

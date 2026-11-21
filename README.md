@@ -9,9 +9,9 @@ Es ist **eine einzige Datei: `index.html`**. Sie läuft komplett im Browser und 
 
 ---
 
-## Bedienung in einfacher Sprache (seit Version 2.0: Schritt für Schritt)
+## Bedienung in einfacher Sprache (seit Version 2.5: kompakt)
 
-Das Tool zeigt immer **nur einen Bildschirm**. Oben siehst du, in welchem Schritt du bist (Haken = erledigt). Unten links ist **„← Zurück“** (nichts geht dabei verloren), unten rechts der **eine Hauptknopf** für den nächsten Schritt.
+Das Tool zeigt immer **nur einen Bildschirm**. Oben steht, in welchem Schritt du bist (Haken = erledigt), rechts „Offline“. Unten links ist **„← Zurück“** (nichts geht dabei verloren), unten rechts der **eine Hauptknopf** für den nächsten Schritt. Schrift und Abstände sind seit Version 2.5 kleiner: Start, Datei und Speichern passen bei 1366×768 ohne Scrollen auf den Bildschirm (Speichern bis fünf offene Punkte).
 
 **Start: „Was möchtest du tun?“**
 - **Dokument anonymisieren:** Namen durch Platzhalter ersetzen, bevor die Datei an eine KI geht.
@@ -26,55 +26,40 @@ Das Tool zeigt immer **nur einen Bildschirm**. Oben siehst du, in welchem Schrit
   - Es ist nichts vorausgewählt. „Weiter“ geht erst, wenn du geantwortet und eine Datei oder einen Text geladen hast.
 - Datei in das Feld ziehen oder **„Datei auswählen“**. Fehler (z. B. gescanntes PDF) stehen direkt am Feld.
 - **„Stattdessen Text einfügen“** klappt ein Textfeld auf.
-- **„Erweitert“** klappt auf:
-  - Kontaktdaten (E-Mail, Telefon, IBAN, Adresse) und unsichere Treffer an/aus
-  - Platzhalter „[NAME]“ statt „Person A“
-  - Eigene Namen und Ausnahmen
-  - Merkliste speichern/laden/löschen und der Schalter „im Browser speichern“ (Standard aus)
+- Eine Zeile zeigt den **Stand deiner Liste „Eigene Namen“**, z. B. „Eigene Namen: 1 Einrichtung, 3 Personen“ oder „Eigene Namen: keine“. So siehst du sofort, ob die Liste nach dem Neuladen leer ist.
+- Der Knopf **„Einstellungen und eigene Namen“** klappt auf: eigene Namen und Ausnahmen, Speichern der Liste (Datei oder Browser), Kontaktdaten an/aus, unsichere Treffer, Platzhalter „[NAME]“.
+  - Fügst du einen Eintrag hinzu, solange die Liste nicht im Browser gespeichert wird, steht direkt am Feld: **„Diese Liste gilt nur, bis du die Seite schließt oder neu lädst.“** mit dem Knopf **„Dauerhaft in diesem Browser speichern“**. Standard bleibt: nicht speichern.
 
-**2. Prüfen: „Stimmen die gefundenen Namen?“**
-- Links steht der Text. Tabellen bleiben als Zeilen erkennbar; Kopfzeilen, Fußnoten, Kommentare und Excel-Blätter haben eine kleine Überschrift.
-- Farben und Formen:
+**2. Prüfen: „Namen prüfen“**
+- **Gelb wird ersetzt. Klick auf ein Wort schaltet es um.** Es gibt nur zwei Markierungen im Text:
+  - **gelbe Fläche** = wird ersetzt (Personen, Einrichtungen, Kontaktdaten und eigene Namen gleich),
+  - **gestrichelter Rand** = hier ist eine Frage offen.
+  - Ausgeschaltete Stellen sind nicht markiert. Wer es ist und was passiert, steht beim Überfahren mit der Maus und in der Liste.
+- **Excel und CSV** erscheinen als echte Tabelle mit Spaltenbuchstaben und Zeilennummern; lange Texte brechen um, sonst scrollt die Tabelle seitlich. Jedes Excel-Blatt hat einen Reiter, ausgeblendete mit „(ausgeblendet)“. Kommentare, Kopf-/Fußzeilen, Blattnamen und Bildbeschreibungen stehen darunter als eigene, benannte Zeilen („Kommentar zu Zelle C7“, „Kopfzeile, Blatt Liste“, „Bildbeschreibung“). Word-Tabellen erscheinen ebenfalls als Tabelle.
+- Einen **nicht erkannten Namen** antippen oder markieren: Direkt daneben erscheinen **„Als Name markieren“** und **„Als Einrichtung markieren“**. Danach wird er **überall** ersetzt, auch mit Endung („Müllers“) und in GROSSSCHREIBUNG („MÜLLER“).
+- **Fragekarte** rechts („Frage 2 von 5“, Tasten **J** und **N**):
+  - **Frage zum Wort**: „Ist „Winter“ ein Name?“ für unsichere Wörter ohne klaren Zusammenhang. **„Ja, Name“ schaltet nur die Stellen an, die nicht im Sachkontext stehen.** „Nein“ schaltet alle unsicheren Stellen des Worts aus.
+  - **Frage je Stelle** (seit 2.5) bei Wörtern, die auch gewöhnliche Wörter sind (Liste „mehrdeutig“, z. B. Winter, Rose), wenn die Person im Dokument sicher erkannt oder bestätigt ist:
+    - direkt nach Artikel oder Präposition („im Winter“, „die Rosen“): bleibt wie bisher aus;
+    - gebeugte Form („Rosen“ bei Person Rose, „WINTERS“): bleibt wie bisher ersetzt.
+    - Die Karte zeigt den Satz mit der Stelle, darunter „Ist hier die Person Winter gemeint?“ und den heutigen Zustand („Wird im Moment ersetzt.“ bzw. „Bleibt im Moment stehen.“). **Ohne Antwort bleibt alles, wie es ist.** „Nein“ schaltet die Stelle aus, „Ja, ersetzen“ an.
+  - **GROSS-Form mit Endung eines von Hand übernommenen Namens** („TANNHÄUSERS“ bei übernommenem „Tannhäuser“): ebenfalls Frage je Stelle; ohne Antwort bleibt sie stehen.
+  - **Keine Frage** mehr für Wochentage und Monate allein („Montag“, „Do.“) und für Wochentag vor Uhrzeit („Do 13:30“). Sie bleiben stehen; ein Klick schaltet sie wie jedes Wort um.
+  - Namen aus den **Dateiangaben** (Autor, Firma …): „Als Namen übernehmen?“ bzw. „Als Einrichtung übernehmen?“ wie bisher.
+- Darunter: „19 Personen, 1 Einrichtung“ mit **„Liste zeigen“**. Die Liste klappt an Ort und Stelle auf: je Eintrag Schalter, Name, Zahl und „⋯“ (Schreibweisen, zusammenführen, nie anonymisieren, für nächstes Mal merken, Art umstellen). Einrichtungen stehen als eigene Gruppe.
 
-  | Darstellung | Bedeutung |
-  |---|---|
-  | gelbe Fläche | sicher |
-  | orange Fläche mit gestricheltem Rand | unsicher |
-  | blaue Fläche mit Unterstrich | von dir markiert |
-  | grauer Rahmen | Kontaktdaten |
-  | grau durchgestrichen | aus |
-
-- Einen Treffer **antippen** schaltet ihn an oder aus.
-- Einen **nicht erkannten Namen** antippen oder markieren: Direkt daneben erscheinen **„Als Name markieren“** und **„Als Einrichtung markieren“** (seit Version 2.3, siehe unten). Danach wird er **überall** ersetzt, auch mit Endung („Müllers“) und in GROSSSCHREIBUNG („MÜLLER“, „MÜLLERs“). Ausnahme: GROSS geschrieben **mit großer Endung** („MÜLLERS“) wird ein von Hand markierter Name nicht ersetzt, sondern vom Schlusscheck gemeldet (siehe „Großschreibung und Endungen“ unter Grenzen).
-- **Fragekarte** rechts: Das Tool fragt bei jedem unsicheren Wort bzw. jeder unsicheren Person **einmal**: „Ist „…“ hier ein Name?“.
-  - **„Ja, Name“** schaltet alle unsicheren Stellen dieses Worts bzw. dieser Person an, **„Nein“** schaltet sie aus. **Sicher erkannte Stellen derselben Person bleiben in jedem Fall an**; ein „Nein“ gibt also keinen sicher erkannten Namen frei.
-  - Am PC gehen auch die Tasten **J** und **N**, aber nur auf diesem Bildschirm und nicht, während du in einem Eingabefeld bist.
-  - Namen aus den **Dateiangaben** (Autor, Bearbeiter, Firma, Kommentar-Autoren, SharePoint-Personen) erscheinen ebenfalls als Frage: „Als Namen übernehmen?“, bei der Firma (seit 2.3) „Als Einrichtung übernehmen?“. Aus der Datei werden sie so oder so entfernt; mit „Ja“ werden sie auch im Text ersetzt.
-- **Personenliste**:
-  - eine Zeile pro Person mit Schalter und Trefferzahl
-  - hinter **„⋯“**: Schreibweisen, Zuordnung lösen, **zusammenführen mit …**, **nie anonymisieren**, **für nächstes Mal merken** (kommt in „Eigene Namen“)
-- Weiter geht es auch mit offenen Fragen; beim Speichern musst du das dann ausdrücklich bestätigen.
-
-**3. Speichern: „Letzter Blick, dann speichern“**
-- Eine **Ampel-Liste**: grün mit Haken = in Ordnung, bernstein mit Ausrufezeichen = hier ist etwas zu tun.
-  - ersetzte Personen und Stellen
-  - **Fragen**: offene Fragen musst du beantworten oder ausdrücklich bestätigen
-  - versteckte Angaben werden geleert (nur Word/Excel)
-  - jeder **Hinweis zur Datei** mit einem Haken **„Gelesen“**; erst wenn alle abgehakt sind, wird gespeichert
-  - **Bilder** (nur Word/Excel, seit Version 2.2): „3 Bilder im Dokument“ mit dem Knopf **„Bilder ansehen“** (siehe unten). Erst nachdem du die Liste geöffnet hast, kannst du abhaken: **„Ich habe die Bilder angesehen. Darauf steht kein Name.“** Vorher wird nicht gespeichert.
-  - **Schlüsseldatei** (nur rückbaufähig)
-  - **Schlusscheck**: Alle bestätigten Namen und alle Namen aus den Dateiangaben werden in **allen Teilen** der Ausgabe noch einmal gesucht (Text, Dateieigenschaften, SharePoint-Daten, Bilder …). Bei jedem Fund steht, **wo** er steht (z. B. „steht in: Kopfzeile“). Du kannst ihn **„als Namen übernehmen“** (dann wird er überall ersetzt) oder **bewusst stehen lassen** (abhaken). Vorher wird nicht gespeichert.
-- **Dateikarten:**
-  - „Für die KI“ mit dem Namen der anonymisierten Datei (immer neutral: „anonymisiert_…“; bei rückbaufähig mit Kennung, z. B. „anonymisiert_K7F3.docx“)
-  - nur bei rückbaufähig zusätzlich rot: **„Bleibt auf diesem PC · enthält echte Namen“** mit der Schlüsseldatei
-- **Hauptknopf:**
-  - Bei „anonym reicht“: **„Datei speichern“**. Das Format passt zur Eingabe: Word → .docx, Excel → .xlsx, CSV → .csv, Text und PDF → .txt.
-  - Bei rückbaufähig zwei nummerierte Knöpfe: erst **„1 Schlüssel speichern“**, dann **„2 Datei speichern“**. Der zweite geht erst nach dem ersten. Änderst du danach noch Treffer, bekommt das Dokument eine **neue Kennung** und du musst den Schlüssel erneut speichern.
-- **„Andere Wege“** (klein): „Nur Text kopieren“, „Als .txt speichern“, „Als .docx speichern“ und die **Zuordnungstabelle** (nur bei „anonym reicht“; enthält echte Namen, eigene Datei mit Warnhinweis). Für alle Wege gelten dieselben Sperren.
-- **Danach:**
-  - der Hinweis „Lade die Datei direkt hoch. Wenn du sie vorher in Word (Excel) öffnest und speicherst, trägt Word (Excel) deinen Namen wieder ein.“
-  - der Knopf **„Hinweis für die KI kopieren“**. Er kopiert einen Satz, der die KI bittet, die Platzhalter nie zu verändern und nur Fehler zu zeigen. Geht das Kopieren nicht, steht der Satz zum Markieren da.
-- Nach dem Speichern: Bestätigung in der Ampel und **„Nächstes Dokument“**. Das verwirft alles Geladene und führt zum Start; die Merkliste und die Einstellungen bleiben.
+**3. Speichern**
+- Oben ein Satz, z. B. „16 Personen und 1 Einrichtung sind ersetzt. Zwei Punkte bitte noch ansehen:“.
+- Darunter **eine Fläche mit je einer Zeile pro offenem Punkt**, jeweils mit einem Knopf rechts:
+  - offene Fragen („Beantworten“),
+  - jeder Fund des Schlusschecks („Ersetzen“, „Als Namen übernehmen“ bzw. „Als Einrichtung übernehmen“, bei Einrichtungen „Im Text zeigen“) mit Fundort in einfacher Sprache („Blatt Teilnehmer, Zelle I6“, „Kopfzeile“, „Kommentar zu Zelle C7“, „Bildbeschreibung“) und dem sichtbaren Text der Stelle,
+  - Bilder („Ansehen“),
+  - Hinweise zur Datei, die eine Entscheidung brauchen (z. B. eingebettete Objekte werden geleert: Der Inhalt fehlt in der Ausgabe und auch nach dem Rückbau; Pivot-Tabellen; Bildtypen ohne Bereinigung).
+- **EIN Häkchen**: „Ich habe alle Punkte gesehen und speichere so.“ Es ersetzt die früheren Einzel-Häkchen. Mit Bildern ist es erst wählbar, wenn du die Bilderliste geöffnet hast. Es **fällt zurück**, sobald sich an Treffern, Antworten oder Punkten etwas ändert. Ohne offene Punkte gibt es kein Häkchen.
+- Eine Zeile mit den Dateinamen („… bleibt auf diesem PC“, „… geht an die KI“) und den Knöpfen **„1 Schlüssel speichern“**, **„2 Datei speichern“** (rückbaufähig; der zweite geht erst nach dem ersten) bzw. nur **„Datei speichern“**.
+- „Lade die Datei danach direkt hoch, ohne sie vorher in Word bzw. Excel zu öffnen.“ mit **„Hinweis für die KI kopieren“**.
+- **„Details und andere Formate“** klappt auf: alles, was in Ordnung ist oder das Tool erledigt hat (versteckte Angaben, ausgeblendete Blätter, Wörter wie Platzhalter, Schlusscheck ohne Fund …), die anderen Speicherwege (Text kopieren, .txt, .docx) und die Zuordnungstabelle. Für alle Wege gelten dieselben Sperren.
+- Nach dem Speichern: **„Nächstes Dokument“** verwirft alles Geladene; Liste und Einstellungen bleiben.
 
 ### Bilder und Bildbeschreibungen (seit Version 2.2)
 **Bilder werden nie verändert und nie entfernt.** Das Tool kann nicht lesen, was auf einem Bild steht. Deshalb zeigt es dir vor dem Speichern jedes Bild, damit du selbst nachsehen kannst.
@@ -108,10 +93,10 @@ Schulen, Vereine, Firmen und Behörden bekommen einen **eigenen Platzhalter**, d
 - **Abkürzungen** („FZS“) erkennt das Tool nicht von selbst. Markiere sie ebenfalls als Einrichtung und führe sie im Menü („zusammenführen mit …“) mit der Einrichtung zusammen.
 - Ein mehrteiliger Name wird **immer als Ganzes** ersetzt, nie Wort für Wort, auch in Kopf-/Fußzeilen, Bildbeschreibungen und Blattnamen.
 - **Vorrang:** Steckt ein Personenname in der Einrichtung („Astrid-Lindgren-Schule“), wird die ganze Einrichtung ein Platzhalter; „Astrid Lindgren“ an anderer Stelle bleibt eine Person.
-- Im Schritt „Prüfen“ stehen Einrichtungen in einer eigenen Gruppe **„Einrichtungen“**. Ihre Markierung hat einen **doppelten Rahmen** (violett), damit sie auch ohne Farbe von den anderen zu unterscheiden ist.
-- Die Ampel meldet z. B. „6 Personen und 1 Einrichtung ersetzt“. Der „Hinweis für die KI“ nennt auch „Einrichtung A“.
+- Im Schritt „Prüfen“ stehen Einrichtungen in der Liste als eigene Gruppe **„Einrichtungen“**. Im Text sind sie seit 2.5 wie jede ersetzte Stelle gelb markiert; beim Überfahren steht „Einrichtung“ und der Platzhalter.
+- Der Speichern-Bildschirm meldet z. B. „6 Personen und 1 Einrichtung sind ersetzt.“ Der „Hinweis für die KI“ nennt auch „Einrichtung A“.
 
-### Eigene Namen und Ausnahmen (unter „Erweitert“)
+### Eigene Namen und Ausnahmen (unter „Einstellungen und eigene Namen“)
 - **Eigene Namen (Merkliste):** Namen, die das Tool nicht kennt. Sie werden bei jedem weiteren Dokument automatisch mit ersetzt. Auch „Als Name markieren“, „Als Einrichtung markieren“ und „für nächstes Mal merken“ tragen dort ein.
   - Jeder Eintrag hat eine **Art** (Person oder Einrichtung), beim Hinzufügen wählbar. Datei und Browser-Speicher merken die Art. Ältere Merklisten (ohne Art) laden wie bisher als Personen.
   - **Achtung: Die Liste enthält echte Namen.**
@@ -120,7 +105,7 @@ Schulen, Vereine, Firmen und Behörden bekommen einen **eigenen Platzhalter**, d
 - **Ausnahmen:** Wörter, die nie ersetzt werden sollen (z. B. ein Firmenname).
 - **Gespeichert wird nur auf ausdrücklichen Wunsch:** als Datei („Merkliste als Datei speichern“) oder im Browser (Schalter, **Standard: aus**). Die Liste **enthält echte Namen**. „Merkliste löschen“ entfernt alles, auch aus dem Browser.
 
-### Einstellungen (unter „Erweitert“)
+### Einstellungen (unter „Einstellungen und eigene Namen“)
 - Zusätzlich ersetzen (einzeln schaltbar, Standard: an): E-Mail, Telefon, IBAN (mit Prüfziffer), Adresse/PLZ.
 - „Unsichere Treffer standardmäßig ersetzen“ (Standard: an). Ausnahme: Wörter wie „die Rose“, „im Winter“, „mit voller Kraft“ (Artikel oder Präposition davor) bleiben aus, sind aber markiert.
 - „[NAME]“ statt „Person A, Person B …“ (kein Rückbau möglich).
@@ -142,7 +127,7 @@ Schulen, Vereine, Firmen und Behörden bekommen einen **eigenen Platzhalter**, d
 - Eine **große Endung** in GROSSSCHREIBUNG („MÜLLERS“, „DES LINDENAUER BÜRGERVEREINS“) gehört zum Platzhalter selbst und bekommt eine eigene Nummer (z. B. „Nachname A3“ = „MÜLLERS“; bei Einrichtungen ebenso „Einrichtung A“ mit Nummer). Für Personen seit 2.3.2, für Einrichtungen seit 2.3.3. So kommt sie beim Rückbau exakt zurück und sieht nie wie ein anderer Platzhalter aus („Nachname AS“).
 - Kontaktdaten werden nummeriert: [E-MAIL-1], [TELEFON-2], [IBAN-1], [ADRESSE-1]. Gleicher Wert bekommt die gleiche Nummer.
 - **Ziffern direkt hinter einem Namen** („Müller2“, „Yılmaz12“, seit 2.3.4) gehören zum Platzhalter und bekommen eine eigene Nummer („Nachname A2“ = „Müller2“). Vorher stand „Nachname A“ + „2“ im Text. Das sah aus wie die Schreibweise „Nachname A2“, und der Rückbau konnte still die falsche Schreibweise einsetzen. Allgemein gilt im Modus „rückbaufähig“: Direkt hinter einem Platzhalter steht nie ein Buchstabe oder eine Ziffer, die ihn wie einen anderen aussehen lässt.
-- **Wörter im Original, die wie Platzhalter aussehen** („Nachname A“, „Person A“, „Einrichtung A“, „[NAME]“, „[E-MAIL-1]“ …, seit 2.3.4): Das Tool vergibt diese Platzhalter nicht. Es nimmt die nächste freie Nummer („Nachname A2“) bzw. im Modus „Person A“ den nächsten freien Buchstaben („Person B“). Die Wörter bleiben im Text stehen und werden mit Anzahl in der Schlüsseldatei vermerkt (Zusatzfeld „imOriginal“, Format-Version unverändert). Beim Rückbau bleiben sie unberührt und erscheinen als neutrale Zeile „stand schon im Original (n×)“, bei abweichender Anzahl bernsteinfarben.
+- **Wörter im Original, die wie Platzhalter aussehen** („Nachname A“, „Person A“, „Einrichtung A“, „[NAME]“, „[E-MAIL-1]“ …, seit 2.3.4): Das Tool vergibt diese Platzhalter nicht. Es nimmt die nächste freie Nummer („Nachname A2“) bzw. im Modus „Person A“ den nächsten freien Buchstaben („Person B“). Die Wörter bleiben im Text stehen und werden mit Anzahl in der Schlüsseldatei vermerkt (Zusatzfeld „imOriginal“, Format-Version unverändert). Beim Rückbau bleiben sie unberührt und erscheinen als neutrale Zeile „stand schon im Original (n×)“ unter „Details“, bei abweichender Anzahl als offener Punkt.
 - Einrichtungen (seit 2.3): „Einrichtung A“ für den ganzen Namen, weitere Schreibweisen „Einrichtung A2“ … Sie stehen als eigene Art in der Schlüsseldatei. Schlüsseldateien aus früheren Versionen funktionieren unverändert.
 - Eine Schlüsseldatei **mit** Einrichtung hat die Format-Version 2. Ältere Versionen des Tools (2.2) lehnen sie klar ab („Unbekannte Version der Schlüsseldatei (2) …“). Schlüsseldateien **ohne** Einrichtung bleiben Version 1 und funktionieren auch mit 2.2.
 
@@ -151,19 +136,17 @@ Schulen, Vereine, Firmen und Behörden bekommen einen **eigenen Platzhalter**, d
 - In Word- und Excel-Dateien steht die Kennung zusätzlich **unsichtbar in den Dateieigenschaften**. Sie bleibt also auch erhalten, wenn du die Datei umbenennst (in LibreOffice auch nach Bearbeiten und Speichern geprüft).
 - **Jede Anonymisierung bekommt eine neue Kennung**, auch wenn du dieselbe Datei noch einmal lädst oder nach dem Schlüssel noch einen Treffer änderst. Warum? Zwei verschiedene Schlüssel dürfen nie dieselbe Kennung haben. Nur so erkennt der Rückbau einen **vertauschten** oder einen **veralteten** Schlüssel sicher, auch bei Dokumenten nach derselben Vorlage.
 - Die Kennung ist **reiner Zufall**. Nichts aus dem Dokument geht ein (kein Text, kein Name, kein Dateiname, keine Uhrzeit). Aus der Kennung lässt sich also nichts über den Inhalt ableiten.
-- Beim Rückbau zeigt die Ampel eine Zeile **„Kennung“**:
-  - grün: „Kennung K7F3 passt“
-  - rot: „Diese Schlüsseldatei gehört zu einem anderen Dokument“. Weiter geht es erst nach ausdrücklicher Bestätigung.
-  - gelb: „Im Dokument steht keine Kennung“ (z. B. umbenannte Textdatei, eingefügter Text). Du prüfst selbst und hakst ab.
-  - gelb: „Schlüssel ohne Kennung“ (Schlüssel von vor Version 2.1). Der Rückbau geht wie bisher.
-  - Widersprechen sich Eigenschaft und Dateiname, gilt die Eigenschaft; der Widerspruch wird angezeigt.
+- Beim Rückbau zur **Kennung**:
+  - passt sie, steht „Kennung K7F3 passt“ unter „Details“;
+  - als offener Punkt (seit 2.5 mit dem einen Häkchen): „Diese Schlüsseldatei gehört zu einem anderen Dokument“ (rot), „Im Dokument steht keine Kennung“ (z. B. umbenannte Textdatei, eingefügter Text) und „Schlüssel ohne Kennung“ (Schlüssel von vor Version 2.1);
+  - widersprechen sich Eigenschaft und Dateiname, gilt die Eigenschaft; der Widerspruch wird angezeigt.
 - **Grenzen:** Bei **eingefügtem Text** und bei **umbenannten .txt/.csv-Dateien** steht die Kennung nirgends im Dokument; dann kann das Tool einen Vertausch nicht erkennen und fragt nur nach. Alte Schlüssel (vor 2.1) haben keine Kennung. Die Kennung schützt vor Verwechslung, nicht vor Absicht.
 
 **Ablauf**
 1. Anonymisieren mit der Antwort **„Ja, ich baue sie später zurück“**. Im Schritt „Speichern“ erst **„1 Schlüssel speichern“**, dann **„2 Datei speichern“**. **Ohne die Schlüsseldatei ist kein Rückbau möglich.**
 2. Die anonymisierte Datei bearbeiten oder prüfen lassen. Platzhalter dabei möglichst **unverändert** lassen („Hinweis für die KI kopieren“ hilft).
 3. Start → **„Dokument zurückbauen“**. Schritt **„Dateien“**: links die bearbeitete Datei (.txt, .docx, .xlsx, .csv oder eingefügter Text), rechts die Schlüsseldatei. Probleme (z. B. alte CSV-Zuordnung statt Schlüsseldatei) stehen direkt am Feld. „Weiter“ geht erst mit beiden Dateien.
-4. Schritt **„Prüfen“**: der **Rückbau-Bericht** als Ampel-Liste.
+4. Schritt **„Rückbau prüfen“**: oben ein Satz („Alles passt.“ oder „Zwei Punkte bitte ansehen:“), darunter nur die Auffälligkeiten als Zeilen; die vollständige Tabelle steht hinter **„Details“**. Alle Punkte bestätigst du mit **einem** Häkchen („Ich habe alle Punkte gesehen und baue so zurück.“).
    - Je Platzhalter steht, wie oft er erwartet und gefunden wurde.
    - Auffällige Stellen werden mit Fundstelle gezeigt: veränderte („nachname a“), gebeugte („des Nachnamens A“), getrennte (Zeilenumbruch) und unbekannte Platzhalter. Sie werden **nicht** geraten, sondern bleiben stehen.
    - **Platzhalter-Reste (seit 2.3.3):** Das Tool baut das Ergebnis probeweise zurück und sucht darin alles, was danach noch wie ein Platzhalter aussieht: „Vorname …“, „Nachname …“, „Name …“, „Initiale …“, „Person …“, „Einrichtung …“ mit Großbuchstaben, auch mit angehängten Buchstaben oder Ziffern („Einrichtung A2S“, „Nachname AS“, „Vorname B9“), und Platzhalter in eckigen Klammern („[E-MAIL-99]“, „[NAME]“). Jede Stelle steht als **rote Zeile** mit Fundstelle im Bericht. Weiter geht es erst, wenn du sie ausdrücklich bestätigst. Eine bloß abweichende Anzahl genügt dafür nicht mehr.
@@ -171,7 +154,7 @@ Schulen, Vereine, Firmen und Behörden bekommen einen **eigenen Platzhalter**, d
    - Passt die Schlüsseldatei gar nicht, geht es nicht weiter.
 5. Schritt **„Speichern“**: **„Wiederhergestellte Datei speichern“**.
    - Gleiches Format, Dateiname „wiederhergestellt_…“. Alle deine Änderungen, die Formatierung und die Zellstruktur bleiben erhalten.
-   - Vor dem Speichern prüft ein **Schlusscheck** die ganze Datei (auch Dateiangaben und andere Teile außerhalb des Berichts), ob noch Platzhalter aus der Schlüsseldatei oder Platzhalter-Reste übrig sind, die nicht schon im Bericht bestätigt wurden. Wenn ja, wird erst nach Bestätigung gespeichert.
+   - Der **Schlusscheck** über die ganze Datei (auch Dateiangaben und andere Teile außerhalb des Berichts) läuft seit 2.5 schon im Schritt „Rückbau prüfen“; seine Funde stehen dort als Punkte und gelten mit demselben Häkchen.
    - Danach führt **„Nächstes Dokument“** zum Start.
 
 > **Warnung zur Schlüsseldatei:** Sie **enthält echte Namen** und Kontaktdaten. **Nie weitergeben, nie an eine KI.** Getrennt vom anonymisierten Dokument sicher aufbewahren.
@@ -188,7 +171,7 @@ Schulen, Vereine, Firmen und Behörden bekommen einen **eigenen Platzhalter**, d
 - **Formatierung innerhalb eines Namens:** War nur ein Teil eines Namens fett („Anna Mü**ller**“), steht nach dem Rückbau der ganze Name in der Formatierung des ersten Teils. Der Text stimmt exakt.
 - **Excel-Blattnamen** dürfen höchstens 31 Zeichen haben. Wird ein Blattname durch Platzhalter zu lang, warnt das Tool vor dem Export. Der Rückbau dieses Blattnamens ist dann nicht exakt.
 - **Alternativtexte, Feldfunktionen, Links:** Dort wird nur zurückgebaut, wenn die Schreibweise exakt bekannt war. Sonst steht dort „Name A“; das meldet der Rückbau-Bericht als unbekannt.
-- Steht im **Original schon Text, der wie ein Platzhalter aussieht** (z. B. „Nachname A“), zeigt das Tool beim Speichern einen Hinweis (bernstein, ohne Sperre): „Im Text stehen Wörter, die wie Platzhalter aussehen (…). Das Tool verwendet diese Platzhalter nicht.“ Bis Version 2.3.3 hat der Rückbau solche Stellen mit dem Klarnamen überschrieben; seit 2.3.4 nicht mehr.
+- Steht im **Original schon Text, der wie ein Platzhalter aussieht** (z. B. „Nachname A“), steht beim Speichern unter „Details“ ein Hinweis (ohne Sperre): „Im Text stehen Wörter, die wie Platzhalter aussehen (…). Das Tool verwendet diese Platzhalter nicht.“ Bis Version 2.3.3 hat der Rückbau solche Stellen mit dem Klarnamen überschrieben; seit 2.3.4 nicht mehr.
 - Im Modus **„[NAME]“** heißen alle Namen gleich. Dort kann die KI ein „[NAME]“ aus dem Original nicht von einem ersetzten Namen unterscheiden; der Hinweis sagt das.
 - **Das Wort „Name“ selbst** (z. B. „im Feld Name A“) erkennt das Tool manchmal als Personennamen (Fehltreffer, siehe Grenzen). Dann steht dort z. B. „Vorname D A“. Der Rückbau ist trotzdem exakt; bitte den Treffer im Schritt „Prüfen“ ausschalten.
 - **Schlüssel aus 2.3.4 in einer älteren Version (2.3.3):** wird gelesen, das Zusatzfeld übergangen. Der Rückbau bleibt exakt, die Wörter aus dem Original erscheinen dort aber als rote Reste und als „unbekannte Platzhalter“ (Urteil ggf. „wahrscheinlich die falsche Schlüsseldatei“); nach Bestätigung geht es weiter.
@@ -261,6 +244,13 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 ---
 
 ## Grenzen (bitte lesen)
+
+**Seit Version 2.5 (Bedienung und Fragen):**
+- **Gebeugte Formen wie „Rosen“** bei einer Person Rose werden wie bisher **ohne Antwort ersetzt** (Entscheidung Easy: ein stehen gebliebener Name wiegt schwerer als ein verfälschtes Wort). Sie werden aber je Stelle gefragt; „Nein“ lässt das Wort stehen.
+- **Fragen je Stelle** gibt es nur für Wörter der Liste „mehrdeutig“. Andere Namen nach Artikel oder Präposition („aus Müllers Büro“) bleiben wie bisher ersetzt, ohne Frage.
+- Eine **GROSS-Form mit Endung** eines von Hand übernommenen Namens wird nur gefragt, wenn der Name auch in normaler Schreibweise im Dokument steht. Sonst meldet sie wie bisher der Schlusscheck.
+- **Excel-Formeln:** Erkannte Wörter in einer Formel (z. B. ein Funktionsname) erscheinen gelb, ersetzt wird aber wie bisher nur Text in Anführungszeichen.
+- **Schlusscheck bei sehr großen Dateien:** Er sucht jetzt zuerst in den Abschnitten (für einfache Fundorte), dann in der ganzen Datei. Bei 10 MB Text dauert das Speichern dadurch etwa doppelt so lange (gemessen 48 s statt 25 s).
 
 - **Einrichtungen (seit Version 2.3):**
   - Es gibt **keine eigene Suche** nach Einrichtungen. Was du nicht markierst (oder aus den Dateiangaben übernimmst), bleibt stehen.
@@ -355,7 +345,7 @@ Der Schlusscheck sucht nur dort, wo Nutzertext stehen kann. Formatangaben meldet
 |---|---|
 | Chromium/Chrome (Desktop) | **geprüft** (automatische Tests, headless) |
 | Chromium mit 390, 1280 und 1920 px Breite | **geprüft** (kein waagrechtes Scrollen, Knöpfe mindestens 44 px, Antippen, Markieren, Tasten J/N) |
-| Edge und Chrome unter Windows (Firmen-PC, `file://`) | Version 1.0 laut Easy **am PC geprüft**; Versionen 1.1 bis 2.4.1 **durch Code ungeprüft** |
+| Edge und Chrome unter Windows (Firmen-PC, `file://`) | Version 1.0 laut Easy **am PC geprüft**; Versionen 1.1 bis 2.5.0 **durch Code ungeprüft** |
 | Microsoft Word / Excel: Öffnen der bereinigten Datei ohne Reparatur-Meldung | **durch Code ungeprüft** (auch die unsichtbare Kennung, seit 2.1). Geprüft: LibreOffice öffnet alle Ausgaben, alle XML-Teile sind wohlgeformt, keine Verweise ins Leere |
 | Firefox (Desktop) | **durch Code ungeprüft** (Firefox ließ sich in der Testumgebung nicht starten; Befund zu Version 2.4.1 siehe PR) |
 | Safari (macOS) | **ungeprüft** |
@@ -368,12 +358,12 @@ Die Datei muss in einem Browser geöffnet werden (z. B. über „Teilen → in S
 
 ## Version und Prüfsumme
 
-Version **2.4.1**, Stand 2026-11-21 (steht auch im Fußbereich des Tools).
+Version **2.5.0**, Stand 2026-11-21 (steht auch im Fußbereich des Tools).
 
 SHA-256 der `index.html` dieser Version:
 
 ```
-6e67c6f8f1fb70e22bf90d8063970be125ff6d33e2c0046475d74e7af1e3d61e
+SHA_PLATZHALTER
 ```
 
 Eine Datei kann ihre eigene Prüfsumme nicht enthalten, deshalb steht sie nur hier und im PR-Text. Prüfen unter Windows: `certutil -hashfile index.html SHA256`.
@@ -447,6 +437,8 @@ node tests/korpus-test.mjs [--zellen] [--src <alter src-Ordner>]  # Messkorpus (
 node tests/wortliste-test.mjs <src-Ordner 2.3.4>  # Wortliste „mehrdeutig“ und Wochentag vor Uhrzeit: Einzelprüfungen, Zusammenspiel → tests/WORTLISTE-REPORT.md
 node tests/make-pfade.mjs    # Teile an ungewöhnlicher Stelle (seit 2.4.1): Excel/Word, üblich/ungewöhnlich/Hauptteil, Phase-0-Datei, Gegenprobe (erfunden) → tests/fixtures-pfade/
 node tests/pfade-test.mjs <index.html-2.4.0>  # Namen je Teil vorher/nachher, Kreislauf, Gegenprobe, Sicherheitsbeweis Schlusscheck, Doppellauf → tests/PFADE-REPORT.md
+node tests/make-bedienung.mjs  # Testdokumente zu Easys Befunden (seit 2.5.0): Winter/Rosen, Montag, Do 13:30, GROSS-Form eines übernommenen Namens, ausgeblendetes Blatt, Bilder → tests/fixtures-bedienung/
+node tests/bedienung-test.mjs <index.html-2.4.1>  # Fragen und Speichern vorher/nachher, Beweis D.5, ohne Bedienung byte-gleich, Sperren, Eigene Namen, 1366×768 → tests/BEDIENUNG-REPORT.md
 ```
 
 **Messkorpus (seit 2.4.0):** `tests/korpus/korpus-quelle.mjs` enthält rund 3000 Wörter erfundener Alltagstexte (Kursbeschreibungen, Elternbrief, Protokoll, Einladung, Tabelle, Liste …). Jeder echte Personenname ist dort mit ⟦…⟧ gekennzeichnet. `tests/korpus-test.mjs` zählt je Wort: Fehltreffer (sicher / unsicher an / unsicher aus), echte Namen (ersetzt / nur als Frage / ganz übersehen), Fragen und Schlusscheck-Meldungen. Jede Änderung an der Erkennung muss dieselben Zahlen liefern wie `tests/korpus/erwartung.json`, oder die Abweichung wird gezeigt (Erwartung nur nach bewusster Änderung mit `--update` neu schreiben).

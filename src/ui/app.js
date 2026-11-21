@@ -303,7 +303,7 @@ function decidedOffHits() {
   for (const q of questions()) {
     const a = answerOf(q);
     if (a === 'ja') continue;
-    const hs = q.kind === 'place' ? [q.hit] : q.kind === 'word' ? (a === 'nein' ? q.neinHits : q.hits) : [];
+    const hs = q.kind === 'place' ? [q.hit] : q.kind === 'word' ? (a === 'nein' || !q.hits.length ? q.neinHits : q.hits) : [];
     for (const x of hs) if (!x.on) list.push(x);
   }
   return list;
@@ -1020,7 +1020,7 @@ function savePoints() {
   const p = app.preview;
   if (!p || p.busy) pts.push({ id: 'busy', busy: true, text: 'Der Schlusscheck läuft …' });
   else if (p.error) pts.push({ id: 'check-error', text: 'Schlusscheck: Fehler – ' + p.error });
-  else p.leaks.slice(0, 200).forEach((l, i) => pts.push(leakPoint(l, i)));
+  else { const offered = new Set(); p.leaks.slice(0, 200).forEach((l, i) => pts.push(leakPoint(l, i, offered))); }
   if (p && !p.busy && p.leaks.length > 200) pts.push({ id: 'more', text: `… und ${p.leaks.length - 200} weitere Fundstellen.` });
   return pts;
 }
@@ -1030,12 +1030,12 @@ function offHitsFor(l) {
   const w = fold(l.word);
   return app.result.hits.filter((x) => !x.on && x.unit === l.unit && x.type === 'person' && hitText(x).split(/[^\p{L}\p{M}\p{N}'’-]+/u).some((t) => fold(t) === w));
 }
-function leakPoint(l, i) {
+function leakPoint(l, i, offered = new Set()) {
   const kind = l.orgCheck ? 'Einrichtung aus deiner Liste, nicht vollständig ersetzt' : l.meta ? (l.metaOrg ? 'Einrichtung aus den Dateiangaben' : 'Name aus den Dateiangaben') : l.org ? 'bestätigte Einrichtung' : 'bestätigter Name';
   const pt = { id: `leak:${i}:${l.word}:${l.where}`, leak: true, text: [h('strong', {}, `„${l.word.replace(/\s+/g, ' ')}“`), ` steht noch in: ${l.where}`], small: `${kind} · „…${(l.context || '').replace(/\s+/g, ' ')}…“`, hint: l.hint || null, acts: [] };
   const taken = (t) => app.state.manualTerms.some((m) => fold(m) === fold(t)) || app.state.orgTerms.some((m) => fold(m) === fold(t));
   if (l.orgCheck || l.org) pt.acts.push(['Im Text zeigen', () => show('a2')]);
-  else if (l.meta) { if (!taken(l.full)) pt.acts.push(l.metaOrg ? ['Als Einrichtung übernehmen', () => addOrg(l.full)] : ['Als Namen übernehmen', () => addManual(l.full)]); }
+  else if (l.meta) { if (!taken(l.full) && !offered.has(fold(l.full))) pt.acts.push(l.metaOrg ? ['Als Einrichtung übernehmen', () => addOrg(l.full)] : ['Als Namen übernehmen', () => addManual(l.full)]); offered.add(fold(l.full)); }
   else if (l.entity === 'Blattname') pt.acts = [];
   else {
     const off = offHitsFor(l);
@@ -1824,6 +1824,6 @@ function initRestore() {
 }
 
 // Für automatische Tests (nur lesend nutzbar, kein Netzwerk)
-window.__anon = { app, openBytes, imagesPending, buildOutput, finalCheck, addManual, addOrg, KI_HINT, runAnalysis, rb, rbLoadFile, rbLoadKey, rbCheck, show, questions, newKennung };
+window.__anon = { app, openBytes, imagesPending, buildOutput, finalCheck, addManual, addOrg, KI_HINT, runAnalysis, rb, rbLoadFile, rbLoadKey, rbCheck, show, questions, newKennung, answer, answerOf, savePoints };
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
