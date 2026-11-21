@@ -17,7 +17,7 @@ Testdokumente: tests/make-endungen.mjs (alle Namen erfunden, keiner in den Namen
 | Lüdinghaus (-s) | Lüdinghausn | ja | ja |
 | Lüdinghaus (-s) | Lüdinghausns | ja | ja |
 | Lüdinghaus (-s) | LÜDINGHAUS | ja | ja |
-| Lüdinghaus (-s) | LÜDINGHAUSS | nein | NEIN |
+| Lüdinghaus (-s) | LÜDINGHAUSS | nein | ja (neu) |
 | Wittekindhorn (-n) | Wittekindhorn | ja | ja |
 | Wittekindhorn (-n) | Wittekindhorn's | ja | ja |
 | Wittekindhorn (-n) | Wittekindhorn’s | ja | ja |
@@ -28,7 +28,7 @@ Testdokumente: tests/make-endungen.mjs (alle Namen erfunden, keiner in den Namen
 | Wittekindhorn (-n) | Wittekindhornn | ja | ja |
 | Wittekindhorn (-n) | Wittekindhornns | ja | ja |
 | Wittekindhorn (-n) | WITTEKINDHORN | ja | ja |
-| Wittekindhorn (-n) | WITTEKINDHORNS | nein | NEIN |
+| Wittekindhorn (-n) | WITTEKINDHORNS | nein | ja (neu) |
 | Quabbenjansen (-en) | Quabbenjansen | ja | ja |
 | Quabbenjansen (-en) | Quabbenjansen's | ja | ja |
 | Quabbenjansen (-en) | Quabbenjansen’s | ja | ja |
@@ -39,7 +39,7 @@ Testdokumente: tests/make-endungen.mjs (alle Namen erfunden, keiner in den Namen
 | Quabbenjansen (-en) | Quabbenjansenn | ja | ja |
 | Quabbenjansen (-en) | Quabbenjansenns | ja | ja |
 | Quabbenjansen (-en) | QUABBENJANSEN | ja | ja |
-| Quabbenjansen (-en) | QUABBENJANSENS | nein | NEIN |
+| Quabbenjansen (-en) | QUABBENJANSENS | nein | ja (neu) |
 | Ostervelkens (-ens) | Ostervelkens | ja | ja |
 | Ostervelkens (-ens) | Ostervelkens's | ja | ja |
 | Ostervelkens (-ens) | Ostervelkens’s | ja | ja |
@@ -50,7 +50,7 @@ Testdokumente: tests/make-endungen.mjs (alle Namen erfunden, keiner in den Namen
 | Ostervelkens (-ens) | Ostervelkensn | ja | ja |
 | Ostervelkens (-ens) | Ostervelkensns | ja | ja |
 | Ostervelkens (-ens) | OSTERVELKENS | ja | ja |
-| Ostervelkens (-ens) | OSTERVELKENSS | nein | NEIN |
+| Ostervelkens (-ens) | OSTERVELKENSS | nein | ja (neu) |
 | Hallermes (-es) | Hallermes | ja | ja |
 | Hallermes (-es) | Hallermes's | ja | ja |
 | Hallermes (-es) | Hallermes’s | ja | ja |
@@ -61,7 +61,7 @@ Testdokumente: tests/make-endungen.mjs (alle Namen erfunden, keiner in den Namen
 | Hallermes (-es) | Hallermesn | ja | ja |
 | Hallermes (-es) | Hallermesns | ja | ja |
 | Hallermes (-es) | HALLERMES | ja | ja |
-| Hallermes (-es) | HALLERMESS | nein | NEIN |
+| Hallermes (-es) | HALLERMESS | nein | ja (neu) |
 | Tönnieskampe (-e) | Tönnieskampe | ja | ja |
 | Tönnieskampe (-e) | Tönnieskampe's | ja | ja |
 | Tönnieskampe (-e) | Tönnieskampe’s | ja | ja |
@@ -72,11 +72,11 @@ Testdokumente: tests/make-endungen.mjs (alle Namen erfunden, keiner in den Namen
 | Tönnieskampe (-e) | Tönnieskampen | ja | ja |
 | Tönnieskampe (-e) | Tönnieskampens | ja | ja |
 | Tönnieskampe (-e) | TÖNNIESKAMPE | ja | ja |
-| Tönnieskampe (-e) | TÖNNIESKAMPES | nein | NEIN |
+| Tönnieskampe (-e) | TÖNNIESKAMPES | nein | ja (neu) |
 
-- docx: neu ersetzt 3, schlechter 0, weiterhin nicht ersetzt 6
-- OK: docx: keine Form schlechter als vorher; die bisher nur gemeldeten Formen „Wittekindhorns“, „Quabbenjansens“, „Tönnieskampes“ sind jetzt ersetzt – 3 neu ersetzt
-- Schlusscheck-Meldungen: vorher 6 (LÜDINGHAUSS, Wittekindhorns, Quabbenjansens, OSTERVELKENSS, HALLERMESS, Tönnieskampes), nachher 6 (LÜDINGHAUSS, WITTEKINDHORNS, QUABBENJANSENS, OSTERVELKENSS, HALLERMESS, TÖNNIESKAMPES)
+- docx: neu ersetzt 9, schlechter 0, weiterhin nicht ersetzt 0
+- OK: docx: keine Form schlechter als vorher; neu ersetzt genau „Wittekindhorns“, „Quabbenjansens“, „Tönnieskampes“ (2.3.1) und die 6 GROSS-Formen mit Endung „S“ (2.3.2) – 9 neu ersetzt: LÜDINGHAUSS, Wittekindhorns, WITTEKINDHORNS, Quabbenjansens, QUABBENJANSENS, OSTERVELKENSS, HALLERMESS, Tönnieskampes, TÖNNIESKAMPES
+- Schlusscheck-Meldungen: vorher 6 (LÜDINGHAUSS, Wittekindhorns, Quabbenjansens, OSTERVELKENSS, HALLERMESS, Tönnieskampes), nachher 0 ()
 - Unbemerkte Reste (stehen geblieben, nicht gemeldet): vorher 3 (WITTEKINDHORNS, QUABBENJANSENS, TÖNNIESKAMPES), nachher 0 (–)
 - OK: docx: nachher kein unbemerkter Rest mehr; jede verbliebene Form wird gemeldet – vorher 3 unbemerkt
 
@@ -94,7 +94,7 @@ Testdokumente: tests/make-endungen.mjs (alle Namen erfunden, keiner in den Namen
 | Lüdinghaus (-s) | Lüdinghausn | ja | ja |
 | Lüdinghaus (-s) | Lüdinghausns | ja | ja |
 | Lüdinghaus (-s) | LÜDINGHAUS | ja | ja |
-| Lüdinghaus (-s) | LÜDINGHAUSS | nein | NEIN |
+| Lüdinghaus (-s) | LÜDINGHAUSS | nein | ja (neu) |
 | Wittekindhorn (-n) | Wittekindhorn | ja | ja |
 | Wittekindhorn (-n) | Wittekindhorn's | ja | ja |
 | Wittekindhorn (-n) | Wittekindhorn’s | ja | ja |
@@ -105,7 +105,7 @@ Testdokumente: tests/make-endungen.mjs (alle Namen erfunden, keiner in den Namen
 | Wittekindhorn (-n) | Wittekindhornn | ja | ja |
 | Wittekindhorn (-n) | Wittekindhornns | ja | ja |
 | Wittekindhorn (-n) | WITTEKINDHORN | ja | ja |
-| Wittekindhorn (-n) | WITTEKINDHORNS | nein | NEIN |
+| Wittekindhorn (-n) | WITTEKINDHORNS | nein | ja (neu) |
 | Quabbenjansen (-en) | Quabbenjansen | ja | ja |
 | Quabbenjansen (-en) | Quabbenjansen's | ja | ja |
 | Quabbenjansen (-en) | Quabbenjansen’s | ja | ja |
@@ -116,7 +116,7 @@ Testdokumente: tests/make-endungen.mjs (alle Namen erfunden, keiner in den Namen
 | Quabbenjansen (-en) | Quabbenjansenn | ja | ja |
 | Quabbenjansen (-en) | Quabbenjansenns | ja | ja |
 | Quabbenjansen (-en) | QUABBENJANSEN | ja | ja |
-| Quabbenjansen (-en) | QUABBENJANSENS | nein | NEIN |
+| Quabbenjansen (-en) | QUABBENJANSENS | nein | ja (neu) |
 | Ostervelkens (-ens) | Ostervelkens | ja | ja |
 | Ostervelkens (-ens) | Ostervelkens's | ja | ja |
 | Ostervelkens (-ens) | Ostervelkens’s | ja | ja |
@@ -127,7 +127,7 @@ Testdokumente: tests/make-endungen.mjs (alle Namen erfunden, keiner in den Namen
 | Ostervelkens (-ens) | Ostervelkensn | ja | ja |
 | Ostervelkens (-ens) | Ostervelkensns | ja | ja |
 | Ostervelkens (-ens) | OSTERVELKENS | ja | ja |
-| Ostervelkens (-ens) | OSTERVELKENSS | nein | NEIN |
+| Ostervelkens (-ens) | OSTERVELKENSS | nein | ja (neu) |
 | Hallermes (-es) | Hallermes | ja | ja |
 | Hallermes (-es) | Hallermes's | ja | ja |
 | Hallermes (-es) | Hallermes’s | ja | ja |
@@ -138,7 +138,7 @@ Testdokumente: tests/make-endungen.mjs (alle Namen erfunden, keiner in den Namen
 | Hallermes (-es) | Hallermesn | ja | ja |
 | Hallermes (-es) | Hallermesns | ja | ja |
 | Hallermes (-es) | HALLERMES | ja | ja |
-| Hallermes (-es) | HALLERMESS | nein | NEIN |
+| Hallermes (-es) | HALLERMESS | nein | ja (neu) |
 | Tönnieskampe (-e) | Tönnieskampe | ja | ja |
 | Tönnieskampe (-e) | Tönnieskampe's | ja | ja |
 | Tönnieskampe (-e) | Tönnieskampe’s | ja | ja |
@@ -149,11 +149,11 @@ Testdokumente: tests/make-endungen.mjs (alle Namen erfunden, keiner in den Namen
 | Tönnieskampe (-e) | Tönnieskampen | ja | ja |
 | Tönnieskampe (-e) | Tönnieskampens | ja | ja |
 | Tönnieskampe (-e) | TÖNNIESKAMPE | ja | ja |
-| Tönnieskampe (-e) | TÖNNIESKAMPES | nein | NEIN |
+| Tönnieskampe (-e) | TÖNNIESKAMPES | nein | ja (neu) |
 
-- txt: neu ersetzt 3, schlechter 0, weiterhin nicht ersetzt 6
-- OK: txt: keine Form schlechter als vorher; die bisher nur gemeldeten Formen „Wittekindhorns“, „Quabbenjansens“, „Tönnieskampes“ sind jetzt ersetzt – 3 neu ersetzt
-- Schlusscheck-Meldungen: vorher 6 (LÜDINGHAUSS, Wittekindhorns, Quabbenjansens, OSTERVELKENSS, HALLERMESS, Tönnieskampes), nachher 6 (LÜDINGHAUSS, WITTEKINDHORNS, QUABBENJANSENS, OSTERVELKENSS, HALLERMESS, TÖNNIESKAMPES)
+- txt: neu ersetzt 9, schlechter 0, weiterhin nicht ersetzt 0
+- OK: txt: keine Form schlechter als vorher; neu ersetzt genau „Wittekindhorns“, „Quabbenjansens“, „Tönnieskampes“ (2.3.1) und die 6 GROSS-Formen mit Endung „S“ (2.3.2) – 9 neu ersetzt: LÜDINGHAUSS, Wittekindhorns, WITTEKINDHORNS, Quabbenjansens, QUABBENJANSENS, OSTERVELKENSS, HALLERMESS, Tönnieskampes, TÖNNIESKAMPES
+- Schlusscheck-Meldungen: vorher 6 (LÜDINGHAUSS, Wittekindhorns, Quabbenjansens, OSTERVELKENSS, HALLERMESS, Tönnieskampes), nachher 0 ()
 - Unbemerkte Reste (stehen geblieben, nicht gemeldet): vorher 3 (WITTEKINDHORNS, QUABBENJANSENS, TÖNNIESKAMPES), nachher 0 (–)
 - OK: txt: nachher kein unbemerkter Rest mehr; jede verbliebene Form wird gemeldet – vorher 3 unbemerkt
 
@@ -171,7 +171,7 @@ Testdokumente: tests/make-endungen.mjs (alle Namen erfunden, keiner in den Namen
 | Lüdinghaus (-s) | Lüdinghausn | ja | ja |
 | Lüdinghaus (-s) | Lüdinghausns | ja | ja |
 | Lüdinghaus (-s) | LÜDINGHAUS | ja | ja |
-| Lüdinghaus (-s) | LÜDINGHAUSS | nein | NEIN |
+| Lüdinghaus (-s) | LÜDINGHAUSS | nein | ja (neu) |
 | Wittekindhorn (-n) | Wittekindhorn | ja | ja |
 | Wittekindhorn (-n) | Wittekindhorn's | ja | ja |
 | Wittekindhorn (-n) | Wittekindhorn’s | ja | ja |
@@ -182,7 +182,7 @@ Testdokumente: tests/make-endungen.mjs (alle Namen erfunden, keiner in den Namen
 | Wittekindhorn (-n) | Wittekindhornn | ja | ja |
 | Wittekindhorn (-n) | Wittekindhornns | ja | ja |
 | Wittekindhorn (-n) | WITTEKINDHORN | ja | ja |
-| Wittekindhorn (-n) | WITTEKINDHORNS | nein | NEIN |
+| Wittekindhorn (-n) | WITTEKINDHORNS | nein | ja (neu) |
 | Quabbenjansen (-en) | Quabbenjansen | ja | ja |
 | Quabbenjansen (-en) | Quabbenjansen's | ja | ja |
 | Quabbenjansen (-en) | Quabbenjansen’s | ja | ja |
@@ -193,7 +193,7 @@ Testdokumente: tests/make-endungen.mjs (alle Namen erfunden, keiner in den Namen
 | Quabbenjansen (-en) | Quabbenjansenn | ja | ja |
 | Quabbenjansen (-en) | Quabbenjansenns | ja | ja |
 | Quabbenjansen (-en) | QUABBENJANSEN | ja | ja |
-| Quabbenjansen (-en) | QUABBENJANSENS | nein | NEIN |
+| Quabbenjansen (-en) | QUABBENJANSENS | nein | ja (neu) |
 | Ostervelkens (-ens) | Ostervelkens | ja | ja |
 | Ostervelkens (-ens) | Ostervelkens's | ja | ja |
 | Ostervelkens (-ens) | Ostervelkens’s | ja | ja |
@@ -204,7 +204,7 @@ Testdokumente: tests/make-endungen.mjs (alle Namen erfunden, keiner in den Namen
 | Ostervelkens (-ens) | Ostervelkensn | ja | ja |
 | Ostervelkens (-ens) | Ostervelkensns | ja | ja |
 | Ostervelkens (-ens) | OSTERVELKENS | ja | ja |
-| Ostervelkens (-ens) | OSTERVELKENSS | nein | NEIN |
+| Ostervelkens (-ens) | OSTERVELKENSS | nein | ja (neu) |
 | Hallermes (-es) | Hallermes | ja | ja |
 | Hallermes (-es) | Hallermes's | ja | ja |
 | Hallermes (-es) | Hallermes’s | ja | ja |
@@ -215,7 +215,7 @@ Testdokumente: tests/make-endungen.mjs (alle Namen erfunden, keiner in den Namen
 | Hallermes (-es) | Hallermesn | ja | ja |
 | Hallermes (-es) | Hallermesns | ja | ja |
 | Hallermes (-es) | HALLERMES | ja | ja |
-| Hallermes (-es) | HALLERMESS | nein | NEIN |
+| Hallermes (-es) | HALLERMESS | nein | ja (neu) |
 | Tönnieskampe (-e) | Tönnieskampe | ja | ja |
 | Tönnieskampe (-e) | Tönnieskampe's | ja | ja |
 | Tönnieskampe (-e) | Tönnieskampe’s | ja | ja |
@@ -226,11 +226,11 @@ Testdokumente: tests/make-endungen.mjs (alle Namen erfunden, keiner in den Namen
 | Tönnieskampe (-e) | Tönnieskampen | ja | ja |
 | Tönnieskampe (-e) | Tönnieskampens | ja | ja |
 | Tönnieskampe (-e) | TÖNNIESKAMPE | ja | ja |
-| Tönnieskampe (-e) | TÖNNIESKAMPES | nein | NEIN |
+| Tönnieskampe (-e) | TÖNNIESKAMPES | nein | ja (neu) |
 
-- csv: neu ersetzt 3, schlechter 0, weiterhin nicht ersetzt 6
-- OK: csv: keine Form schlechter als vorher; die bisher nur gemeldeten Formen „Wittekindhorns“, „Quabbenjansens“, „Tönnieskampes“ sind jetzt ersetzt – 3 neu ersetzt
-- Schlusscheck-Meldungen: vorher 6 (LÜDINGHAUSS, Wittekindhorns, Quabbenjansens, OSTERVELKENSS, HALLERMESS, Tönnieskampes), nachher 6 (LÜDINGHAUSS, WITTEKINDHORNS, QUABBENJANSENS, OSTERVELKENSS, HALLERMESS, TÖNNIESKAMPES)
+- csv: neu ersetzt 9, schlechter 0, weiterhin nicht ersetzt 0
+- OK: csv: keine Form schlechter als vorher; neu ersetzt genau „Wittekindhorns“, „Quabbenjansens“, „Tönnieskampes“ (2.3.1) und die 6 GROSS-Formen mit Endung „S“ (2.3.2) – 9 neu ersetzt: LÜDINGHAUSS, Wittekindhorns, WITTEKINDHORNS, Quabbenjansens, QUABBENJANSENS, OSTERVELKENSS, HALLERMESS, Tönnieskampes, TÖNNIESKAMPES
+- Schlusscheck-Meldungen: vorher 6 (LÜDINGHAUSS, Wittekindhorns, Quabbenjansens, OSTERVELKENSS, HALLERMESS, Tönnieskampes), nachher 0 ()
 - Unbemerkte Reste (stehen geblieben, nicht gemeldet): vorher 3 (WITTEKINDHORNS, QUABBENJANSENS, TÖNNIESKAMPES), nachher 0 (–)
 - OK: csv: nachher kein unbemerkter Rest mehr; jede verbliebene Form wird gemeldet – vorher 3 unbemerkt
 
@@ -255,9 +255,9 @@ Testdokumente: tests/make-endungen.mjs (alle Namen erfunden, keiner in den Namen
 - OK: gegenprobe-endungen-personen.docx: Ausgabe vorher und nachher byte-gleich (keine neuen Treffer)
 
 ## Kreislauf (rückbaufähig) mit den gebeugten Formen, über die Oberfläche
-- OK: endungen.docx: Kreislauf exakt (gebeugte Formen als „Nachname Xs“, Endung am Platzhalter) – Beispiel: „Endung s: Nachname As Unterlagen liegen vor.“; Urteil „passend“; 19 Platzhalter
-- OK: endungen.txt: Kreislauf exakt (gebeugte Formen als „Nachname Xs“, Endung am Platzhalter) – Beispiel: „Endung s: Nachname As Unterlagen liegen vor.“; Urteil „passend“; 19 Platzhalter
-- OK: endungen.csv: Kreislauf exakt (gebeugte Formen als „Nachname Xs“, Endung am Platzhalter) – Beispiel: „7;"Endung s: Nachname As Unterlagen liegen vor."“; Urteil „passend“; 19 Platzhalter
+- OK: endungen.docx: Kreislauf exakt (gebeugte Formen als „Nachname Xs“, Endung am Platzhalter) – Beispiel: „Endung s: Nachname As Unterlagen liegen vor.“; Urteil „passend“; 25 Platzhalter
+- OK: endungen.txt: Kreislauf exakt (gebeugte Formen als „Nachname Xs“, Endung am Platzhalter) – Beispiel: „Endung s: Nachname As Unterlagen liegen vor.“; Urteil „passend“; 25 Platzhalter
+- OK: endungen.csv: Kreislauf exakt (gebeugte Formen als „Nachname Xs“, Endung am Platzhalter) – Beispiel: „7;"Endung s: Nachname As Unterlagen liegen vor."“; Urteil „passend“; 25 Platzhalter
 - OK: endungen-teile.docx: Kreislauf exakt (gebeugte Formen als „Nachname Xs“, Endung am Platzhalter) – Beispiel: „Foto aus Nachname As Büro“; Urteil „passend“; 6 Platzhalter
 
 ## Doppellauf
@@ -265,12 +265,12 @@ Testdokumente: tests/make-endungen.mjs (alle Namen erfunden, keiner in den Namen
 - OK: endungen.txt: zwei Läufe byte-gleich
 - OK: endungen.csv: zwei Läufe byte-gleich
 
-## Gemeldet, nicht gebaut: GROSSSCHREIBUNG mit Endung („QUABBENJANSENS“)
-- 6 Formen in GROSSSCHREIBUNG mit Endung „S“: nicht ersetzt 6 (LÜDINGHAUSS, WITTEKINDHORNS, QUABBENJANSENS, OSTERVELKENSS, HALLERMESS, TÖNNIESKAMPES); davon vom Schlusscheck gemeldet: 6.
-- Grund: Die Endungsliste enthält nur kleine Endungen („s“), ein großes „S“ zählt nicht als Endung (wie in 2.3.0). Das zu ändern wäre eine Erweiterung der Regel (Entscheidung Easy).
+## GROSSSCHREIBUNG mit Endung („QUABBENJANSENS“)
+- 6 Formen in GROSSSCHREIBUNG mit Endung „S“: nicht ersetzt 0 (); davon vom Schlusscheck gemeldet: 0.
+- Seit Version 2.3.2 werden diese Formen ersetzt (große Endung nach GROSS geschriebenem Namen, siehe tests/GROSS-REPORT.md).
 - Ohne kleine gebeugte Form im Dokument, 2.3.0: „Herr Person A kommt. QUABBENJANSENS Akte liegt vor.“ → Schlusscheck: keine Meldung | „Herr Person A kommt. MÜLLERS Akte liegt vor.“ → Schlusscheck: keine Meldung
-- dasselbe, 2.3.1: „Herr Person A kommt. QUABBENJANSENS Akte liegt vor.“ → Schlusscheck: keine Meldung | „Herr Person A kommt. MÜLLERS Akte liegt vor.“ → Schlusscheck: keine Meldung
-- Befund (bestand schon in 2.3.0, nicht Teil dieses Auftrags): Solche Formen bleiben unbemerkt stehen. Vorschlag: Endungen ohne Rücksicht auf Groß-/Kleinschreibung prüfen (beim Ersetzen und im Schlusscheck) – Entscheidung Easy.
+- dasselbe, diese Version: „Herr Person A kommt. Person AS Akte liegt vor.“ → Schlusscheck: keine Meldung | „Herr Person A kommt. Person AS Akte liegt vor.“ → Schlusscheck: keine Meldung
+- Befund aus 2.3.1 (bestand schon in 2.3.0): Solche Formen blieben unbemerkt stehen. Seit 2.3.2 ersetzt bzw. vom Schlusscheck gemeldet.
 
 Prüfungen: 21 von 21 bestanden.
 Netzwerkanfragen außer lokalen Dateien: 0.

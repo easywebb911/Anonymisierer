@@ -91,13 +91,14 @@ for (const fmt of ['docx', 'txt', 'csv']) {
   log('|---|---|---|---|');
   let fixed = 0;
   let worse = 0;
+  const fixedForms = [];
   let stillOpen = 0;
   L.forEach((l, i) => {
     if (!l.form) return;
     const stem = new RegExp(l.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
     const before = !stem.test(sa[i] || '');
     const after = !stem.test(sb[i] || '');
-    if (!before && after) fixed++;
+    if (!before && after) { fixed++; fixedForms.push(l.form); }
     if (before && !after) worse++;
     if (!after) stillOpen++;
     const pe = PEOPLE.find((p) => p[2] === l.name)[3];
@@ -106,7 +107,10 @@ for (const fmt of ['docx', 'txt', 'csv']) {
   summary[fmt] = { fixed, worse, stillOpen };
   log('');
   log(`- ${fmt}: neu ersetzt ${fixed}, schlechter ${worse}, weiterhin nicht ersetzt ${stillOpen}`);
-  check(`${fmt}: keine Form schlechter als vorher; die bisher nur gemeldeten Formen „Wittekindhorns“, „Quabbenjansens“, „Tönnieskampes“ sind jetzt ersetzt`, worse === 0 && fixed === 3, `${fixed} neu ersetzt`);
+  // seit 2.3.2 zusätzlich die 6 Formen in GROSSSCHREIBUNG mit Endung „S“ (tests/gross-test.mjs)
+  const expected = ['Wittekindhorns', 'Quabbenjansens', 'Tönnieskampes', ...L.filter((l) => l.ending === 'S').map((l) => l.form)];
+  const exact = fixedForms.length === expected.length && expected.every((f) => fixedForms.includes(f));
+  check(`${fmt}: keine Form schlechter als vorher; neu ersetzt genau „Wittekindhorns“, „Quabbenjansens“, „Tönnieskampes“ (2.3.1) und die 6 GROSS-Formen mit Endung „S“ (2.3.2)`, worse === 0 && exact, `${fixed} neu ersetzt: ${fixedForms.join(', ')}`);
   // Schlusscheck vorher / nachher
   log(`- Schlusscheck-Meldungen: vorher ${a.leaks.length} (${[...new Set(a.leaks)].join(', ')}), nachher ${b.leaks.length} (${[...new Set(b.leaks)].join(', ')})`);
   // Unbemerkte Reste: Formen, die in der Ausgabe stehen bleiben und der Schlusscheck NICHT meldet
@@ -212,7 +216,7 @@ for (const [file, fmt] of [['endungen.docx', 'docx'], ['endungen.txt', 'txt'], [
 
 // ---------- Großschreibung mit Endung (gemeldet, nicht gebaut) ----------
 log('');
-log('## Gemeldet, nicht gebaut: GROSSSCHREIBUNG mit Endung („QUABBENJANSENS“)');
+log('## GROSSSCHREIBUNG mit Endung („QUABBENJANSENS“)');
 {
   const b = await run(newHtml, 'endungen.txt', 'person', 'txt');
   const forms = L.filter((l) => l.ending === 'S').map((l) => l.form);
@@ -220,7 +224,7 @@ log('## Gemeldet, nicht gebaut: GROSSSCHREIBUNG mit Endung („QUABBENJANSENS“
   const open = forms.filter((f) => out.includes(f));
   const flagged = open.filter((f) => b.leaks.includes(f));
   log(`- ${forms.length} Formen in GROSSSCHREIBUNG mit Endung „S“: nicht ersetzt ${open.length} (${open.join(', ')}); davon vom Schlusscheck gemeldet: ${flagged.length}.`);
-  log('- Grund: Die Endungsliste enthält nur kleine Endungen („s“), ein großes „S“ zählt nicht als Endung (wie in 2.3.0). Das zu ändern wäre eine Erweiterung der Regel (Entscheidung Easy).');
+  log('- Seit Version 2.3.2 werden diese Formen ersetzt (große Endung nach GROSS geschriebenem Namen, siehe tests/GROSS-REPORT.md).');
 }
 // Unbemerkt, schon in 2.3.0: GROSSSCHREIBUNG mit Endung, wenn dieselbe Form nicht auch klein geschrieben vorkommt
 {
@@ -242,8 +246,8 @@ log('## Gemeldet, nicht gebaut: GROSSSCHREIBUNG mit Endung („QUABBENJANSENS“
   }
   await ctx.close();
   log(`- Ohne kleine gebeugte Form im Dokument, 2.3.0: ${res[0].join(' | ')}`);
-  log(`- dasselbe, 2.3.1: ${res[1].join(' | ')}`);
-  log('- Befund (bestand schon in 2.3.0, nicht Teil dieses Auftrags): Solche Formen bleiben unbemerkt stehen. Vorschlag: Endungen ohne Rücksicht auf Groß-/Kleinschreibung prüfen (beim Ersetzen und im Schlusscheck) – Entscheidung Easy.');
+  log(`- dasselbe, diese Version: ${res[1].join(' | ')}`);
+  log('- Befund aus 2.3.1 (bestand schon in 2.3.0): Solche Formen blieben unbemerkt stehen. Seit 2.3.2 ersetzt bzw. vom Schlusscheck gemeldet.');
 }
 await browser.close();
 

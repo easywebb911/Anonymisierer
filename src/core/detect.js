@@ -533,11 +533,15 @@ export function analyze(units, state) {
   }
   const manualParts = new Set(hits.filter((h) => h.origin === 'manual').flatMap((h) => (h.comps || []).map((c) => c.key)));
   const partKeys = new Set([...partToEntities.keys()].filter((k) => partToEntities.get(k).size === 1));
+  // Version 2.3.2: GROSS-Form mit großer Endung („QUABBENJANSENS“) nur für automatisch erkannte Namensteile, nicht für
+  // von Hand markierte (dort würde jede Fundstelle „sicher“; Phase 0: Fehltreffer „ROSEN“ bei markierter „Anna Rose“).
+  // Solche Formen meldet der Schlusscheck.
+  const capsKeys = new Set([...partKeys].filter((k) => !manualParts.has(k)));
   units.forEach((u, ui) => {
     const toks = unitToks[ui];
     toks.forEach((tk, k) => {
       if (!tk.word || covered[ui][k]) return;
-      const stm = lex.stemFor(tk.t, partKeys);
+      const stm = lex.stemFor(tk.t, partKeys) || lex.stemFor(tk.t, capsKeys, true);
       if (!stm) return;
       if (exceptions.has(stm.key) && !manualParts.has(stm.key)) return;
       if (lex.isTitle(stm.key) || lex.PARTICLES.has(tk.t.toLowerCase()) || lex.isStopWord(tk.t)) return;
@@ -931,6 +935,19 @@ export function makeNameTest(forms, phrases) {
   return (str) => findLeaks(forms, [{ where: '', text: str }], phrases).length > 0;
 }
 
+// Schlusscheck (Version 2.3.2): Grundform mit einer Endung der vorhandenen Liste ('s, ’s, ', ’, s, es, n, ns), Endung
+// ohne Rücksicht auf Groß-/Kleinschreibung („MÜLLERS“, „QUABBENJANSENS“, „Quabbenjansens“). Jede Zerlegung wird geprüft.
+const LEAK_ENDINGS = ["'s", "'", 'ns', 'es', 's', 'n'];
+function leakFormWithEnding(word, forms) {
+  for (const end of LEAK_ENDINGS) {
+    if (word.length <= end.length) continue;
+    if (word.slice(-end.length).toLowerCase().replace(/’/g, "'") !== end) continue; // ohne Akzent-Angleichung („ń“ ist kein „n“)
+    const f = forms.get(fold(word.slice(0, -end.length)));
+    if (f) return f;
+  }
+  return null;
+}
+
 // Sucht verbliebene Klarnamen in Texten. texts: [{where, text}]; phrases: Wortfolgen (z. B. Firmenname)
 export function findLeaks(forms, texts, phrases = []) {
   const leaks = [];
@@ -955,6 +972,7 @@ export function findLeaks(forms, texts, phrases = []) {
         let k = fold(c);
         let f = forms.get(k);
         if (!f) { const m = c.match(/^(.+?)(['’]s|s)$/u); if (m) { k = fold(m[1]); f = forms.get(k); } }
+        if (!f) f = leakFormWithEnding(c, forms);
         if (!f) continue;
         if (f.ambiguous && !isCap(c)) continue;
         leaks.push({ where, word: tk.t, entity: f.entity, full: f.full, meta: !!f.meta, context: text.slice(Math.max(0, tk.s - 30), Math.min(text.length, tk.e + 30)) });

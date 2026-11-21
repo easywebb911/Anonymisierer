@@ -63,12 +63,25 @@ export function isStrongTitle(key) { return STRONG_TITLES.has(key); }
 export function isWeakTitle(key) { return WEAK_TITLES.has(key); }
 export function isTitle(key) { return STRONG_TITLES.has(key) || WEAK_TITLES.has(key); }
 
+// GROSSSCHREIBUNG mit großer Endung (Version 2.3.2): „MÜLLERS“ = „MÜLLER“ + „S“. Nur wenn der Wortstamm selbst ganz
+// groß geschrieben ist (keine Kleinbuchstaben), nie bei „MüllerS“. Liefert [Wort, Stamm, Endung] oder null.
+function capsSplit(word, ends) {
+  for (const end of ends) {
+    if (word.length <= end.length || word.slice(-end.length) !== end) continue;
+    const stem = word.slice(0, -end.length);
+    if (stem === stem.toUpperCase() && stem !== stem.toLowerCase()) return [word, stem, end];
+  }
+  return null;
+}
+const CAPS_LIST_ENDINGS = ["'S", '’S', 'S'];
+
 // Grundform mit Endung: "Müllers" -> {key:"muller", suffix:"s"}, "John's" -> {key:"john", suffix:"'s"}
+// Version 2.3.2: auch GROSS mit großer Endung ("MÜLLERS" -> {key:"muller", suffix:"S"}); gleiche Endungen wie bisher
 export function lookupWord(word) {
   const key = fold(word);
   const res = { key, stemLen: word.length, suffix: '' };
   if (inLists(key) || isStop(key)) return res;
-  const m = word.match(/^(.+?)(['’]s|s)$/u);
+  const m = word.match(/^(.+?)(['’]s|s)$/u) || capsSplit(word, CAPS_LIST_ENDINGS);
   if (m) {
     const k2 = fold(m[1]);
     if (k2.length >= 3 && inLists(k2)) return { key: k2, stemLen: m[1].length, suffix: m[2] };
@@ -82,7 +95,9 @@ const STEM_ENDINGS = ["'s", '’s', "'", '’', 's', 'es', 'n', 'ns'];
 // Version 2.3.1: Zuerst wie bisher die kürzeste Zerlegung (so bleiben alle bisherigen Ergebnisse gleich). Passt sie
 // nicht, werden die übrigen Zerlegungen mit denselben Endungen probiert, z. B. „Quabbenjansens“ = „Quabbenjansen“ + „s“
 // (bisher nur „Quabbenjanse“ + „ns“ versucht). Keine neuen Endungen; Groß-/Kleinschreibung der Endung wie bisher.
-export function stemFor(word, knownKeys) {
+// Version 2.3.2: caps = true probiert danach zusätzlich die Endungen in Großbuchstaben ('S, ’S, S, ES, N, NS), nur nach
+// einem ganz groß geschriebenen Wortstamm („QUABBENJANSENS“). Ohne caps bleibt alles wie bisher.
+export function stemFor(word, knownKeys, caps = false) {
   const key = fold(word);
   if (knownKeys.has(key)) return { key, stemLen: word.length, suffix: '' };
   const m = word.match(/^(.+?)(['’]s|['’]|s|es|n|ns)$/u);
@@ -95,6 +110,14 @@ export function stemFor(word, knownKeys) {
     const stem = word.slice(0, -end.length);
     const k3 = fold(stem);
     if (knownKeys.has(k3)) return { key: k3, stemLen: stem.length, suffix: end };
+  }
+  if (caps) {
+    for (const end of STEM_ENDINGS) {
+      const E = end.toUpperCase();
+      if (E === end) continue; // ' und ’ haben keine Großform (oben schon geprüft)
+      const c = capsSplit(word, [E]);
+      if (c && knownKeys.has(fold(c[1]))) return { key: fold(c[1]), stemLen: c[1].length, suffix: c[2] };
+    }
   }
   return null;
 }
