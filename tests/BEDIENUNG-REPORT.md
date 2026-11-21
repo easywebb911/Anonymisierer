@@ -12,7 +12,7 @@ Testdokumente: tests/make-bedienung.mjs -> tests/fixtures-bedienung/ (alles erfu
 | Häkchen auf dem Speichern-Bildschirm (ohne Antwort) | 3 | 1 |
 | Höhe des Speichern-Bildschirms bei 1366×768 | 1984 px | 768 px |
 
-- Zeilen nachher: „5 Fragen sind noch offen. Ohne Antwort bleibt jede Stelle so, wie sie im Moment ist. Beantworten“ · „2 Bilder im Dokument. Das Tool ändert Bilder nicht. Steht auf einem Bild ein Name oder ein Logo, entferne es v“ · „„Wittekindhorn“ steht noch in: Text Name aus den Dateiangaben · „…Wittekindhorn bringt Kuchen mit.…“ Als Namen“ · „„WITTEKINDHORNS“ steht noch in: Text Name aus den Dateiangaben · „…WITTEKINDHORNS Neffe hilft beim Aufbau.…“ A“
+- Zeilen nachher: „5 Fragen sind noch offen. Ohne Antwort bleibt jede Stelle so, wie sie im Moment ist. Beantworten“ · „2 Bilder im Dokument. Das Tool ändert Bilder nicht. Steht auf einem Bild ein Name oder ein Logo, entferne es v“ · „„Wittekindhorn“ steht noch in: Text Name aus den Dateiangaben · „…Wittekindhorn bringt Kuchen mit.…“ Als Namen“ · „„WITTEKINDHORNS“ steht noch in: Text Name aus den Dateiangaben · „…WITTEKINDHORNS Neffe hilft beim Aufbau.…““
 - Text ohne Antwort, vorher: Im Winter gehen wir rodeln, sagt Person B. ⏎ Montag ⏎ Do 13:30 Elterncafé ⏎ Wittekindhorn bringt Kuchen mit. ⏎ WITTEKINDHORNS Neffe hilft beim Aufbau. ⏎ Im Formular stehen die Felder Person A und Person F B.
 - Text ohne Antwort, nachher: Im Winter gehen wir rodeln, sagt Person B. ⏎ Montag ⏎ Do 13:30 Elterncafé ⏎ Wittekindhorn bringt Kuchen mit. ⏎ WITTEKINDHORNS Neffe hilft beim Aufbau. ⏎ Im Formular stehen die Felder Person A und Person F B.
 - Text nach „Ja“ bei allen Fragen, vorher: Do 13:30 Elterncafé ⏎ WITTEKINDHORNS Neffe hilft beim Aufbau. ⏎ Im Formular stehen die Person F Person A und Person G B.
