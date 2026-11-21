@@ -139,6 +139,7 @@ Schulen, Vereine, Firmen und Behörden bekommen einen **eigenen Platzhalter**, d
 - Jeder Namensteil hat einen eigenen Platzhalter: „Vorname A“, „Nachname A“, „Initiale A“. Ein Wort, dessen Rolle unklar ist, heißt „Name A“.
 - Jede Schreibweise hat genau einen Platzhalter. Eine weitere Schreibweise derselben Person bekommt eine Nummer: „MÜLLER“ wird „Nachname A2“, „Müller“ bleibt „Nachname A“.
 - Endungen und Anreden bleiben im Text stehen („Herrn Nachname As“) und kommen beim Rückbau genauso zurück („Herrn Müllers“).
+- Eine **große Endung** in GROSSSCHREIBUNG („MÜLLERS“, „DES LINDENAUER BÜRGERVEREINS“) gehört zum Platzhalter selbst und bekommt eine eigene Nummer (z. B. „Nachname A3“ = „MÜLLERS“; bei Einrichtungen ebenso „Einrichtung A“ mit Nummer). Für Personen seit 2.3.2, für Einrichtungen seit 2.3.3. So kommt sie beim Rückbau exakt zurück und sieht nie wie ein anderer Platzhalter aus („Nachname AS“).
 - Kontaktdaten werden nummeriert: [E-MAIL-1], [TELEFON-2], [IBAN-1], [ADRESSE-1]. Gleicher Wert bekommt die gleiche Nummer.
 - Einrichtungen (seit 2.3): „Einrichtung A“ für den ganzen Namen, weitere Schreibweisen „Einrichtung A2“ … Sie stehen als eigene Art in der Schlüsseldatei. Schlüsseldateien aus früheren Versionen funktionieren unverändert.
 - Eine Schlüsseldatei **mit** Einrichtung hat die Format-Version 2. Ältere Versionen des Tools (2.2) lehnen sie klar ab („Unbekannte Version der Schlüsseldatei (2) …“). Schlüsseldateien **ohne** Einrichtung bleiben Version 1 und funktionieren auch mit 2.2.
@@ -163,11 +164,12 @@ Schulen, Vereine, Firmen und Behörden bekommen einen **eigenen Platzhalter**, d
 4. Schritt **„Prüfen“**: der **Rückbau-Bericht** als Ampel-Liste.
    - Je Platzhalter steht, wie oft er erwartet und gefunden wurde.
    - Auffällige Stellen werden mit Fundstelle gezeigt: veränderte („nachname a“), gebeugte („des Nachnamens A“), getrennte (Zeilenumbruch) und unbekannte Platzhalter. Sie werden **nicht** geraten, sondern bleiben stehen.
+   - **Platzhalter-Reste (seit 2.3.3):** Das Tool baut das Ergebnis probeweise zurück und sucht darin alles, was danach noch wie ein Platzhalter aussieht: „Vorname …“, „Nachname …“, „Name …“, „Initiale …“, „Person …“, „Einrichtung …“ mit Großbuchstaben, auch mit angehängten Buchstaben oder Ziffern („Einrichtung A2S“, „Nachname AS“, „Vorname B9“), und Platzhalter in eckigen Klammern („[E-MAIL-99]“, „[NAME]“). Jede Stelle steht als **rote Zeile** mit Fundstelle im Bericht. Weiter geht es erst, wenn du sie ausdrücklich bestätigst. Eine bloß abweichende Anzahl genügt dafür nicht mehr.
    - Bei Auffälligkeiten musst du bestätigen, erst dann geht es weiter.
    - Passt die Schlüsseldatei gar nicht, geht es nicht weiter.
 5. Schritt **„Speichern“**: **„Wiederhergestellte Datei speichern“**.
    - Gleiches Format, Dateiname „wiederhergestellt_…“. Alle deine Änderungen, die Formatierung und die Zellstruktur bleiben erhalten.
-   - Vor dem Speichern prüft ein **Schlusscheck**, ob noch Platzhalter aus der Schlüsseldatei übrig sind. Wenn ja, wird erst nach Bestätigung gespeichert.
+   - Vor dem Speichern prüft ein **Schlusscheck** die ganze Datei (auch Dateiangaben und andere Teile außerhalb des Berichts), ob noch Platzhalter aus der Schlüsseldatei oder Platzhalter-Reste übrig sind, die nicht schon im Bericht bestätigt wurden. Wenn ja, wird erst nach Bestätigung gespeichert.
    - Danach führt **„Nächstes Dokument“** zum Start.
 
 > **Warnung zur Schlüsseldatei:** Sie **enthält echte Namen** und Kontaktdaten. **Nie weitergeben, nie an eine KI.** Getrennt vom anonymisierten Dokument sicher aufbewahren.
@@ -185,6 +187,8 @@ Schulen, Vereine, Firmen und Behörden bekommen einen **eigenen Platzhalter**, d
 - **Excel-Blattnamen** dürfen höchstens 31 Zeichen haben. Wird ein Blattname durch Platzhalter zu lang, warnt das Tool vor dem Export. Der Rückbau dieses Blattnamens ist dann nicht exakt.
 - **Alternativtexte, Feldfunktionen, Links:** Dort wird nur zurückgebaut, wenn die Schreibweise exakt bekannt war. Sonst steht dort „Name A“; das meldet der Rückbau-Bericht als unbekannt.
 - Steht im **Original schon Text, der wie ein Platzhalter aussieht** (z. B. „Nachname A“), warnt das Tool vor dem Export, weil der Rückbau ihn ebenfalls ersetzen würde.
+- **Platzhalter-Reste, die keine sind:** Die Suche nach Resten ist absichtlich weit. Stehen im Original Wörter wie „Person A“, „Einrichtung B“, „Vorname D“ oder „[NAME]“ (z. B. Spielfiguren, Formularfelder, Vorlagen), werden sie nach dem Rückbau ebenfalls rot gemeldet. Prüfen und bestätigen; der Text bleibt unverändert.
+- **Ziffer direkt hinter einem Namen** („Müller2“, z. B. ein Kürzel): Daraus wird „Nachname A2“ bzw. „Person A2“. Das sieht wie eine nummerierte Schreibweise aus. Der Rückbau ersetzt es dann nicht exakt (oder durch die andere Schreibweise); das Sicherheitsnetz meldet die Stelle, wenn es keinen solchen Platzhalter gibt. Bitte solche Stellen im Schritt „Prüfen“ beachten (bekannt, nicht geändert).
 - Eine Schlüsseldatei einer **anderen, gleich aufgebauten Datei** (gleiche Personenzahl, gleiche Häufigkeiten) erkennt seit Version 2.1 die **Kennung**. Ohne Kennung im Dokument (eingefügter Text, umbenannte .txt/.csv) oder mit einem alten Schlüssel ist das weiterhin nicht sicher.
 - Zeichen in zerlegter Unicode-Form (NFD) kommen in zusammengesetzter Form (NFC) zurück. Sie sehen gleich aus.
 - Text-Ausgaben (.txt/.csv) sind immer UTF-8.
@@ -274,12 +278,12 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 - **Endungen (seit Version 2.3.1):** Ist ein Name erkannt oder markiert, werden auch seine gebeugten Formen ersetzt („Quabbenjansens“, „Müllers“), mit den Endungen ’s, ', s, es, n und ns.
 - **Großschreibung und Endungen (seit Version 2.3.2):** Ein Name in GROSSBUCHSTABEN mit Endung („MÜLLERS“, „QUABBENJANSENS“, „MÜLLERs“) bleibt nicht mehr unbemerkt stehen. Er wird entweder ersetzt oder vom Schlusscheck gemeldet.
   - **Ersetzt** wird er, wenn das Tool den Namen selbst erkannt hat (z. B. „Herr Gerrit Quabbenjansen“ steht im Text) oder wenn er in einer Namensliste steht („MÜLLERS“ allein). Gleiche Person, gleicher Platzhalter. Mehrdeutige Wörter bleiben „unsicher“ wie in Kleinschreibung (z. B. „WINTERS“ in einer Überschrift: „unsicher, an“, bitte prüfen).
-  - Die große Endung bleibt im Modus „Person A“ am Platzhalter stehen („Person AS“). Im Modus „rückbaufähig“ gehört sie zum Platzhalter („Nachname A3“ = „MÜLLERS“), damit der Rückbau genau „MÜLLERS“ zurückschreibt. Kleine Endungen bleiben wie bisher dahinter („Nachname A2s“).
+  - In den Modi „Person A“ und „[NAME]“ steht die Endung **klein** hinter dem Platzhalter („Person As“, „Einrichtung As“, „[NAME]s“, „[EINRICHTUNG]s“; seit 2.3.3). So sieht „MÜLLERS“ nie wie eine andere Person „Person AS“ aus (die gibt es ab 45 Personen). Im Modus „rückbaufähig“ gehört eine große Endung zum Platzhalter („Nachname A3“ = „MÜLLERS“), damit der Rückbau genau „MÜLLERS“ zurückschreibt. Kleine Endungen bleiben wie bisher dahinter („Nachname A2s“).
   - **Nur gemeldet** (nicht ersetzt) wird er, wenn du den Namen **von Hand markiert** hast (eigene Namen). Grund: Eigene Namen gelten immer als „sicher“; in der Messung wurde so auch eine Überschrift „ROSEN“ bei markierter „Anna Rose“ „sicher“ ersetzt. Der Schlusscheck meldet die Stelle, du entscheidest.
   - **Schlusscheck:** Er sucht alle bestätigten Namen ohne Rücksicht auf Groß-/Kleinschreibung und mit allen Endungen der Liste. Folge: Auch ein gewöhnliches Wort kann gemeldet werden, wenn es wie ein bestätigter Name mit Endung aussieht (z. B. „die Rosen“ bei einer Person „Anna Rose“, „des Winters“ bei „Winter“). Prüfen und bewusst stehen lassen.
   - Schriftzeichen: „STRAUSS“ und „STRAUẞ“ gelten als „Strauß“, „YILMAZ“ als „Yılmaz“, „ÇELİK“ als „Çelik“, „BRZĘCZEK“ als „Brzęczek“, „MUELLER“ als „Müller“; unabhängig von der Spracheinstellung des Browsers (geprüft mit Türkisch).
   - Grenzen: Andere Endungen als ’s, ', s, es, n, ns („MÜLLERIN“) zählen nicht. Texte außerhalb der Prüfansicht (Dateiangaben, Feldfunktionen) ersetzen GROSS mit großer Endung nicht; der Schlusscheck meldet sie.
-  - **Einrichtungen** in GROSSSCHREIBUNG mit Endung („DES LINDENAUER BÜRGERVEREINS“) wurden schon seit 2.3 ersetzt. Grenze (nicht geändert): Im Modus „rückbaufähig“ steht die große Endung direkt am Platzhalter („Einrichtung A2S“). Der Rückbau erkennt das nicht und lässt es stehen; angezeigt wird nur, dass „Einrichtung A2“ seltener gefunden wurde als erwartet. Bitte diese Stelle nach dem Rückbau selbst korrigieren.
+  - **Einrichtungen** in GROSSSCHREIBUNG mit Endung („DES LINDENAUER BÜRGERVEREINS“) werden seit 2.3 ersetzt. Seit 2.3.3 auch im Modus „rückbaufähig“ exakt zurückgebaut (vorher blieb dort „Einrichtung A2S“ stehen).
 - **Namen in E-Mail-Adressen**, wenn die E-Mail-Erkennung ausgeschaltet ist, und Namen in Wortzusammensetzungen („Müllerstraße“, „Schmidt-Gruppe“ teilweise) werden nicht ersetzt.
 - **Chinesische, japanische, koreanische und thailändische Schrift** (ohne Leerzeichen zwischen Wörtern): Namen in Originalschrift werden nicht erkannt. Arabische, kyrillische, griechische und hebräische Schrift werden über Listen teilweise erkannt.
 - **Bildinhalt** wird nie verändert und nicht automatisch geprüft (Namen in Fotos, Scans, Unterschriften, Logos). Du siehst jedes Bild vor dem Speichern in der Liste „Bilder ansehen“ und bestätigst es. Die versteckten Bildangaben werden bei JPEG, PNG und GIF entfernt, bei anderen Bildtypen nicht (Hinweis erscheint, der Schlusscheck sucht trotzdem).
@@ -323,7 +327,7 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 |---|---|
 | Chromium/Chrome (Desktop) | **geprüft** (automatische Tests, headless) |
 | Chromium mit 390, 1280 und 1920 px Breite | **geprüft** (kein waagrechtes Scrollen, Knöpfe mindestens 44 px, Antippen, Markieren, Tasten J/N) |
-| Edge und Chrome unter Windows (Firmen-PC, `file://`) | Version 1.0 laut Easy **am PC geprüft**; Versionen 1.1 bis 2.3.2 **durch Code ungeprüft** |
+| Edge und Chrome unter Windows (Firmen-PC, `file://`) | Version 1.0 laut Easy **am PC geprüft**; Versionen 1.1 bis 2.3.3 **durch Code ungeprüft** |
 | Microsoft Word / Excel: Öffnen der bereinigten Datei ohne Reparatur-Meldung | **durch Code ungeprüft** (auch die unsichtbare Kennung, seit 2.1). Geprüft: LibreOffice öffnet alle Ausgaben, alle XML-Teile sind wohlgeformt, keine Verweise ins Leere |
 | Firefox (Desktop) | **ungeprüft** |
 | Safari (macOS) | **ungeprüft** |
@@ -336,12 +340,12 @@ Die Datei muss in einem Browser geöffnet werden (z. B. über „Teilen → in S
 
 ## Version und Prüfsumme
 
-Version **2.3.2**, Stand 2026-11-21 (steht auch im Fußbereich des Tools).
+Version **2.3.3**, Stand 2026-11-21 (steht auch im Fußbereich des Tools).
 
 SHA-256 der `index.html` dieser Version:
 
 ```
-09aaa2f024ede98b3429c0bab161baedb2631e5222dbe3bd58e9cda20bf9a550
+22306d4f7a0863426e23cdc1feb628276b68d5c3b01056b37b57ed411818228c
 ```
 
 Eine Datei kann ihre eigene Prüfsumme nicht enthalten, deshalb steht sie nur hier und im PR-Text. Prüfen unter Windows: `certutil -hashfile index.html SHA256`.

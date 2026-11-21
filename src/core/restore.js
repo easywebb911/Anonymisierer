@@ -87,6 +87,30 @@ export function scanUnit(text, key, where) {
   return { reps, found, issues };
 }
 
+// Version 2.3.3: Sicherheitsnetz nach dem Rückbau. Alles, was wie ein Platzhalter des Tools aussieht, gilt als Rest:
+// Vorname/Nachname/Name/Initiale/Person/Einrichtung + Großbuchstaben (auch mit angehängten Buchstaben oder Ziffern:
+// „Einrichtung A2S“, „Nachname AS“, „Vorname B9“) sowie Kontakt-, [NAME]- und [EINRICHTUNG]-Platzhalter („[E-MAIL-99]“).
+// Absichtlich weit gefasst: Auch ein solches Wort aus dem Originaltext wird gemeldet (der Mensch entscheidet).
+// Nach den Großbuchstaben: weitere Großbuchstaben oder Ziffern, dann höchstens eine Endung der Liste („Nachname As“).
+// Ein gewöhnliches Wort („Name Rolle“) passt nicht.
+const REST_NAME_RE = /(^|[^\p{L}\p{N}])((?:Vorname|Nachname|Initiale|Name|Person|Einrichtung)[ \u00a0][A-Z][A-Z\d]*(?:'s|’s|'|’|s|es|ns|n)?)(?![\p{L}\p{N}])/gu;
+const REST_BRACKET_RE = /\[(?:E-MAIL|TELEFON|IBAN|ADRESSE|NAME|EINRICHTUNG)(?:-[\p{L}\p{N}]*)?\][\p{L}\p{N}]*/gu;
+export function findPlaceholderRests(text) {
+  const out = [];
+  for (const m of text.matchAll(REST_NAME_RE)) {
+    const s = m.index + m[1].length;
+    out.push({ text: m[2], s, e: s + m[2].length, kontext: ctx(text, s, s + m[2].length) });
+  }
+  for (const m of text.matchAll(REST_BRACKET_RE)) out.push({ text: m[0], s: m.index, e: m.index + m[0].length, kontext: ctx(text, m.index, m.index + m[0].length) });
+  return out.sort((a, b) => a.s - b.s);
+}
+function applyReps(text, reps) {
+  let out = '';
+  let pos = 0;
+  for (const x of [...reps].sort((a, b) => a.s - b.s)) { if (x.s < pos) continue; out += text.slice(pos, x.s) + x.text; pos = x.e; }
+  return out + text.slice(pos);
+}
+
 // Platzhalter über Einheitsgrenzen getrennt ("Nachname" am Zeilenende, "A" am Anfang der nächsten)
 function splitAcrossUnits(units, key) {
   const issues = [];
@@ -128,7 +152,10 @@ export function planRestore(units, key) {
   if (!totalFound) verdict = 'falsch';
   else if (matchedKeys < key.entries.size / 2 || okRows < key.entries.size / 2 || unknown > totalFound / 5) verdict = 'zweifelhaft';
   const anomalies = issues.length + rows.filter((r) => r.status !== 'ok').length;
-  return { repsPerUnit, rows, issues, totalFound, matchedKeys, okRows, unknown, verdict, needsConfirm: anomalies > 0 || verdict !== 'passend' };
+  // Sicherheitsnetz (2.3.3): Reste im Ergebnis nach dem Rückbau, je Abschnitt mit Fundstelle
+  const rests = [];
+  units.forEach((u, i) => { for (const r of findPlaceholderRests(applyReps(u.text, repsPerUnit[i]))) rests.push({ ...r, unit: i, where: u.label || `Abschnitt ${i + 1}` }); });
+  return { repsPerUnit, rows, issues, rests, totalFound, matchedKeys, okRows, unknown, verdict, needsConfirm: anomalies > 0 || verdict !== 'passend' };
 }
 
 // Ersetzt exakte Platzhalter in beliebigem Text (für Alternativtexte, Feldfunktionen, Verweise)

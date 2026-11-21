@@ -1,0 +1,5 @@
+Im Spiel heißt die erste Figur Person A, die zweite Person B.
+Die Einrichtung B ist ein Schulgebäude, Einrichtung A2 ein Anbau.
+Feld „Nachname C“ und „Vorname D“ im Formular ausfüllen.
+Platzhalter wie [NAME] oder [E-MAIL-1] stehen in der Vorlage.
+Frau Helga Müller hat die Vorlage geprüft.

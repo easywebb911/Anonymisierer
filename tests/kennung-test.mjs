@@ -91,8 +91,11 @@ async function restore(file, key, { ack = false, save = false, name } = {}) {
     await page.check('#rb-kennung-ack');
     // Die bisherige Prüfung („passt wahrscheinlich nicht“) bleibt bestehen und verlangt ggf. eine eigene Bestätigung
     if (await page.$('#rb-confirm')) { otherConfirm = true; await page.check('#rb-confirm'); }
+    // Version 2.3.3: Platzhalter-Reste (z. B. bei fremdem Schlüssel) verlangen ebenfalls eine eigene Bestätigung
+    if (await page.$('#rb-rest-ack')) { otherConfirm = true; await page.check('#rb-rest-ack'); }
     afterAck = !(await page.$eval('#r2-next', (b) => b.disabled));
   }
+  if (save && await page.$('#rb-rest-ack') && (await page.$eval('#r2-next', (b) => b.disabled)) && !(await page.$('#rb-kennung-ack:not(:checked)'))) await page.check('#rb-rest-ack');
   if (save && !(await page.$eval('#r2-next', (b) => b.disabled))) {
     if (await page.$('#rb-confirm')) await page.check('#rb-confirm');
     await page.click('#r2-next');

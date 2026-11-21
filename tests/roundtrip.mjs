@@ -93,12 +93,17 @@ async function restore(fileBytes, name, keyPath, { confirm = true } = {}) {
   let res = { status: '', bytes: null };
   if (plan && plan.verdict !== 'falsch') {
     if (plan.needsConfirm && confirm) await page.check('#rb-confirm');
+    // Version 2.3.3: Platzhalter-Reste nach dem Rückbau (rot) – mit erfassen und, wie die übrigen Abweichungen, bestätigen
+    res.rests = await page.$$eval('#rb-rests li strong', (els) => els.map((e) => e.textContent));
+    if (confirm && await page.$('#rb-rest-ack')) await page.check('#rb-rest-ack');
     await page.click('#r2-next'); // Bildschirm „Prüfen“ -> „Speichern“
+    const rests = res.rests;
     res = await download(page, '#rb-btn-save', '#rb-status', /Gespeichert/);
+    res.rests = rests;
     if (!res.bytes && /blockiert/.test(res.status)) {
       res.blocked = await page.$$eval('#rb-left li', (els) => els.map((e) => e.textContent));
       await page.check('#rb-left input[type=checkbox]');
-      res = { ...await download(page, '#rb-btn-save', '#rb-status', /Gespeichert/), blocked: res.blocked };
+      res = { ...await download(page, '#rb-btn-save', '#rb-status', /Gespeichert/), blocked: res.blocked, rests };
     }
   }
   await ctx.close();
@@ -502,6 +507,7 @@ log('## Fallen (einzeln geprüft)');
   const dev = diffLists(got.split('\n'), expected.split('\n'));
   summary.push(['Fallen-TXT', r.plan.totalFound, r.plan.totalFound - dev.length, dev]);
   const arts = r.plan.issues.map((x) => `${x.art}: ${x.text}`);
+  chk('Sicherheitsnetz (2.3.3): unbekannter Platzhalter „Nachname ZZ“ als roter Rest gemeldet', (r.rests || []).includes('Nachname ZZ'), `Reste: ${(r.rests || []).join(', ')}`);
   chk('Kleinschreibung „nachname a“ erkannt und NICHT geraten', arts.some((x) => /^verändert: nachname/.test(x)), arts.find((x) => /nachname/.test(x)));
   chk('gebeugt „des Nachnamens A“ erkannt', arts.some((x) => /^gebeugt/.test(x)), arts.find((x) => /^gebeugt/.test(x)));
   chk('Platzhalter über Zeilen getrennt erkannt', arts.some((x) => /^getrennt/.test(x)), arts.find((x) => /^getrennt/.test(x)));
