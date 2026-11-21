@@ -18,6 +18,7 @@ export function defaultState() {
   return {
     settings: { mode: 'person', email: true, phone: true, iban: true, address: true, unsureOn: true },
     manualTerms: [], // vom Nutzer markierte Namen (Reihenfolge = Reihenfolge der Markierung)
+    orgTerms: [], // vom Nutzer (oder aus den Dateiangaben) als Einrichtung übernommene Bezeichnungen (Version 2.3)
     exceptions: [], // nie anonymisieren
     overrides: {}, // "s:e" -> true/false (Treffer an/aus)
     merges: {}, // entityKey -> Ziel-entityKey
@@ -322,6 +323,10 @@ export function analyze(units, state) {
     }
   });
 
+  // 1b) Einrichtungen (Version 2.3): NUR vom Nutzer markierte oder aus den Dateiangaben übernommene Bezeichnungen,
+  // keine automatische Suche. Sie haben Vorrang: Ihre Wörter sind danach belegt, darin entsteht kein Personen-Treffer.
+  matchOrgTerms(st.orgTerms || [], units, unitToks, unitStarts, covered, tokHit, fullText, hits);
+
   // 2) Automatische Namenserkennung
   const mentions = [];
   units.forEach((u, ui) => {
@@ -565,7 +570,23 @@ export function analyze(units, state) {
 
   hits.sort((a, b) => a.s - b.s || a.e - b.e);
 
-  // 7) Personen und Pseudonyme (Reihenfolge des ersten Auftretens)
+  // 7) Personen und Pseudonyme (Reihenfolge des ersten Auftretens); Einrichtungen mit eigener Buchstabenfolge
+  const orgs = new Map();
+  for (const h of hits) {
+    if (h.type !== 'org') continue;
+    if (!orgs.has(h.entity)) orgs.set(h.entity, { key: h.entity, org: true, manual: true, hits: [], forms: new Map(), linkable: [], terms: new Set() });
+    const og = orgs.get(h.entity);
+    og.hits.push(h);
+    og.terms.add(h.term);
+    const surface = fullText.slice(h.s, h.e - (h.suffix ? h.suffix.length : 0));
+    og.forms.set(surface, (og.forms.get(surface) || 0) + 1);
+  }
+  let no = 0;
+  for (const og of orgs.values()) {
+    og.letter = letterFor(no++);
+    og.label = st.settings.mode === 'name' ? '[EINRICHTUNG]' : 'Einrichtung ' + og.letter;
+    og.display = [...og.forms.entries()].sort((a, b) => b[1] - a[1] || b[0].length - a[0].length || (a[0] < b[0] ? -1 : 1))[0][0];
+  }
   const entities = new Map();
   for (const h of hits) {
     if (h.type !== 'person') continue;
@@ -591,14 +612,118 @@ export function analyze(units, state) {
     h.key = h.s + ':' + h.e;
     const ov = st.overrides[h.key];
     h.on = ov === undefined ? !h.defaultOff : ov;
-    h.label = h.type === 'person' ? entities.get(h.entity).label : CONTACT_LABELS[h.type];
+    h.label = h.type === 'person' ? entities.get(h.entity).label : h.type === 'org' ? orgs.get(h.entity).label : CONTACT_LABELS[h.type];
   });
   for (const en of entities.values()) en.count = en.hits.length;
+  for (const og of orgs.values()) og.count = og.hits.length;
 
-  const result = { fullText, unitStarts, hits, entities };
+  const result = { fullText, unitStarts, hits, entities, orgs };
   // Modus "rückbaufähig": Platzhalter je Namensteil und nummerierte Kontaktdaten
   if (st.settings.mode === MODE_REVERSIBLE) assignReversible(result);
   return result;
+}
+
+// ---------- Einrichtungen (Version 2.3) ----------
+// Bezeichnung in Wörter (und Satzzeichen) zerlegen; gaps[i] = Text zwischen Token i-1 und i ('' oder Leerraum)
+export function orgTermTokens(term) {
+  const t = String(term || '').normalize('NFC').replace(/\s+/g, ' ').trim();
+  const toks = tokenize(t);
+  const gaps = toks.map((tk, i) => (i ? t.slice(toks[i - 1].e, tk.s) : ''));
+  return { text: t, toks, gaps, key: 'O|' + toks.map((x) => fold(x.t)).join(' ') };
+}
+// Endungen wie bei von Hand markierten Namen (lex.stemFor): 's, ’s, ', ’, s, es, n, ns
+const ORG_ENDINGS = ["'s", '’s', "'", '’', 's', 'es', 'n', 'ns'];
+// Ein Wort der Bezeichnung passt auf ein Wort im Text: gleich (ohne Groß-/Kleinschreibung, Akzente) oder mit einer
+// dieser Endungen ("Familienzentrums" zu "Familienzentrum", "Bürgervereins" zu "Bürgerverein"). Jede Endung wird
+// geprüft (nicht nur die kürzeste Zerlegung). Liefert die Endung oder null.
+function orgTokMatch(textTok, termTok) {
+  if (!termTok.word) return textTok.t === termTok.t ? '' : null;
+  if (!textTok.word) return null;
+  const k = fold(termTok.t);
+  if (fold(textTok.t) === k) return '';
+  if ([...k].length < 3) return null;
+  for (const end of ORG_ENDINGS) {
+    if (textTok.t.length > end.length && textTok.t.slice(-end.length).toLowerCase() === end && fold(textTok.t.slice(0, -end.length)) === k) return textTok.t.slice(-end.length);
+  }
+  return null;
+}
+// Alle Vorkommen der Einrichtungs-Bezeichnungen als GANZE Wortfolge. Längere Bezeichnungen zuerst.
+// Zwischen zwei Wörtern darf beliebiger Leerraum stehen (auch ein Zeilenumbruch innerhalb eines Abschnitts).
+function matchOrgTerms(orgTerms, units, unitToks, unitStarts, covered, tokHit, fullText, hits) {
+  const terms = [];
+  const seen = new Set();
+  for (const raw of orgTerms) {
+    const ot = orgTermTokens(raw);
+    if (!ot.toks.some((x) => x.word) || seen.has(ot.key)) continue;
+    seen.add(ot.key);
+    terms.push(ot);
+  }
+  terms.sort((a, b) => b.toks.length - a.toks.length);
+  for (const ot of terms) {
+    const n = ot.toks.length;
+    units.forEach((u, ui) => {
+      const toks = unitToks[ui];
+      const cov = covered[ui];
+      for (let k = 0; k + n <= toks.length; k++) {
+        let ok = true;
+        let suffix = '';
+        for (let j = 0; j < n && ok; j++) {
+          const tk = toks[k + j];
+          if (cov[k + j]) { ok = false; break; }
+          const suf = orgTokMatch(tk, ot.toks[j]);
+          if (suf === null) { ok = false; break; }
+          if (j > 0) {
+            const gap = fullText.slice(toks[k + j - 1].e, tk.s);
+            if (ot.gaps[j] === '' ? gap !== '' : !/^\s+$/.test(gap)) { ok = false; break; }
+          }
+          if (j === n - 1) suffix = suf;
+        }
+        if (!ok) continue;
+        const h = { s: toks[k].s, e: toks[k + n - 1].e, type: 'org', cert: 'sicher', origin: 'org', unit: ui, suffix, entity: ot.key, term: ot.text, comps: [] };
+        hits.push(h);
+        for (let j = 0; j < n; j++) { cov[k + j] = true; tokHit[ui][k + j] = h; }
+        k += n - 1;
+      }
+    });
+  }
+}
+// Suchformen der eingeschalteten Einrichtungen für den Schlusscheck: jede Schreibweise als GANZE Wortfolge
+export function orgLeakPhrases(result) {
+  const phrases = [];
+  for (const og of (result.orgs || new Map()).values()) {
+    if (!og.hits.some((h) => h.on)) continue;
+    const seen = new Set(); // ohne Groß-/Kleinschreibung nur einmal (die Suche ist ohnehin unabhängig davon)
+    for (const f of [...og.forms.keys(), ...og.terms]) {
+      const words = f.trim().split(/\s+/).filter(Boolean);
+      const k = words.map((w) => w.toLowerCase()).join(' ');
+      if (!words.length || seen.has(k)) continue;
+      seen.add(k);
+      phrases.push({ words, display: f, entity: og.label, full: f, org: true });
+    }
+  }
+  return phrases;
+}
+// Ersetzt die Schreibweisen der Einrichtungen in beliebigem Text (Wortfolge, beliebiger Leerraum dazwischen).
+// label(form) liefert den Ersatz oder null; reps bekommt {s, e, text}.
+function orgReplacements(str, result, label) {
+  const reps = [];
+  for (const og of (result.orgs || new Map()).values()) {
+    if (!og.hits.some((h) => h.on)) continue;
+    const forms = [...new Set([...og.forms.keys(), ...og.terms])].sort((a, b) => b.length - a.length);
+    for (const f of forms) {
+      const words = f.trim().split(/\s+/).filter(Boolean);
+      if (!words.length) continue;
+      const re = new RegExp('(^|[^\\p{L}\\p{N}])(' + words.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('[\\s\\u00a0]+') + ')(?![\\p{L}\\p{N}])', 'giu');
+      for (const m of str.matchAll(re)) {
+        const s = m.index + m[1].length;
+        const e = s + m[2].length;
+        if (reps.some((r) => s < r.e && e > r.s)) continue;
+        const text = label(og, m[2]);
+        if (text !== null) reps.push({ s, e, text });
+      }
+    }
+  }
+  return reps;
 }
 
 function mergeAdjacent(hits, fullText) {
@@ -628,7 +753,7 @@ export function replacementsByUnit(result, units) {
       for (const p of h.parts) per[h.unit].push({ s: p.s - base, e: p.e - base, text: p.text });
       continue;
     }
-    const text = h.label + (h.type === 'person' ? (h.suffix || '') : '');
+    const text = h.label + (h.type === 'person' || h.type === 'org' ? (h.suffix || '') : '');
     per[h.unit].push({ s: h.s - base, e: h.e - base, text });
   }
   return per;
@@ -680,7 +805,7 @@ export function metaLeakForms(metaNames) {
     const label = 'aus den Dateiangaben: ' + m.where;
     if (m.kind === 'org') {
       const words = m.name.trim().split(/\s+/);
-      if (/\p{L}{2,}/u.test(m.name) && !words.every((w) => META_DEFAULT_WORDS.has(fold(w)))) phrases.push({ words, display: m.name, entity: label, full: m.name, meta: true });
+      if (/\p{L}{2,}/u.test(m.name) && !words.every((w) => META_DEFAULT_WORDS.has(fold(w)))) phrases.push({ words, display: m.name, entity: label, full: m.name, meta: true, metaOrg: true });
       continue;
     }
     let v = m.name;
@@ -709,10 +834,12 @@ export function findLeaks(forms, texts, phrases = []) {
   for (const { where, text } of texts) {
     for (const ph of phrases) {
       // ohne Lookbehind (ältere Safari-Versionen): Wortgrenze vorn als Gruppe
-      const re = new RegExp('(^|[^\\p{L}\\p{N}])(' + ph.words.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('[\\s\\u00a0]+') + ')(?![\\p{L}\\p{N}])', 'giu');
+      // Einrichtungen (2.3): auch mit Endung am Schluss ("des Lindenauer Bürgervereins"); Firmen aus Dateiangaben wie bisher
+      const end = ph.org ? "(?:'s|’s|'|’|s|es|n|ns)?" : '';
+      const re = new RegExp('(^|[^\\p{L}\\p{N}])(' + ph.words.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('[\\s\\u00a0]+') + end + ')(?![\\p{L}\\p{N}])', 'giu');
       for (const m of text.matchAll(re)) {
         const at = m.index + m[1].length;
-        leaks.push({ where, word: m[2], entity: ph.entity, full: ph.full, meta: true, context: text.slice(Math.max(0, at - 30), Math.min(text.length, at + m[2].length + 30)) });
+        leaks.push({ where, word: m[2], entity: ph.entity, full: ph.full, meta: !ph.org, org: !!ph.org, metaOrg: !!ph.metaOrg, context: text.slice(Math.max(0, at - 30), Math.min(text.length, at + m[2].length + 30)) });
       }
     }
     for (const tk of tokenize(text)) {
@@ -745,6 +872,8 @@ export function makeGenericReplacer(result, settings) {
     if (!str || !/\p{L}|\d/u.test(str)) return str;
     const reps = [];
     for (const c of findContacts(str, settings)) if (c.cert === 'sicher') reps.push({ s: c.s, e: c.e, text: CONTACT_LABELS[c.type] });
+    // Einrichtungen als ganze Wortfolge (vor den Personen, Vorrang)
+    for (const r of orgReplacements(str, result, (og) => og.label)) if (!reps.some((x) => r.s < x.e && r.e > x.s)) reps.push(r);
     for (const tk of tokenize(str)) {
       if (!tk.word || reps.some((r) => tk.s < r.e && tk.e > r.s)) continue;
       let k = fold(tk.t);
@@ -778,6 +907,10 @@ function makeReversibleGeneric(result, settings) {
       if (c.cert !== 'sicher') continue;
       const ph = result.reversible.contactNums.get(c.type + '|' + str.slice(c.s, c.e));
       reps.push({ s: c.s, e: c.e, text: ph || CONTACT_LABELS[c.type] });
+    }
+    // Einrichtungen: exakt bekannte Schreibweise -> ihr Platzhalter, sonst "[EINRICHTUNG]" (nicht rückbaufähig)
+    for (const r of orgReplacements(str, result, (og, found) => result.reversible.orgExact.get(og.letter + '|' + found) || '[EINRICHTUNG]')) {
+      if (!reps.some((x) => r.s < x.e && r.e > x.s)) reps.push(r);
     }
     for (const tk of tokenize(str)) {
       if (!tk.word || reps.some((r) => tk.s < r.e && tk.e > r.s)) continue;

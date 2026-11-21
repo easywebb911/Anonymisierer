@@ -12,6 +12,8 @@ export const KEY_WARNING = 'Enthält echte Namen. Nie weitergeben, nie an eine K
 // Erkennt Platzhalter dieses Modus in beliebigem Text (für Kollisionsprüfung und Rückbau)
 export const NAME_PH_RE = /(^|[^\p{L}\p{N}])((?:Vorname|Nachname|Initiale|Name) [A-Z]{1,3}\d*)(?=(?:'s|’s|'|’|s|es|ns|n)?(?![\p{L}\p{N}]))/gu;
 export const CONTACT_PH_RE = /\[(?:E-MAIL|TELEFON|IBAN|ADRESSE)-\d+\]/g;
+// Einrichtungen (Version 2.3): der ganze Name als EIN Platzhalter, weitere Schreibweisen mit Nummer
+export const ORG_PH_RE = /(^|[^\p{L}\p{N}])(Einrichtung [A-Z]{1,3}\d*)(?=(?:'s|’s|'|’|s|es|ns|n)?(?![\p{L}\p{N}]))/gu;
 
 // Rolle eines einzelnen Namenswortes innerhalb einer Person
 function roleOfSingle(h, comp, entityKey, singleRoles) {
@@ -74,8 +76,24 @@ export function assignReversible(result) {
   const placeholderInfo = new Map(); // Platzhalter -> {wert, rolle, person, kategorie}
   const contactNums = new Map(); // "email|Wert" -> Platzhalter
   const contactCount = {};
+  const orgExact = new Map(); // "A|Schreibweise" -> Platzhalter (für Texte außerhalb der Prüfansicht)
   for (const h of hits) {
-    if (h.type === 'person') {
+    if (h.type === 'org') {
+      // Ganze Bezeichnung (ohne Endung am Schluss, die bleibt wie bei Personen im Text stehen) = ein Platzhalter
+      const og = result.orgs.get(h.entity);
+      const stemEnd = h.e - (h.suffix ? h.suffix.length : 0);
+      const value = fullText.slice(h.s, stemEnd);
+      const vk = 'O|' + og.letter;
+      if (!variants.has(vk)) variants.set(vk, []);
+      const list = variants.get(vk);
+      let idx = list.indexOf(value);
+      if (idx < 0) { list.push(value); idx = list.length - 1; }
+      const ph = `Einrichtung ${og.letter}${idx > 0 ? idx + 1 : ''}`;
+      if (!placeholderInfo.has(ph)) placeholderInfo.set(ph, { wert: value, kategorie: 'Einrichtung', einrichtung: og.letter });
+      orgExact.set(og.letter + '|' + value, ph);
+      h.parts = [{ s: h.s, e: stemEnd, text: ph }];
+      h.label = ph;
+    } else if (h.type === 'person') {
       const en = entities.get(h.entity);
       const parts = splitHit(h, h.origEntity || h.entity, singleRoles);
       h.parts = parts.map((p) => {
@@ -102,11 +120,13 @@ export function assignReversible(result) {
       h.label = contactNums.get(ck);
     }
   }
-  result.reversible = { placeholderInfo, contactNums };
+  result.reversible = { placeholderInfo, contactNums, orgExact };
   // Warnung: Platzhalter-ähnlicher Text steht schon im Original -> Rückbau würde ihn ebenfalls ersetzen
   const clashes = new Set();
   for (const m of fullText.matchAll(NAME_PH_RE)) clashes.add(m[2]);
   for (const m of fullText.matchAll(CONTACT_PH_RE)) clashes.add(m[0]);
+  // "Einrichtung A" nur prüfen, wenn es Einrichtungen gibt (sonst bleibt alles wie bisher)
+  if (result.orgs && result.orgs.size) for (const m of fullText.matchAll(ORG_PH_RE)) clashes.add(m[2]);
   result.reversible.clashes = [...clashes];
 }
 
@@ -121,12 +141,19 @@ export function buildRestoreKey(result, meta) {
   const eintraege = [];
   for (const [ph, info] of result.reversible.placeholderInfo) {
     if (!counts.has(ph)) continue;
-    eintraege.push({ platzhalter: ph, kategorie: info.kategorie, ...(info.rolle ? { rolle: info.rolle, person: info.person } : {}), wert: info.wert, anzahl: counts.get(ph) });
+    eintraege.push({ platzhalter: ph, kategorie: info.kategorie, ...(info.rolle ? { rolle: info.rolle, person: info.person } : {}),
+      ...(info.einrichtung ? { einrichtung: info.einrichtung } : {}), wert: info.wert, anzahl: counts.get(ph) });
   }
   const personen = [];
   for (const en of result.entities.values()) {
     const vs = eintraege.filter((x) => x.person === en.letter).map((x) => x.platzhalter);
     if (vs.length) personen.push({ person: en.letter, anzeige: en.display, platzhalter: vs });
+  }
+  // Einrichtungen als eigene Art (nur wenn es welche gibt: Schlüssel ohne Einrichtung bleiben wie bisher)
+  const einrichtungen = [];
+  for (const og of (result.orgs || new Map()).values()) {
+    const vs = eintraege.filter((x) => x.einrichtung === og.letter).map((x) => x.platzhalter);
+    if (vs.length) einrichtungen.push({ einrichtung: og.letter, anzeige: og.display, platzhalter: vs });
   }
   return {
     format: KEY_FORMAT,
@@ -138,5 +165,6 @@ export function buildRestoreKey(result, meta) {
     quelle: { dateityp: meta.kind },
     platzhalter: eintraege,
     personen,
+    ...(einrichtungen.length ? { einrichtungen } : {}),
   };
 }
