@@ -141,6 +141,7 @@ Schulen, Vereine, Firmen und Behörden bekommen einen **eigenen Platzhalter**, d
 - Endungen und Anreden bleiben im Text stehen („Herrn Nachname As“) und kommen beim Rückbau genauso zurück („Herrn Müllers“).
 - Kontaktdaten werden nummeriert: [E-MAIL-1], [TELEFON-2], [IBAN-1], [ADRESSE-1]. Gleicher Wert bekommt die gleiche Nummer.
 - Einrichtungen (seit 2.3): „Einrichtung A“ für den ganzen Namen, weitere Schreibweisen „Einrichtung A2“ … Sie stehen als eigene Art in der Schlüsseldatei. Schlüsseldateien aus früheren Versionen funktionieren unverändert.
+- Eine Schlüsseldatei **mit** Einrichtung hat die Format-Version 2. Ältere Versionen des Tools (2.2) lehnen sie klar ab („Unbekannte Version der Schlüsseldatei (2) …“). Schlüsseldateien **ohne** Einrichtung bleiben Version 1 und funktionieren auch mit 2.2.
 
 **Kennung (seit Version 2.1)**
 - Jede rückbaufähige Anonymisierung bekommt eine **Kennung** aus 4 Zeichen, z. B. **K7F3**. Die Dateien heißen dann `anonymisiert_K7F3.docx` und `schluessel_K7F3.json`. So siehst du sofort, was zusammengehört.
@@ -248,10 +249,13 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 - **Einrichtungen (seit Version 2.3):**
   - Es gibt **keine eigene Suche** nach Einrichtungen. Was du nicht markierst (oder aus den Dateiangaben übernimmst), bleibt stehen.
   - Gefunden wird die **ganze Wortfolge**, auch mit den üblichen Endungen („des Familienzentrums Sonnenblume“, „des Lindenauer Bürgervereins“) und in GROSSSCHREIBUNG. **Andere gebeugte Formen** (z. B. Mehrzahl) und **Teile** des Namens allein („die Sonnenblume“, „Lindenhof“) werden **nicht** gefunden und nicht gemeldet. Bitte als weitere Schreibweise markieren und zusammenführen.
-  - **Zeilenumbruch mitten im Namen:** in Word (Umschalt+Enter) und Excel-Zellen wird der Name ersetzt. Ausnahmen, bei denen der Name **stehen bleibt**, der **Schlusscheck ihn aber meldet** und das Speichern sperrt, bis du ihn bewusst stehen lässt:
-    - TXT-Dateien, wenn der Name auf zwei Zeilen verteilt ist,
-    - Word im Modus „rückbaufähig“ (dort könnte der Zeilenumbruch beim Rückbau nicht exakt zurückkommen).
-  - Mit einer Schlüsseldatei aus 2.3, die Einrichtungen enthält, setzt **Version 2.2** nur die Personen zurück; die Einrichtungs-Platzhalter bleiben stehen (im Rückbau-Bericht als fehlend gemeldet).
+  - **Zeilenumbruch mitten im Namen:**
+    - **TXT:** Steht der Name auf zwei direkt aufeinanderfolgenden Zeilen (genau ein Umbruch), wird er ersetzt; die beiden Zeilen werden in der Ausgabe eine. Im Modus „rückbaufähig“ ist das eine eigene Schreibweise mit Nummer, und der Rückbau stellt den Umbruch exakt wieder her (auch Windows-Zeilenenden).
+    - **Excel und CSV:** Ein Umbruch innerhalb einer Zelle stört nicht; der Name wird ersetzt und exakt zurückgebaut.
+    - **Word**, Zeilenumbruch (Umschalt+Enter) im Namen: In „Person A“ und „[NAME]“ wird ersetzt. Im Modus „rückbaufähig“ **nicht**, weil der Umbruch beim Rückbau nicht exakt zurückkäme. Der Schlusscheck meldet die Stelle und sperrt das Speichern: „Der Name steht über einen Zeilenumbruch. Entferne den Umbruch in Word oder markiere die Teile einzeln.“
+    - **Zwei oder mehr Umbrüche** im Namen (auch eine Leerzeile dazwischen): nicht ersetzt; der Schlusscheck meldet die Stelle, wenn die Einrichtung im Dokument sonst gefunden wurde.
+  - **Briefkopf über zwei getrennte Absätze** (Word: zwei Absätze, TXT: Leerzeile dazwischen): wird nicht ersetzt. Der Schlusscheck meldet ihn nur, wenn die Einrichtung **an anderer Stelle im Dokument** gefunden wurde. Steht sie **nur** im Briefkopf, bleibt sie **unbemerkt** stehen. Bitte den Briefkopf selbst prüfen oder die Teile einzeln markieren.
+  - **Kurzformen** („FZS“, „die Sonnenblume“) findet das Tool nicht von selbst: markieren und mit der Einrichtung zusammenführen.
 
 - **Bedienung (seit Version 2.0):**
   - Es gibt kein dunkles Farbschema mehr; die Farben sind fest hell.
