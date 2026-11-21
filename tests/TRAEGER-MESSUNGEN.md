@@ -86,4 +86,4 @@ Gegenprobe sachtext.txt: 0 Webadressen, 0 Konten, 1 Stelle im Warnpunkt.
 Ohne Vorfilter brauchte 2.7.0 zuerst 10,7 s und 2,1 s; die Vorfilter (src/core/patterns.js, src/core/hints.js) prüfen nur, ob das Kennzeichen eines Musters im Text steht, und ändern kein Ergebnis.
 
 ## Prüfsumme
-Zweimal gebaut, gleiche Datei: SHA-256 `4f87a11db7b315a7e964ce721972e99704897aa43560b2b0ca01870aaf682060`, 3 837 068 Bytes.
+Zweimal gebaut, gleiche Datei: SHA-256 `631a2bcd05e3aaf859309893e57509b745c978e99932280cb89a3aedce8a934a`, 3 836 973 Bytes (Nachbesserung „null“; davor 4f87a11d…, 3 837 068 Bytes).

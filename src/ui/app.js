@@ -52,6 +52,12 @@ function h(tag, attrs, ...kids) {
   for (const c of kids.flat()) if (c !== null && c !== undefined && c !== false) el.append(c instanceof Node ? c : document.createTextNode(String(c)));
   return el;
 }
+// Version 2.7.0: Inhalt eines Elements ersetzen; leere Werte (null, undefined, false) fallen weg, statt als Text
+// „null“/„undefined“ zu erscheinen (vorher stand z. B. „null“ in der Fragekarte, wenn kein Einstellungs-Hinweis da war)
+function fill(el, ...kids) {
+  el.replaceChildren(...kids.flat().filter((c) => c !== null && c !== undefined && c !== false));
+  return el;
+}
 // Eingebettete Symbole (SVG, keine Bilddateien, keine Emojis)
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const ICONS = {
@@ -681,10 +687,10 @@ function renderQuestions() {
   const box = $('#qcard');
   const { qs, idx } = shownQuestion();
   const note = app.qNote ? h('p', { class: 'hint qnote', id: 'q-note' }, 'Du hast eine Einstellung geändert. Die Fragen sind wieder offen.') : null;
-  if (!qs.length) { box.replaceChildren(h('p', { class: 'qcount' }, 'Keine Fragen'), h('p', {}, 'Es gibt nichts zu entscheiden.')); noteShown(null); return; }
+  if (!qs.length) { fill(box, h('p', { class: 'qcount' }, 'Keine Fragen'), h('p', {}, 'Es gibt nichts zu entscheiden.')); noteShown(null); return; }
   if (idx < 0) {
     app.qCurrent = '';
-    box.replaceChildren(qHead(`${qs.length} von ${qs.length} Fragen`, true, false), h('p', { class: 'qask' }, 'Alle Fragen beantwortet'), note,
+    fill(box, qHead(`${qs.length} von ${qs.length} Fragen`, true, false), h('p', { class: 'qask' }, 'Alle Fragen beantwortet'), note,
       h('button', { type: 'button', class: 'secondary small', id: 'q-again', onclick: () => { app.qCurrent = qs[0].id; refreshMarks(); renderQuestions(); } }, 'Fragen noch einmal zeigen'));
     noteShown(null);
     return;
@@ -714,7 +720,7 @@ function renderQuestions() {
     h('button', { type: 'button', class: 'secondary', id: 'q-yes', onclick: () => answer(q, true) }, yes),
     h('button', { type: 'button', class: 'secondary', id: 'q-no', onclick: () => answer(q, false) }, 'Nein')),
   h('p', { class: 'qkeys' }, 'Tasten: J = Ja, N = Nein, ← vorige, → nächste Frage'));
-  box.replaceChildren(...kids);
+  fill(box, ...kids);
   noteShown(q);
 }
 // Version 2.6.1: Wechselt die gezeigte Frage, zur ersten Stelle dieser Frage rollen (Excel: vorher das Blatt wechseln)
@@ -769,7 +775,7 @@ function show(screen) {
   const st = SCREEN_STEP[screen];
   pg.hidden = !st;
   if (st) {
-    pg.replaceChildren(...STEPS[st[0]].map((label, i) => {
+    fill(pg, ...STEPS[st[0]].map((label, i) => {
       const done = i < st[1];
       const cur = i === st[1];
       return h('li', { class: done ? 'done' : cur ? 'current' : '', 'aria-current': cur ? 'step' : null },
@@ -992,7 +998,7 @@ function renderDoc() {
       frag.append(box);
     }
   });
-  view.replaceChildren(frag);
+  fill(view, frag);
 }
 
 function renderEntities() {
@@ -1016,7 +1022,7 @@ function renderEntities() {
   // Einrichtungen als eigene Gruppe
   kids.push(h('p', { class: 'grouph', id: 'orgs-h' }, 'Einrichtungen'),
     h('div', { id: 'orgs' }, ...(orgs.length ? rowsOf(orgs) : [h('p', { class: 'muted entity' }, 'Keine. Eine Bezeichnung markieren und „Als Einrichtung markieren“ wählen.')])));
-  list.replaceChildren(...kids);
+  fill(list, ...kids);
 }
 function entityMenu(en, ents) {
   const r = app.result;
@@ -1107,9 +1113,9 @@ function chipList(arr, onRemove, kind) {
 }
 function renderLists() {
   // Jeder Eintrag mit seiner Art (Person oder Einrichtung)
-  $('#names-chips').replaceChildren(...chipList(app.state.manualTerms, (i) => { app.state.manualTerms.splice(i, 1); saveStored(); runAnalysisOrRender(); }, 'Person'),
+  fill($('#names-chips'), ...chipList(app.state.manualTerms, (i) => { app.state.manualTerms.splice(i, 1); saveStored(); runAnalysisOrRender(); }, 'Person'),
     ...chipList(app.state.orgTerms, (i) => { app.state.orgTerms.splice(i, 1); saveStored(); runAnalysisOrRender(); }, 'Einrichtung'));
-  $('#exc-chips').replaceChildren(...chipList(app.state.exceptions, (i) => { app.state.exceptions.splice(i, 1); saveStored(); runAnalysisOrRender(); }));
+  fill($('#exc-chips'), ...chipList(app.state.exceptions, (i) => { app.state.exceptions.splice(i, 1); saveStored(); runAnalysisOrRender(); }));
   $('#persist').checked = app.persist;
   const np = app.state.manualTerms.length;
   const no = app.state.orgTerms.length;
@@ -1377,12 +1383,12 @@ function renderSave() {
   const who = [persons ? plural(persons, 'Person', 'Personen') : '', orgsOn ? plural(orgsOn, 'Einrichtung', 'Einrichtungen') : ''].filter(Boolean).join(' und ');
   const lead = who ? `${who} ${persons + orgsOn === 1 ? 'ist' : 'sind'} ersetzt.` : (r.hits.some((x) => x.on) ? 'Kontaktdaten sind ersetzt.' : 'Es wird nichts ersetzt.');
   $('#save-lead').textContent = lead + (n ? ` ${countWord(n)} ${n === 1 ? 'Punkt' : 'Punkte'} bitte noch ansehen:` : pts.some((p) => p.busy) ? ' Der Schlusscheck läuft …' : '');
-  $('#points').replaceChildren(...pts.filter((p) => !p.busy).map((p) => h('li', { class: p.leak ? 'bad' : '' },
+  fill($('#points'), ...pts.filter((p) => !p.busy).map((p) => h('li', { class: p.leak ? 'bad' : '' },
     h('span', { class: 'ptext' }, ...(Array.isArray(p.text) ? p.text : [p.text]), p.small ? h('small', {}, p.small) : null, p.hint ? h('small', {}, p.hint) : null,
       p.items ? h('ul', { class: 'plist' }, ...p.items.map((it) => h('li', {}, h('span', {}, it.text), it.act ? h('button', { type: 'button', class: 'secondary small', onclick: it.act[1] }, it.act[0]) : null))) : null),
     p.acts && p.acts.length ? h('span', { class: 'pact' }, ...p.acts.map(([label, fn, id]) => h('button', { type: 'button', class: 'secondary small', id: id || null, onclick: fn }, label))) : null)));
   // Bilderliste (aufgeklappt unter der Fläche)
-  $('#imgbox').replaceChildren(...(app.imagesOpen && app.doc.images && app.doc.images.length ? [h('ul', { class: 'imglist', id: 'img-list' }, ...app.doc.images.map((im) => imageTile(im, app.doc.kind === 'xlsx' ? 'Excel' : 'Word')))] : []));
+  fill($('#imgbox'), ...(app.imagesOpen && app.doc.images && app.doc.images.length ? [h('ul', { class: 'imglist', id: 'img-list' }, ...app.doc.images.map((im) => imageTile(im, app.doc.kind === 'xlsx' ? 'Excel' : 'Word')))] : []));
   // EIN Häkchen; erst wählbar, wenn die Bilderliste geöffnet wurde (falls Bilder da sind); fällt bei jeder Änderung zurück
   const needImages = !!(app.doc.images && app.doc.images.length && !app.imagesSeen);
   $('#ack-all-row').hidden = !n;
@@ -1409,7 +1415,7 @@ function renderSave() {
   if (p && !p.busy && !p.error && !p.leaks.length) info.push(ampelRow('ok', 'Schlusscheck', 'Kein Klarname im Ergebnis gefunden.'));
   if (isReversible()) info.push(ampelRow(keySaved() ? 'ok' : 'info', 'Schlüsseldatei', keySaved() ? 'Gespeichert. Bewahre sie getrennt und sicher auf.' : 'Noch nicht gespeichert.'));
   if (app.saved) info.push(ampelRow('ok', 'Gespeichert', `${app.saved.name} – ${app.saved.note}`));
-  $('#ampel').replaceChildren(...info);
+  fill($('#ampel'), ...info);
   renderFileCards();
   renderSaveButtons();
   // Danach
@@ -1502,7 +1508,7 @@ function renderFileCards() {
     kids.unshift(h('span', { class: 'key' }, h('span', { class: 'fname', id: 'fname-key' }, keyName()), ' bleibt auf diesem PC (enthält echte Namen, nie weitergeben)'));
     kids.push(h('span', { id: 'key-status', class: 'status' + (keySaved() ? ' ok' : ' hint') }, keySaved() ? app.keyNote : 'Erst „1 Schlüssel speichern“, dann „2 Datei speichern“. Ohne Schlüsseldatei ist kein Rückbau möglich.'));
   }
-  $('#filecards').replaceChildren(...kids);
+  fill($('#filecards'), ...kids);
 }
 // Genau ein Hauptknopf: rückbaufähig erst „1 Schlüssel speichern“, dann „2 Datei speichern“
 function renderSaveButtons() {
@@ -2031,7 +2037,7 @@ function renderR2() {
           h('td', {}, r.platzhalter), h('td', {}, r.kategorie), h('td', {}, String(r.erwartet)), h('td', {}, String(r.gefunden)),
           h('td', {}, r.status === 'ok' ? 'in Ordnung' : STATUS[r.status] || r.status))))))));
   }
-  $('#rb-report').replaceChildren(...kids);
+  fill($('#rb-report'), ...kids);
   const blocked = rbBlocked();
   $('#r2-next').disabled = blocked;
   $('#r2-info').textContent = fatal ? 'Rückbau nicht möglich' : rb.left === null ? 'Prüfe …' : blocked ? 'Bitte bestätigen' : '';
@@ -2042,7 +2048,7 @@ function renderR3() {
   $('#rb-fname').textContent = `wiederhergestellt_${f2base(rb.file.kind)}.${rb.file.kind}`;
   const rows = [ampelRow('info', 'Nicht zurück kommen', 'Autor, Kommentar-Autoren und andere Dateiangaben (z. B. Firma) werden nicht wiederhergestellt.')];
   if (rb.saved) rows.unshift(ampelRow('ok', 'Gespeichert', rb.saved));
-  $('#rb-ampel').replaceChildren(...rows);
+  fill($('#rb-ampel'), ...rows);
   $('#rb-btn-copy').hidden = rb.file.kind !== 'txt';
   $('#rb-btn-save').textContent = `Wiederhergestellte Datei speichern (.${rb.file.kind})`;
   $('#rb-btn-save').className = rb.saved ? 'secondary' : 'primary';

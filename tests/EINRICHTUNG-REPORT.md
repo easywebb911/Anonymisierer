@@ -127,8 +127,8 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 - OK: „Astrid-Lindgren-Schule“ = ein Platzhalter; „Astrid Lindgren“ an anderer Stelle bleibt Person – Auch die Einrichtung C macht mit. Frau Vorname B Nachname B liest vor.
 
 ## Art-Wechsel: Einrichtung → Person → Einrichtung (rückbaufähig)
-- OK: „ist eine Person“: Platzhalter, Zählung und Kennung folgen; Schlüssel muss neu gespeichert werden – vorher: 2 Personen/1 Einrichtung, „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“; nachher: 3/0, „Das FZS plant gemeinsam mit dem Vorname B Nachname B ein Fest.“, Kennung D4R6 → R34K
-- OK: „ist eine Einrichtung“ zurück: wieder „Einrichtung A“, Zählung und Kennung folgen – „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“, Kennung R34K → 794U
+- OK: „ist eine Person“: Platzhalter, Zählung und Kennung folgen; Schlüssel muss neu gespeichert werden – vorher: 2 Personen/1 Einrichtung, „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“; nachher: 3/0, „Das FZS plant gemeinsam mit dem Vorname B Nachname B ein Fest.“, Kennung H2N7 → 3A9P
+- OK: „ist eine Einrichtung“ zurück: wieder „Einrichtung A“, Zählung und Kennung folgen – „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“, Kennung 3A9P → R635
 
 ## Merkliste mit Art
 - OK: Neue Merkliste mit Art wird richtig gelesen (Person und Einrichtung, Art an jedem Eintrag sichtbar) – Hollmann · Person | Familienzentrum Sonnenblume · Einrichtung
@@ -336,7 +336,7 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 - OK: endung-ueber-absaetze, txt, reversible: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt – Vorstand des Lindenauer
 | Kopfzeile und Fußzeile über zwei Absätze, Bildbeschreibung vollständig ersetzt | docx | person | 2 (2) | Kopfzeile – im Original Einrichtung aus deiner Liste, nicht  / Fußzeile – im Original Einrichtung aus deiner Liste, nicht v | ja |
 - OK: Kopf-/Fußzeile/Bildbeschreibung, person: Kopfzeile und Fußzeile gemeldet, Bildbeschreibung (ersetzt) nicht
-| … Treffer in der Bildbeschreibung ausgeschaltet | docx | person | 3 (3) | Kopfzeile – im OriginalEinrichtung aus deiner Liste, nicht v / Fußzeile – im OriginalEinrichtung aus deiner Liste, nicht vo / Bildbeschreibung – im OriginalEinrichtung aus deiner Liste,  | ja |
+| … Treffer in der Bildbeschreibung ausgeschaltet | docx | person | 3 (3) | Kopfzeile – im Original Einrichtung aus deiner Liste, nicht  / Fußzeile – im Original Einrichtung aus deiner Liste, nicht v / Bildbeschreibung – im Original Einrichtung aus deiner Liste, | ja |
 - OK: Bildbeschreibung, person: ausgeschalteter Treffer wird mit Fundort „Bildbeschreibung“ gemeldet
 | Kopfzeile und Fußzeile über zwei Absätze, Bildbeschreibung vollständig ersetzt | docx | reversible | 2 (2) | Kopfzeile – im Original Einrichtung aus deiner Liste, nicht  / Fußzeile – im Original Einrichtung aus deiner Liste, nicht v | ja |
 - OK: Kopf-/Fußzeile/Bildbeschreibung, reversible: Kopfzeile und Fußzeile gemeldet, Bildbeschreibung (ersetzt) nicht
