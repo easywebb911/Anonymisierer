@@ -127,16 +127,16 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 - OK: „Astrid-Lindgren-Schule“ = ein Platzhalter; „Astrid Lindgren“ an anderer Stelle bleibt Person – Auch die Einrichtung C macht mit. Frau Vorname B Nachname B liest vor.
 
 ## Art-Wechsel: Einrichtung → Person → Einrichtung (rückbaufähig)
-- OK: „ist eine Person“: Platzhalter, Zählung und Kennung folgen; Schlüssel muss neu gespeichert werden – vorher: 2 Personen/1 Einrichtung, „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“; nachher: 3/0, „Das FZS plant gemeinsam mit dem Vorname B Nachname B ein Fest.“, Kennung Q2U7 → 9V8H
-- OK: „ist eine Einrichtung“ zurück: wieder „Einrichtung A“, Zählung und Kennung folgen – „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“, Kennung 9V8H → 24F6
+- OK: „ist eine Person“: Platzhalter, Zählung und Kennung folgen; Schlüssel muss neu gespeichert werden – vorher: 2 Personen/1 Einrichtung, „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“; nachher: 3/0, „Das FZS plant gemeinsam mit dem Vorname B Nachname B ein Fest.“, Kennung Y2J4 → D96K
+- OK: „ist eine Einrichtung“ zurück: wieder „Einrichtung A“, Zählung und Kennung folgen – „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“, Kennung D96K → 23K3
 
 ## Merkliste mit Art
 - OK: Neue Merkliste mit Art wird richtig gelesen (Person und Einrichtung, Art an jedem Eintrag sichtbar) – Hollmann · Person | Familienzentrum Sonnenblume · Einrichtung
 - OK: Beim Hinzufügen Art wählbar; Datei und Browser-Speicher merken die Art – Datei: {"names":["Hollmann"],"einrichtungen":["Lindenauer Bürgerverein"]}
 
 ## Oberfläche: Legende, KI-Hinweis, Modi
-- OK: Einrichtung im Text wie jede ersetzte Stelle markiert (gleiche gelbe Fläche wie Personen, kein hochgestellter Buchstabe) – {"org":{"bg":"rgb(255, 227, 154)","fg":"rgb(23, 33, 43)","after":"none"},"per":{"bg":"rgb(255, 227, 154)","fg":"rgb(23, 33, 43)","after":"none"}}
-- OK: Kontrast Schrift/Hintergrund der Markierung mindestens 4,5:1 – 13.0:1
+- OK: Einrichtung im Text wie jede ersetzte Stelle markiert (gleiche gelbe Fläche wie Personen, kein hochgestellter Buchstabe) – {"org":{"bg":"rgb(255, 243, 196)","fg":"rgb(23, 33, 43)","after":"none"},"per":{"bg":"rgb(255, 243, 196)","fg":"rgb(23, 33, 43)","after":"none"}}
+- OK: Kontrast Schrift/Hintergrund der Markierung mindestens 4,5:1 – 14.6:1
 - OK: „Hinweis für die KI“ nennt „Einrichtung A“ (bzw. „[EINRICHTUNG]“)
 - OK: Treffer der Einrichtung in der Prüfansicht markiert (Hinweis beim Überfahren nennt den Platzhalter) – wird ersetzt durch: Einrichtung A · Einrichtung: Familienzentrum Sonnenblume · Klick = umschalten
 - OK: Modus „[NAME]“: „[EINRICHTUNG]“ – Bericht aus dem [EINRICHTUNG]

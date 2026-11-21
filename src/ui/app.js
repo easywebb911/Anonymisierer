@@ -88,7 +88,14 @@ const app = {
   screen: 'start',
   modeChosen: false,
   answers: new Map(), // Frage-Kennung -> 'ja' | 'nein'
-  qReview: -1, // >= 0: Fragen werden noch einmal gezeigt (Position)
+  // Version 2.6.1: Antworten änderbar. Je Antwort: Reihenfolge und was sie verändert hat (zum genauen Zurücknehmen).
+  answerLog: new Map(), // Frage-Kennung -> {seq, hits: [{key, had, val, set}], meta: {...} | null}
+  answerSeq: 0,
+  qCurrent: null, // Kennung der gezeigten Frage; null = erste offene; '' = „Alle Fragen beantwortet“
+  qShown: undefined, // zuletzt gezeigte Frage (zum Rollen nur bei einem Wechsel)
+  qNote: false, // Hinweis „Du hast eine Einstellung geändert …“ (bis zur nächsten Antwort)
+  inAnswer: false, // während eine Antwort angewendet oder zurückgenommen wird (keine Listen-Regel)
+  listSig: undefined, // Stand der Listen bei der letzten Berechnung (Listen-Regel)
   openMenu: null, // Personenliste: offenes Menü (Personen-Schlüssel)
   preview: null, // Schlusscheck-Vorschau auf dem Speichern-Bildschirm {stamp, format, out, leaks, busy}
   saved: null, // {name}
@@ -196,9 +203,30 @@ async function loadBytes(bytes, name) {
 // ---------- Analyse ----------
 function runAnalysis() {
   if (!app.doc) return;
+  const qBefore = app.result && !app.inAnswer ? new Set(questions().map((q) => q.id)) : null;
   app.result = analyze(app.doc.units, app.state);
+  // Version 2.6.1 (Entscheidung Easy): Liste geändert (Eigene Namen, Einrichtungen, Ausnahmen) -> Antworten bleiben gültig;
+  // ein über „Ja“ bei Dateiangaben übernommener und wieder entfernter Eintrag gilt als „Nein“; Antworten zu Fragen, die
+  // dadurch wegfallen, werden verworfen (samt ihrer Wirkung)
+  const sig = listSig();
+  if (app.listSig !== undefined && sig !== app.listSig && !app.inAnswer && qBefore) applyListRule(qBefore);
+  app.listSig = sig;
   changed();
   render();
+}
+function listSig() { return JSON.stringify([app.state.manualTerms, app.state.orgTerms, app.state.exceptions]); }
+function applyListRule(qBefore) {
+  for (const [id, rec] of [...app.answerLog]) {
+    if (!rec.meta || !rec.meta.added.length) continue;
+    const list = rec.meta.org ? app.state.orgTerms : app.state.manualTerms;
+    if (rec.meta.added.some((t) => list.some((x) => fold(x) === fold(t)))) continue;
+    app.answers.set(id, 'nein');
+    app.answerLog.set(id, { seq: rec.seq, hits: [], meta: null });
+  }
+  const ids = new Set(questions().map((q) => q.id));
+  const gone = [...app.answers.keys()].filter((id) => qBefore.has(id) && !ids.has(id)).sort((a, b) => seqOf(b) - seqOf(a));
+  for (const id of gone) undoAnswer(id);
+  refreshOn();
 }
 // Jede Änderung der Treffer: Schlusscheck-Bestätigung verfällt, Schlüsseldatei muss neu gespeichert werden
 function changed() {
@@ -488,16 +516,140 @@ function askHits() {
   }
   return s;
 }
+// Version 2.6.1: Eine Antwort lässt sich ändern. Ergebnis = als wäre die jetzt gültige Antwort gleich gegeben worden:
+// die alte Wirkung wird genau zurückgenommen (nur Stellen, die seitdem niemand von Hand umgeschaltet hat), später
+// gegebene Antworten werden zurückgenommen und in derselben Reihenfolge wieder angewendet; Antworten zu Fragen, die es mit
+// der neuen Antwort nicht mehr gibt, werden verworfen. Dieselbe Antwort noch einmal ändert nichts.
 function answer(q, yes) {
-  app.answers.set(q.id, yes ? 'ja' : 'nein');
-  if (app.qReview >= 0) app.qReview += 1;
-  if (q.kind === 'word') setHits(yes ? q.hits : q.neinHits, yes);
-  else if (q.kind === 'place') setHits([q.hit], yes);
-  else if (yes && !q.taken) { if (q.org) addOrg(q.name); else addManual(q.name); } // rechnet neu und zeichnet alles
-  else changed();
+  const val = yes ? 'ja' : 'nein';
+  const before = app.answers.get(q.id);
+  app.qNote = false;
+  if (before === val) { advanceAfter(q.id); refreshMarks(); renderQuestions(); return; }
+  if (before === undefined) applyAnswer(q, val, ++app.answerSeq);
+  else changeAnswer(q, val);
+  advanceAfter(q.id);
   refreshMarks();
   renderQuestions();
   renderA2Info();
+}
+const MANUELL = 'von Hand'; // Stelle wurde nach der Antwort von Hand umgeschaltet: weder zurücknehmen noch neu setzen
+function seqOf(id) { const r = app.answerLog.get(id); return r ? r.seq : 0; }
+function hitRecord(list, on, skip) {
+  const ov = app.state.overrides;
+  return list.map((x) => ({ key: x.key, had: Object.prototype.hasOwnProperty.call(ov, x.key), val: ov[x.key], set: skip && skip.has(x.key) ? MANUELL : on }));
+}
+// Antwort anwenden (wie bisher) und festhalten, was sie verändert
+function applyAnswer(q, val, seq, skip) {
+  const yes = val === 'ja';
+  app.answers.set(q.id, val);
+  const rec = { seq, hits: [], meta: null };
+  app.answerLog.set(q.id, rec);
+  if (q.kind === 'word' || q.kind === 'place') {
+    const list = q.kind === 'place' ? [q.hit] : yes ? q.hits : q.neinHits;
+    rec.hits = hitRecord(list, yes, skip);
+    setHits(skip ? list.filter((x) => !skip.has(x.key)) : list, yes);
+  } else if (yes && !q.taken) {
+    const before = { m: [...app.state.manualTerms], o: [...app.state.orgTerms], e: [...app.state.exceptions], added: app.addedSinceLoad };
+    const wasIn = app.inAnswer;
+    app.inAnswer = true;
+    if (q.org) addOrg(q.name); else addManual(q.name); // rechnet neu und zeichnet alles
+    app.inAnswer = wasIn;
+    const target = q.org ? 'o' : 'm';
+    const other = q.org ? 'm' : 'o';
+    const now = { m: app.state.manualTerms, o: app.state.orgTerms, e: app.state.exceptions };
+    const lost = (k) => before[k].map((v, i) => ({ i, v })).filter((x) => !now[k].includes(x.v));
+    rec.meta = { org: q.org, added: now[target].filter((t) => !before[target].includes(t)), removedOther: lost(other), removedExc: lost('e'), addedSinceLoad: before.added };
+  } else changed();
+}
+// Wirkung einer Antwort zurücknehmen; liefert die Stellen, die inzwischen von Hand umgeschaltet waren
+function undoAnswer(id) {
+  const rec = app.answerLog.get(id);
+  const skipped = new Set();
+  app.answers.delete(id);
+  app.answerLog.delete(id);
+  if (!rec) return skipped;
+  const ov = app.state.overrides;
+  for (const e of rec.hits) {
+    if (e.set !== MANUELL && ov[e.key] === e.set) { if (e.had) ov[e.key] = e.val; else delete ov[e.key]; } else skipped.add(e.key);
+  }
+  if (rec.meta) {
+    const m = rec.meta;
+    const st = app.state;
+    const target = m.org ? 'orgTerms' : 'manualTerms';
+    const other = m.org ? 'manualTerms' : 'orgTerms';
+    st[target] = st[target].filter((t) => !m.added.includes(t));
+    for (const x of m.removedOther) if (!st[other].includes(x.v)) st[other].splice(Math.min(x.i, st[other].length), 0, x.v);
+    for (const x of m.removedExc) if (!st.exceptions.includes(x.v)) st.exceptions.splice(Math.min(x.i, st.exceptions.length), 0, x.v);
+    app.addedSinceLoad = m.addedSinceLoad;
+    saveStored();
+    const wasIn = app.inAnswer;
+    app.inAnswer = true;
+    runAnalysis();
+    app.inAnswer = wasIn;
+  }
+  return skipped;
+}
+function changeAnswer(q, val) {
+  const rec = app.answerLog.get(q.id);
+  const seq = rec ? rec.seq : ++app.answerSeq;
+  const later = [...app.answerLog].filter(([id, r]) => id !== q.id && r.seq > seq).sort((a, b) => a[1].seq - b[1].seq)
+    .map(([id, r]) => ({ id, seq: r.seq, val: app.answers.get(id) }));
+  app.inAnswer = true;
+  const skipped = new Map();
+  for (const l of [...later].reverse()) skipped.set(l.id, undoAnswer(l.id));
+  const own = undoAnswer(q.id);
+  refreshOn();
+  const find = (id) => questions().find((x) => x.id === id);
+  const qq = find(q.id);
+  if (qq) applyAnswer(qq, val, seq, own.size ? own : null);
+  for (const l of later) {
+    const ql = find(l.id);
+    if (ql) applyAnswer(ql, l.val, l.seq, skipped.get(l.id).size ? skipped.get(l.id) : null);
+  }
+  app.inAnswer = false;
+  app.listSig = listSig();
+  refreshOn();
+  changed();
+  render();
+}
+// An/Aus aller Treffer aus den Umschaltungen neu ableiten (wie die Berechnung selbst)
+function refreshOn() {
+  if (!app.result) return;
+  for (const x of app.result.hits) { const ov = app.state.overrides[x.key]; x.on = ov === undefined ? !x.defaultOff : ov; }
+}
+// Nach einer Antwort: erste offene Frage; sonst die nächste in der Reihenfolge; am Ende „Alle Fragen beantwortet“
+function advanceAfter(id) {
+  const qs = questions();
+  const open = qs.find((q) => !answerOf(q));
+  if (open) { app.qCurrent = open.id; return; }
+  const i = qs.findIndex((q) => q.id === id);
+  app.qCurrent = i >= 0 && i + 1 < qs.length ? qs[i + 1].id : '';
+}
+// Gezeigte Frage: {qs, idx} (idx = -1: „Alle Fragen beantwortet“ bzw. keine Fragen)
+function shownQuestion() {
+  const qs = questions();
+  let idx = app.qCurrent ? qs.findIndex((q) => q.id === app.qCurrent) : -1;
+  if (idx < 0) idx = qs.findIndex((q) => !answerOf(q));
+  return { qs, idx };
+}
+// Stellen der gezeigten Frage (kräftig markiert)
+function currentHits() {
+  const { qs, idx } = shownQuestion();
+  const q = qs[idx];
+  if (!q || q.kind === 'meta') return [];
+  if (q.kind === 'place') return [q.hit];
+  return q.hits.length ? q.hits : q.neinHits;
+}
+function goQuestion(delta) {
+  const { qs, idx } = shownQuestion();
+  if (!qs.length) return;
+  if (idx < 0) { if (delta < 0) app.qCurrent = qs[qs.length - 1].id; } else {
+    const j = idx + delta;
+    if (j < 0) return;
+    if (j >= qs.length) { const open = qs.find((q) => !answerOf(q)); app.qCurrent = open ? open.id : ''; } else app.qCurrent = qs[j].id;
+  }
+  refreshMarks();
+  renderQuestions();
 }
 // Kontext: der Satz (bzw. die Zeile) um das Vorkommen, das Wort hervorgehoben
 function contextOf(hit) {
@@ -514,23 +666,28 @@ function contextOf(hit) {
   if (b < t.length && /[.!?]/.test(t[b])) b++;
   return h('p', { class: 'qctx' }, (a > 0 ? '…' : '') + t.slice(a, s).trimStart(), h('mark', {}, t.slice(s, e)), t.slice(e, b).trimEnd() + (b < t.length ? '…' : ''));
 }
+// Kopfzeile der Karte: Zähler, „Vorige Frage“ / „Nächste Frage“ (Version 2.6.1)
+function qHead(text, prevOn, nextOn) {
+  const nav = (id, label, arrow, on, d) => h('button', { type: 'button', class: 'qnav', id, 'aria-label': label, title: label, disabled: on ? null : '', onclick: () => goQuestion(d) }, arrow);
+  return h('div', { class: 'qhead' }, h('p', { class: 'qcount' }, text),
+    h('span', { class: 'qnavs' }, nav('q-prev', 'Vorige Frage', '←', prevOn, -1), nav('q-next', 'Nächste Frage', '→', nextOn, 1)));
+}
 function renderQuestions() {
   const box = $('#qcard');
-  const qs = questions();
-  if (!qs.length) { box.replaceChildren(h('p', { class: 'qcount' }, 'Keine Fragen'), h('p', {}, 'Es gibt nichts zu entscheiden.')); return; }
-  let idx;
-  if (app.qReview >= 0) {
-    if (app.qReview >= qs.length) app.qReview = -1; else idx = app.qReview;
-  }
-  if (idx === undefined) idx = qs.findIndex((q) => !answerOf(q));
+  const { qs, idx } = shownQuestion();
+  const note = app.qNote ? h('p', { class: 'hint qnote', id: 'q-note' }, 'Du hast eine Einstellung geändert. Die Fragen sind wieder offen.') : null;
+  if (!qs.length) { box.replaceChildren(h('p', { class: 'qcount' }, 'Keine Fragen'), h('p', {}, 'Es gibt nichts zu entscheiden.')); noteShown(null); return; }
   if (idx < 0) {
-    box.replaceChildren(h('p', { class: 'qcount' }, `${qs.length} von ${qs.length} Fragen`), h('p', { class: 'qask' }, 'Alle Fragen beantwortet'),
-      h('button', { type: 'button', class: 'secondary small', id: 'q-again', onclick: () => { app.qReview = 0; renderQuestions(); } }, 'Fragen noch einmal zeigen'));
+    app.qCurrent = '';
+    box.replaceChildren(qHead(`${qs.length} von ${qs.length} Fragen`, true, false), h('p', { class: 'qask' }, 'Alle Fragen beantwortet'), note,
+      h('button', { type: 'button', class: 'secondary small', id: 'q-again', onclick: () => { app.qCurrent = qs[0].id; refreshMarks(); renderQuestions(); } }, 'Fragen noch einmal zeigen'));
+    noteShown(null);
     return;
   }
   const q = qs[idx];
+  app.qCurrent = q.id;
   const prev = answerOf(q);
-  const kids = [h('p', { class: 'qcount' }, `Frage ${idx + 1} von ${qs.length}`)];
+  const kids = [qHead(`Frage ${idx + 1} von ${qs.length}`, idx > 0, !!prev), note];
   let yes = 'Ja, Name';
   if (q.kind === 'word') {
     kids.push(contextOf(q.first), h('p', { class: 'qask' }, `Ist „${q.word}“ ein Name?`));
@@ -551,8 +708,43 @@ function renderQuestions() {
   kids.push(h('div', { class: 'qbtns' },
     h('button', { type: 'button', class: 'secondary', id: 'q-yes', onclick: () => answer(q, true) }, yes),
     h('button', { type: 'button', class: 'secondary', id: 'q-no', onclick: () => answer(q, false) }, 'Nein')),
-  h('p', { class: 'qkeys' }, 'Tasten: J = Ja, N = Nein'));
+  h('p', { class: 'qkeys' }, 'Tasten: J = Ja, N = Nein, ← vorige, → nächste Frage'));
   box.replaceChildren(...kids);
+  noteShown(q);
+}
+// Version 2.6.1: Wechselt die gezeigte Frage, zur ersten Stelle dieser Frage rollen (Excel: vorher das Blatt wechseln)
+function noteShown(q) {
+  if (app.screen !== 'a2') return;
+  const id = q ? q.id : null;
+  if (id === app.qShown) return;
+  app.qShown = id;
+  if (!q || q.kind === 'meta') return;
+  const first = q.kind === 'place' ? q.hit : q.first;
+  const sheets = app.doc.kind === 'xlsx' && app.doc.raw.view ? app.doc.raw.view : null;
+  if (sheets) {
+    const si = sheets.findIndex((sh) => sh.cells.some((c) => c.u === first.unit));
+    if (si >= 0 && si !== app.sheetTab) { app.sheetTab = si; renderDoc(); }
+  }
+  requestAnimationFrame(() => scrollToHit(first));
+}
+function scrollToHit(x) {
+  if (app.screen !== 'a2') return;
+  const el = document.querySelector(`#docview mark[data-h="${x.id}"]`);
+  if (!el) return;
+  const r = el.getBoundingClientRect();
+  const top = $('.top') ? $('.top').getBoundingClientRect().bottom : 0;
+  let visible = r.top >= top && r.bottom <= window.innerHeight && r.left >= 0 && r.right <= document.documentElement.clientWidth;
+  for (let p = el.parentElement; p && visible; p = p.parentElement) {
+    const cs = getComputedStyle(p);
+    if (/(auto|scroll|hidden)/.test(cs.overflowX + cs.overflowY)) {
+      const b = p.getBoundingClientRect();
+      if (r.left < b.left || r.right > b.right || r.top < b.top || r.bottom > b.bottom) visible = false;
+    }
+  }
+  if (visible) return;
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  el.style.scrollMarginTop = Math.ceil(top) + 'px';
+  el.scrollIntoView({ block: 'center', inline: 'center', behavior: reduce ? 'auto' : 'smooth' });
 }
 function renderA2Info() {
   const n = openQuestions().length;
@@ -619,20 +811,21 @@ function renderSummary() {
 }
 
 // Hinweis beim Überfahren: wer es ist und was passiert
-function hitTitle(x) {
+function hitTitle(x, cur) {
   const who = x.type === 'person' ? (app.result.entities.get(x.entity) || {}).display : x.type === 'org' ? (app.result.orgs.get(x.entity) || {}).display : '';
-  return (x.on ? 'wird ersetzt durch: ' + x.label : 'bleibt stehen') + (who ? ` · ${x.type === 'org' ? 'Einrichtung' : 'Person'}: ${who}` : '') + ' · Klick = umschalten';
+  return (x.on ? 'wird ersetzt durch: ' + x.label : 'bleibt stehen') + (who ? ` · ${x.type === 'org' ? 'Einrichtung' : 'Person'}: ${who}` : '') + (cur && cur.has(x) ? ' · aktuelle Frage' : '') + ' · Klick = umschalten';
 }
-// Klassen einer Markierung: nur „wird ersetzt“ (on) und „Frage“ (ask); aus = unmarkiert
-function markClass(x, ask) { return 'hit ' + (x.on ? 'on' : 'off') + (ask.has(x) ? ' ask' : ''); }
+// Klassen einer Markierung: „wird ersetzt“ (on), „Frage“ (ask), seit 2.6.1 „aktuelle Frage“ (cur); aus = unmarkiert
+function markClass(x, ask, cur) { return 'hit ' + (x.on ? 'on' : 'off') + (ask.has(x) ? ' ask' : '') + (cur && cur.has(x) ? ' cur' : ''); }
 function refreshMarks() {
   if (!app.result) return;
   const ask = askHits();
+  const cur = new Set(currentHits());
   for (const m of document.querySelectorAll('#docview mark[data-h]')) {
     const x = app.result.hits[Number(m.dataset.h)];
     if (!x) continue;
-    m.className = markClass(x, ask);
-    m.title = hitTitle(x);
+    m.className = markClass(x, ask, cur);
+    m.title = hitTitle(x, cur);
   }
 }
 
@@ -662,14 +855,14 @@ function unitText(ui, ctx) {
   const cont = ctx.contOf.get(ui);
   if (cont) {
     pos = Math.min(cont.e - base, u.text.length);
-    tx.append(h('mark', { class: markClass(cont, ctx.ask), 'data-h': cont.id, title: hitTitle(cont) }, u.text.slice(0, pos)));
+    tx.append(h('mark', { class: markClass(cont, ctx.ask, ctx.cur), 'data-h': cont.id, title: hitTitle(cont, ctx.cur) }, u.text.slice(0, pos)));
   }
   for (const x of ctx.byUnit.get(ui) || []) {
     const s = x.s - base;
     const e = Math.min(x.e - base, u.text.length);
     if (s < pos) continue;
     if (s > pos) tx.append(document.createTextNode(u.text.slice(pos, s)));
-    tx.append(h('mark', { class: markClass(x, ctx.ask), 'data-h': x.id, title: hitTitle(x) }, u.text.slice(s, e)));
+    tx.append(h('mark', { class: markClass(x, ctx.ask, ctx.cur), 'data-h': x.id, title: hitTitle(x, ctx.cur) }, u.text.slice(s, e)));
     pos = e;
   }
   if (pos < u.text.length) tx.append(document.createTextNode(u.text.slice(pos)));
@@ -682,7 +875,7 @@ function docContext() {
     if (!byUnit.has(x.unit)) byUnit.set(x.unit, []);
     byUnit.get(x.unit).push(x);
   }
-  return { byUnit, contOf: new Map(r.hits.filter((x) => x.unit2 !== undefined).map((x) => [x.unit2, x])), ask: askHits() };
+  return { byUnit, contOf: new Map(r.hits.filter((x) => x.unit2 !== undefined).map((x) => [x.unit2, x])), ask: askHits(), cur: new Set(currentHits()) };
 }
 const placeLine = (label, content) => h('div', { class: 'placeline' }, h('span', { class: 'where' }, label), h('span', {}, content));
 const colNum = (c) => { let n = 0; for (const ch of c) n = n * 26 + (ch.charCodeAt(0) - 64); return n; };
@@ -1055,7 +1248,7 @@ function savePoints() {
   const pts = [];
   if (!r.hits.some((x) => x.on)) pts.push({ id: 'nichts', text: 'Es wird nichts ersetzt.', small: 'Prüfe im Schritt „Prüfen“, ob Namen fehlen.', acts: [['Prüfen', () => show('a2')]] });
   const open = openQuestions().length;
-  if (open) pts.push({ id: 'fragen:' + open, text: `${open === 1 ? 'Eine Frage ist' : open + ' Fragen sind'} noch offen.`, small: 'Ohne Antwort bleibt jede Stelle so, wie sie im Moment ist.', acts: [['Beantworten', () => { app.qReview = -1; show('a2'); }]] });
+  if (open) pts.push({ id: 'fragen:' + open, text: `${open === 1 ? 'Eine Frage ist' : open + ' Fragen sind'} noch offen.`, small: 'Ohne Antwort bleibt jede Stelle so, wie sie im Moment ist.', acts: [['Beantworten', () => { app.qCurrent = null; show('a2'); }]] });
   for (const w of allWarnings()) if (!isInfoWarning(w)) pts.push({ id: 'w:' + w, text: plainWarning(w) });
   if (app.doc.images && app.doc.images.length) {
     const n = app.doc.images.length;
@@ -1358,7 +1551,12 @@ function resetDoc() {
   app.doc = null;
   app.result = null;
   app.answers = new Map();
-  app.qReview = -1;
+  app.answerLog = new Map();
+  app.answerSeq = 0;
+  app.qCurrent = null;
+  app.qShown = undefined;
+  app.qNote = false;
+  app.listSig = undefined;
   app.ackSig = null;
   app.sheetTab = 0;
   app.openMenu = null;
@@ -1445,7 +1643,17 @@ function init() {
   for (const id of ['email', 'phone', 'iban', 'address', 'unsureOn']) {
     const cb = $('#opt-' + id);
     cb.checked = app.state.settings[id];
-    cb.addEventListener('change', () => { app.state.settings[id] = cb.checked; app.state.overrides = {}; runAnalysis(); });
+    cb.addEventListener('change', () => {
+      app.state.settings[id] = cb.checked;
+      app.state.overrides = {};
+      // Version 2.6.1 (Entscheidung Easy): Eine Einstellung löscht alle Umschaltungen und deshalb auch alle Antworten
+      // (Zustand wie frisch berechnet; die Listen bleiben). Gab es Antworten, sagt die Fragekarte es einmal.
+      if (app.answers.size) app.qNote = true;
+      app.answers = new Map();
+      app.answerLog = new Map();
+      app.qCurrent = null;
+      runAnalysis();
+    });
   }
   // Modus: keine Antwort vorausgewählt
   for (const r of document.querySelectorAll('input[name=mode]')) {
@@ -1493,9 +1701,10 @@ function init() {
     const t = e.target;
     if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
     const k = e.key.toLowerCase();
-    if (k !== 'j' && k !== 'n') return;
-    const btn = $(k === 'j' ? '#q-yes' : '#q-no');
-    if (btn) { e.preventDefault(); btn.click(); }
+    const sel = { j: '#q-yes', n: '#q-no', arrowleft: '#q-prev', arrowright: '#q-next' }[k];
+    if (!sel) return;
+    const btn = $(sel);
+    if (btn && !btn.disabled) { e.preventDefault(); btn.click(); }
   });
   // Listen (Erweitert)
   // Eigene Namen: beim Hinzufügen die Art wählen (Person oder Einrichtung)
@@ -1870,6 +2079,9 @@ function initRestore() {
 }
 
 // Für automatische Tests (nur lesend nutzbar, kein Netzwerk)
-window.__anon = { app, openBytes, imagesPending, buildOutput, finalCheck, addManual, addOrg, KI_HINT, runAnalysis, rb, rbLoadFile, rbLoadKey, rbCheck, show, questions, newKennung, answer, answerOf, savePoints };
+window.__anon = { app, openBytes, imagesPending, buildOutput, finalCheck, addManual, addOrg, KI_HINT, runAnalysis, rb, rbLoadFile, rbLoadKey, rbCheck, show, questions, newKennung, answer, answerOf, savePoints,
+  // Version 2.6.1 (Tests): gezeigte Frage, ihre Stellen, Fragenwechsel
+  goQuestion, shownQuestion: () => { const r = shownQuestion(); return { ids: r.qs.map((q) => q.id), idx: r.idx }; },
+  currentHits: () => currentHits().map((x) => x.id), showQ: (id) => { app.qCurrent = id; refreshMarks(); renderQuestions(); } };
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
