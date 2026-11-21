@@ -1,0 +1,6 @@
+Herr Johann Strauß kommt zur Sitzung.
+Form STRAUSS: STRAUSS Unterlagen liegen vor.
+Form STRAUSSES: STRAUSSES Unterlagen liegen vor.
+Form STRAUSS’: STRAUSS’ Unterlagen liegen vor.
+Form STRAUẞ: STRAUẞ Unterlagen liegen vor.
+Form STRAUẞES: STRAUẞES Unterlagen liegen vor.

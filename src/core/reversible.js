@@ -96,7 +96,10 @@ export function assignReversible(result) {
       h.label = ph;
     } else if (h.type === 'person') {
       const en = entities.get(h.entity);
-      const parts = splitHit(h, h.origEntity || h.entity, singleRoles);
+      // Version 2.3.2: Endung mit Großbuchstaben („MÜLLERS“) gehört zur Schreibweise des Platzhalters („Nachname A2“ =
+      // „MÜLLERS“). Stünde sie dahinter („Nachname AS“), läse der Rückbau einen anderen Platzhalter.
+      const upperSuffix = /\p{Lu}/u.test(h.suffix || '');
+      const parts = splitHit(upperSuffix ? { ...h, suffix: '' } : h, h.origEntity || h.entity, singleRoles);
       h.parts = parts.map((p) => {
         const value = fullText.slice(p.s, p.e);
         const vk = en.letter + '|' + p.role;

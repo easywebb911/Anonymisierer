@@ -45,7 +45,7 @@ Das Tool zeigt immer **nur einen Bildschirm**. Oben siehst du, in welchem Schrit
   | grau durchgestrichen | aus |
 
 - Einen Treffer **antippen** schaltet ihn an oder aus.
-- Einen **nicht erkannten Namen** antippen oder markieren: Direkt daneben erscheinen **„Als Name markieren“** und **„Als Einrichtung markieren“** (seit Version 2.3, siehe unten). Danach wird er **überall** ersetzt, auch mit Endung („Müllers“) und in GROSSSCHREIBUNG.
+- Einen **nicht erkannten Namen** antippen oder markieren: Direkt daneben erscheinen **„Als Name markieren“** und **„Als Einrichtung markieren“** (seit Version 2.3, siehe unten). Danach wird er **überall** ersetzt, auch mit Endung („Müllers“) und in GROSSSCHREIBUNG („MÜLLER“, „MÜLLERs“). Ausnahme: GROSS geschrieben **mit großer Endung** („MÜLLERS“) wird ein von Hand markierter Name nicht ersetzt, sondern vom Schlusscheck gemeldet (siehe „Großschreibung und Endungen“ unter Grenzen).
 - **Fragekarte** rechts: Das Tool fragt bei jedem unsicheren Wort bzw. jeder unsicheren Person **einmal**: „Ist „…“ hier ein Name?“.
   - **„Ja, Name“** schaltet alle unsicheren Stellen dieses Worts bzw. dieser Person an, **„Nein“** schaltet sie aus. **Sicher erkannte Stellen derselben Person bleiben in jedem Fall an**; ein „Nein“ gibt also keinen sicher erkannten Namen frei.
   - Am PC gehen auch die Tasten **J** und **N**, aber nur auf diesem Bildschirm und nicht, während du in einem Eingabefeld bist.
@@ -271,7 +271,15 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 - **Nie 100 %.** Seltene Namen, die in keiner Liste stehen und ohne Anrede vorkommen (im Test z. B. „Ijeoma Uchendu“, „Xiong Wenjie“), werden **nicht** erkannt → im Schritt „Prüfen“ von Hand markieren.
 - **Fehltreffer** sind möglich (z. B. „Bill“ in „engl. Bill“, ein Tabellenkopf „Name“). Sie sind meist als „unsicher“ markiert und lassen sich abschalten.
 - **Kleingeschriebene Namen** werden nur gefunden, wenn derselbe Name schon anderswo erkannt oder von Hand markiert wurde.
-- **Endungen (seit Version 2.3.1):** Ist ein Name erkannt oder markiert, werden auch seine gebeugten Formen ersetzt („Quabbenjansens“, „Müllers“), mit den Endungen ’s, ', s, es, n und ns. Grenze: Eine Endung in GROSSSCHREIBUNG („MÜLLERS“, „QUABBENJANSENS“) zählt nicht als Endung. Solche Formen bleiben stehen, und der Schlusscheck meldet sie **nur**, wenn dieselbe Form auch klein geschrieben im Dokument steht. Bitte GROSS geschriebene Namen im Schritt „Prüfen“ selbst ansehen und markieren.
+- **Endungen (seit Version 2.3.1):** Ist ein Name erkannt oder markiert, werden auch seine gebeugten Formen ersetzt („Quabbenjansens“, „Müllers“), mit den Endungen ’s, ', s, es, n und ns.
+- **Großschreibung und Endungen (seit Version 2.3.2):** Ein Name in GROSSBUCHSTABEN mit Endung („MÜLLERS“, „QUABBENJANSENS“, „MÜLLERs“) bleibt nicht mehr unbemerkt stehen. Er wird entweder ersetzt oder vom Schlusscheck gemeldet.
+  - **Ersetzt** wird er, wenn das Tool den Namen selbst erkannt hat (z. B. „Herr Gerrit Quabbenjansen“ steht im Text) oder wenn er in einer Namensliste steht („MÜLLERS“ allein). Gleiche Person, gleicher Platzhalter. Mehrdeutige Wörter bleiben „unsicher“ wie in Kleinschreibung (z. B. „WINTERS“ in einer Überschrift: „unsicher, an“, bitte prüfen).
+  - Die große Endung bleibt im Modus „Person A“ am Platzhalter stehen („Person AS“). Im Modus „rückbaufähig“ gehört sie zum Platzhalter („Nachname A3“ = „MÜLLERS“), damit der Rückbau genau „MÜLLERS“ zurückschreibt. Kleine Endungen bleiben wie bisher dahinter („Nachname A2s“).
+  - **Nur gemeldet** (nicht ersetzt) wird er, wenn du den Namen **von Hand markiert** hast (eigene Namen). Grund: Eigene Namen gelten immer als „sicher“; in der Messung wurde so auch eine Überschrift „ROSEN“ bei markierter „Anna Rose“ „sicher“ ersetzt. Der Schlusscheck meldet die Stelle, du entscheidest.
+  - **Schlusscheck:** Er sucht alle bestätigten Namen ohne Rücksicht auf Groß-/Kleinschreibung und mit allen Endungen der Liste. Folge: Auch ein gewöhnliches Wort kann gemeldet werden, wenn es wie ein bestätigter Name mit Endung aussieht (z. B. „die Rosen“ bei einer Person „Anna Rose“, „des Winters“ bei „Winter“). Prüfen und bewusst stehen lassen.
+  - Schriftzeichen: „STRAUSS“ und „STRAUẞ“ gelten als „Strauß“, „YILMAZ“ als „Yılmaz“, „ÇELİK“ als „Çelik“, „BRZĘCZEK“ als „Brzęczek“, „MUELLER“ als „Müller“; unabhängig von der Spracheinstellung des Browsers (geprüft mit Türkisch).
+  - Grenzen: Andere Endungen als ’s, ', s, es, n, ns („MÜLLERIN“) zählen nicht. Texte außerhalb der Prüfansicht (Dateiangaben, Feldfunktionen) ersetzen GROSS mit großer Endung nicht; der Schlusscheck meldet sie.
+  - **Einrichtungen** in GROSSSCHREIBUNG mit Endung („DES LINDENAUER BÜRGERVEREINS“) wurden schon seit 2.3 ersetzt. Grenze (nicht geändert): Im Modus „rückbaufähig“ steht die große Endung direkt am Platzhalter („Einrichtung A2S“). Der Rückbau erkennt das nicht und lässt es stehen; angezeigt wird nur, dass „Einrichtung A2“ seltener gefunden wurde als erwartet. Bitte diese Stelle nach dem Rückbau selbst korrigieren.
 - **Namen in E-Mail-Adressen**, wenn die E-Mail-Erkennung ausgeschaltet ist, und Namen in Wortzusammensetzungen („Müllerstraße“, „Schmidt-Gruppe“ teilweise) werden nicht ersetzt.
 - **Chinesische, japanische, koreanische und thailändische Schrift** (ohne Leerzeichen zwischen Wörtern): Namen in Originalschrift werden nicht erkannt. Arabische, kyrillische, griechische und hebräische Schrift werden über Listen teilweise erkannt.
 - **Bildinhalt** wird nie verändert und nicht automatisch geprüft (Namen in Fotos, Scans, Unterschriften, Logos). Du siehst jedes Bild vor dem Speichern in der Liste „Bilder ansehen“ und bestätigst es. Die versteckten Bildangaben werden bei JPEG, PNG und GIF entfernt, bei anderen Bildtypen nicht (Hinweis erscheint, der Schlusscheck sucht trotzdem).
@@ -315,7 +323,7 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 |---|---|
 | Chromium/Chrome (Desktop) | **geprüft** (automatische Tests, headless) |
 | Chromium mit 390, 1280 und 1920 px Breite | **geprüft** (kein waagrechtes Scrollen, Knöpfe mindestens 44 px, Antippen, Markieren, Tasten J/N) |
-| Edge und Chrome unter Windows (Firmen-PC, `file://`) | Version 1.0 laut Easy **am PC geprüft**; Versionen 1.1 bis 2.3.1 **durch Code ungeprüft** |
+| Edge und Chrome unter Windows (Firmen-PC, `file://`) | Version 1.0 laut Easy **am PC geprüft**; Versionen 1.1 bis 2.3.2 **durch Code ungeprüft** |
 | Microsoft Word / Excel: Öffnen der bereinigten Datei ohne Reparatur-Meldung | **durch Code ungeprüft** (auch die unsichtbare Kennung, seit 2.1). Geprüft: LibreOffice öffnet alle Ausgaben, alle XML-Teile sind wohlgeformt, keine Verweise ins Leere |
 | Firefox (Desktop) | **ungeprüft** |
 | Safari (macOS) | **ungeprüft** |
@@ -328,12 +336,12 @@ Die Datei muss in einem Browser geöffnet werden (z. B. über „Teilen → in S
 
 ## Version und Prüfsumme
 
-Version **2.3.1**, Stand 2026-11-21 (steht auch im Fußbereich des Tools).
+Version **2.3.2**, Stand 2026-11-21 (steht auch im Fußbereich des Tools).
 
 SHA-256 der `index.html` dieser Version:
 
 ```
-df1f14af7f74ddfca8c36da1e022d26fd39b5740fba99bffe718ca986ef59a8e
+09aaa2f024ede98b3429c0bab161baedb2631e5222dbe3bd58e9cda20bf9a550
 ```
 
 Eine Datei kann ihre eigene Prüfsumme nicht enthalten, deshalb steht sie nur hier und im PR-Text. Prüfen unter Windows: `certutil -hashfile index.html SHA256`.

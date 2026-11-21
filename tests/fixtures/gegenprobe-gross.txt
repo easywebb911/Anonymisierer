@@ -1,0 +1,12 @@
+ROSEN
+Im Garten blühen die Rosen.
+WINTERS
+Die Kälte des Winters ist vorbei.
+MARKEN
+Die Marken liegen im Album.
+FRANKEN
+Die Reise führt nach Franken.
+BERGEN
+Wir wandern in den Bergen.
+STEINEN
+Der Weg ist mit Steinen gepflastert.
