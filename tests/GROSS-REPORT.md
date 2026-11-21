@@ -1030,7 +1030,7 @@ Gezählt wird nur bei bestätigten Namen (mindestens ein eingeschalteter Treffer
 - OK: Ersetzer außerhalb der Prüfansicht (reversible): „MÜLLERS“ ersetzt oder gemeldet
 
 ## Schlusscheck-Vergleich über alle Testdokumente (Modus „Person A“ und „rückbaufähig“; Ausgabe im eigenen Format)
-- 79 Dokumente, je zwei Modi: Meldungen vorher 292, nachher 78; neu 12, entfallen 226
+- 87 Dokumente, je zwei Modi: Meldungen vorher 298, nachher 84; neu 12, entfallen 226
   - neu: gegenprobe-endungen-personen.docx (person): „Rosen“ in Text – word/document.xml – „preserve Im Garten blühen die Rosen. preserve Die Marken liegen i“
   - neu: gegenprobe-endungen-personen.docx (reversible): „Rosen“ in Text – word/document.xml – „preserve Im Garten blühen die Rosen. preserve Die Marken liegen i“
   - neu: gegenprobe-endungen-personen.txt (person): „Rosen“ in Text – „sind da. Im Garten blühen die Rosen. Die Marken liegen im Album.“

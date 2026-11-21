@@ -821,18 +821,15 @@ const orgKeyOf = (t) => orgTermTokens(t).key;
 // ---------- Speichern-Bildschirm (Ampel) ----------
 function allWarnings() {
   if (!app.doc) return [];
-  const list = [...app.doc.warnings];
-  const rv = app.result && app.result.reversible;
-  if (rv && rv.clashes.length) {
-    list.push(`Das Original enthält schon Text, der wie ein Platzhalter aussieht (${rv.clashes.slice(0, 5).join(', ')}${rv.clashes.length > 5 ? ' …' : ''}). Beim Rückbau würde dieser Text ebenfalls ersetzt. Bitte vorher prüfen oder umformulieren.`);
-  }
-  return list;
+  // Bis 2.3.3 stand hier die Warnung „Beim Rückbau würde dieser Text ebenfalls ersetzt“ (mit Abhaken). Seit 2.3.4
+  // vergibt das Tool solche Platzhalter nicht mehr; der Hinweis steht als eigene Zeile ohne Sperre (placeholderWordsRow).
+  return [...app.doc.warnings];
 }
 function unackedWarnings() { return allWarnings().filter((w) => !app.ackWarnings.has(w)); }
 
 function ampelRow(state, title, text, ...extra) {
   return h('li', { class: state === 'ok' ? 'ok' : state },
-    h('span', { class: 'icon' }, icon(state === 'ok' ? 'check' : 'alert')),
+    h('span', { class: 'icon' }, icon(state === 'ok' ? 'check' : state === 'info' ? 'dots' : 'alert')),
     h('div', { class: 'body' }, h('p', { class: 'title' }, title), text ? h('p', { class: 'state' }, text) : null, ...extra));
 }
 
@@ -876,6 +873,8 @@ function renderSave() {
     rows.push(Object.assign(ampelRow(done ? 'ok' : 'warn', 'Hinweis zur Datei', w,
       h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: done, onchange: (e) => { if (e.target.checked) app.ackWarnings.add(w); else app.ackWarnings.delete(w); renderSave(); } }), ' Gelesen')), { className: (done ? 'ok' : 'warn') + ' docwarn' }));
   }
+  const pw = placeholderWordsRow();
+  if (pw) rows.push(pw);
   if (app.doc.kind === 'pdf') rows.push(ampelRow('warn', 'PDF-Eingabe', 'Ausgabe nur als Text (.txt/.docx). Das Originallayout bleibt NICHT erhalten.'));
   // Schlüsseldatei
   if (isReversible()) {
@@ -901,6 +900,16 @@ function renderSave() {
   $('#btn-csv').hidden = true;
   $('#mapping').hidden = isReversible(); // im Modus rückbaufähig ersetzt die Schlüsseldatei die Zuordnungstabelle
   if (!app.preview) startPreview();
+}
+// Version 2.3.4: Wörter im Text, die wie Platzhalter aussehen (bernstein, ohne Sperre)
+function placeholderWordsRow() {
+  const pw = app.result && app.result.placeholderWords;
+  if (!pw || !pw.words.size) return null;
+  const list = [...pw.words.keys()];
+  const shown = list.slice(0, 8).map((w) => `„${w}“`).join(', ') + (list.length > 8 ? ' …' : '');
+  let text = `Im Text stehen Wörter, die wie Platzhalter aussehen (${shown}). Das Tool verwendet diese Platzhalter nicht.`;
+  if (app.state.settings.mode === 'name') text += ' Im Modus „[NAME]“ heißen alle Namen gleich; die KI kann dort Wörter aus dem Original und Platzhalter des Tools nicht unterscheiden.';
+  return ampelRow('warn', 'Wörter wie Platzhalter', text);
 }
 // ---------- Bilder ----------
 function imagesPending() { return !!(app.doc && app.doc.images && app.doc.images.length && !app.imagesAck); }
@@ -1496,6 +1505,12 @@ function renderR2() {
         h('label', { class: 'check' }, h('input', { type: 'checkbox', id: 'rb-rest-ack', checked: rb.restAck, onchange: (e) => { rb.restAck = e.target.checked; renderR2(); } }),
           ' Ich habe diese Stellen geprüft. Sie bleiben so stehen und müssen ggf. von Hand korrigiert werden.')));
     } else rows.push(ampelRow('ok', 'Platzhalter-Reste nach dem Rückbau', 'Keine. In Ordnung.'));
+    // Version 2.3.4: Wörter, die laut Schlüssel schon im Original standen – neutral; abweichende Anzahl bernstein
+    for (const o of plan.originals || []) {
+      const same = o.gefunden === o.erwartet;
+      rows.push(ampelRow(same ? 'info' : 'warn', `„${o.text}“ stand schon im Original (${o.erwartet}×)`,
+        same ? 'Bleibt unverändert. Kein Platzhalter des Tools.' : `Bleibt unverändert. Gefunden: ${o.gefunden}× statt ${o.erwartet}× (geändert, gelöscht oder eingefügt?). Bitte prüfen.`));
+    }
     if (plan.needsConfirm) {
       rows.push(ampelRow(rb.confirmAck ? 'ok' : 'warn', 'Bestätigung nötig', 'Es gibt Abweichungen. Bestätige, dass du sie geprüft hast.',
         h('label', { class: 'check' }, h('input', { type: 'checkbox', id: 'rb-confirm', checked: rb.confirmAck, onchange: (e) => { rb.confirmAck = e.target.checked; renderR2(); } }),
@@ -1552,6 +1567,7 @@ async function rbSave(copy) {
     const known = rb.plan.rests.map((x) => x.text).concat(left.map((x) => x.text));
     for (const t of texts) {
       for (const r of findPlaceholderRests(t.text)) {
+        if (rb.key.original && rb.key.original.has(r.text)) continue; // stand schon im Original (2.3.4)
         const i = known.indexOf(r.text);
         if (i >= 0) { known.splice(i, 1); continue; }
         left.push({ where: t.where, text: r.text, kontext: r.kontext });

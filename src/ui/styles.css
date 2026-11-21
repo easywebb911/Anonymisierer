@@ -154,6 +154,9 @@ mark.off { background: var(--off); text-decoration: line-through; color: var(--m
 .ampel > li { display: grid; grid-template-columns: 2rem 1fr; gap: .25rem .75rem; align-items: start; background: var(--card); border: 1px solid var(--line); border-left: 6px solid var(--ok); border-radius: 12px; padding: .8rem 1rem; }
 .ampel > li.warn { border-left-color: var(--warn); }
 .ampel > li.bad { border-left-color: var(--keyline); }
+.ampel > li.info { border-left-color: var(--muted); }
+.ampel li.info .icon { background: var(--muted); }
+.ampel li.info .state { color: var(--muted); }
 .ampel .icon { width: 1.75rem; height: 1.75rem; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #fff; background: var(--ok); }
 .ampel li.warn .icon { background: var(--warn); }
 .ampel li.bad .icon { background: var(--keyline); }
