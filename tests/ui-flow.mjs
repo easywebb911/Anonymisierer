@@ -66,8 +66,9 @@ let anonPath1;
   await page.click('#a1-next');
   ok = (await stepCheck(page, 'Prüfen', steps)) && ok;
   // Fragen beantworten: alle per Taste J (Ja)
+  // Version 2.5.0: nach „Ja“ zu einem Wort können Fragen je Stelle dazukommen; deshalb bis keine Frage mehr offen ist
+  for (let i = 0; i < 80 && await page.evaluate(() => window.__anon.questions().some((q) => !window.__anon.answerOf(q))); i++) await page.keyboard.press('j');
   const nQ = await page.evaluate(() => window.__anon.questions().length);
-  for (let i = 0; i < nQ; i++) await page.keyboard.press('j');
   const info = await page.textContent('#a2-info');
   check(`Alle ${nQ} Fragen mit Taste J beantwortet`, /Keine Frage offen/.test(info), info);
   await page.click('#a2-next');
