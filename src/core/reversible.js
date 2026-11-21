@@ -122,7 +122,7 @@ export function assignReversible(result) {
       if (/\p{Lu}/u.test(h.suffix || '')) h.suffixInPh = true;
       // Version 2.3.4: Ziffern/Buchstaben direkt dahinter („Bürgerverein2“) gehören zur Schreibweise (sonst „Einrichtung A2“)
       const tail = trailing(h, hits, fullText);
-      if (tail) h.suffixInPh = true;
+      if (tail) { h.suffixInPh = true; h.tailEnd = h.e + tail; }
       const stemEnd = h.e + tail - (h.suffix && !h.suffixInPh ? h.suffix.length : 0);
       // Über einen Zeilenumbruch (TXT): eigene Schreibweise mit dem echten Zeilenende, damit der Rückbau es herstellt
       const value = h.unit2 !== undefined ? fullText.slice(h.s, h.split) + h.eol + fullText.slice(h.split + 1, stemEnd) : fullText.slice(h.s, stemEnd);

@@ -1,6 +1,6 @@
 # Testbericht Anonymisierer
 
-Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.html (SHA-256 22306d4f7a086342…). Alle Testpersonen sind erfunden.
+Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.html (SHA-256 e0add641b0b8b659…). Alle Testpersonen sind erfunden.
 
 ## protokoll.txt
 - Laden: Gelesen: protokoll.txt (TXT, 22 Textabschnitte).
@@ -137,10 +137,10 @@ Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.h
 - Nach „Merkliste löschen“: localStorage 0 Einträge
 
 ## Größe/Geschwindigkeit (Desktop-Chromium, headless)
-- TXT 1 MB: Laden+Analyse 1.1 s, Export+Schlusscheck 2.4 s, JS-Speicher ca. 78 MB – Gelesen: gross.txt (TXT, 13289 Textabschnitte).
-- TXT 5 MB: Laden+Analyse 4.0 s, Export+Schlusscheck 11.4 s, JS-Speicher ca. 125 MB – Gelesen: gross.txt (TXT, 66419 Textabschnitte).
-- TXT 10 MB: Laden+Analyse 7.6 s, Export+Schlusscheck 23.5 s, JS-Speicher ca. 347 MB – Gelesen: gross.txt (TXT, 132815 Textabschnitte).
-- XLSX mit 20 000 Zeilen × 4 Spalten (0.5 MB gepackt): Laden+Analyse 3.2 s, Export+Schlusscheck 11.2 s, JS-Speicher ca. 179 MB – Gelesen: gross.xlsx (XLSX, 60052 Textabschnitte).
+- TXT 1 MB: Laden+Analyse 1.1 s, Export+Schlusscheck 2.5 s, JS-Speicher ca. 73 MB – Gelesen: gross.txt (TXT, 13289 Textabschnitte).
+- TXT 5 MB: Laden+Analyse 4.3 s, Export+Schlusscheck 11.0 s, JS-Speicher ca. 125 MB – Gelesen: gross.txt (TXT, 66419 Textabschnitte).
+- TXT 10 MB: Laden+Analyse 7.6 s, Export+Schlusscheck 23.3 s, JS-Speicher ca. 347 MB – Gelesen: gross.txt (TXT, 132815 Textabschnitte).
+- XLSX mit 20 000 Zeilen × 4 Spalten (0.5 MB gepackt): Laden+Analyse 3.0 s, Export+Schlusscheck 12.0 s, JS-Speicher ca. 150 MB – Gelesen: gross.xlsx (XLSX, 60052 Textabschnitte).
 
 ## Netzwerkzugriffe während aller Tests
 - Anfragen gesamt: 23; davon nicht lokal (http/https/ws …): 0

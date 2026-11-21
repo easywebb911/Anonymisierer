@@ -127,8 +127,8 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 - OK: „Astrid-Lindgren-Schule“ = ein Platzhalter; „Astrid Lindgren“ an anderer Stelle bleibt Person – Auch die Einrichtung C macht mit. Frau Vorname B Nachname B liest vor.
 
 ## Art-Wechsel: Einrichtung → Person → Einrichtung (rückbaufähig)
-- OK: „ist eine Person“: Platzhalter, Zählung und Kennung folgen; Schlüssel muss neu gespeichert werden – vorher: 2 Personen/1 Einrichtung, „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“; nachher: 3/0, „Das FZS plant gemeinsam mit dem Vorname B Nachname B ein Fest.“, Kennung 8S6G → V73J
-- OK: „ist eine Einrichtung“ zurück: wieder „Einrichtung A“, Zählung und Kennung folgen – „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“, Kennung V73J → 9T7S
+- OK: „ist eine Person“: Platzhalter, Zählung und Kennung folgen; Schlüssel muss neu gespeichert werden – vorher: 2 Personen/1 Einrichtung, „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“; nachher: 3/0, „Das FZS plant gemeinsam mit dem Vorname B Nachname B ein Fest.“, Kennung M5E4 → A24H
+- OK: „ist eine Einrichtung“ zurück: wieder „Einrichtung A“, Zählung und Kennung folgen – „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“, Kennung A24H → 48C8
 
 ## Merkliste mit Art
 - OK: Alte Merkliste ohne Art lädt als Personen; Ausgabe byte-gleich wie in 2.2 – Chips: Sonnenblume · Person; SHA d120ec136c8d / d120ec136c8d
@@ -145,7 +145,7 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 ## Rückwärts-Prüfung für den Revert-Weg: Version 2.2 mit Schlüsseldateien aus 2.3
 - Schlüssel mit Einrichtung (Format-Version 2), Meldung von 2.2: „Unbekannte Version der Schlüsseldatei (2). Bitte eine neuere Version des Tools verwenden.“
 - OK: 2.2 lehnt einen Schlüssel mit Einrichtung klar ab (unbekannte Version) – Prüfen-Knopf gesperrt: true
-- Schlüssel ohne Einrichtung (Format-Version 1), Meldung von 2.2: „Schlüsseldatei geladen: 4 Platzhalter, Kennung K89U (erstellt mit Version 2.3.3, Quelle TXT).“, Urteil „passend“
+- Schlüssel ohne Einrichtung (Format-Version 1), Meldung von 2.2: „Schlüsseldatei geladen: 4 Platzhalter, Kennung E48F (erstellt mit Version 2.3.4, Quelle TXT).“, Urteil „passend“
 - OK: 2.3-Schlüssel ohne Einrichtung: Format-Version 1, 2.2 baut exakt zurück
 
 ## TXT: Einrichtung über einen Zeilenumbruch (Entscheidung Easy), alle drei Modi, Unix- und Windows-Zeilenenden
@@ -379,7 +379,7 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 - sc-nur-briefkopf.docx, reversible: 1 erwartete Meldung(en): Musikschule am Stadtpark
 - sc-nur-briefkopf.txt, person: 1 erwartete Meldung(en): Musikschule am Stadtpark
 - sc-nur-briefkopf.txt, reversible: 1 erwartete Meldung(en): Musikschule am Stadtpark
-- OK: Gegenprobe: 146 Durchläufe (73 Testdokumente × 2 Modi), kein Fehlalarm, keine fehlende Meldung – 0 Abweichung(en)
+- OK: Gegenprobe: 162 Durchläufe (81 Testdokumente × 2 Modi), kein Fehlalarm, keine fehlende Meldung – 0 Abweichung(en)
 
 ## Ausgaben gegenüber dem vorigen Stand von PR #8 (mit markierten Einrichtungen)
 - OK: Alle 69 Ausgaben (23 Dateien × 3 Modi, mit Einrichtungen) byte-gleich zum vorigen Stand (Kennung festgehalten)

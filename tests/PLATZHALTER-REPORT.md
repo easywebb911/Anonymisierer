@@ -45,18 +45,18 @@ Testdokumente: tests/make-platzhalter.mjs (alles erfunden). Vorher = Version 2.3
 
 ## 4. Gegenprobe: Originaltext mit Wörtern wie „Person A“ oder „Einrichtung B“ (rückbaufähig, Kreislauf)
 - vorher: Rückbau exakt ja; gemeldete Reste 0; beim Speichern zusätzlich 0
-- nachher: Rückbau exakt ja; gemeldete Reste 8: Person A, Person B, Einrichtung B, Einrichtung A2, Nachname C, Vorname D, [NAME], [E-MAIL-1]; beim Speichern zusätzlich 0
+- nachher: Rückbau exakt ja; gemeldete Reste 0; beim Speichern zusätzlich 0
   - Alle gemeldeten Stellen stehen so im Original (kein Name, kein beschädigter Platzhalter): Fehlalarme, nicht abgeschwächt (MINI-STOPP).
 - OK: Gegenprobe: Kreislauf trotzdem exakt (nach Bestätigung)
 
 ## 5. Bisherige Testdokumente: Reste nach dem Rückbau (Modus rückbaufähig, Kreislauf am Kern mit den echten Abschnitten)
-- 72 Dokumente, davon mit gemeldeten Resten: 0
+- 80 Dokumente, davon mit gemeldeten Resten: 0
 
 ## 6. Prüfung: Weitere Formen, bei denen Platzhalter + Folgezeichen wie ein anderer Platzhalter aussieht
 - rückbaufähig, alle kleinen Endungen hinter allen Platzhalterformen (auch nummeriert): falsch gelesen 0
 - „Person A“/„Einrichtung A“ + kleine Endung: Platzhalter haben nur Großbuchstaben, eine kleine Endung kann keinen anderen Platzhalter bilden.
 - GEFUNDEN (nicht gebaut): Ziffer direkt hinter dem Namen, „Frau Helga Müller kommt. Müller2 ist ihr Kürzel.“, Modus person: „Frau Person A kommt. Person A2 ist ihr Kürzel.“
-- GEFUNDEN (nicht gebaut): Ziffer direkt hinter dem Namen, „Frau Helga Müller kommt. Müller2 ist ihr Kürzel.“, Modus reversible: „Frau Vorname A Nachname A kommt. Nachname A2 ist ihr Kürzel.“; Rückbau „Frau Helga Müller kommt. Nachname A2 ist ihr Kürzel.“ (exakt: NEIN); Sicherheitsnetz meldet: Nachname A2
+- GEFUNDEN (nicht gebaut): Ziffer direkt hinter dem Namen, „Frau Helga Müller kommt. Müller2 ist ihr Kürzel.“, Modus reversible: „Frau Vorname A Nachname A kommt. Nachname A2 ist ihr Kürzel.“; Rückbau „Frau Helga Müller kommt. Müller2 ist ihr Kürzel.“ (exakt: ja); Sicherheitsnetz meldet: nichts
 
 ## 7. Doppellauf
 - OK: einrichtung-gross.docx: zwei Läufe byte-gleich

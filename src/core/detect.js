@@ -867,7 +867,7 @@ export function replacementsByUnit(result, units) {
       // Platzhalter am Ende von Zeile 1, Rest des Namens am Anfang von Zeile 2 entfällt, die Zeilen werden verbunden
       const label = h.parts ? h.parts[0].text : h.label;
       per[h.unit].push({ s: h.s - base, e: h.split - base, text: label + (h.suffixInPh ? '' : outSuffix(h.suffix)) });
-      per[h.unit2].push({ s: 0, e: (h.parts ? h.parts[0].e : h.e) - result.unitStarts[h.unit2], text: '' });
+      per[h.unit2].push({ s: 0, e: (h.tailEnd || h.e) - result.unitStarts[h.unit2], text: '' });
       result.joins.add(h.unit);
       continue;
     }
