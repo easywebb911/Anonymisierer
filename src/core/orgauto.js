@@ -166,8 +166,10 @@ function quoteCandidates(text, fullText, webJoined, covered) {
         const before = text.slice(0, i).match(/([\p{L}\p{N}.]+)[  ]*:?[  ]*$/u);
         const after = text.slice(j + 1).match(/^[  ]+([\p{L}][\p{L}.]*(?:[  ]V\.)?)/u);
         const bw = before ? before[1] : '';
-        const m1 = !!(bw && (headOf(bw) || LF_EXACT.has(bw))) || !!(after && (LF_EXACT.has(after[1]) || /^[eE]\.[ \u00a0]?V\.$/.test(after[1])));
-        const m2 = words.some((w) => { const k = fold(w.replace(/[^\p{L}\p{M}'’-]/gu, '')); return k.length >= 3 && /^\p{Lu}/u.test(w) && lex.inLists(k) && !lex.isStop(k) && !lex.isAmbiguous(k); });
+        const m1 = !!(bw && (headOf(bw) || LF_EXACT.has(bw) && !TITLE.has(fold(bw)))) || !!(after && (LF_EXACT.has(after[1]) || /^[eE]\.[ \u00a0]?V\.$/.test(after[1])));
+        // Merkmal 2: Wort aus den Namenslisten (ohne „mehrdeutig“). Umlaute: nur, wenn die gefaltete Form nicht erst durch das
+        // Entfernen des Umlauts entsteht („Blätter“ ist nicht „Blatter“), außer bei Vornamen
+        const m2 = words.some((w) => { const c = w.replace(/[^\p{L}\p{M}'’-]/gu, ''); const k = fold(c); return k.length >= 3 && /^\p{Lu}/u.test(w) && lex.inLists(k) && !lex.isStop(k) && !lex.isAmbiguous(k) && (k === c.toLowerCase() || lex.isFirst(k)); });
         const lw = words.map((w) => fold(w.replace(/[^\p{L}\p{N}]/gu, ''))).filter(Boolean);
         const m3 = lw.length >= 2 && ['', '-', '_', '.'].some((sep) => webJoined.some((x) => x.includes(lw.join(sep))));
         const m4 = countPhrase(fullText, words) >= 2;
