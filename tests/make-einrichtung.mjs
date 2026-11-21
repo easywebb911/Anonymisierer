@@ -61,6 +61,36 @@ async function absatzDocx(withText = false) {
   return z.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
 }
 
+// Absätze je Fall (TXT: Leerzeile zwischen den Absätzen; Word: je ein Absatz)
+export const SC_CASES = {
+  'nur-briefkopf': ['Musikschule am', 'Stadtpark', 'Rundbrief an alle Eltern.'],
+  'briefkopf-und-text': ['Musikschule am', 'Stadtpark', 'Die Musikschule am Stadtpark lädt ein.'],
+  'freie-person': ['Kita Freie', 'Waldorfschule', 'Rundbrief an alle Eltern.'],
+  'nicht-im-dokument': ['Rundbrief an alle Eltern.', 'Wir freuen uns auf euch.'],
+  'vollstaendig-ersetzt': ['Die Musikschule am Stadtpark lädt ein.', 'Vorstand des Lindenauer Bürgervereins tagt.'],
+  'endung-ueber-absaetze': ['Vorstand des Lindenauer', 'Bürgervereins tagt.'],
+};
+async function scDocx(paras, opt = {}) {
+  const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+  const R = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+  const A = 'http://schemas.openxmlformats.org/drawingml/2006/main';
+  const PIC = 'http://schemas.openxmlformats.org/drawingml/2006/picture';
+  const WP = 'http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing';
+  const p = (t) => `<w:p><w:r><w:t xml:space="preserve">${esc(t)}</w:t></w:r></w:p>`;
+  const ns = `xmlns:w="${W}" xmlns:r="${R}" xmlns:wp="${WP}" xmlns:a="${A}" xmlns:pic="${PIC}"`;
+  const pic = opt.descr ? `<w:p><w:r><w:drawing><wp:inline><wp:extent cx="762000" cy="571500"/><wp:docPr id="1" name="Bild 1" descr="${esc(opt.descr)}"/><a:graphic><a:graphicData uri="${PIC}"><pic:pic><pic:nvPicPr><pic:cNvPr id="0" name="logo.png"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="rIdImg"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>` : '';
+  const z = new JSZip();
+  z.file('[Content_Types].xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>${opt.header ? '<Override PartName="/word/header1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"/>' : ''}${opt.footer ? '<Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/>' : ''}</Types>`, ZO);
+  z.file('_rels/.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${R}/officeDocument" Target="word/document.xml"/></Relationships>`, ZO);
+  z.file('word/_rels/document.xml.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${opt.header ? `<Relationship Id="rIdH" Type="${R}/header" Target="header1.xml"/>` : ''}${opt.footer ? `<Relationship Id="rIdF" Type="${R}/footer" Target="footer1.xml"/>` : ''}${opt.descr ? `<Relationship Id="rIdImg" Type="${R}/image" Target="media/logo.png"/>` : ''}</Relationships>`, ZO);
+  const sect = `<w:sectPr>${opt.header ? '<w:headerReference w:type="default" r:id="rIdH"/>' : ''}${opt.footer ? '<w:footerReference w:type="default" r:id="rIdF"/>' : ''}</w:sectPr>`;
+  z.file('word/document.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<w:document ${ns}><w:body>${paras.map(p).join('')}${pic}${sect}</w:body></w:document>`, ZO);
+  if (opt.header) z.file('word/header1.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<w:hdr ${ns}>${opt.header.map(p).join('')}</w:hdr>`, ZO);
+  if (opt.footer) z.file('word/footer1.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<w:ftr ${ns}>${opt.footer.map(p).join('')}</w:ftr>`, ZO);
+  if (opt.descr) z.file('word/media/logo.png', fs.readFileSync(path.join(fx, 'meta-quelle.png')), ZO);
+  return z.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
+}
+
 async function word() {
   const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
   const R = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
@@ -123,5 +153,11 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   // Variante: die Einrichtung steht zusätzlich einmal im Text
   fs.writeFileSync(path.join(fx, 'einrichtung-absatz-text.txt'), 'Musikschule\n\nam Stadtpark\nRundbrief an alle Eltern.\nDie Musikschule am Stadtpark lädt ein.\n');
   fs.writeFileSync(path.join(fx, 'einrichtung-absatz-text.docx'), await absatzDocx(true));
+  // Schlusscheck über die Liste (Version 2.3): Fälle in Word und TXT
+  for (const [name, paras] of Object.entries(SC_CASES)) {
+    fs.writeFileSync(path.join(fx, `sc-${name}.txt`), paras.join('\n\n') + '\n');
+    fs.writeFileSync(path.join(fx, `sc-${name}.docx`), await scDocx(paras));
+  }
+  fs.writeFileSync(path.join(fx, 'sc-kopf-fuss-bild.docx'), await scDocx(['Die Musikschule am Stadtpark lädt ein.', 'Rundbrief an alle Eltern.'], { header: ['Musikschule am', 'Stadtpark'], footer: ['Lindenauer', 'Bürgerverein'], descr: 'Logo der Musikschule am Stadtpark' }));
   console.log('geschrieben: tests/fixtures/einrichtung.docx, .xlsx, .txt, .csv, einrichtung-umbruch(-crlf).txt, einrichtung-absatz.txt/.docx');
 }

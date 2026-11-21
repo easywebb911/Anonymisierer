@@ -729,6 +729,58 @@ function matchOrgTerms(orgTerms, units, unitToks, unitStarts, covered, tokHit, f
     });
   }
 }
+// Schlusscheck (Version 2.3, Entscheidung Easy): JEDE Einrichtung aus der Liste (eigene Namen, markiert, aus den
+// Dateiangaben übernommen) wird im ORIGINALTEXT aller Abschnitte gesucht – auch wenn die Erkennung sie nicht gefunden
+// hat, auch über Zeilenumbruch und Absatzgrenze hinweg, mit Endungen und in GROSSSCHREIBUNG. Jede Fundstelle muss
+// vollständig von eingeschalteten Einrichtungs-Treffern abgedeckt sein (also in der Ausgabe ganz ersetzt). Sonst:
+// Fund. Ersetzt wird hier nichts; Erkennung und Platzhalter bleiben unverändert.
+// Liefert [{s, e, text, units: [Abschnitt-Indizes], term, partly}] in Koordinaten von result.fullText.
+export function orgCoverageLeaks(result, orgTerms) {
+  const out = [];
+  const terms = [];
+  const seen = new Set();
+  for (const raw of orgTerms || []) {
+    const ot = orgTermTokens(raw);
+    if (!ot.toks.some((x) => x.word) || seen.has(ot.key)) continue;
+    seen.add(ot.key);
+    terms.push(ot);
+  }
+  if (!terms.length) return out;
+  const text = result.fullText;
+  const toks = tokenize(text);
+  // Bereiche, die eingeschaltete Einrichtungs-Treffer abdecken
+  const cov = result.hits.filter((h) => h.type === 'org' && h.on).map((h) => [h.s, h.e]);
+  const covered = (a, b) => cov.some(([x, y]) => x <= a && b <= y);
+  const personAt = (a, b) => result.hits.some((h) => h.type === 'person' && h.on && h.s < b && h.e > a);
+  const unitOf = (pos) => { let lo = 0; let hi = result.unitStarts.length - 1; while (lo < hi) { const m = (lo + hi + 1) >> 1; if (result.unitStarts[m] <= pos) lo = m; else hi = m - 1; } return lo; };
+  const taken = [];
+  terms.sort((a, b) => b.toks.length - a.toks.length);
+  for (const ot of terms) {
+    const n = ot.toks.length;
+    for (let k = 0; k + n <= toks.length; k++) {
+      let ok = true;
+      for (let j = 0; j < n && ok; j++) {
+        if (orgTokMatch(toks[k + j], ot.toks[j]) === null) { ok = false; break; }
+        if (j > 0) {
+          const gap = text.slice(toks[k + j - 1].e, toks[k + j].s);
+          if (ot.gaps[j] === '' ? gap !== '' : !/^\s+$/.test(gap)) ok = false;
+        }
+      }
+      if (!ok) continue;
+      const s = toks[k].s;
+      const e = toks[k + n - 1].e;
+      if (taken.some(([x, y]) => s < y && e > x)) continue; // schon von einer längeren Bezeichnung erfasst
+      taken.push([s, e]);
+      // vollständig ersetzt? Jedes Wort der Fundstelle muss in einem eingeschalteten Einrichtungs-Treffer liegen
+      const words = toks.slice(k, k + n);
+      if (words.every((t) => covered(t.s, t.e))) continue;
+      const units = [...new Set([unitOf(s), unitOf(e - 1)])];
+      out.push({ s, e, text: text.slice(s, e), units, term: ot.text, partly: words.some((t) => covered(t.s, t.e)) || words.some((t) => personAt(t.s, t.e)) });
+    }
+  }
+  return out.sort((a, b) => a.s - b.s);
+}
+
 // Suchformen der eingeschalteten Einrichtungen für den Schlusscheck: jede Schreibweise als GANZE Wortfolge
 export function orgLeakPhrases(result) {
   const phrases = [];

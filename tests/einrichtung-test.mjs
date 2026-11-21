@@ -10,7 +10,7 @@ import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import JSZip from 'jszip';
-import { startAnon, loadIn, goTo, ackAll, exportWithAck, saveKey, waitPreview } from './ui-helpers.mjs';
+import { startAnon, loadIn, goTo, ackAll, exportWithAck, exportOnce, saveKey, waitPreview } from './ui-helpers.mjs';
 import { ORG, ORG3, WORDS, LINES, UMBRUCH_LINES } from './make-einrichtung.mjs';
 
 const { chromium } = createRequire('/opt/node22/lib/node_modules/')('playwright');
@@ -19,6 +19,8 @@ const root = path.resolve(here, '..');
 const fx = path.join(here, 'fixtures');
 const newHtml = path.join(root, 'index.html');
 const oldHtml = process.argv[2] ? path.resolve(process.argv[2]) : null;
+// optional: index.html des vorigen Stands (für den Ausgabevergleich nach einer reinen Schlusscheck-Änderung)
+const prevHtml = process.argv[3] ? path.resolve(process.argv[3]) : null;
 const outDir = path.join(here, 'out-einrichtung');
 fs.rmSync(outDir, { recursive: true, force: true });
 fs.mkdirSync(outDir, { recursive: true });
@@ -461,7 +463,7 @@ for (const file of ['einrichtung-umbruch.txt', 'einrichtung-umbruch-crlf.txt']) 
       const line = c.want ? (out.find((l) => c.want[mode].test(l)) || '(keine passende Zeile)') : (out.find((l) => l.startsWith(c.src)) || '');
       if (!c.want) {
         const kept = out.slice(out.indexOf(line), out.indexOf(line) + 3).join('⏎');
-        const ok = line === orig[oi] && /Musikschule/.test(blocked) && blocked.includes('Der Name steht über einen Zeilenumbruch');
+        const ok = line === orig[oi] && /Musikschule/.test(blocked) && blocked.includes('Der Name steht über mehrere Zeilen. Füge die Zeilen in der Datei zusammen');
         log(`| ${c.id} | nein | „${kept}“ – Schlusscheck meldet: ${/Musikschule/.test(blocked) ? 'ja, mit Anleitung' : 'NEIN'} |`);
         check(`${eol}, ${mode}: ${c.id}`, ok);
         continue;
@@ -511,11 +513,144 @@ for (const [file, fmt] of [['einrichtung-absatz.txt', 'txt'], ['einrichtung-absa
     log(`- ${file}, ${mode}: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule ${((await segments(fs.readFileSync(p), fmt)).join('\n').match(/Musikschule/g) || []).length}×; Schlusscheck meldet: ${flagged ? 'ja – „' + items.find((x) => /Musikschule/.test(x)).slice(0, 140) + '…“' : 'NEIN'}`);
   }
 }
-const onlyHead = ['einrichtung-absatz.txt', 'einrichtung-absatz.docx'].every((f) => !absatz[f + 'person'] && !absatz[f + 'reversible']);
-const withText = ['einrichtung-absatz-text.txt', 'einrichtung-absatz-text.docx'].every((f) => absatz[f + 'person'] && absatz[f + 'reversible']);
-log(`- Befund: Steht die Einrichtung NUR im Briefkopf (über zwei Absätze), meldet der Schlusscheck sie ${onlyHead ? 'NICHT' : 'doch'} (er sucht nur Einrichtungen, die im Dokument gefunden wurden). Steht sie zusätzlich im Text, meldet er den Briefkopf ${withText ? 'ja' : 'NICHT'}.`);
-check('Briefkopf über zwei Absätze: Befund wie gemeldet (nur Briefkopf: nicht gemeldet; mit Text: gemeldet)', onlyHead && withText);
+const allFlagged = ['einrichtung-absatz.txt', 'einrichtung-absatz.docx', 'einrichtung-absatz-text.txt', 'einrichtung-absatz-text.docx'].every((f) => absatz[f + 'person'] && absatz[f + 'reversible']);
+log(`- Befund (seit der Prüfung über die Liste): Der Briefkopf wird nicht ersetzt (keine Ersetzung über Absätze), der Schlusscheck meldet ihn ${allFlagged ? 'in allen Fällen' : 'NICHT in allen Fällen'}, auch wenn die Einrichtung nur dort steht.`);
+check('Briefkopf über zwei Absätze: nicht ersetzt, aber immer gemeldet (nur Briefkopf und mit Text)', allFlagged);
 log('');
+
+// ---------- Schlusscheck über die Liste (Entscheidung Easy) ----------
+log('## Schlusscheck: jede Einrichtung aus der Liste im Originaltext, auch über Absätze');
+const LIST = [ORG3, ORG.verein, 'Freie Waldorfschule'];
+const SC = [
+  ['nur-briefkopf', 1, 'nur im Briefkopf über zwei Absätze'],
+  ['briefkopf-und-text', 1, 'im Briefkopf (über zwei Absätze) und im Text'],
+  ['freie-person', 1, '„Freie Waldorfschule“ über zwei Absätze, „Freie“ als Person ersetzt'],
+  ['nicht-im-dokument', 0, 'in der Liste, aber nicht im Dokument (keine Meldung erwartet)'],
+  ['vollstaendig-ersetzt', 0, 'vollständig ersetzt, auch mit Endung (keine Meldung erwartet)'],
+  ['endung-ueber-absaetze', 1, 'mit Endung über zwei Absätze („Lindenauer⏎Bürgervereins“)'],
+];
+async function scRun(file, mode, after) {
+  const { page, ctx } = await newPage();
+  await page.click('#go-anon');
+  if (await page.isHidden('#advanced')) await page.click('#tgl-adv');
+  for (const t of LIST) { await page.fill('#name-input', t); await page.selectOption('#name-kind', 'org'); await page.click('#name-add button[type=submit]'); }
+  await startAnon(page, mode);
+  await loadIn(page, path.join(fx, file));
+  if (after) await after(page);
+  await goTo(page, 'a3');
+  await ackAll(page);
+  if (mode === 'reversible') await saveKey(page);
+  const items = await page.$$eval('#leaks li', (els) => els.map((e) => e.innerText.replace(/\s+/g, ' ')));
+  const own = items.filter((x) => /Einrichtung aus deiner Liste/.test(x));
+  const fmt = file.endsWith('.docx') ? 'docx' : 'txt';
+  const r = await exportOnce(page, fmt);
+  const out = await page.evaluate(async (f) => { const o = await window.__anon.buildOutput(f); return o.text || ''; }, 'txt');
+  await ctx.close();
+  return { own, blocked: !r.dl && /Schlusscheck/.test(r.status), out };
+}
+log('');
+log('| Fall | Format | Modus | Meldungen (erwartet) | Fundort und Anleitung | Speichern gesperrt |');
+log('|---|---|---|---|---|---|');
+for (const [name, want, desc] of SC) {
+  for (const fmt of ['docx', 'txt']) {
+    for (const mode of ['person', 'reversible']) {
+      const r = await scRun(`sc-${name}.${fmt}`, mode);
+      const first = r.own[0] ? r.own[0].replace(/^.*?– steht in: /, '').slice(0, 170) : '–';
+      log(`| ${desc} | ${fmt} | ${mode} | ${r.own.length} (${want}) | ${first} | ${r.own.length ? (r.blocked ? 'ja' : 'NEIN') : '–'} |`);
+      const okHint = !want || r.own.every((x) => (fmt === 'docx' ? /Entferne den Absatz in Word/ : /Entferne die Leerzeile/).test(x));
+      const extra = name === 'freie-person' ? /Person A|Vorname|Name A/.test(r.out.split('\n')[0]) : true;
+      check(`${name}, ${fmt}, ${mode}: ${want} Meldung(en)${want ? ', mit Fundort und Anleitung, Speichern gesperrt' : ''}${name === 'freie-person' ? ' („Freie“ als Person ersetzt)' : ''}`, r.own.length === want && okHint && (!want || r.blocked) && extra, r.out.split('\n')[0]);
+    }
+  }
+}
+// Kopfzeile, Fußzeile, Bildbeschreibung (Word)
+for (const mode of ['person', 'reversible']) {
+  const r = await scRun('sc-kopf-fuss-bild.docx', mode);
+  log(`| Kopfzeile und Fußzeile über zwei Absätze, Bildbeschreibung vollständig ersetzt | docx | ${mode} | ${r.own.length} (2) | ${r.own.map((x) => x.replace(/^.*?– steht in: /, '').slice(0, 60)).join(' / ')} | ${r.blocked ? 'ja' : 'NEIN'} |`);
+  check(`Kopf-/Fußzeile/Bildbeschreibung, ${mode}: Kopfzeile und Fußzeile gemeldet, Bildbeschreibung (ersetzt) nicht`, r.own.length === 2 && r.own.some((x) => /steht in: Kopfzeile/.test(x)) && r.own.some((x) => /steht in: Fußzeile/.test(x)) && !r.own.some((x) => /Bildbeschreibung/.test(x)) && r.blocked);
+  // Treffer in der Bildbeschreibung ausschalten -> wird gemeldet (Fundort Bildbeschreibung)
+  const r2 = await scRun('sc-kopf-fuss-bild.docx', mode, async (page) => {
+    await goTo(page, 'a2');
+    const mk = await page.evaluateHandle(() => [...document.querySelectorAll('#docview .unit')].filter((e) => /Bildbeschreibung/.test(e.textContent)).flatMap((e) => [...e.querySelectorAll('mark.org.on')])[0]);
+    await mk.asElement().scrollIntoViewIfNeeded();
+    await mk.asElement().click();
+  });
+  log(`| … Treffer in der Bildbeschreibung ausgeschaltet | docx | ${mode} | ${r2.own.length} (3) | ${r2.own.map((x) => x.replace(/^.*?– steht in: /, '').slice(0, 60)).join(' / ')} | ${r2.blocked ? 'ja' : 'NEIN'} |`);
+  check(`Bildbeschreibung, ${mode}: ausgeschalteter Treffer wird mit Fundort „Bildbeschreibung“ gemeldet`, r2.own.length === 3 && r2.own.some((x) => /steht in: Bildbeschreibung/.test(x) && /Ein Teil des Namens ist nicht als Einrichtung ersetzt/.test(x)));
+}
+log('');
+
+// Gegenprobe: alle Testdokumente mit der vollen Liste; Meldungen nur dort, wo eine Einrichtung nicht vollständig ersetzt ist
+log('## Gegenprobe: alle Testdokumente, volle Liste, beide Modi (über dieselbe Prüfung wie beim Speichern)');
+{
+  const FULL = [ORG.haupt, ORG.kurz, ORG.verein, ORG.schule, ORG3, 'Freie Waldorfschule'];
+  const EXPECT = { 'sc-nur-briefkopf': 1, 'sc-briefkopf-und-text': 1, 'sc-freie-person': 1, 'sc-endung-ueber-absaetze': 1, 'sc-kopf-fuss-bild': 2,
+    'einrichtung-absatz': 1, 'einrichtung-absatz-text': 1, 'einrichtung-umbruch': 1, 'einrichtung-umbruch-crlf': 1 };
+  const files = fs.readdirSync(fx).filter((f) => /\.(docx|xlsx|txt|csv|pdf)$/.test(f) && !/^gross|^alt-format|gescannt/.test(f)).sort();
+  const { page, ctx } = await newPage();
+  let docs = 0;
+  let alarms = 0;
+  const lines = [];
+  for (const f of files) {
+    for (const mode of ['person', 'reversible']) {
+      const bytes = [...fs.readFileSync(path.join(fx, f))];
+      const r = await page.evaluate(async ([b, name, m, list]) => {
+        const A = window.__anon;
+        A.app.state.settings.mode = m;
+        A.app.state.orgTerms = list;
+        try { await A.openBytes(new Uint8Array(b), name); } catch (e) { return { err: e.message }; }
+        const fm = A.app.doc.kind === 'pdf' ? 'txt' : A.app.doc.kind;
+        const o = await A.buildOutput(fm);
+        return { own: (await A.finalCheck(o)).filter((l) => l.orgCheck).map((l) => l.word.replace(/\s+/g, ' ')) };
+      }, [bytes, f, mode, FULL]);
+      if (r.err) continue;
+      docs++;
+      const base = f.replace(/\.[a-z]+$/, '');
+      // Word, rückbaufähig: <w:br/> im Namen wird bewusst nicht ersetzt (Entscheidung Easy) -> 1 Meldung
+      const want = (EXPECT[base] || 0) + (f === 'einrichtung.docx' && mode === 'reversible' ? 1 : 0);
+      if (r.own.length !== want) { alarms++; lines.push(`- ABWEICHUNG ${f}, ${mode}: ${r.own.length} Meldung(en) statt ${want}: ${r.own.join(' | ')}`); }
+      else if (r.own.length) lines.push(`- ${f}, ${mode}: ${r.own.length} erwartete Meldung(en): ${r.own.join(' | ')}`);
+    }
+  }
+  await ctx.close();
+  for (const l of lines) log(l);
+  check(`Gegenprobe: ${docs} Durchläufe (${files.length} Testdokumente × 2 Modi), kein Fehlalarm, keine fehlende Meldung`, alarms === 0, `${alarms} Abweichung(en)`);
+}
+log('');
+
+// Ausgabevergleich mit dem vorigen Stand (diese Änderung betrifft nur den Schlusscheck)
+if (prevHtml) {
+  log('## Ausgaben gegenüber dem vorigen Stand von PR #8 (mit markierten Einrichtungen)');
+  const FULL = [ORG.haupt, ORG.kurz, ORG.verein, ORG.schule, ORG3, 'Freie Waldorfschule'];
+  const files = fs.readdirSync(fx).filter((f) => /^(einrichtung|sc-)/.test(f)).sort();
+  const outs = async (html) => {
+    const { page, ctx } = await newPage(html);
+    const res = {};
+    for (const f of files) {
+      for (const mode of ['person', 'name', 'reversible']) {
+        const bytes = [...fs.readFileSync(path.join(fx, f))];
+        res[f + mode] = await page.evaluate(async ([b, name, m, list]) => {
+          const A = window.__anon;
+          A.app.state.settings.mode = m;
+          A.app.state.orgTerms = list;
+          await A.openBytes(new Uint8Array(b), name);
+          A.app.kennung = 'TEST'; // Kennung ist Zufall: für den Vergleich festhalten
+          const fm = A.app.doc.kind;
+          const o = await A.buildOutput(fm);
+          return o.zip ? Array.from(o.bytes) : o.text;
+        }, [bytes, f, mode, FULL]);
+      }
+    }
+    await ctx.close();
+    return res;
+  };
+  const a = await outs(prevHtml);
+  const b = await outs(newHtml);
+  const keysAll = Object.keys(a);
+  const same = keysAll.filter((k) => sha(typeof a[k] === 'string' ? a[k] : Buffer.from(a[k])) === sha(typeof b[k] === 'string' ? b[k] : Buffer.from(b[k])));
+  check(`Alle ${keysAll.length} Ausgaben (${files.length} Dateien × 3 Modi, mit Einrichtungen) byte-gleich zum vorigen Stand (Kennung festgehalten)`, same.length === keysAll.length, keysAll.filter((k) => !same.includes(k)).join(', '));
+  log('');
+}
 
 // ---------- Firma aus den Dateiangaben: 2.2 / 2.3 ----------
 log('## Firma aus den Dateiangaben: Frage mit „Ja“ beantwortet, Version 2.2 gegen 2.3');

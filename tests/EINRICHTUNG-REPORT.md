@@ -28,7 +28,7 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 | Personenname in der Einrichtung (Vorrang) | ja | „Auch die Einrichtung C macht mit. Frau Vorname B Nachname B liest vor.“ | ja |
 - OK: docx: Personenname in der Einrichtung (Vorrang): ersetzt und Rückbau exakt
 | Zeilenumbruch im Namen | nein | „Treffpunkt im Familienzentrum⏎Sonnenblume, Saal 2.“ – NICHT ersetzt; Schlusscheck meldet: ja (Speichern gesperrt bis „bewusst stehen lassen“) | ja |
-- OK: docx: Zeilenumbruch im Namen: nicht ersetzt, Schlusscheck meldet ihn mit Anleitung („Der Name steht über einen Zeilenumbruch. Entferne den Umbruch in Word oder markiere die Teile einzeln.“) – Familienzentrum Sonnenblume – steht in: Text (word/document.xml) · bestätigte Einrichtung,
+- OK: docx: Zeilenumbruch im Namen: nicht ersetzt, Schlusscheck meldet ihn mit Anleitung („Der Name steht über einen Zeilenumbruch. Entferne den Umbruch in Word oder markiere die Teile einzeln.“) – Familienzentrum Sonnenblume – steht in: Text (im Original) · Einrichtung aus deiner Liste 
 | Kopfzeile | ja | „KOPF: Einrichtung A · Jahresbericht“ | ja |
 - OK: docx: Kopfzeile: ersetzt und Rückbau exakt
 | Bildbeschreibung | ja | „ALT: Logo des Einrichtung A2“ | ja |
@@ -127,8 +127,8 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 - OK: „Astrid-Lindgren-Schule“ = ein Platzhalter; „Astrid Lindgren“ an anderer Stelle bleibt Person – Auch die Einrichtung C macht mit. Frau Vorname B Nachname B liest vor.
 
 ## Art-Wechsel: Einrichtung → Person → Einrichtung (rückbaufähig)
-- OK: „ist eine Person“: Platzhalter, Zählung und Kennung folgen; Schlüssel muss neu gespeichert werden – vorher: 2 Personen/1 Einrichtung, „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“; nachher: 3/0, „Das FZS plant gemeinsam mit dem Vorname B Nachname B ein Fest.“, Kennung X5U6 → 2H3S
-- OK: „ist eine Einrichtung“ zurück: wieder „Einrichtung A“, Zählung und Kennung folgen – „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“, Kennung 2H3S → B25W
+- OK: „ist eine Person“: Platzhalter, Zählung und Kennung folgen; Schlüssel muss neu gespeichert werden – vorher: 2 Personen/1 Einrichtung, „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“; nachher: 3/0, „Das FZS plant gemeinsam mit dem Vorname B Nachname B ein Fest.“, Kennung 5Q9H → 5Y4W
+- OK: „ist eine Einrichtung“ zurück: wieder „Einrichtung A“, Zählung und Kennung folgen – „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“, Kennung 5Y4W → B8E9
 
 ## Merkliste mit Art
 - OK: Alte Merkliste ohne Art lädt als Personen; Ausgabe byte-gleich wie in 2.2 – Chips: Sonnenblume · Person; SHA d120ec136c8d / d120ec136c8d
@@ -145,7 +145,7 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 ## Rückwärts-Prüfung für den Revert-Weg: Version 2.2 mit Schlüsseldateien aus 2.3
 - Schlüssel mit Einrichtung (Format-Version 2), Meldung von 2.2: „Unbekannte Version der Schlüsseldatei (2). Bitte eine neuere Version des Tools verwenden.“
 - OK: 2.2 lehnt einen Schlüssel mit Einrichtung klar ab (unbekannte Version) – Prüfen-Knopf gesperrt: true
-- Schlüssel ohne Einrichtung (Format-Version 1), Meldung von 2.2: „Schlüsseldatei geladen: 4 Platzhalter, Kennung 929F (erstellt mit Version 2.3.0, Quelle TXT).“, Urteil „passend“
+- Schlüssel ohne Einrichtung (Format-Version 1), Meldung von 2.2: „Schlüsseldatei geladen: 4 Platzhalter, Kennung U934 (erstellt mit Version 2.3.0, Quelle TXT).“, Urteil „passend“
 - OK: 2.3-Schlüssel ohne Einrichtung: Format-Version 1, 2.2 baut exakt zurück
 
 ## TXT: Einrichtung über einen Zeilenumbruch (Entscheidung Easy), alle drei Modi, Unix- und Windows-Zeilenenden
@@ -275,16 +275,114 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 - OK: Windows (CRLF): Rückbau byte-genau, samt Zeilenumbruch im Namen – Urteil „passend“
 
 ## Nur getestet (nicht gebaut): Name auf zwei getrennten Absätzen (Briefkopf)
-- einrichtung-absatz.txt, person: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 1×; Schlusscheck meldet: NEIN
-- einrichtung-absatz.txt, reversible: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 1×; Schlusscheck meldet: NEIN
-- einrichtung-absatz.docx, person: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 1×; Schlusscheck meldet: NEIN
-- einrichtung-absatz.docx, reversible: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 1×; Schlusscheck meldet: NEIN
-- einrichtung-absatz-text.txt, person: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 1×; Schlusscheck meldet: ja – „Musikschule am Stadtpark – steht in: Text · bestätigte Einrichtung, Einrichtung A: „…Musikschule am Stadtpark Rundbrief an alle Eltern. Die……“
-- einrichtung-absatz-text.txt, reversible: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 1×; Schlusscheck meldet: ja – „Musikschule am Stadtpark – steht in: Text · bestätigte Einrichtung, Einrichtung A: „…Musikschule am Stadtpark Rundbrief an alle Eltern. Die……“
-- einrichtung-absatz-text.docx, person: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 1×; Schlusscheck meldet: ja – „Musikschule am Stadtpark – steht in: Text (word/document.xml) · bestätigte Einrichtung, Einrichtung A: „…Musikschule am Stadtpark Rundbrief …“
-- einrichtung-absatz-text.docx, reversible: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 1×; Schlusscheck meldet: ja – „Musikschule am Stadtpark – steht in: Text (word/document.xml) · bestätigte Einrichtung, Einrichtung A: „…Musikschule am Stadtpark Rundbrief …“
-- Befund: Steht die Einrichtung NUR im Briefkopf (über zwei Absätze), meldet der Schlusscheck sie NICHT (er sucht nur Einrichtungen, die im Dokument gefunden wurden). Steht sie zusätzlich im Text, meldet er den Briefkopf ja.
-- OK: Briefkopf über zwei Absätze: Befund wie gemeldet (nur Briefkopf: nicht gemeldet; mit Text: gemeldet)
+- einrichtung-absatz.txt, person: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 1×; Schlusscheck meldet: ja – „Musikschule am Stadtpark – steht in: Zeile 1 und Zeile 3 (im Original) · Einrichtung aus deiner Liste „Musikschule am Stadtpark“, nicht voll…“
+- einrichtung-absatz.txt, reversible: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 1×; Schlusscheck meldet: ja – „Musikschule am Stadtpark – steht in: Zeile 1 und Zeile 3 (im Original) · Einrichtung aus deiner Liste „Musikschule am Stadtpark“, nicht voll…“
+- einrichtung-absatz.docx, person: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 1×; Schlusscheck meldet: ja – „Musikschule am Stadtpark – steht in: Text (im Original) · Einrichtung aus deiner Liste „Musikschule am Stadtpark“, nicht vollständig ersetzt…“
+- einrichtung-absatz.docx, reversible: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 1×; Schlusscheck meldet: ja – „Musikschule am Stadtpark – steht in: Text (im Original) · Einrichtung aus deiner Liste „Musikschule am Stadtpark“, nicht vollständig ersetzt…“
+- einrichtung-absatz-text.txt, person: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 1×; Schlusscheck meldet: ja – „Musikschule am Stadtpark – steht in: Zeile 1 und Zeile 3 (im Original) · Einrichtung aus deiner Liste „Musikschule am Stadtpark“, nicht voll…“
+- einrichtung-absatz-text.txt, reversible: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 1×; Schlusscheck meldet: ja – „Musikschule am Stadtpark – steht in: Zeile 1 und Zeile 3 (im Original) · Einrichtung aus deiner Liste „Musikschule am Stadtpark“, nicht voll…“
+- einrichtung-absatz-text.docx, person: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 1×; Schlusscheck meldet: ja – „Musikschule am Stadtpark – steht in: Text (im Original) · Einrichtung aus deiner Liste „Musikschule am Stadtpark“, nicht vollständig ersetzt…“
+- einrichtung-absatz-text.docx, reversible: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 1×; Schlusscheck meldet: ja – „Musikschule am Stadtpark – steht in: Text (im Original) · Einrichtung aus deiner Liste „Musikschule am Stadtpark“, nicht vollständig ersetzt…“
+- Befund (seit der Prüfung über die Liste): Der Briefkopf wird nicht ersetzt (keine Ersetzung über Absätze), der Schlusscheck meldet ihn in allen Fällen, auch wenn die Einrichtung nur dort steht.
+- OK: Briefkopf über zwei Absätze: nicht ersetzt, aber immer gemeldet (nur Briefkopf und mit Text)
+
+## Schlusscheck: jede Einrichtung aus der Liste im Originaltext, auch über Absätze
+
+| Fall | Format | Modus | Meldungen (erwartet) | Fundort und Anleitung | Speichern gesperrt |
+|---|---|---|---|---|---|
+| nur im Briefkopf über zwei Absätze | docx | person | 1 (1) | Text (im Original) · Einrichtung aus deiner Liste „Musikschule am Stadtpark“, nicht vollständig ersetzt: „…Musikschule am Stadtpark Rundbrief an alle Eltern.…“ Der Name s | ja |
+- OK: nur-briefkopf, docx, person: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt – Musikschule am
+| nur im Briefkopf über zwei Absätze | docx | reversible | 1 (1) | Text (im Original) · Einrichtung aus deiner Liste „Musikschule am Stadtpark“, nicht vollständig ersetzt: „…Musikschule am Stadtpark Rundbrief an alle Eltern.…“ Der Name s | ja |
+- OK: nur-briefkopf, docx, reversible: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt – Musikschule am
+| nur im Briefkopf über zwei Absätze | txt | person | 1 (1) | Zeile 1 und Zeile 3 (im Original) · Einrichtung aus deiner Liste „Musikschule am Stadtpark“, nicht vollständig ersetzt: „…Musikschule am Stadtpark Rundbrief an alle Elter | ja |
+- OK: nur-briefkopf, txt, person: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt – Musikschule am
+| nur im Briefkopf über zwei Absätze | txt | reversible | 1 (1) | Zeile 1 und Zeile 3 (im Original) · Einrichtung aus deiner Liste „Musikschule am Stadtpark“, nicht vollständig ersetzt: „…Musikschule am Stadtpark Rundbrief an alle Elter | ja |
+- OK: nur-briefkopf, txt, reversible: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt – Musikschule am
+| im Briefkopf (über zwei Absätze) und im Text | docx | person | 1 (1) | Text (im Original) · Einrichtung aus deiner Liste „Musikschule am Stadtpark“, nicht vollständig ersetzt: „…Musikschule am Stadtpark Die Musikschule am Stadtpark …“ Der Na | ja |
+- OK: briefkopf-und-text, docx, person: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt – Musikschule am
+| im Briefkopf (über zwei Absätze) und im Text | docx | reversible | 1 (1) | Text (im Original) · Einrichtung aus deiner Liste „Musikschule am Stadtpark“, nicht vollständig ersetzt: „…Musikschule am Stadtpark Die Musikschule am Stadtpark …“ Der Na | ja |
+- OK: briefkopf-und-text, docx, reversible: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt – Musikschule am
+| im Briefkopf (über zwei Absätze) und im Text | txt | person | 1 (1) | Zeile 1 und Zeile 3 (im Original) · Einrichtung aus deiner Liste „Musikschule am Stadtpark“, nicht vollständig ersetzt: „…Musikschule am Stadtpark Die Musikschule am Stad | ja |
+- OK: briefkopf-und-text, txt, person: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt – Musikschule am
+| im Briefkopf (über zwei Absätze) und im Text | txt | reversible | 1 (1) | Zeile 1 und Zeile 3 (im Original) · Einrichtung aus deiner Liste „Musikschule am Stadtpark“, nicht vollständig ersetzt: „…Musikschule am Stadtpark Die Musikschule am Stad | ja |
+- OK: briefkopf-und-text, txt, reversible: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt – Musikschule am
+| „Freie Waldorfschule“ über zwei Absätze, „Freie“ als Person ersetzt | docx | person | 1 (1) | Text (im Original) · Einrichtung aus deiner Liste „Freie Waldorfschule“, nicht vollständig ersetzt: „…Kita Freie Waldorfschule Rundbrief an alle Eltern.…“ Der Name steht  | ja |
+- OK: freie-person, docx, person: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt („Freie“ als Person ersetzt) – Person A
+| „Freie Waldorfschule“ über zwei Absätze, „Freie“ als Person ersetzt | docx | reversible | 1 (1) | Text (im Original) · Einrichtung aus deiner Liste „Freie Waldorfschule“, nicht vollständig ersetzt: „…Kita Freie Waldorfschule Rundbrief an alle Eltern.…“ Der Name steht  | ja |
+- OK: freie-person, docx, reversible: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt („Freie“ als Person ersetzt) – Vorname A Nachname A
+| „Freie Waldorfschule“ über zwei Absätze, „Freie“ als Person ersetzt | txt | person | 1 (1) | Zeile 1 und Zeile 3 (im Original) · Einrichtung aus deiner Liste „Freie Waldorfschule“, nicht vollständig ersetzt: „…Kita Freie Waldorfschule Rundbrief an alle Eltern. …“ | ja |
+- OK: freie-person, txt, person: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt („Freie“ als Person ersetzt) – Person A
+| „Freie Waldorfschule“ über zwei Absätze, „Freie“ als Person ersetzt | txt | reversible | 1 (1) | Zeile 1 und Zeile 3 (im Original) · Einrichtung aus deiner Liste „Freie Waldorfschule“, nicht vollständig ersetzt: „…Kita Freie Waldorfschule Rundbrief an alle Eltern. …“ | ja |
+- OK: freie-person, txt, reversible: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt („Freie“ als Person ersetzt) – Vorname A Nachname A
+| in der Liste, aber nicht im Dokument (keine Meldung erwartet) | docx | person | 0 (0) | – | – |
+- OK: nicht-im-dokument, docx, person: 0 Meldung(en) – Rundbrief an alle Eltern.
+| in der Liste, aber nicht im Dokument (keine Meldung erwartet) | docx | reversible | 0 (0) | – | – |
+- OK: nicht-im-dokument, docx, reversible: 0 Meldung(en) – Rundbrief an alle Eltern.
+| in der Liste, aber nicht im Dokument (keine Meldung erwartet) | txt | person | 0 (0) | – | – |
+- OK: nicht-im-dokument, txt, person: 0 Meldung(en) – Rundbrief an alle Eltern.
+| in der Liste, aber nicht im Dokument (keine Meldung erwartet) | txt | reversible | 0 (0) | – | – |
+- OK: nicht-im-dokument, txt, reversible: 0 Meldung(en) – Rundbrief an alle Eltern.
+| vollständig ersetzt, auch mit Endung (keine Meldung erwartet) | docx | person | 0 (0) | – | – |
+- OK: vollstaendig-ersetzt, docx, person: 0 Meldung(en) – Die Einrichtung A lädt ein.
+| vollständig ersetzt, auch mit Endung (keine Meldung erwartet) | docx | reversible | 0 (0) | – | – |
+- OK: vollstaendig-ersetzt, docx, reversible: 0 Meldung(en) – Die Einrichtung A lädt ein.
+| vollständig ersetzt, auch mit Endung (keine Meldung erwartet) | txt | person | 0 (0) | – | – |
+- OK: vollstaendig-ersetzt, txt, person: 0 Meldung(en) – Die Einrichtung A lädt ein.
+| vollständig ersetzt, auch mit Endung (keine Meldung erwartet) | txt | reversible | 0 (0) | – | – |
+- OK: vollstaendig-ersetzt, txt, reversible: 0 Meldung(en) – Die Einrichtung A lädt ein.
+| mit Endung über zwei Absätze („Lindenauer⏎Bürgervereins“) | docx | person | 1 (1) | Text (im Original) · Einrichtung aus deiner Liste „Lindenauer Bürgerverein“, nicht vollständig ersetzt: „…Vorstand des Lindenauer Bürgervereins tagt.…“ Der Name steht übe | ja |
+- OK: endung-ueber-absaetze, docx, person: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt – Vorstand des Lindenauer
+| mit Endung über zwei Absätze („Lindenauer⏎Bürgervereins“) | docx | reversible | 1 (1) | Text (im Original) · Einrichtung aus deiner Liste „Lindenauer Bürgerverein“, nicht vollständig ersetzt: „…Vorstand des Lindenauer Bürgervereins tagt.…“ Der Name steht übe | ja |
+- OK: endung-ueber-absaetze, docx, reversible: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt – Vorstand des Lindenauer
+| mit Endung über zwei Absätze („Lindenauer⏎Bürgervereins“) | txt | person | 1 (1) | Zeile 1 und Zeile 3 (im Original) · Einrichtung aus deiner Liste „Lindenauer Bürgerverein“, nicht vollständig ersetzt: „…Vorstand des Lindenauer Bürgervereins tagt. …“ De | ja |
+- OK: endung-ueber-absaetze, txt, person: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt – Vorstand des Lindenauer
+| mit Endung über zwei Absätze („Lindenauer⏎Bürgervereins“) | txt | reversible | 1 (1) | Zeile 1 und Zeile 3 (im Original) · Einrichtung aus deiner Liste „Lindenauer Bürgerverein“, nicht vollständig ersetzt: „…Vorstand des Lindenauer Bürgervereins tagt. …“ De | ja |
+- OK: endung-ueber-absaetze, txt, reversible: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt – Vorstand des Lindenauer
+| Kopfzeile und Fußzeile über zwei Absätze, Bildbeschreibung vollständig ersetzt | docx | person | 2 (2) | Kopfzeile (im Original) · Einrichtung aus deiner Liste „Musi / Fußzeile (im Original) · Einrichtung aus deiner Liste „Linde | ja |
+- OK: Kopf-/Fußzeile/Bildbeschreibung, person: Kopfzeile und Fußzeile gemeldet, Bildbeschreibung (ersetzt) nicht
+| … Treffer in der Bildbeschreibung ausgeschaltet | docx | person | 3 (3) | Kopfzeile (im Original) · Einrichtung aus deiner Liste „Musi / Fußzeile (im Original) · Einrichtung aus deiner Liste „Linde / Bildbeschreibung (Alt-Text) (im Original) · Einrichtung aus  | ja |
+- OK: Bildbeschreibung, person: ausgeschalteter Treffer wird mit Fundort „Bildbeschreibung“ gemeldet
+| Kopfzeile und Fußzeile über zwei Absätze, Bildbeschreibung vollständig ersetzt | docx | reversible | 2 (2) | Kopfzeile (im Original) · Einrichtung aus deiner Liste „Musi / Fußzeile (im Original) · Einrichtung aus deiner Liste „Linde | ja |
+- OK: Kopf-/Fußzeile/Bildbeschreibung, reversible: Kopfzeile und Fußzeile gemeldet, Bildbeschreibung (ersetzt) nicht
+| … Treffer in der Bildbeschreibung ausgeschaltet | docx | reversible | 3 (3) | Kopfzeile (im Original) · Einrichtung aus deiner Liste „Musi / Fußzeile (im Original) · Einrichtung aus deiner Liste „Linde / Bildbeschreibung (Alt-Text) (im Original) · Einrichtung aus  | ja |
+- OK: Bildbeschreibung, reversible: ausgeschalteter Treffer wird mit Fundort „Bildbeschreibung“ gemeldet
+
+## Gegenprobe: alle Testdokumente, volle Liste, beide Modi (über dieselbe Prüfung wie beim Speichern)
+- einrichtung-absatz-text.docx, person: 1 erwartete Meldung(en): Musikschule am Stadtpark
+- einrichtung-absatz-text.docx, reversible: 1 erwartete Meldung(en): Musikschule am Stadtpark
+- einrichtung-absatz-text.txt, person: 1 erwartete Meldung(en): Musikschule am Stadtpark
+- einrichtung-absatz-text.txt, reversible: 1 erwartete Meldung(en): Musikschule am Stadtpark
+- einrichtung-absatz.docx, person: 1 erwartete Meldung(en): Musikschule am Stadtpark
+- einrichtung-absatz.docx, reversible: 1 erwartete Meldung(en): Musikschule am Stadtpark
+- einrichtung-absatz.txt, person: 1 erwartete Meldung(en): Musikschule am Stadtpark
+- einrichtung-absatz.txt, reversible: 1 erwartete Meldung(en): Musikschule am Stadtpark
+- einrichtung-umbruch-crlf.txt, person: 1 erwartete Meldung(en): Musikschule am Stadtpark
+- einrichtung-umbruch-crlf.txt, reversible: 1 erwartete Meldung(en): Musikschule am Stadtpark
+- einrichtung-umbruch.txt, person: 1 erwartete Meldung(en): Musikschule am Stadtpark
+- einrichtung-umbruch.txt, reversible: 1 erwartete Meldung(en): Musikschule am Stadtpark
+- einrichtung.docx, reversible: 1 erwartete Meldung(en): Familienzentrum Sonnenblume
+- sc-briefkopf-und-text.docx, person: 1 erwartete Meldung(en): Musikschule am Stadtpark
+- sc-briefkopf-und-text.docx, reversible: 1 erwartete Meldung(en): Musikschule am Stadtpark
+- sc-briefkopf-und-text.txt, person: 1 erwartete Meldung(en): Musikschule am Stadtpark
+- sc-briefkopf-und-text.txt, reversible: 1 erwartete Meldung(en): Musikschule am Stadtpark
+- sc-endung-ueber-absaetze.docx, person: 1 erwartete Meldung(en): Lindenauer Bürgervereins
+- sc-endung-ueber-absaetze.docx, reversible: 1 erwartete Meldung(en): Lindenauer Bürgervereins
+- sc-endung-ueber-absaetze.txt, person: 1 erwartete Meldung(en): Lindenauer Bürgervereins
+- sc-endung-ueber-absaetze.txt, reversible: 1 erwartete Meldung(en): Lindenauer Bürgervereins
+- sc-freie-person.docx, person: 1 erwartete Meldung(en): Freie Waldorfschule
+- sc-freie-person.docx, reversible: 1 erwartete Meldung(en): Freie Waldorfschule
+- sc-freie-person.txt, person: 1 erwartete Meldung(en): Freie Waldorfschule
+- sc-freie-person.txt, reversible: 1 erwartete Meldung(en): Freie Waldorfschule
+- sc-kopf-fuss-bild.docx, person: 2 erwartete Meldung(en): Musikschule am Stadtpark | Lindenauer Bürgerverein
+- sc-kopf-fuss-bild.docx, reversible: 2 erwartete Meldung(en): Musikschule am Stadtpark | Lindenauer Bürgerverein
+- sc-nur-briefkopf.docx, person: 1 erwartete Meldung(en): Musikschule am Stadtpark
+- sc-nur-briefkopf.docx, reversible: 1 erwartete Meldung(en): Musikschule am Stadtpark
+- sc-nur-briefkopf.txt, person: 1 erwartete Meldung(en): Musikschule am Stadtpark
+- sc-nur-briefkopf.txt, reversible: 1 erwartete Meldung(en): Musikschule am Stadtpark
+- OK: Gegenprobe: 98 Durchläufe (49 Testdokumente × 2 Modi), kein Fehlalarm, keine fehlende Meldung – 0 Abweichung(en)
+
+## Ausgaben gegenüber dem vorigen Stand von PR #8 (mit markierten Einrichtungen)
+- OK: Alle 69 Ausgaben (23 Dateien × 3 Modi, mit Einrichtungen) byte-gleich zum vorigen Stand (Kennung festgehalten)
 
 ## Firma aus den Dateiangaben: Frage mit „Ja“ beantwortet, Version 2.2 gegen 2.3
 - meta-word.docx: Fragen 2.2: In den Dateiangaben steht „Rüdiger Spähmann“. Als Namen übernehmen? / In den Dateiangaben steht „Tamara Feldkirch“. Als Namen übernehmen? / In den Dateiangaben steht „Konstantin Abendroth“. Als Namen übernehmen? / In den Dateiangaben steht „Lindenhof Beratung GmbH“. Als Namen übernehmen? / In den Dateiangaben steht „Ottilie Rennwagen“. Als Namen übernehmen? / In den Dateiangaben steht „Wilhelmine Querbach“. Als Namen übernehmen?; 2.3: In den Dateiangaben steht „Rüdiger Spähmann“. Als Namen übernehmen? / In den Dateiangaben steht „Tamara Feldkirch“. Als Namen übernehmen? / In den Dateiangaben steht „Konstantin Abendroth“. Als Namen übernehmen? / In den Dateiangaben steht „Lindenhof Beratung GmbH“. Als Einrichtung übernehmen? / In den Dateiangaben steht „Ottilie Rennwagen“. Als Namen übernehmen? / In den Dateiangaben steht „Wilhelmine Querbach“. Als Namen übernehmen?
@@ -307,5 +405,5 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 - OK: einrichtung.txt: zwei Läufe byte-gleich – 75e61bf617952334
 - OK: einrichtung.csv: zwei Läufe byte-gleich – 1fb2f829a54e086c
 
-Prüfungen: 130 von 130 bestanden.
+Prüfungen: 160 von 160 bestanden.
 Netzwerkanfragen außer lokalen Dateien: 0.

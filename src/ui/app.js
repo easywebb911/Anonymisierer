@@ -5,7 +5,7 @@ import './lockdown.js';
 import JSZip from 'jszip';
 import {
   analyze, defaultState, replacementsByUnit, applyReplacements, leakForms, findLeaks, makeGenericReplacer,
-  metaLeakForms, makeNameTest, orgLeakPhrases, orgTermTokens,
+  metaLeakForms, makeNameTest, orgLeakPhrases, orgTermTokens, orgCoverageLeaks,
 } from '../core/detect.js';
 import { fold } from '../core/fold.js';
 import { readTxt, writeTxt, readCsv, writeCsv, encodeText, encodeTextPlain } from '../formats/text.js';
@@ -267,7 +267,45 @@ async function finalCheck(out) {
   let texts;
   if (out.zip) texts = (await collectZipTexts(await JSZip.loadAsync(out.bytes), { inflatePng: true })).map((t) => ({ ...t, where: describePart(t.where) }));
   else texts = [{ where: 'Text', text: out.text }];
-  return findLeaks(forms, texts, phrases);
+  const leaks = findLeaks(forms, texts, phrases);
+  // Version 2.3: jede Einrichtung aus der Liste im Originaltext; nicht vollständig ersetzte Fundstellen melden
+  const org = orgCheckLeaks();
+  if (!org.length) return leaks;
+  const norm = (w) => w.replace(/\s+/g, ' ').trim().toLowerCase();
+  const have = new Set(org.map((l) => norm(l.word)));
+  // dieselbe Stelle nicht doppelt melden (die Suche in der Ausgabe findet sie ggf. auch)
+  return [...org, ...leaks.filter((l) => !(l.org && have.has(norm(l.word))))];
+}
+// Fundort eines Abschnitts in einfacher Sprache
+function unitPlace(ui) {
+  const u = app.doc.units[ui];
+  const k = app.doc.kind;
+  if (k === 'txt') return `Zeile ${ui + 1}`;
+  if (k === 'csv') return u.label || `Abschnitt ${ui + 1}`;
+  if (k === 'docx' && (u.label === 'Text' || !u.label)) return 'Text';
+  return u.label || `Abschnitt ${ui + 1}`;
+}
+function orgCheckLeaks() {
+  if (!app.result || !app.state.orgTerms.length) return [];
+  const k = app.doc.kind;
+  const prog = k === 'xlsx' ? 'Excel' : k === 'docx' ? 'Word' : '';
+  return orgCoverageLeaks(app.result, app.state.orgTerms).map((f) => {
+    const t = app.result.fullText;
+    const where = f.units.map(unitPlace).filter((x, i, a) => a.indexOf(x) === i).join(' und ');
+    let hint;
+    if (f.units.length > 1) {
+      hint = k === 'docx' ? 'Der Name steht über zwei Absätze. Entferne den Absatz in Word oder markiere die Teile einzeln.'
+        : k === 'txt' ? (/\n[ \t\r]*\n/.test(f.text) ? 'Der Name steht über zwei Absätze (Leerzeile dazwischen). Entferne die Leerzeile in der Datei oder markiere die Teile einzeln.'
+          : 'Der Name steht über mehrere Zeilen. Füge die Zeilen in der Datei zusammen oder markiere die Teile einzeln.')
+          : `Der Name steht über zwei Abschnitte (z. B. zwei Zellen). ${prog ? 'Fasse sie in ' + prog + ' zusammen' : 'Fasse sie zusammen'} oder markiere die Teile einzeln.`;
+    } else if (/[\r\n]/.test(f.text)) {
+      hint = `Der Name steht über einen Zeilenumbruch. Entferne den Umbruch ${prog ? 'in ' + prog : 'in der Datei'} oder markiere die Teile einzeln.`;
+    } else {
+      hint = 'Ein Teil des Namens ist nicht als Einrichtung ersetzt (z. B. als Person ersetzt oder ausgeschaltet). Schalte im Schritt „Prüfen“ die Einrichtung ein oder markiere die Bezeichnung als Einrichtung.';
+    }
+    return { where: where + ' – im Original', word: f.text, entity: '„' + f.term + '“', full: f.term, org: true, orgCheck: true, hint,
+      context: t.slice(Math.max(0, f.s - 30), Math.min(t.length, f.e + 30)) };
+  });
 }
 // Ausgabe + Schlusscheck; rückbaufähig: nicht exakt rückbaubare Blattnamen zählen als Fund (wie bisher)
 async function outputWithCheck(format) {
@@ -941,8 +979,8 @@ function leaksBox(leaks) {
     const taken = !l.full || offered.has(fold(l.full)) || app.state.manualTerms.some((t) => fold(t) === fold(l.full)) || app.state.orgTerms.some((t) => fold(t) === fold(l.full));
     if (l.full) offered.add(fold(l.full));
     return h('li', {}, h('strong', {}, l.word), ' – steht in: ', h('strong', {}, pl.ort), pl.teil ? ` (${pl.teil})` : '',
-      ` · ${l.meta ? (l.metaOrg ? 'Einrichtung ' : 'Name ') + l.entity : l.org ? 'bestätigte Einrichtung, ' + l.entity : 'bestätigter Name, ' + l.entity}: „…${l.context.replace(/\s+/g, ' ')}…“ `,
-      l.org && /[\r\n]/.test(l.word) ? h('p', { class: 'hint lbhint' }, `Der Name steht über einen Zeilenumbruch. Entferne den Umbruch ${app.doc.kind === 'xlsx' ? 'in Excel' : app.doc.kind === 'docx' ? 'in Word' : 'in der Datei'} oder markiere die Teile einzeln.`) : null,
+      ` · ${l.orgCheck ? 'Einrichtung aus deiner Liste ' + l.entity + ', nicht vollständig ersetzt' : l.meta ? (l.metaOrg ? 'Einrichtung ' : 'Name ') + l.entity : l.org ? 'bestätigte Einrichtung, ' + l.entity : 'bestätigter Name, ' + l.entity}: „…${l.context.replace(/\s+/g, ' ')}…“ `,
+      l.hint ? h('p', { class: 'hint lbhint' }, l.hint) : l.org && /[\r\n]/.test(l.word) ? h('p', { class: 'hint lbhint' }, `Der Name steht über einen Zeilenumbruch. Entferne den Umbruch ${app.doc.kind === 'xlsx' ? 'in Excel' : app.doc.kind === 'docx' ? 'in Word' : 'in der Datei'} oder markiere die Teile einzeln.`) : null,
       l.meta && !taken ? (l.metaOrg
         ? h('button', { type: 'button', class: 'secondary small', onclick: () => addOrg(l.full) }, `„${l.full}“ als Einrichtung übernehmen`)
         : h('button', { type: 'button', class: 'secondary small', onclick: () => addManual(l.full) }, `„${l.full}“ als Namen übernehmen`)) : null);
