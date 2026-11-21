@@ -87,7 +87,7 @@ Das Tool zeigt immer **nur einen Bildschirm**. Oben steht, in welchem Schritt du
 
 ### Einrichtungen (seit Version 2.3)
 Schulen, Vereine, Firmen und Behörden bekommen einen **eigenen Platzhalter**, damit eine KI sie nicht für eine Person hält.
-- **Das Tool sucht Einrichtungen nicht selbst.** Eine Einrichtung entsteht nur so:
+- **Seit Version 2.8 sucht das Tool Einrichtungen selbst** (Abschnitt „Einrichtungen selbst finden“ unten). Daneben entsteht eine Einrichtung wie bisher so:
   - **von Hand:** die Bezeichnung markieren und **„Als Einrichtung markieren“** wählen (z. B. „Familienzentrum Sonnenblume“),
   - **aus den Dateiangaben:** Steht in Word/Excel eine Firma, fragt das Tool: „In den Dateiangaben steht „…“. Als Einrichtung übernehmen?“ (Autor, Bearbeiter und Manager bleiben Personen-Fragen),
   - **aus der Merkliste „Eigene Namen“:** Beim Hinzufügen wählst du die Art, Person oder Einrichtung.
@@ -101,6 +101,35 @@ Schulen, Vereine, Firmen und Behörden bekommen einen **eigenen Platzhalter**, d
 - **Vorrang:** Steckt ein Personenname in der Einrichtung („Astrid-Lindgren-Schule“), wird die ganze Einrichtung ein Platzhalter; „Astrid Lindgren“ an anderer Stelle bleibt eine Person.
 - Im Schritt „Prüfen“ stehen Einrichtungen in der Liste als eigene Gruppe **„Einrichtungen“**. Im Text sind sie seit 2.5 wie jede ersetzte Stelle gelb markiert; beim Überfahren steht „Einrichtung“ und der Platzhalter.
 - Der Speichern-Bildschirm meldet z. B. „6 Personen und 1 Einrichtung sind ersetzt.“ Der „Hinweis für die KI“ nennt auch „Einrichtung A“.
+
+### Einrichtungen selbst finden (seit Version 2.8)
+Das Tool findet Schulnamen, Träger, Kitas, Vereine und Firmen **selbst**. Eine gefundene Einrichtung wird **ersetzt und gefragt**: „Ist „Gymnasium Tannhofen“ eine Einrichtung?“ mit „Ja, ersetzen“ und „Nein“. Die Frage gilt für alle Stellen und alle Schreibweisen dieser Einrichtung. Ohne Antwort bleibt sie ersetzt; „Nein“ schaltet alle ihre Stellen aus. Sonst verhält sie sich wie eine von Hand markierte Einrichtung (Platzhalter, Endungen, GROSSSCHRIFT, alle Teile der Datei, Liste auf „Prüfen“, Schlüsseldatei, Rückbau, Schlusscheck).
+
+**Was das Tool selbst findet:**
+- **Kopfwort + Name:** ein Kopfwort und danach ein bis drei großgeschriebene Wörter: „Gymnasium Tannhofen“, „Gymnasium Kirchberg Tannhofen“, „Kita Sonnenblume“, „Kinderhaus Regenbogen“, auch mit „am / an der / in / im / bei“ dazwischen („Grundschule an der Lindenau“) und mit Endung („des Gymnasiums Tannhofen“).
+  - Kopfwörter: Gymnasium, Schule und Wörter auf -schule, Universität, Kita, Kindergarten, Krippe, Hort, Kinderhaus, Familienzentrum, Jugendzentrum, Verein, Stiftung, Praxis, Klinik, Krankenhaus, Kanzlei, Firma, Institut, Akademie. Neu in 2.8 auch zusammengesetzte Wörter auf -verein, -kita, -kindergarten, -krippe, -stiftung, -praxis, -klinik, -institut, -akademie, -gymnasium („Förderverein“, „Musikakademie“).
+- **Name mit Bindestrich vor dem Kopfwort:** „Tannhofen-Gymnasium“, „Erika-Brandner-Schule“. Ein Personenname darin gehört zur Einrichtung.
+- **Name vor einer Rechtsform:** GmbH, gGmbH, AG, KG, UG, GbR, eG, e. V., e.V., mbH („Sonnenschein Küchen GmbH“, „Förderverein Tannhofen e. V.“).
+- **Name in Anführungszeichen** (zwei bis sechs Wörter, das erste großgeschrieben, kein ganzer Satz), wenn mindestens eins gilt:
+  1. direkt davor steht ein Kopfwort oder eine Rechtsform (Kita „Kleine Strolche“),
+  2. ein Wort steht in den Namenslisten (Vor- oder Nachname; nicht die Wörter der Liste „mehrdeutig“),
+  3. die Wörter stehen zusammengezogen in einer Webadresse oder einem Konto im selben Dokument („Brandner lern und spiel“ und brandner_lern_und_spiel),
+  4. dieselbe Wortfolge steht mindestens zweimal im Dokument.
+  
+  Dann wird der Name ohne die Anführungszeichen ersetzt, auch dort, wo er ohne Anführungszeichen steht.
+- **Dieselbe Einrichtung in anderer Schreibweise** bekommt denselben Buchstaben: gleiches Kopfwort und die Namens-Wörter der einen stecken in der anderen („Gymnasium Tannhofen“ und „Gymnasium Kirchberg Tannhofen“), Bindestrich-Form („Tannhofen-Gymnasium“), mit und ohne Rechtsform. Im Modus „rückbaufähig“ hat jede Schreibweise ihre Nummer („Einrichtung A2“ …), der Rückbau ist exakt.
+
+**Was das Tool bewusst nicht findet:**
+- Ein Kopfwort allein („an der Schule“, „die Kita öffnet“).
+- Ein Kopfwort mit einem Wort, das dort üblich und kein Name ist (Ausschluss-Liste): Wochentage, Monate und Schuljahr, Halbjahr, Jahrgang, Jahrgangsstufe, Klasse(n), Unterricht, Anmeldung, Leitung, Schulleitung, Eltern, Elternbeirat, Elternabend, Kinder, Schüler(in/innen), Lehrer(in/innen), Lehrkraft, Lehrkräfte, Mitglied(er), Vorstand, Satzung, Öffnungszeiten, Betreuung, Gebühr(en), Beitrag, Beiträge, Träger, Gebäude, Hof, Ferien, Termin(e), Team, Sekretariat, Verwaltung, Kontakt, Telefon, Fax, Adresse, Anschrift, Website, Webseite, Homepage, Mittagessen, Essen, Mensa, Aula, Turnhalle, Sporthalle, Bibliothek, Kosten, Programm, Stundenplan, Speiseplan, Elternbrief, Info(s), Informationen, Hinweis(e), Formular, Antrag, Woche(n), Jahr, Tag(e), Uhr, Beginn, Ende, Neubau, Alltag („Ganztagsschule Schuljahr“ ist kein Fund).
+- Titel in Anführungszeichen hinter Vortrag, Kurs, Projekt, Thema, Motto, Buch, Titel, Lied, Film, Workshop, Seminar, Fach, AG, Stück, Artikel (außer Merkmal 1 bis 3 gilt).
+- Orte allein („Stadt Kirchberg“, „Freistaat Bayern“). Ein Ort wird nur als Teil eines Einrichtungsnamens ersetzt.
+
+**Was nur gewarnt wird:** Ein Name in Anführungszeichen ohne eins der Merkmale 1 bis 4 wird nicht ersetzt und nicht gefragt. Er steht im Punkt „Hier könnte eine Einrichtung stehen“ auf „Speichern“.
+
+**Vorrang:** Namensspalten (2.6), Webadressen, Konten, E-Mail und Adressen gehen vor; von Hand markierte Einrichtungen und Namen gehen vor. Markierst du eine gefundene Einrichtung von Hand, ist sie ab dann sicher und ihre Frage fällt weg. Die Liste „Ausnahmen“ gilt auch hier.
+
+**Neuer Punkt auf „Speichern“:** Wird eine gefundene Einrichtung nicht ersetzt und ist ihre Frage offen (z. B. weil „Unsichere Treffer standardmäßig ersetzen“ aus ist), steht dort „Eine Einrichtung steht noch im Text: …“ mit Fundort, „Im Text zeigen“ und „Ersetzen“. Nach „Nein“ oder bewusstem Ausschalten kommt kein Punkt.
 
 ### Namensspalten in Tabellen (seit Version 2.6)
 In Excel, CSV und Word-Tabellen schaut das Tool auf die **Überschrift einer Spalte**. Steht dort ein Namenswort, gilt jede **reine Namenszelle** darunter als Name, auch wenn der Name in keiner Liste steht (z. B. „Brzęczek“ unter „Nachname“, „Dimitrios“ unter „Vorname“).
@@ -127,12 +156,8 @@ Zwei neue Arten wie E-Mail und Telefon. Schalter **„Webadressen und Konten“*
 Neue Punkte auf „Speichern“. Sie laufen über das **eine Häkchen** wie alle Punkte und verschwinden, sobald ihr Grund weg ist.
 - **Es wird gar nichts ersetzt:** „In dieser Datei wird nichts ersetzt. Bitte prüfe Schulname, Firma, Webadresse und Konto und markiere sie von Hand.“
 - **Webadresse oder Konto steht noch im Text** (nur wenn der Schalter „Webadressen und Konten“ aus ist): jede Stelle mit Fundort und „Im Text zeigen“; „Ersetzen“ schaltet den Schalter ein.
-- **Warnpunkt „Hier könnte eine Einrichtung stehen.“** Das Tool ersetzt Einrichtungen noch nicht selbst. Es zeigt aber Stellen, die so aussehen:
-  - ein Kopfwort (Gymnasium, Schule und Wörter auf -schule, Universität, Kita, Kindergarten, Krippe, Hort, Kinderhaus, Familienzentrum, Jugendzentrum, Verein, Stiftung, Praxis, Klinik, Krankenhaus, Kanzlei, Firma, Institut, Akademie, auch mit Endung) direkt vor einem großgeschriebenen Wort („Gymnasium Tannhofen“), oder ein Wort mit Bindestrich davor („Tannhofen-Gymnasium“);
-  - ein großgeschriebenes Wort vor einer Rechtsform (GmbH, gGmbH, AG, KG, UG, GbR, eG, e. V., e.V., mbH);
-  - zwei bis sechs Wörter in Anführungszeichen, das erste großgeschrieben („Brandner lern und spiel“).
-  
-  Es sind höchstens zehn Stellen aufgeführt, dann „und n weitere“, jede mit Fundort und „Im Text zeigen“. Der Punkt **warnt nur**: Er ersetzt nichts, stellt keine Frage und ändert keine Ausgabe. Eine Stelle fällt weg, sobald sie ersetzt ist (von Hand als Einrichtung oder Name markiert). Auch Sachwörter können auftauchen („Ganztagsschule Schuljahr“, „Gesunde Pause“); dann einfach weiter.
+- **Warnpunkt „Hier könnte eine Einrichtung stehen.“** Seit 2.8 nur noch für Namen in Anführungszeichen, die das Tool nicht sicher genug als Einrichtung erkennt (Abschnitt „Einrichtungen selbst finden“). Es sind höchstens zehn Stellen aufgeführt, dann „und n weitere“, jede mit Fundort und „Im Text zeigen“. Der Punkt **warnt nur**: Er ersetzt nichts, stellt keine Frage und ändert keine Ausgabe. Eine Stelle fällt weg, sobald sie ersetzt ist (von Hand als Einrichtung oder Name markiert).
+- **Eine Einrichtung steht noch im Text** (seit 2.8): siehe „Einrichtungen selbst finden“.
 
 ### Eigene Namen und Ausnahmen (unter „Einstellungen und eigene Namen“)
 - **Eigene Namen (Merkliste):** Namen, die das Tool nicht kennt. Sie werden bei jedem weiteren Dokument automatisch mit ersetzt. Auch „Als Name markieren“, „Als Einrichtung markieren“ und „für nächstes Mal merken“ tragen dort ein.
@@ -285,8 +310,17 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 
 ## Grenzen (bitte lesen)
 
+**Seit Version 2.8 (Einrichtungen selbst finden):**
+- **Kürzel und Namensteile allein** („GYMTH“, „Tannhofen“ allein, „lernundspiel“) findet das Tool noch nicht. Bitte von Hand markieren. Das kommt mit einer späteren Version.
+- **Einrichtungen ohne Kopfwort und ohne Rechtsform** („Lindenhof“, „die Sonnenblume“) und ohne Anführungszeichen werden nicht gefunden.
+- **Name über einen Zeilenumbruch** (Zeile endet nach „Kita Freie“, nächste Zeile „Spatzen“): gefunden wird nur der Teil in der ersten Zeile. Bitte den ganzen Namen von Hand markieren; dann gilt die Regel für den Zeilenumbruch.
+- **GROSSSCHRIFT:** In einer Zeile ganz in Großbuchstaben kann das Wort nach dem Namen mitgenommen werden („FAMILIENZENTRUM SONNENBLUME LÄDT“), wenn die Einrichtung nirgends in normaler Schreibweise steht.
+- **Sachwörter nach einem Kopfwort**, die nicht auf der Ausschluss-Liste stehen („Grundschule Deutsch“, „Theater AG“), werden als Einrichtung ersetzt und gefragt. Dann mit „Nein“ antworten.
+- **Mehrere Schulen mit gemeinsamen Namens-Wörtern** („Gymnasium Kirchberg“ und „Gymnasium Tannhofen“ und „Gymnasium Kirchberg Tannhofen“ im selben Text) werden eine Einrichtung.
+- **Merkmal 2 und Umlaute:** Ein Wort mit Umlaut zählt nur als Name, wenn es ein Vorname ist („Blätter“ ist nicht der Nachname „Blatter“).
+
 **Seit Version 2.7 (Webadressen, Konten, Warnpunkt):**
-- **Einrichtungen werden noch nicht selbst ersetzt.** Schulname, Träger und Kürzel („GYMTH“) bleiben im Klartext, bis du sie markierst. Der Warnpunkt zeigt Kandidaten; das Kürzel zeigt er nicht.
+- (Seit 2.8 findet das Tool Einrichtungen selbst, siehe unten.)
 - **Webadresse ohne bekannte Endung** (z. B. `kita.example`) oder ohne Punkt wird nicht erkannt. Eine bloße Domain mit GROSS geschriebener Endung („BEISPIEL.DE“) ebenfalls nicht; mit `www.` oder `https://` schon.
 - **Konto ohne Plattform-Wort und ohne @** (z. B. nur „kita_sonne“) wird nicht erkannt.
 - **Mailto-Verknüpfung:** Steht eine E-Mail-Adresse nur im Ziel einer Verknüpfung, wird sie wie bisher als „[E-MAIL]“ ohne Nummer ersetzt und kommt beim Rückbau nicht zurück.
