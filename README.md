@@ -31,13 +31,19 @@ Das Tool zeigt immer **nur einen Bildschirm**. Oben steht, in welchem Schritt du
   - Fügst du einen Eintrag hinzu, solange die Liste nicht im Browser gespeichert wird, steht direkt am Feld: **„Diese Liste gilt nur, bis du die Seite schließt oder neu lädst.“** mit dem Knopf **„Dauerhaft in diesem Browser speichern“**. Standard bleibt: nicht speichern.
 
 **2. Prüfen: „Namen prüfen“**
-- **Gelb wird ersetzt. Klick auf ein Wort schaltet es um.** Es gibt nur zwei Markierungen im Text:
-  - **gelbe Fläche** = wird ersetzt (Personen, Einrichtungen, Kontaktdaten und eigene Namen gleich),
-  - **gestrichelter Rand** = hier ist eine Frage offen.
-  - Ausgeschaltete Stellen sind nicht markiert. Wer es ist und was passiert, steht beim Überfahren mit der Maus und in der Liste.
+- **Gelb wird ersetzt. Klick auf ein Wort schaltet es um.** Drei Markierungen im Text (seit Version 2.6.1):
+  - **blassgelbe Fläche** = wird ersetzt (Personen, Einrichtungen, Kontaktdaten und eigene Namen gleich),
+  - **dünner gestrichelter Rand** = hier ist eine Frage offen (mit blasser Fläche, wenn die Stelle im Moment ersetzt wird),
+  - **kräftig gelb, dicker brauner Rand, fett** = die Stelle(n) der Frage, die gerade in der Fragekarte steht. Auch das Wort im Satz-Ausschnitt der Karte sieht so aus. Bei Fragen zu den Dateiangaben und ohne gezeigte Frage ist nichts kräftig markiert.
+  - Ausgeschaltete Stellen sind nicht markiert. Wer es ist und was passiert, steht beim Überfahren mit der Maus und in der Liste (bei der gerade gefragten Stelle mit „aktuelle Frage“).
+- **Zur Stelle rollen (seit 2.6.1):** Wird eine andere Frage gezeigt, rollt die Ansicht zur ersten Stelle dieser Frage, etwa in die Mitte (in breiten Tabellen auch seitlich; bei Excel wechselt erst der Blatt-Reiter). Ist die Stelle schon ganz zu sehen, wird nicht gerollt. Ein Klick auf eine Markierung oder das Umschalten einer Spalte rollt nicht.
 - **Excel und CSV** erscheinen als echte Tabelle mit Spaltenbuchstaben und Zeilennummern; lange Texte brechen um, sonst scrollt die Tabelle seitlich. Jedes Excel-Blatt hat einen Reiter, ausgeblendete mit „(ausgeblendet)“. Kommentare, Kopf-/Fußzeilen, Blattnamen und Bildbeschreibungen stehen darunter als eigene, benannte Zeilen („Kommentar zu Zelle C7“, „Kopfzeile, Blatt Liste“, „Bildbeschreibung“). Word-Tabellen erscheinen ebenfalls als Tabelle.
 - Einen **nicht erkannten Namen** antippen oder markieren: Direkt daneben erscheinen **„Als Name markieren“** und **„Als Einrichtung markieren“**. Danach wird er **überall** ersetzt, auch mit Endung („Müllers“) und in GROSSSCHREIBUNG („MÜLLER“).
 - **Fragekarte** rechts („Frage 2 von 5“, Tasten **J** und **N**):
+  - **Vorige und nächste Frage (seit 2.6.1):** Oben rechts in der Karte stehen **←** („Vorige Frage“, Taste Pfeil links) und **→** („Nächste Frage“, Taste Pfeil rechts, nur wenn die Frage schon beantwortet ist). So kannst du eine Antwort **nachträglich ändern**. Die Karte zeigt dann „Bisherige Antwort: Ja/Nein“. Das Ergebnis ist genau so, als hättest du gleich richtig geantwortet: Was die alte Antwort verändert hat, wird zurückgenommen (von Hand umgeschaltete Stellen bleiben, wie du sie gestellt hast), und Fragen, die es mit der neuen Antwort nicht mehr gibt, verlieren ihre Antwort. Dieselbe Antwort noch einmal ändert nichts.
+  - Nach einer Antwort kommt die erste noch offene Frage; gibt es keine, die nächste in der Reihenfolge, am Ende „Alle Fragen beantwortet“ (auch dort mit ←).
+  - **Einstellung geändert** (auf „Datei“, z. B. „Unsichere Treffer standardmäßig ersetzen“ oder ein Kontakt-Schalter): Alle Antworten und Umschaltungen werden verworfen, der Stand ist wie frisch berechnet. Die Listen bleiben. Die Karte sagt einmal: „Du hast eine Einstellung geändert. Die Fragen sind wieder offen.“
+  - **Liste geändert** („Eigene Namen“, Einrichtungen, Ausnahmen): Antworten bleiben gültig. Entfernst du einen Namen, der durch „Ja“ bei einer Frage zu den Dateiangaben in die Liste kam, gilt diese Antwort als „Nein“. Fällt eine Frage durch die Änderung weg, wird ihre Antwort verworfen.
   - **Frage zum Wort**: „Ist „Winter“ ein Name?“ für unsichere Wörter ohne klaren Zusammenhang. **„Ja, Name“ schaltet nur die Stellen an, die nicht im Sachkontext stehen.** „Nein“ schaltet alle unsicheren Stellen des Worts aus.
   - **Frage je Stelle** (seit 2.5) bei Wörtern, die auch gewöhnliche Wörter sind (Liste „mehrdeutig“, z. B. Winter, Rose), wenn die Person im Dokument sicher erkannt oder bestätigt ist:
     - direkt nach Artikel oder Präposition („im Winter“, „die Rosen“): bleibt wie bisher aus;
@@ -368,7 +374,7 @@ Der Schlusscheck sucht nur dort, wo Nutzertext stehen kann. Formatangaben meldet
 |---|---|
 | Chromium/Chrome (Desktop) | **geprüft** (automatische Tests, headless) |
 | Chromium mit 390, 1280 und 1920 px Breite | **geprüft** (kein waagrechtes Scrollen, Knöpfe mindestens 44 px, Antippen, Markieren, Tasten J/N) |
-| Edge und Chrome unter Windows (Firmen-PC, `file://`) | Version 1.0 laut Easy **am PC geprüft**; Versionen 1.1 bis 2.6.0 **durch Code ungeprüft** |
+| Edge und Chrome unter Windows (Firmen-PC, `file://`) | Version 1.0 laut Easy **am PC geprüft**; Versionen 1.1 bis 2.6.1 **durch Code ungeprüft** |
 | Microsoft Word / Excel: Öffnen der bereinigten Datei ohne Reparatur-Meldung | **durch Code ungeprüft** (auch die unsichtbare Kennung, seit 2.1). Geprüft: LibreOffice öffnet alle Ausgaben, alle XML-Teile sind wohlgeformt, keine Verweise ins Leere |
 | Firefox (Desktop) | **durch Code ungeprüft** (Firefox ließ sich in der Testumgebung nicht starten; Befund zu Version 2.4.1 siehe PR) |
 | Safari (macOS) | **ungeprüft** |
@@ -381,7 +387,7 @@ Die Datei muss in einem Browser geöffnet werden (z. B. über „Teilen → in S
 
 ## Version und Prüfsumme
 
-Version **2.6.0**, Stand 2026-11-21 (steht auch im Fußbereich des Tools).
+Version **2.6.1**, Stand 2026-11-21 (steht auch im Fußbereich des Tools).
 
 SHA-256 der `index.html` dieser Version:
 
@@ -463,6 +469,8 @@ node tests/pfade-test.mjs <index.html-2.4.0>  # Namen je Teil vorher/nachher, Kr
 node tests/make-bedienung.mjs  # Testdokumente zu Easys Befunden (seit 2.5.0): Winter/Rosen, Montag, Do 13:30, GROSS-Form eines übernommenen Namens, ausgeblendetes Blatt, Bilder → tests/fixtures-bedienung/
 node tests/make-spalten.mjs   # Testdokumente 2.6.0: Brief/Liste/Protokoll aus der Diagnose, Tabellenfälle in Excel/CSV/Word, Zeilenende-Risiken → tests/fixtures-spalten/
 node tests/spalten-test.mjs [--alt <index.html-2.5.0>]  # Namensspalten, Spalte von Hand, Anrede in der Nachbarzelle, Zeilenende, „von“, Ziel-Test → tests/SPALTEN-REPORT.md
+node tests/make-anzeige.mjs   # Testdokumente 2.6.1: Fragen auf mehreren Excel-Blättern, breite Tabelle, langer Text, Falle „Rose/Rosen“ → tests/fixtures-anzeige/
+node tests/anzeige-test.mjs   # Anzeige beim Prüfen: drei Zustände, Rollen, Vorige/Nächste Frage, Antwort ändern = wie direkt geantwortet, Einstellungen/Listen, Rückbau → tests/ANZEIGE-REPORT.md
 node tests/bedienung-test.mjs <index.html-2.4.1>  # Fragen und Speichern vorher/nachher, Beweis D.5, ohne Bedienung byte-gleich, Sperren, Eigene Namen, 1366×768 → tests/BEDIENUNG-REPORT.md
 ```
 

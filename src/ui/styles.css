@@ -4,7 +4,7 @@
   --accent: #0B6B6B; --accent-fg: #FFFFFF; --accent-light: #E3F1F0;
   --ok: #1B6B3A; --warn: #8A4B00; --warnbg: #FFF4E5;
   --keybg: #FDECEC; --keyline: #B3261E; --keyfg: #8C1D18;
-  --hit: #FFE39A; --ask-line: #8A4B00; --manual-line: #2A4FB0;
+  --hit: #FFF3C4; --cur: #FFD15C; --cur-line: #B4530A; --ask-line: #8A4B00; --manual-line: #2A4FB0;
   --off: #E6E9ED; --radius: 8px;
   --org: #F0E6FA; --org-line: #6A2C9C;
 }
@@ -132,13 +132,20 @@ table.wtable td { border: 1px solid var(--line); padding: .15rem .45rem; vertica
 /* Nur zwei Markierungen: „wird ersetzt“ (gelbe Fläche) und „Frage“ (gestrichelter Rand). Aus = unmarkiert. */
 mark.hit { color: inherit; background: none; border-radius: 3px; padding: 0 .08em; cursor: pointer; }
 mark.hit.on { background: var(--hit); }
-mark.hit.ask { outline: 2px dashed var(--ask-line); outline-offset: -1px; }
+mark.hit.ask { outline: 1px dashed var(--ask-line); outline-offset: 0; }
+/* Version 2.6.1: Stellen der gerade gezeigten Frage (Rahmen als outline, damit keine Zeile springt) */
+mark.hit.cur, mark.hit.cur.on, mark.hit.cur.ask { background: var(--cur); outline: 3px solid var(--cur-line); outline-offset: 0; font-weight: 700; }
 mark.hit.off:hover { text-decoration: underline dotted; }
 .side { position: sticky; top: 3.5rem; max-height: calc(100vh - 4.5rem); overflow: auto; }
 .qcard { background: var(--card); border: 2px solid var(--accent); border-radius: var(--radius); padding: .6rem .75rem; }
 .qcount { color: var(--muted); font-weight: 600; font-size: 13px; margin: 0; }
 .qctx { background: var(--bg); border-radius: 6px; padding: .35rem .5rem; overflow-wrap: anywhere; }
-.qctx mark { background: var(--hit); outline: 2px dashed var(--ask-line); outline-offset: -1px; }
+.qctx mark { background: var(--cur); outline: 3px solid var(--cur-line); outline-offset: 0; font-weight: 700; }
+.qhead { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.qnavs { display: flex; gap: .25rem; }
+.qnav { min-width: 44px; min-height: 44px; padding: 0 .4rem; border: 1px solid var(--line); border-radius: 6px; background: var(--card); color: var(--fg); font-size: 16px; line-height: 1; cursor: pointer; }
+.qnav:disabled { opacity: .4; cursor: default; }
+.qnote { color: var(--ask-line); font-weight: 600; }
 .qask { font-weight: 700; }
 .qstate { font-size: 13px; color: var(--warn); font-weight: 600; }
 .qbtns { display: flex; gap: .4rem; flex-wrap: wrap; }

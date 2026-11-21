@@ -24,7 +24,7 @@ Testdokumente: tests/make-bedienung.mjs -> tests/fixtures-bedienung/ (alles erfu
 - OK: bedienung.docx: „Nein“ je Stelle: „im Winter“ und „Rosen“ bleiben unverändert
 - OK: bedienung.docx: ohne Antwort und nach „Ja“ bei Wort-Fragen bleibt „Rosen“ wie heute ersetzt (Entscheidung Variante a)
 - OK: bedienung.docx: keine Frage und keine Markierung für „Montag“ und „Do 13:30“
-- OK: bedienung.docx: GROSS-Form „WITTEKINDHORNS“ des übernommenen Namens wird je Stelle gefragt; Fragekarte zeigt „Bleibt im Moment stehen.“ – Frage 3 von 6WITTEKINDHORNS Neffe hilft beim Aufbau.Ist hier die Person Wittekindhorn gemeint?Bleibt im Moment stehen.Ja, ersetzenNeinTasten: J = Ja, N = Nein
+- OK: bedienung.docx: GROSS-Form „WITTEKINDHORNS“ des übernommenen Namens wird je Stelle gefragt; Fragekarte zeigt „Bleibt im Moment stehen.“ – Frage 3 von 6←→nullWITTEKINDHORNS Neffe hilft beim Aufbau.Ist hier die Person Wittekindhorn gemeint?Bleibt im Moment stehen.Ja, ersetzenNeinTasten: J = Ja, N = Nein, ← vorige, → nächste Frage
 
 ### bedienung.xlsx
 
@@ -47,7 +47,7 @@ Testdokumente: tests/make-bedienung.mjs -> tests/fixtures-bedienung/ (alles erfu
 - OK: bedienung.xlsx: „Nein“ je Stelle: „im Winter“ und „Rosen“ bleiben unverändert
 - OK: bedienung.xlsx: ohne Antwort und nach „Ja“ bei Wort-Fragen bleibt „Rosen“ wie heute ersetzt (Entscheidung Variante a)
 - OK: bedienung.xlsx: keine Frage und keine Markierung für „Montag“ und „Do 13:30“
-- OK: bedienung.xlsx: GROSS-Form „WITTEKINDHORNS“ des übernommenen Namens wird je Stelle gefragt; Fragekarte zeigt „Bleibt im Moment stehen.“ – Frage 3 von 6WITTEKINDHORNS Neffe hilft beim Aufbau.Ist hier die Person Wittekindhorn gemeint?Bleibt im Moment stehen.Ja, ersetzenNeinTasten: J = Ja, N = Nein
+- OK: bedienung.xlsx: GROSS-Form „WITTEKINDHORNS“ des übernommenen Namens wird je Stelle gefragt; Fragekarte zeigt „Bleibt im Moment stehen.“ – Frage 3 von 6←→nullWITTEKINDHORNS Neffe hilft beim Aufbau.Ist hier die Person Wittekindhorn gemeint?Bleibt im Moment stehen.Ja, ersetzenNeinTasten: J = Ja, N = Nein, ← vorige, → nächste Frage
 
 ### bedienung.txt
 
@@ -70,7 +70,7 @@ Testdokumente: tests/make-bedienung.mjs -> tests/fixtures-bedienung/ (alles erfu
 - OK: bedienung.txt: „Nein“ je Stelle: „im Winter“ und „Rosen“ bleiben unverändert
 - OK: bedienung.txt: ohne Antwort und nach „Ja“ bei Wort-Fragen bleibt „Rosen“ wie heute ersetzt (Entscheidung Variante a)
 - OK: bedienung.txt: keine Frage und keine Markierung für „Montag“ und „Do 13:30“
-- OK: bedienung.txt: GROSS-Form „WITTEKINDHORNS“ des übernommenen Namens wird je Stelle gefragt; Fragekarte zeigt „Bleibt im Moment stehen.“ – Frage 3 von 5WITTEKINDHORNS Neffe hilft beim Aufbau.Ist hier die Person Wittekindhorn gemeint?Bleibt im Moment stehen.Ja, ersetzenNeinTasten: J = Ja, N = Nein
+- OK: bedienung.txt: GROSS-Form „WITTEKINDHORNS“ des übernommenen Namens wird je Stelle gefragt; Fragekarte zeigt „Bleibt im Moment stehen.“ – Frage 3 von 5←→nullWITTEKINDHORNS Neffe hilft beim Aufbau.Ist hier die Person Wittekindhorn gemeint?Bleibt im Moment stehen.Ja, ersetzenNeinTasten: J = Ja, N = Nein, ← vorige, → nächste Frage
 
 ## 2. Beweis D.5: jede stehen gebliebene Stelle eines bestätigten Namens genau einmal
 
