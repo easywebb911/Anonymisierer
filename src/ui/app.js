@@ -11,7 +11,6 @@ import { fold } from '../core/fold.js';
 import { readTxt, writeTxt, readCsv, writeCsv, encodeText, encodeTextPlain } from '../formats/text.js';
 import { collectLinkTexts } from '../formats/links.js';
 import { findContacts } from '../core/patterns.js';
-import { findOrgHints } from '../core/hints.js';
 import { MODE_REVERSIBLE, buildRestoreKey } from '../core/reversible.js';
 import { parseKeyFile, planRestore, makeRestoreString, findLeftovers, findPlaceholderRests } from '../core/restore.js';
 import { readDocx, writeDocx, buildDocx } from '../formats/docx.js';
@@ -344,7 +343,7 @@ function decidedOffHits() {
   for (const q of questions()) {
     const a = answerOf(q);
     if (a === 'ja') continue;
-    const hs = q.kind === 'place' ? [q.hit] : q.kind === 'word' ? (a === 'nein' || !q.hits.length ? q.neinHits : q.hits) : [];
+    const hs = q.kind === 'place' ? [q.hit] : q.kind === 'word' || q.kind === 'org' ? (a === 'nein' || !q.hits.length ? q.neinHits : q.hits) : [];
     for (const x of hs) if (!x.on) list.push(x);
   }
   return list;
@@ -412,10 +411,14 @@ function plainLabel(label, kind) {
   return l;
 }
 function orgCheckLeaks() {
-  if (!app.result || !app.state.orgTerms.length) return [];
+  if (!app.result) return [];
+  // Version 2.8.0: gefundene Einrichtungen (mit mindestens einer ersetzten Stelle) gelten wie markierte
+  const autoOn = (app.result.autoOrgTerms || []).filter((t) => { const og = app.result.orgs.get(t.entity); return og && og.hits.some((x) => x.on); }).map((t) => t.text);
+  const terms = [...app.state.orgTerms, ...autoOn];
+  if (!terms.length) return [];
   const k = app.doc.kind;
   const prog = k === 'xlsx' ? 'Excel' : k === 'docx' ? 'Word' : '';
-  return orgCoverageLeaks(app.result, app.state.orgTerms).map((f) => {
+  return orgCoverageLeaks(app.result, terms).map((f) => {
     const t = app.result.fullText;
     const where = f.units.map(unitPlace).filter((x, i, a) => a.indexOf(x) === i).join(' und ');
     let hint;
@@ -494,6 +497,12 @@ function questions() {
   const r = app.result;
   if (!r) return [];
   const qs = [];
+  // Version 2.8.0: je selbst gefundener Einrichtung EINE Frage für alle Stellen und Schreibweisen
+  for (const og of r.orgs.values()) {
+    if (!og.auto) continue;
+    const hs = og.hits.filter((x) => x.auto);
+    if (hs.length) qs.push({ id: 'o:' + og.key, kind: 'org', og, hits: hs, neinHits: hs, word: og.display, first: hs[0] });
+  }
   for (const en of r.entities.values()) {
     const unsure = en.hits.filter((x) => x.cert === 'unsicher' && !x.calendar && !x.capsManual);
     const plain = unsure.filter((x) => !x.sachkontext);
@@ -523,7 +532,7 @@ function askHits() {
   const s = new Set();
   for (const q of openQuestions()) {
     if (q.kind === 'place') s.add(q.hit);
-    else if (q.kind === 'word') for (const x of (q.hits.length ? q.hits : q.neinHits)) s.add(x);
+    else if (q.kind === 'word' || q.kind === 'org') for (const x of (q.hits.length ? q.hits : q.neinHits)) s.add(x);
   }
   return s;
 }
@@ -555,7 +564,7 @@ function applyAnswer(q, val, seq, skip) {
   app.answers.set(q.id, val);
   const rec = { seq, hits: [], meta: null };
   app.answerLog.set(q.id, rec);
-  if (q.kind === 'word' || q.kind === 'place') {
+  if (q.kind === 'word' || q.kind === 'place' || q.kind === 'org') {
     const list = q.kind === 'place' ? [q.hit] : yes ? q.hits : q.neinHits;
     rec.hits = hitRecord(list, yes, skip);
     setHits(skip ? list.filter((x) => !skip.has(x.key)) : list, yes);
@@ -700,7 +709,12 @@ function renderQuestions() {
   const prev = answerOf(q);
   const kids = [qHead(`Frage ${idx + 1} von ${qs.length}`, idx > 0, !!prev), note];
   let yes = 'Ja, Name';
-  if (q.kind === 'word') {
+  if (q.kind === 'org') {
+    // Version 2.8.0: selbst gefundene Einrichtung
+    kids.push(contextOf(q.first), h('p', { class: 'qask' }, `Ist „${q.word}“ eine Einrichtung?`));
+    if (q.hits.length > 1) kids.push(h('p', { class: 'hint' }, `Gilt für ${q.hits.length} Stellen.`));
+    yes = 'Ja, ersetzen';
+  } else if (q.kind === 'word') {
     kids.push(contextOf(q.first), h('p', { class: 'qask' }, `Ist „${q.word}“ ein Name?`));
     const n = q.hits.length;
     if (n > 1) kids.push(h('p', { class: 'hint' }, `Gilt für ${n} Stellen.`));
@@ -1271,8 +1285,14 @@ function savePoints() {
   // Version 2.7.0 (PR A): Warnpunkt „Hier könnte eine Einrichtung stehen“ (nur Hinweis, ändert keine Ausgabe)
   const oh = orgHintPlaces();
   if (oh.length) {
-    pts.push({ id: 'einr:' + oh.map((x) => x.unit + ':' + x.text).join('|'), text: 'Hier könnte eine Einrichtung stehen. Das Tool ersetzt Einrichtungen noch nicht selbst. Bitte prüfen und bei Bedarf als Einrichtung markieren.',
+    pts.push({ id: 'einr:' + oh.map((x) => x.unit + ':' + x.text).join('|'), text: 'Hier könnte eine Einrichtung stehen. Bitte prüfen und bei Bedarf als Einrichtung markieren.',
       items: placeItems(oh) });
+  }
+  for (const { q, left } of orgOpenPoints()) {
+    const base = (x) => app.result.unitStarts[x.unit];
+    pts.push({ id: 'org3:' + q.id + ':' + left.length, text: [`Eine Einrichtung steht noch im Text: `, h('strong', {}, `„${q.word}“`)],
+      items: placeItems(left.map((x) => ({ unit: x.unit, text: app.result.fullText.slice(x.s, x.e), s: x.s - base(x), e: x.e - base(x) }))),
+      acts: [['Ersetzen', () => setHits(left, true)]] });
   }
   if (app.doc.images && app.doc.images.length) {
     const n = app.doc.images.length;
@@ -1298,7 +1318,7 @@ function freeSpans(find) {
   app.doc.units.forEach((u, ui) => {
     const base = r.unitStarts[ui];
     const on = byUnit.get(ui) || [];
-    for (const x of find(u.text)) {
+    for (const x of find(u.text, ui)) {
       if (on.some((o) => o.s < base + x.e && o.e > base + x.s)) continue;
       out.push({ unit: ui, s: x.s, e: x.e, text: u.text.slice(x.s, x.e) });
     }
@@ -1321,7 +1341,19 @@ function webPlaces() {
   if (app.state.settings.web) return [];
   return cachedSpans('web', (t) => findContacts(t, { web: true }).filter((c) => c.type === 'web' || c.type === 'account'));
 }
-function orgHintPlaces() { return cachedSpans('einr', findOrgHints); }
+// Version 2.8.0: nur noch die schwachen Funde (Anführungszeichen ohne Merkmal, orgauto.js)
+function orgHintPlaces() { return cachedSpans('einr', (t, ui) => (app.result.orgWeak || []).filter((w) => w.unit === ui)); }
+// Version 2.8.0, Sperre Punkt 3: gefundene Einrichtung, deren Stellen nicht ersetzt werden, Frage unbeantwortet, nicht
+// bewusst ausgeschaltet (z. B. „Unsichere Treffer ersetzen“ aus)
+function orgOpenPoints() {
+  const out = [];
+  for (const q of questions()) {
+    if (q.kind !== 'org' || answerOf(q)) continue;
+    const left = q.hits.filter((x) => !x.on && app.state.overrides[x.key] === undefined);
+    if (left.length) out.push({ q, left });
+  }
+  return out;
+}
 // höchstens zehn Stellen, dann „und n weitere“; jede mit Fundort und „Im Text zeigen“
 function placeItems(list) {
   const items = list.slice(0, 10).map((x) => ({ text: `${/^[„“"»«]/.test(x.text) ? x.text.replace(/\s+/g, ' ') : '„' + x.text.replace(/\s+/g, ' ') + '“'} – ${unitPlace(x.unit)}`, act: ['Im Text zeigen', () => showUnit(x.unit)] }));

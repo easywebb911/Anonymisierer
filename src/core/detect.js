@@ -5,6 +5,7 @@
 import { fold, umlautVariant } from './fold.js';
 import * as lex from './lexicon.js';
 import { findContacts } from './patterns.js';
+import { findOrgs } from './orgauto.js';
 import { assignReversible, MODE_REVERSIBLE, reservedPlaceholders } from './reversible.js';
 
 const TOKEN_RE = /[\p{L}\p{M}]+(?:['’][\p{L}\p{M}]+)*(?:-[\p{L}\p{M}]+(?:['’][\p{L}\p{M}]+)*)*|\p{N}+|\S/gu;
@@ -355,6 +356,20 @@ export function analyze(units, state, extra = {}) {
   // Version 2.6.0: Namensspalten in Tabellen (Excel, CSV, Word) – vor allen übrigen Regeln (Vorrang vor „mehrdeutig“,
   // Regel b2 und Regel a2)
   const columns = nameColumnRule(units, unitToks, covered, tokHit, hits, mentions, exceptions, fullText, st.nameColumns || {});
+
+  // 1c) Version 2.8.0: Einrichtungen selbst finden (orgauto.js). Nach Kontaktdaten, von Hand markierten Einrichtungen und
+  // Namensspalten (die haben Vorrang), vor der Personen-Erkennung (ein Personenname in einer Einrichtung gehört zu ihr).
+  // Gefundene Bezeichnungen werden wie von Hand markierte im ganzen Dokument gesucht, aber „unsicher, an“. Gehört ein
+  // Fund zu einer von Hand markierten Einrichtung (gleiche Einrichtung, andere Schreibweise), wird er Teil von ihr (sicher).
+  const isCovered = (ui, s, e) => { const base = unitStarts[ui]; return unitToks[ui].some((tk, k) => covered[ui][k] && tk.s - base < e && tk.e - base > s); };
+  const auto = findOrgs(units, fullText, { covered: isCovered, exceptions, manualTerms: st.orgTerms || [] });
+  const autoTerms = [];
+  for (const g of auto.groups) {
+    const manualKey = g.manualTerm ? orgTermTokens(g.manualTerm).key : null;
+    const entity = manualKey || 'A|' + orgTermTokens(g.terms[0]).key.slice(2);
+    for (const t of g.terms) autoTerms.push({ text: t, entity, auto: !manualKey, display: g.terms[0] });
+  }
+  if (autoTerms.length) matchOrgTerms(autoTerms, units, unitToks, unitStarts, covered, tokHit, fullText, hits, st.settings.mode === MODE_REVERSIBLE, st.settings);
   units.forEach((u, ui) => {
     const base = unitStarts[ui];
     const toks = unitToks[ui];
@@ -640,8 +655,10 @@ export function analyze(units, state, extra = {}) {
   const orgs = new Map();
   for (const h of hits) {
     if (h.type !== 'org') continue;
-    if (!orgs.has(h.entity)) orgs.set(h.entity, { key: h.entity, org: true, manual: true, hits: [], forms: new Map(), linkable: [], terms: new Set() });
+    if (!orgs.has(h.entity)) orgs.set(h.entity, { key: h.entity, org: true, manual: !h.auto, auto: !!h.auto, hits: [], forms: new Map(), linkable: [], terms: new Set() });
     const og = orgs.get(h.entity);
+    if (!h.auto) { og.manual = true; og.auto = false; }
+    if (h.auto && !og.autoDisplay) og.autoDisplay = h.display;
     og.hits.push(h);
     og.terms.add(h.term);
     const surface = fullText.slice(h.s, h.e - (h.suffix ? h.suffix.length : 0));
@@ -661,7 +678,7 @@ export function analyze(units, state, extra = {}) {
     og.label = st.settings.mode === 'name' ? '[EINRICHTUNG]' : 'Einrichtung ' + og.letter;
     // Anzeige: die markierte Bezeichnung selbst (bei zusammengeführten die des Ziels), sonst die häufigste Schreibweise
     const own = og.hits.find((x) => x.origEntity === og.key);
-    og.display = own ? own.term : [...og.forms.entries()].sort((a, b) => b[1] - a[1] || b[0].length - a[0].length || (a[0] < b[0] ? -1 : 1))[0][0];
+    og.display = og.auto && og.autoDisplay ? og.autoDisplay : own ? own.term : [...og.forms.entries()].sort((a, b) => b[1] - a[1] || b[0].length - a[0].length || (a[0] < b[0] ? -1 : 1))[0][0];
   }
   const entities = new Map();
   // Version 2.5.0: Treffer „GROSS-Form eines von Hand übernommenen Namens“ (capsManual) bestimmen weder Reihenfolge
@@ -709,7 +726,7 @@ export function analyze(units, state, extra = {}) {
   }
   for (const og of orgs.values()) og.count = og.hits.length;
 
-  const result = { fullText, unitStarts, hits, entities, orgs, placeholderWords, columns };
+  const result = { fullText, unitStarts, hits, entities, orgs, placeholderWords, columns, orgWeak: auto.weak, autoOrgTerms: autoTerms.filter((t) => t.auto).map((t) => ({ text: t.text, entity: t.entity })) };
   // Version 2.7.0: Webadressen/Konten in Link-Zielen, Link-Hinweisen und Feldfunktionen (nur bei eingeschaltetem Schalter)
   if (st.settings.web && extra.linkTexts && extra.linkTexts.length) result.linkTexts = extra.linkTexts;
   // Modus "rückbaufähig": Platzhalter je Namensteil und nummerierte Kontaktdaten
@@ -745,11 +762,13 @@ function orgTokMatch(textTok, termTok) {
 // Zwischen zwei Wörtern darf beliebiger Leerraum stehen (auch ein Zeilenumbruch innerhalb eines Abschnitts).
 // Modus rückbaufähig: NICHT über ein festes Zeichen der Vorlage hinweg (u. fixed, z. B. Zeilenumbruch <w:br/> in Word),
 // weil es beim Ersetzen stehen bliebe und der Rückbau dann nicht exakt wäre. Dort meldet der Schlusscheck den Namen.
-function matchOrgTerms(orgTerms, units, unitToks, unitStarts, covered, tokHit, fullText, hits, reversible) {
+function matchOrgTerms(orgTerms, units, unitToks, unitStarts, covered, tokHit, fullText, hits, reversible, settings) {
   const terms = [];
   const seen = new Set();
   for (const raw of orgTerms) {
-    const ot = orgTermTokens(raw);
+    // Version 2.8.0: auch {text, entity, auto, display} (selbst gefundene Einrichtung, entity = ihre Gruppe)
+    const ot = orgTermTokens(typeof raw === 'string' ? raw : raw.text);
+    if (typeof raw !== 'string') { ot.entity = raw.entity; ot.auto = raw.auto; ot.display = raw.display; }
     if (!ot.toks.some((x) => x.word) || seen.has(ot.key)) continue;
     seen.add(ot.key);
     terms.push(ot);
@@ -776,7 +795,7 @@ function matchOrgTerms(orgTerms, units, unitToks, unitStarts, covered, tokHit, f
           if (j === n - 1) suffix = suf;
         }
         if (!ok) continue;
-        const h = { s: toks[k].s, e: toks[k + n - 1].e, type: 'org', cert: 'sicher', origin: 'org', unit: ui, suffix, entity: ot.key, term: ot.text, comps: [] };
+        const h = { s: toks[k].s, e: toks[k + n - 1].e, type: 'org', cert: 'sicher', origin: 'org', unit: ui, suffix, entity: ot.key, term: ot.text, comps: [], ...orgAutoFields(ot, settings) };
         hits.push(h);
         for (let j = 0; j < n; j++) { cov[k + j] = true; tokHit[ui][k + j] = h; }
         k += n - 1;
@@ -812,7 +831,7 @@ function matchOrgTerms(orgTerms, units, unitToks, unitStarts, covered, tokHit, f
         // nach dem Namensanfang darf in Zeile ui nichts mehr stehen (sonst wäre es kein Umbruch im Namen)
         if (!ok || fullText.slice(seq[cut - 1].e, unitStarts[ui] + u.text.length).trim()) continue;
         const h = { s: seq[0].s, e: seq[n - 1].e, type: 'org', cert: 'sicher', origin: 'org', unit: ui, unit2: ui + 1,
-          split: unitStarts[ui] + u.text.length, eol: u.eol || '\n', suffix, entity: ot.key, term: ot.text, comps: [] };
+          split: unitStarts[ui] + u.text.length, eol: u.eol || '\n', suffix, entity: ot.key, term: ot.text, comps: [], ...orgAutoFields(ot, settings) };
         hits.push(h);
         for (let j = k; j < A.length; j++) { covered[ui][j] = true; tokHit[ui][j] = h; }
         for (let j = 0; j < n - cut; j++) { covered[ui + 1][j] = true; tokHit[ui + 1][j] = h; }
@@ -820,6 +839,13 @@ function matchOrgTerms(orgTerms, units, unitToks, unitStarts, covered, tokHit, f
       }
     });
   }
+}
+// Version 2.8.0: Felder eines Treffers einer selbst gefundenen Einrichtung (bzw. einer Schreibweise, die zu einer von Hand
+// markierten gehört: dann sicher, Gruppe = die markierte Einrichtung)
+function orgAutoFields(ot, settings) {
+  if (!ot.entity) return {};
+  if (!ot.auto) return { entity: ot.entity, origin: 'org' };
+  return { entity: ot.entity, cert: 'unsicher', origin: 'orgauto', auto: true, display: ot.display, defaultOff: !(settings && settings.unsureOn) };
 }
 // Schlusscheck (Version 2.3, Entscheidung Easy): JEDE Einrichtung aus der Liste (eigene Namen, markiert, aus den
 // Dateiangaben übernommen) wird im ORIGINALTEXT aller Abschnitte gesucht – auch wenn die Erkennung sie nicht gefunden
