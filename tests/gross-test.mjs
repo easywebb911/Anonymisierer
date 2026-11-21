@@ -215,7 +215,8 @@ log('## Einrichtungen: GROSS-Form mit Endung (nur geprüft, nicht umgebaut)');
   const bad = plan.rows.filter((x) => x.status !== 'ok').map((x) => `${x.platzhalter}: erwartet ${x.erwartet}, gefunden ${x.gefunden}`);
   log(`- rückbaufähig (Kern): Ausgabe „${out.join(' ⏎ ')}“ → Rückbau „${back.join(' ⏎ ')}“; exakt: ${exact ? 'ja' : 'NEIN'}; Auffälligkeiten: ${plan.issues.map((x) => `${x.art} „${x.text}“`).join(', ') || 'keine'}; Zählung abweichend: ${bad.join('; ') || 'keine'}; Urteil „${plan.verdict}“`);
   log(`- Befund Einrichtungen: ${exact ? 'GROSS mit Endung wird ersetzt und exakt zurückgebaut.' : 'GROSS mit großer Endung wird ersetzt und nicht gemeldet. Im Modus rückbaufähig steht die große Endung aber direkt am Platzhalter („Einrichtung A2S“). Der Rückbau erkennt das nicht als Platzhalter und lässt es stehen; angezeigt wird nur die abweichende Anzahl. Schon in 2.3.1 so. Nicht umgebaut (Punkt 5), Vorschlag im Bericht.'}`);
-  check('Einrichtungen vorher und nachher gleich (nicht umgebaut)', res.vorherperson.text === res.nachherperson.text && res.vorherreversible.text.replace(/K[0-9A-Z]{3,}/g, '') === res.nachherreversible.text.replace(/K[0-9A-Z]{3,}/g, ''));
+  // In 2.3.2 hier „nicht umgebaut“ geprüft; seit 2.3.3 (eigener Auftrag): kleine Endung im Modus Person A, Rückbau exakt
+  check('Einrichtungen (seit 2.3.3): Modus „Person A“ mit kleiner Endung („Einrichtung As“), Rückbau exakt', /Einrichtung As /.test(res.nachherperson.text) && !/Einrichtung AS /.test(res.nachherperson.text) && exact);
 }
 log('');
 

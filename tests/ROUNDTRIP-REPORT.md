@@ -1,9 +1,9 @@
 # Rückbau: Kreislauf-Beweis und Fallen
 
-Chromium headless gegen index.html (SHA-256 09aaa2f024ede98b…). Alle Namen sind erfunden.
+Chromium headless gegen index.html (SHA-256 22306d4f7a086342…). Alle Namen sind erfunden.
 
 ## TXT (protokoll.txt)
-- Anonymisiert (rückbaufähig): 57 Platzhalter in der Schlüsseldatei; Status „Gespeichert: anonymisiert_884H.txt – mit bestätigten Restfunden.“
+- Anonymisiert (rückbaufähig): 57 Platzhalter in der Schlüsseldatei; Status „Gespeichert: anonymisiert_8N8X.txt – mit bestätigten Restfunden.“
 - Simulierte Korrektur: Wort geändert, Satz mit Nachname A, Vorname A, [E-MAIL-1] und Endung „Nachname As“ eingefügt, Abschnitt TOP 3 vor TOP 2 verschoben
 - Rückbau: 76 Platzhalter ersetzt; abweichende Zeilen gegenüber Erwartung: 0
 - Bericht meldete: Vorname A 2→3, Nachname A 4→7, [E-MAIL-1] 1→2; Auffälligkeiten 0
@@ -78,6 +78,7 @@ Hartung und Tannheim stehen nach allein stehender Anrede und später im Text (au
 - OK: „Nachname A“ gegen „Nachname AA“ und „Nachname A2“ alle verschieden – AA-Person: Vorname AA = Olga; A2: Nachname AC2
 - OK: zwei verschiedene E-Mail-Adressen, gleiche Adresse gleiche Nummer – [E-MAIL-1]=anna@beispiel.de×2, [E-MAIL-2]=anna.mueller@beispiel.de×1
 - OK: Namenszusatz „von der“ und Präfix „Al-“ im Platzhalter enthalten
+- OK: Sicherheitsnetz (2.3.3): unbekannter Platzhalter „Nachname ZZ“ als roter Rest gemeldet – Reste: Nachname ZZ
 - OK: Kleinschreibung „nachname a“ erkannt und NICHT geraten – verändert: nachname ac
 - OK: gebeugt „des Nachnamens A“ erkannt – gebeugt: Nachnamens A
 - OK: Platzhalter über Zeilen getrennt erkannt – getrennt: Nachname | A
@@ -89,11 +90,11 @@ Hartung und Tannheim stehen nach allein stehender Anrede und später im Text (au
 - OK: Ergebnis entspricht exakt der Erwartung (alle exakten Platzhalter zurück, Auffälliges unverändert)
 - Rückbau-Bericht: 79 ersetzt; Auffälligkeiten: verändert: nachname ac | unbekannt: Nachname ZZ | gebeugt: Nachnamens A | verändert: [E-Mail-1] | getrennt: Nachname | A
 - OK: falsche Schlüsseldatei (vom Protokoll) erkannt – Urteil: zweifelhaft; Meldung: Wahrscheinlich die falsche Schlüsseldatei47 von 57 Platzhaltern gefunden, nur bei 33 stimmt die Anzahl, 28 unbekannte Platzhalter in der Datei.
-- OK: Datei ohne passende Platzhalter: kein Ergebnis – KennungIm Dokument steht keine Kennung. Der Schlüssel hat die Kennung E288. Bitte prüfe, ob beide zusammengehören. Ich h
+- OK: Datei ohne passende Platzhalter: kein Ergebnis – KennungIm Dokument steht keine Kennung. Der Schlüssel hat die Kennung Y77E. Bitte prüfe, ob beide zusammengehören. Ich h
 - OK: alte Zuordnungstabelle (CSV) wird abgelehnt – Das ist die alte Zuordnungstabelle (zuordnung_VERTRAULICH.csv). Sie reicht für einen Rückbau NICHT: Sie enthäl
 - OK: Rückbau deterministisch (Doppellauf byte-gleich) – ac385ab26ac6aaf2 / ac385ab26ac6aaf2
 - OK: Anonymisierung rückbaufähig deterministisch (Datei und Schlüssel ohne Kennung) – 6e6b33171283923f / 6e6b33171283923f
-- OK: Kennungen zweier Läufe verschieden (Zufall) – E288 / 7C5W
+- OK: Kennungen zweier Läufe verschieden (Zufall) – Y77E / 969Y
 - OK: Modus „Person A“ zeigt „nicht rückbaufähig“ (true) und keine Schlüsseldatei (true)
 - OK: Modus „[NAME]“ zeigt „nicht rückbaufähig“ (true) und keine Schlüsseldatei (true)
 
@@ -113,5 +114,5 @@ Hartung und Tannheim stehen nach allein stehender Anrede und später im Text (au
 | Übertragung CSV | 21 | 21 | 0 |
 | Fallen-TXT | 79 | 79 | 0 |
 
-Fallen-Prüfungen: 35 von 35 bestanden.
+Fallen-Prüfungen: 36 von 36 bestanden.
 Netzwerkanfragen außer lokalen Dateien: 0.

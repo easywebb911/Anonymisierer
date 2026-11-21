@@ -269,7 +269,7 @@ Testdokumente: tests/make-endungen.mjs (alle Namen erfunden, keiner in den Namen
 - 6 Formen in GROSSSCHREIBUNG mit Endung „S“: nicht ersetzt 0 (); davon vom Schlusscheck gemeldet: 0.
 - Seit Version 2.3.2 werden diese Formen ersetzt (große Endung nach GROSS geschriebenem Namen, siehe tests/GROSS-REPORT.md).
 - Ohne kleine gebeugte Form im Dokument, 2.3.0: „Herr Person A kommt. QUABBENJANSENS Akte liegt vor.“ → Schlusscheck: keine Meldung | „Herr Person A kommt. MÜLLERS Akte liegt vor.“ → Schlusscheck: keine Meldung
-- dasselbe, diese Version: „Herr Person A kommt. Person AS Akte liegt vor.“ → Schlusscheck: keine Meldung | „Herr Person A kommt. Person AS Akte liegt vor.“ → Schlusscheck: keine Meldung
+- dasselbe, diese Version: „Herr Person A kommt. Person As Akte liegt vor.“ → Schlusscheck: keine Meldung | „Herr Person A kommt. Person As Akte liegt vor.“ → Schlusscheck: keine Meldung
 - Befund aus 2.3.1 (bestand schon in 2.3.0): Solche Formen blieben unbemerkt stehen. Seit 2.3.2 ersetzt bzw. vom Schlusscheck gemeldet.
 
 Prüfungen: 21 von 21 bestanden.

@@ -1013,12 +1013,12 @@ Gezählt wird nur bei bestätigten Namen (mindestens ein eingeschalteter Treffer
 ## Einrichtungen: GROSS-Form mit Endung (nur geprüft, nicht umgebaut)
 - vorher person: „Der Einrichtung A tagt. ⏎ Die Akte des Einrichtung AS liegt vor. ⏎ Die Akte des Einrichtung As liegt vor.“; Schlusscheck: keine Meldung
 - vorher reversible: „Der Einrichtung A tagt. ⏎ Die Akte des Einrichtung A2S liegt vor. ⏎ Die Akte des Einrichtung A2s liegt vor.“; Schlusscheck: keine Meldung
-- nachher person: „Der Einrichtung A tagt. ⏎ Die Akte des Einrichtung AS liegt vor. ⏎ Die Akte des Einrichtung As liegt vor.“; Schlusscheck: keine Meldung
-- nachher reversible: „Der Einrichtung A tagt. ⏎ Die Akte des Einrichtung A2S liegt vor. ⏎ Die Akte des Einrichtung A2s liegt vor.“; Schlusscheck: keine Meldung
+- nachher person: „Der Einrichtung A tagt. ⏎ Die Akte des Einrichtung As liegt vor. ⏎ Die Akte des Einrichtung As liegt vor.“; Schlusscheck: keine Meldung
+- nachher reversible: „Der Einrichtung A tagt. ⏎ Die Akte des Einrichtung A2 liegt vor. ⏎ Die Akte des Einrichtung A3s liegt vor.“; Schlusscheck: keine Meldung
 - OK: Einrichtung in GROSSSCHREIBUNG mit Endung („LINDENAUER BÜRGERVEREINS“, „…VEREINs“) wird ersetzt (Modus Person A)
-- rückbaufähig (Kern): Ausgabe „Der Einrichtung A tagt. ⏎ Die Akte des Einrichtung A2S liegt vor. ⏎ Die Akte des Einrichtung A2s liegt vor.“ → Rückbau „Der Lindenauer Bürgerverein tagt. ⏎ Die Akte des Einrichtung A2S liegt vor. ⏎ Die Akte des LINDENAUER BÜRGERVEREINs liegt vor.“; exakt: NEIN; Auffälligkeiten: keine; Zählung abweichend: Einrichtung A2: erwartet 2, gefunden 1; Urteil „passend“
-- Befund Einrichtungen: GROSS mit großer Endung wird ersetzt und nicht gemeldet. Im Modus rückbaufähig steht die große Endung aber direkt am Platzhalter („Einrichtung A2S“). Der Rückbau erkennt das nicht als Platzhalter und lässt es stehen; angezeigt wird nur die abweichende Anzahl. Schon in 2.3.1 so. Nicht umgebaut (Punkt 5), Vorschlag im Bericht.
-- OK: Einrichtungen vorher und nachher gleich (nicht umgebaut)
+- rückbaufähig (Kern): Ausgabe „Der Einrichtung A tagt. ⏎ Die Akte des Einrichtung A2 liegt vor. ⏎ Die Akte des Einrichtung A3s liegt vor.“ → Rückbau „Der Lindenauer Bürgerverein tagt. ⏎ Die Akte des LINDENAUER BÜRGERVEREINS liegt vor. ⏎ Die Akte des LINDENAUER BÜRGERVEREINs liegt vor.“; exakt: ja; Auffälligkeiten: keine; Zählung abweichend: keine; Urteil „passend“
+- Befund Einrichtungen: GROSS mit Endung wird ersetzt und exakt zurückgebaut.
+- OK: Einrichtungen (seit 2.3.3): Modus „Person A“ mit kleiner Endung („Einrichtung As“), Rückbau exakt
 
 ## Dateiangaben: Titel „Akte MÜLLERS“ (Texte außerhalb der Prüfansicht)
 - vorher: Titel „(leer/entfernt)“, Betreff „(leer/entfernt)“; Schlusscheck: keine Meldung
@@ -1030,18 +1030,18 @@ Gezählt wird nur bei bestätigten Namen (mindestens ein eingeschalteter Treffer
 - OK: Ersetzer außerhalb der Prüfansicht (reversible): „MÜLLERS“ ersetzt oder gemeldet
 
 ## Schlusscheck-Vergleich über alle Testdokumente (Modus „Person A“ und „rückbaufähig“; Ausgabe im eigenen Format)
-- 72 Dokumente, je zwei Modi: Meldungen vorher 292, nachher 78; neu 12, entfallen 226
+- 79 Dokumente, je zwei Modi: Meldungen vorher 292, nachher 78; neu 12, entfallen 226
   - neu: gegenprobe-endungen-personen.docx (person): „Rosen“ in Text – word/document.xml – „preserve Im Garten blühen die Rosen. preserve Die Marken liegen i“
   - neu: gegenprobe-endungen-personen.docx (reversible): „Rosen“ in Text – word/document.xml – „preserve Im Garten blühen die Rosen. preserve Die Marken liegen i“
   - neu: gegenprobe-endungen-personen.txt (person): „Rosen“ in Text – „sind da. Im Garten blühen die Rosen. Die Marken liegen im Album.“
   - neu: gegenprobe-endungen-personen.txt (reversible): „Rosen“ in Text – „sind da. Im Garten blühen die Rosen. Die Marken liegen im Album.“
-  - neu: gegenprobe-gross-personen.docx (person): „Rosen“ in Text – word/document.xml – „preserve Im Garten blühen die Rosen. Heading1 preserve Person BS“
+  - neu: gegenprobe-gross-personen.docx (person): „Rosen“ in Text – word/document.xml – „preserve Im Garten blühen die Rosen. Heading1 preserve Person Bs“
   - neu: gegenprobe-gross-personen.docx (reversible): „Rosen“ in Text – word/document.xml – „preserve Im Garten blühen die Rosen. Heading1 preserve Nachname B“
-  - neu: gegenprobe-gross-personen.txt (person): „Rosen“ in Text – „erson AN Im Garten blühen die Rosen. Person BS Die Kälte des Wint“
+  - neu: gegenprobe-gross-personen.txt (person): „Rosen“ in Text – „erson An Im Garten blühen die Rosen. Person Bs Die Kälte des Wint“
   - neu: gegenprobe-gross-personen.txt (reversible): „Rosen“ in Text – „hname A2 Im Garten blühen die Rosen. Nachname B2 Die Kälte des Wi“
-  - neu: gegenprobe-gross.docx (person): „Winters“ in Text – word/document.xml – „son AS preserve Die Kälte des Winters ist vorbei. Heading1 preserve“
+  - neu: gegenprobe-gross.docx (person): „Winters“ in Text – word/document.xml – „son As preserve Die Kälte des Winters ist vorbei. Heading1 preserve“
   - neu: gegenprobe-gross.docx (reversible): „Winters“ in Text – word/document.xml – „name A preserve Die Kälte des Winters ist vorbei. Heading1 preserve“
-  - neu: gegenprobe-gross.txt (person): „Winters“ in Text – „osen. Person AS Die Kälte des Winters ist vorbei. MARKEN Die Marken“
+  - neu: gegenprobe-gross.txt (person): „Winters“ in Text – „osen. Person As Die Kälte des Winters ist vorbei. MARKEN Die Marken“
   - neu: gegenprobe-gross.txt (reversible): „Winters“ in Text – „sen. Nachname A Die Kälte des Winters ist vorbei. MARKEN Die Marken“
   - entfallen: endungen.csv (person): „LÜDINGHAUSS“ in Text
   - entfallen: endungen.csv (person): „WITTEKINDHORNS“ in Text

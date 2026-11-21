@@ -622,7 +622,8 @@ log('');
 if (prevHtml) {
   log('## Ausgaben gegenüber dem vorigen Stand von PR #8 (mit markierten Einrichtungen)');
   const FULL = [ORG.haupt, ORG.kurz, ORG.verein, ORG.schule, ORG3, 'Freie Waldorfschule'];
-  const files = fs.readdirSync(fx).filter((f) => /^(einrichtung|sc-)/.test(f)).sort();
+  // einrichtung-gross.* (seit 2.3.3) prüft eine bewusst geänderte Ausgabe; Vergleich dort in tests/platzhalter-test.mjs
+  const files = fs.readdirSync(fx).filter((f) => /^(einrichtung|sc-)/.test(f) && !/^einrichtung-gross/.test(f)).sort();
   const outs = async (html) => {
     const { page, ctx } = await newPage(html);
     const res = {};
