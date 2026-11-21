@@ -9,7 +9,7 @@ import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import JSZip from 'jszip';
-import { startAnon, loadIn, goTo, ackAll, exportWithAck, saveKey, screenOf } from './ui-helpers.mjs';
+import { startAnon, loadIn, goTo, ackAll, exportWithAck, saveKey, screenOf, rbConfirm } from './ui-helpers.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..');
@@ -86,26 +86,19 @@ async function restore(fileBytes, name, keyPath, { confirm = true } = {}) {
   const fileStatus = await page.textContent('#rb-file-status');
   const keyStatus = await page.textContent('#rb-key-status');
   await page.click('#rb-btn-check', { timeout: 3000 }).catch(() => {}); // gesperrt, wenn eine Datei fehlt oder ungültig ist
-  // Version 2.1: Diese Testdateien tragen keine Kennung im Dateinamen; Zusammengehörigkeit ausdrücklich bestätigen
-  if (await page.$('#rb-kennung-ack')) await page.check('#rb-kennung-ack');
+  // Version 2.1: Diese Testdateien tragen keine Kennung im Dateinamen; Zusammengehörigkeit ausdrücklich bestätigen.
+  // Version 2.5.0: alle Punkte (Kennung, Abweichungen, Reste, Schlusscheck nach dem Rückbau) mit EINEM Häkchen
   const plan = await page.evaluate(() => { const p = window.__anon.rb.plan; return p ? { totalFound: p.totalFound, matchedKeys: p.matchedKeys, verdict: p.verdict, needsConfirm: p.needsConfirm, rows: p.rows, issues: p.issues } : null; });
-  const reportText = await page.textContent('#rb-report');
   let res = { status: '', bytes: null };
+  let reportText = plan ? '' : await page.textContent('#rb-report');
   if (plan && plan.verdict !== 'falsch') {
-    if (plan.needsConfirm && confirm) await page.check('#rb-confirm');
-    // Version 2.3.3: Platzhalter-Reste nach dem Rückbau (rot) – mit erfassen und, wie die übrigen Abweichungen, bestätigen
-    res.rests = await page.$$eval('#rb-rests li strong', (els) => els.map((e) => e.textContent));
-    if (confirm && await page.$('#rb-rest-ack')) await page.check('#rb-rest-ack');
-    await page.click('#r2-next'); // Bildschirm „Prüfen“ -> „Speichern“
-    const rests = res.rests;
+    const rbi = await rbConfirm(page, confirm);
+    reportText = await page.textContent('#rb-report');
+    await page.click('#r2-next', { timeout: 5000 }).catch(() => {}); // Bildschirm „Prüfen“ -> „Speichern“ (gesperrt ohne Häkchen)
     res = await download(page, '#rb-btn-save', '#rb-status', /Gespeichert/);
-    res.rests = rests;
-    if (!res.bytes && /blockiert/.test(res.status)) {
-      res.blocked = await page.$$eval('#rb-left li', (els) => els.map((e) => e.textContent));
-      await page.check('#rb-left input[type=checkbox]');
-      res = { ...await download(page, '#rb-btn-save', '#rb-status', /Gespeichert/), blocked: res.blocked, rests };
-    }
-  }
+    res.rests = rbi.rests;
+    if (rbi.left.length) res.blocked = rbi.left;
+  } else if (plan) reportText = await page.textContent('#rb-report');
   await ctx.close();
   return { plan, reportText, fileStatus, keyStatus, ...res, errors };
 }

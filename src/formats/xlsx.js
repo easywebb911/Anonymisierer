@@ -182,8 +182,13 @@ export async function readXlsx(bytes) {
   const siDone = new Set();
   const push = (u, extra, part) => { if (u) { Object.assign(u, extra || {}); if (part) u.part = part; units.push(u); } };
 
+  // Version 2.5.0: Tabellenansicht für die Prüfansicht (nur Anzeige): je Blatt die Zellen mit Abschnitt bzw. Wert
+  const view = [];
+  const siUnit = new Map(); // Index gemeinsamer Text -> Abschnitt
   for (const sh of sheets) {
     const hidden = sh.state !== 'visible' ? ' (ausgeblendet)' : '';
+    const sv = { name: sh.name, hidden: sh.state !== 'visible', cells: [] };
+    view.push(sv);
     // Blattname
     const nameSeg = { text: sh.name.normalize('NFC'), writable: true, newName: null, set(t) { this.newName = t; } };
     push(makeUnit([nameSeg], 'Blattname' + hidden), { kind: 'sheetname', sheet: sh, seg: nameSeg }, wbPart);
@@ -195,16 +200,20 @@ export async function readXlsx(bytes) {
       const lab = `${sh.name}!${ref}`;
       const v = childEls(c, 'v')[0];
       const f = childEls(c, 'f')[0];
+      const n0 = units.length;
       if (t === 's' && v) {
         const idx = parseInt(v.textContent, 10);
-        if (siList[idx] && !siDone.has(idx)) { siDone.add(idx); push(groupUnit(siList[idx], lab + hidden, owned), null, ssPart.target); }
+        if (siList[idx] && !siDone.has(idx)) { siDone.add(idx); push(groupUnit(siList[idx], lab + hidden, owned), null, ssPart.target); if (units.length > n0) siUnit.set(idx, n0); }
+        if (siUnit.has(idx)) sv.cells.push({ ref, u: siUnit.get(idx) });
       } else if (t === 'inlineStr') {
         const is = childEls(c, 'is')[0];
         if (is) push(groupUnit(is, lab + hidden, owned), null, sh.part);
+        if (units.length > n0) sv.cells.push({ ref, u: n0 });
       } else if (t === 'str' && v && v.textContent.trim()) {
         owned.add(v);
         push(makeUnit([textSegment(v, false)], lab + ' (Formelergebnis)' + hidden), null, sh.part);
-      }
+        sv.cells.push({ ref, u: n0 });
+      } else if (v && v.textContent !== '') sv.cells.push({ ref, value: v.textContent });
       if (f && f.textContent.includes('"')) {
         owned.add(f);
         push(makeUnit([textSegment(f, false)], lab + ' (Formel)' + hidden), { kind: 'formula' }, sh.part);
@@ -302,7 +311,7 @@ export async function readXlsx(bytes) {
   warnings.push(...await imageWarnings(zip));
   // Namen aus den Original-Metadaten (Autor, Bearbeiter, Manager, Firma, Kommentarautoren, SharePoint-Personen)
   const metaNames = await collectMetaNames(zip, docs);
-  return { kind: 'xlsx', zip, docs, vmlDocs, units, owned, ownedAttrs, sheets, names, warnings, ssDoc, siList, metaNames, imageCtx: { placeOf }, wbPart, embedded };
+  return { kind: 'xlsx', zip, docs, vmlDocs, units, owned, ownedAttrs, sheets, names, warnings, ssDoc, siList, metaNames, imageCtx: { placeOf }, wbPart, embedded, view };
 }
 
 function cellString(sheetDoc, ref, siList) {

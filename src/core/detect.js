@@ -544,12 +544,22 @@ export function analyze(units, state) {
   // von Hand markierte (dort würde jede Fundstelle „sicher“; Phase 0: Fehltreffer „ROSEN“ bei markierter „Anna Rose“).
   // Solche Formen meldet der Schlusscheck.
   const capsKeys = new Set([...partKeys].filter((k) => !manualParts.has(k)));
+  // Version 2.5.0 (D.3): Dieselben GROSS-Formen mit Endung bei von Hand übernommenen Namen werden als Treffer geführt,
+  // aber standardmäßig AUS (Ausgabe ohne Bedienung unverändert) und je Stelle gefragt (capsManual).
+  const manualCapsKeys = new Set([...partKeys].filter((k) => manualParts.has(k)));
   units.forEach((u, ui) => {
     const toks = unitToks[ui];
     toks.forEach((tk, k) => {
       if (!tk.word || covered[ui][k]) return;
-      const stm = lex.stemFor(tk.t, partKeys) || lex.stemFor(tk.t, capsKeys, true);
-      if (!stm) return;
+      let stm = lex.stemFor(tk.t, partKeys) || lex.stemFor(tk.t, capsKeys, true);
+      if (!stm) {
+        const cm = lex.stemFor(tk.t, manualCapsKeys, true);
+        if (!cm || exceptions.has(cm.key) || lex.isTitle(cm.key) || lex.PARTICLES.has(tk.t.toLowerCase()) || lex.isStopWord(tk.t)) return;
+        hits.push({ s: tk.s, e: tk.e, type: 'person', cert: 'sicher', origin: 'manual', unit: ui, suffix: cm.suffix,
+          entity: [...partToEntities.get(cm.key)][0], comps: [{ type: 'W', s: tk.s, e: tk.e, key: cm.key }], defaultOff: true, capsManual: true });
+        covered[ui][k] = true;
+        return;
+      }
       if (exceptions.has(stm.key) && !manualParts.has(stm.key)) return;
       if (lex.isTitle(stm.key) || lex.PARTICLES.has(tk.t.toLowerCase()) || lex.isStopWord(tk.t)) return;
       const ent = [...partToEntities.get(stm.key)][0];
@@ -609,8 +619,11 @@ export function analyze(units, state) {
     og.display = own ? own.term : [...og.forms.entries()].sort((a, b) => b[1] - a[1] || b[0].length - a[0].length || (a[0] < b[0] ? -1 : 1))[0][0];
   }
   const entities = new Map();
-  for (const h of hits) {
+  // Version 2.5.0: Treffer „GROSS-Form eines von Hand übernommenen Namens“ (capsManual) bestimmen weder Reihenfolge
+  // noch Schreibweisen einer Person; sie hängen sich nur an (so bleiben Buchstaben und Anzeige wie bisher).
+  for (const h of [...hits.filter((x) => !x.capsManual), ...hits.filter((x) => x.capsManual)]) {
     if (h.type !== 'person') continue;
+    if (h.capsManual) { if (entities.has(h.entity)) entities.get(h.entity).hits.push(h); continue; }
     if (!entities.has(h.entity)) {
       entities.set(h.entity, { key: h.entity, manual: h.entity.startsWith('M|'), hits: [], forms: new Map(), linkable: [] });
     }
@@ -635,7 +648,20 @@ export function analyze(units, state) {
     h.on = ov === undefined ? !h.defaultOff : ov;
     h.label = h.type === 'person' ? entities.get(h.entity).label : h.type === 'org' ? orgs.get(h.entity).label : CONTACT_LABELS[h.type];
   });
-  for (const en of entities.values()) en.count = en.hits.length;
+  for (const en of entities.values()) { en.hits.sort((a, b) => a.s - b.s); en.count = en.hits.filter((x) => !x.capsManual).length; }
+  // Version 2.5.0 (D.2): Stelle im Sachkontext – nur Wörter der Liste „mehrdeutig“: direkt nach Artikel oder Präposition
+  // („im Winter“, „die Rosen“) oder gebeugte Form („Rosen“ bei Person Rose). Nur ein Merkmal für die Fragen, An/Aus
+  // bleibt wie bisher.
+  for (const h of hits) {
+    if (h.type !== 'person' || h.capsManual) continue;
+    const ws = (h.comps || []).filter((c) => c.type === 'W');
+    if (ws.length !== 1 || (h.comps || []).length !== 1 || !lex.isAmbiguous(ws[0].key)) continue;
+    const toks = unitToks[h.unit];
+    const ti = toks.findIndex((t) => t.s === h.s - unitStarts[h.unit]);
+    if (ti < 0) continue;
+    if (nounContext(toks, ti)) h.sachkontext = 'artikel';
+    else if (h.suffix) h.sachkontext = 'gebeugt';
+  }
   for (const og of orgs.values()) og.count = og.hits.length;
 
   const result = { fullText, unitStarts, hits, entities, orgs, placeholderWords };

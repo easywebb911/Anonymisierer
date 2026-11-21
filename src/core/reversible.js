@@ -113,7 +113,9 @@ export function assignReversible(result) {
   const contactNums = new Map(); // "email|Wert" -> Platzhalter
   const contactCount = {};
   const orgExact = new Map(); // "A|Schreibweise" -> Platzhalter (für Texte außerhalb der Prüfansicht)
-  for (const h of hits) {
+  // Version 2.5.0: Treffer „GROSS-Form eines von Hand übernommenen Namens“ (standardmäßig aus) bekommen ihre Platzhalter
+  // zuletzt, damit die Nummern aller übrigen Schreibweisen gleich bleiben
+  for (const h of [...hits.filter((x) => !x.capsManual), ...hits.filter((x) => x.capsManual)]) {
     if (h.type === 'org') {
       // Ganze Bezeichnung (ohne Endung am Schluss, die bleibt wie bei Personen im Text stehen) = ein Platzhalter
       const og = result.orgs.get(h.entity);
