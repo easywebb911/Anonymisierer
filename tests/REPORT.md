@@ -1,6 +1,6 @@
 # Testbericht Anonymisierer
 
-Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.html (SHA-256 94b4a32777336b74…). Alle Testpersonen sind erfunden.
+Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.html (SHA-256 3d1acf7ceaf96b21…). Alle Testpersonen sind erfunden.
 
 ## protokoll.txt
 - Laden: Gelesen: protokoll.txt (TXT, 22 Textabschnitte).
@@ -9,11 +9,13 @@ Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.h
 - Fehltreffer (aktiv, kein Name bzw. Falle): 1 – Bill (Falle)
 - Fallen im Text: 13, davon als unsicher markiert aber AUS (richtig stehen gelassen): 11
 - Personen in der Prüfansicht: 33; Treffer gesamt: 55 (sicher 40, unsicher 15)
+- Schlusscheck vor Nacharbeit hat den Export BLOCKIERT („Schlusscheck-Funde mit dem Häkchen bestätigt“). Fundstellen: „Mai“ steht noch in: Zeile 10 bestätigter Name · „…(Leitung: Person U) bietet ab Mai wieder Suppe an. Auf dem Tisc…“ Ersetzen. Nach Bestätigung exportiert.
 - Export (.txt) vor Nacharbeit: Status „Gespeichert: anonymisiert_text.txt – mit bestätigten Restfunden.“
   - Unabhängige Nachprüfung der Ausgabedatei: 4 Klarnamen-Vorkommen übrig (Ijeoma, Uchendu, Xiong, Wenjie)
   - Manuell per Antippen markiert: „Ijeoma“ (über die Oberfläche)
   - Weitere manuell markiert: Uchendu, Xiong, Wenjie
   - Nach manuellem Markieren: 69 von 69 Vorkommen abgedeckt
+  - Schlusscheck nach Nacharbeit blockierte zunächst; Fundstellen: „Mai“ steht noch in: Zeile 10 bestätigter Name · „…(Leitung: Person U) bietet ab Mai wieder Suppe an. Auf dem Tisc…“ Ersetzen
   - Export nach Nacharbeit: Status „Gespeichert: anonymisiert_text.txt – mit bestätigten Restfunden.“; unabhängige Nachprüfung: 0 Klarnamen-Vorkommen übrig
 - JavaScript-Fehler auf der Seite: keine
 
@@ -24,6 +26,7 @@ Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.h
 - Fehltreffer (aktiv, kein Name bzw. Falle): 0
 - Fallen im Text: 3, davon als unsicher markiert aber AUS (richtig stehen gelassen): 3
 - Personen in der Prüfansicht: 27; Treffer gesamt: 32 (sicher 27, unsicher 5)
+- Schlusscheck vor Nacharbeit hat den Export BLOCKIERT („Schlusscheck-Funde mit dem Häkchen bestätigt“). Fundstellen: „Mai“ steht noch in: Zeile 4, Spalte 5 bestätigter Name · „…Elternzeit ab Mai…“ Ersetzen | „Rose“ steht noch in: Zeile 9, Spalte 5 bestätigter Name · „…Die Rose auf dem Tisch ist Deko…“ Ersetzen. Nach Bestätigung exportiert.
 - Export (.csv) vor Nacharbeit: Status „Gespeichert: anonymisiert_tabelle.csv – mit bestätigten Restfunden.“
   - Unabhängige Nachprüfung der Ausgabedatei: 0 Klarnamen-Vorkommen übrig
   - Zusätzlich .txt-Export: Klarnamen übrig: 0
@@ -36,11 +39,13 @@ Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.h
 - Fehltreffer (aktiv, kein Name bzw. Falle): 3 – Bill (Falle), Name, Kasse
 - Fallen im Text: 14, davon als unsicher markiert aber AUS (richtig stehen gelassen): 12
 - Personen in der Prüfansicht: 35; Treffer gesamt: 70 (sicher 52, unsicher 18)
+- Schlusscheck vor Nacharbeit hat den Export BLOCKIERT („Schlusscheck-Funde mit dem Häkchen bestätigt“). Fundstellen: „Mai“ steht noch in: Text bestätigter Name · „…(Leitung: Person U) bietet ab Mai wieder Suppe an. Auf dem Tisc…“ Ersetzen. Nach Bestätigung exportiert.
 - Export (.docx) vor Nacharbeit: Status „Gespeichert: anonymisiert_dokument.docx – mit bestätigten Restfunden.“
   - Unabhängige Nachprüfung der Ausgabedatei: 4 Klarnamen-Vorkommen übrig (Ijeoma, Uchendu, Xiong, Wenjie)
   - Manuell per Antippen markiert: „Ijeoma“ (über die Oberfläche)
   - Weitere manuell markiert: Uchendu, Xiong, Wenjie
   - Nach manuellem Markieren: 92 von 92 Vorkommen abgedeckt
+  - Schlusscheck nach Nacharbeit blockierte zunächst; Fundstellen: „Mai“ steht noch in: Text bestätigter Name · „…(Leitung: Person U) bietet ab Mai wieder Suppe an. Auf dem Tisc…“ Ersetzen
   - Export nach Nacharbeit: Status „Gespeichert: anonymisiert_dokument.docx – mit bestätigten Restfunden.“; unabhängige Nachprüfung: 0 Klarnamen-Vorkommen übrig
   - LibreOffice öffnet die Ausgabe: ja; Klarnamen im LibreOffice-Text: 0
   - Zusätzlich .txt-Export: Klarnamen übrig: 0
@@ -53,6 +58,7 @@ Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.h
 - Fehltreffer (aktiv, kein Name bzw. Falle): 0
 - Fallen im Text: 5, davon als unsicher markiert aber AUS (richtig stehen gelassen): 5
 - Personen in der Prüfansicht: 23; Treffer gesamt: 39 (sicher 33, unsicher 6)
+- Schlusscheck vor Nacharbeit hat den Export BLOCKIERT („Schlusscheck-Funde mit dem Häkchen bestätigt“). Fundstellen: „Mai“ steht noch in: Blatt Yılmaz (ausgeblendet), Zelle A2 bestätigter Name · „…Gespräch mit Person S am 3. Mai…“ Ersetzen. Nach Bestätigung exportiert.
 - Export (.xlsx) vor Nacharbeit: Status „Gespeichert: anonymisiert_tabelle.xlsx – mit bestätigten Restfunden.“
   - Unabhängige Nachprüfung der Ausgabedatei: 0 Klarnamen-Vorkommen übrig
   - LibreOffice öffnet die Ausgabe: ja; Klarnamen im LibreOffice-Text: 0
@@ -66,11 +72,13 @@ Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.h
 - Fehltreffer (aktiv, kein Name bzw. Falle): 3 – Bill (Falle), Name, Kasse
 - Fallen im Text: 13, davon als unsicher markiert aber AUS (richtig stehen gelassen): 11
 - Personen in der Prüfansicht: 37; Treffer gesamt: 68 (sicher 50, unsicher 18)
+- Schlusscheck vor Nacharbeit hat den Export BLOCKIERT („Schlusscheck-Funde mit dem Häkchen bestätigt“). Fundstellen: „Mai“ steht noch in: Seite 1 bestätigter Name · „…(Leitung: Person U) bietet ab Mai wieder Suppe an. Auf dem Tisc…“ Ersetzen. Nach Bestätigung exportiert.
 - Export (.docx) vor Nacharbeit: Status „Gespeichert: anonymisiert_dokument.docx – mit bestätigten Restfunden.“
   - Unabhängige Nachprüfung der Ausgabedatei: 4 Klarnamen-Vorkommen übrig (Ijeoma, Uchendu, Xiong, Wenjie)
   - Manuell per Antippen markiert: „Ijeoma“ (über die Oberfläche)
   - Weitere manuell markiert: Uchendu, Xiong, Wenjie
   - Nach manuellem Markieren: 87 von 87 Vorkommen abgedeckt
+  - Schlusscheck nach Nacharbeit blockierte zunächst; Fundstellen: „Mai“ steht noch in: Seite 1 bestätigter Name · „…(Leitung: Person U) bietet ab Mai wieder Suppe an. Auf dem Tisc…“ Ersetzen
   - Export nach Nacharbeit: Status „Gespeichert: anonymisiert_dokument.docx – mit bestätigten Restfunden.“; unabhängige Nachprüfung: 0 Klarnamen-Vorkommen übrig
   - LibreOffice öffnet die Ausgabe: ja; Klarnamen im LibreOffice-Text: 0
   - Zusätzlich .txt-Export: Klarnamen übrig: 0
@@ -129,10 +137,10 @@ Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.h
 - Nach „Merkliste löschen“: localStorage 0 Einträge
 
 ## Größe/Geschwindigkeit (Desktop-Chromium, headless)
-- TXT 1 MB: Laden+Analyse 1.2 s, Export+Schlusscheck 2.9 s, JS-Speicher ca. 48 MB – Gelesen: gross.txt (TXT, 13289 Textabschnitte).
-- TXT 5 MB: Laden+Analyse 5.0 s, Export+Schlusscheck 15.3 s, JS-Speicher ca. 215 MB – Gelesen: gross.txt (TXT, 66419 Textabschnitte).
-- TXT 10 MB: Laden+Analyse 8.3 s, Export+Schlusscheck 48.0 s, JS-Speicher ca. 228 MB – Gelesen: gross.txt (TXT, 132815 Textabschnitte).
-- XLSX mit 20 000 Zeilen × 4 Spalten (0.5 MB gepackt): Laden+Analyse 2.6 s, Export+Schlusscheck 5.1 s, JS-Speicher ca. 215 MB – Gelesen: gross.xlsx (XLSX, 60052 Textabschnitte).
+- TXT 1 MB: Laden+Analyse 1.0 s, Export+Schlusscheck 2.9 s, JS-Speicher ca. 54 MB – Gelesen: gross.txt (TXT, 13289 Textabschnitte).
+- TXT 5 MB: Laden+Analyse 4.1 s, Export+Schlusscheck 14.5 s, JS-Speicher ca. 202 MB – Gelesen: gross.txt (TXT, 66419 Textabschnitte).
+- TXT 10 MB: Laden+Analyse 8.0 s, Export+Schlusscheck 44.7 s, JS-Speicher ca. 497 MB – Gelesen: gross.txt (TXT, 132815 Textabschnitte).
+- XLSX mit 20 000 Zeilen × 4 Spalten (0.5 MB gepackt): Laden+Analyse 2.5 s, Export+Schlusscheck 4.1 s, JS-Speicher ca. 215 MB – Gelesen: gross.xlsx (XLSX, 60052 Textabschnitte).
 
 ## Netzwerkzugriffe während aller Tests
 - Anfragen gesamt: 23; davon nicht lokal (http/https/ws …): 0
