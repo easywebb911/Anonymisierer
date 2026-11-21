@@ -9,7 +9,7 @@ import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import JSZip from 'jszip';
-import { startAnon, loadIn, ackAll, exportWithAck, saveKey } from './ui-helpers.mjs';
+import { startAnon, loadIn, ackAll, exportWithAck, saveKey, rbConfirm } from './ui-helpers.mjs';
 import { ORG, orgLines, ORG_HEADER, ORG_DESCR, orgs, GEGEN_PLATZHALTER } from './make-platzhalter.mjs';
 import { analyze, defaultState, replacementsByUnit, applyReplacements } from '../src/core/detect.js';
 import { buildRestoreKey } from '../src/core/reversible.js';
@@ -81,16 +81,18 @@ async function restoreUI(html, file, key, { ackRests = true } = {}) {
   await page.setInputFiles('#rb-key', key);
   await page.waitForFunction(() => document.querySelector('#rb-key-status').textContent);
   await page.click('#rb-btn-check');
-  if (await page.$('#rb-kennung-ack')) await page.check('#rb-kennung-ack');
-  if (await page.$('#rb-confirm')) await page.check('#rb-confirm');
-  const rests = await page.$$eval('#rb-rests li', (l) => l.map((x) => ({ text: x.querySelector('strong').textContent, line: x.textContent, red: x.className === 'bad' })));
-  const restRowBad = await page.evaluate(() => [...document.querySelectorAll('#rb-report .ampel > li')].some((li) => /Platzhalter-Reste/.test(li.textContent) && li.classList.contains('bad')));
-  const blockedBefore = await page.isDisabled('#r2-next');
-  if (ackRests && await page.$('#rb-rest-ack')) await page.check('#rb-rest-ack');
+  // Version 2.5.0: Reste stehen als rote offene Punkte im Bericht; alle Punkte mit EINEM Häkchen
+  const rbi = await rbConfirm(page, false);
+  const rests = await page.$$eval('#rb-points li[data-id^="rest:"]', (l) => l.map((x) => ({ text: (x.querySelector('strong').textContent.match(/^„([^“]*)“/) || [])[1], line: x.textContent, red: x.classList.contains('bad') })));
+  const restRowBad = rests.length > 0 && rests.every((x) => x.red);
+  // gesperrt durch andere Punkte als die Kennung (umbenannte Testdateien tragen keine Kennung)
+  const blockedBefore = await page.isDisabled('#r2-next') && await page.evaluate(() => [...document.querySelectorAll('#rb-points li')].some((li) => li.dataset.id !== 'kennung'));
+  if (ackRests && await page.$('#rb-ack')) await page.check('#rb-ack');
   const blockedAfter = await page.isDisabled('#r2-next');
+  const leftR2 = rbi.left || [];
   const plan = await page.evaluate(() => ({ verdict: window.__anon.rb.plan.verdict, issues: window.__anon.rb.plan.issues.length }));
   let bytes = null;
-  let left = [];
+  let left = leftR2;
   if (!blockedAfter) {
     await page.click('#r2-next');
     const dlP = page.waitForEvent('download', { timeout: 20000 }).catch(() => null);

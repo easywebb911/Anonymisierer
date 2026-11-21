@@ -10,7 +10,8 @@ import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import JSZip from 'jszip';
-import { startAnon, loadIn, goTo, ackAll, exportWithAck, exportOnce, saveKey, waitPreview } from './ui-helpers.mjs';
+import { startAnon, loadIn, goTo, ackAll, exportWithAck, exportOnce, saveKey, waitPreview, rbConfirm } from './ui-helpers.mjs';
+import { waitCheck } from './ui-helpers.mjs';
 import { ORG, ORG3, WORDS, LINES, UMBRUCH_LINES } from './make-einrichtung.mjs';
 
 const { chromium } = createRequire('/opt/node22/lib/node_modules/')('playwright');
@@ -75,6 +76,7 @@ async function markOrg(page, text) {
 }
 // Menü einer Zeile (Personen oder Einrichtungen) öffnen
 async function openMenu(page, group, display) {
+  if (await page.isHidden('#entities')) await page.click('#tgl-entities'); // Version 2.5.0: Liste klappt erst auf Klick auf
   const btn = await page.evaluateHandle(([g, d]) => [...document.querySelectorAll(g === 'org' ? '#orgs .entity' : '#entities > .entity')]
     .find((e) => e.querySelector('.ename strong').textContent === d).querySelector('.menubtn'), [group, display]);
   await btn.asElement().click();
@@ -99,8 +101,7 @@ async function restoreUI(file, key, html = newHtml) {
   const keyStatus = await page.textContent('#rb-key-status');
   await page.click('#rb-btn-check');
   const plan = await page.evaluate(() => { const p = window.__anon.rb.plan; return { verdict: p.verdict, rows: p.rows.map((r) => `${r.platzhalter}: ${r.gefunden}/${r.erwartet}`), issues: p.issues.length }; });
-  if (await page.$('#rb-kennung-ack')) await page.check('#rb-kennung-ack');
-  if (await page.$('#rb-confirm')) await page.check('#rb-confirm');
+  await rbConfirm(page, true); // Version 2.5.0: alle Punkte mit EINEM Häkchen
   let bytes = null;
   if (!(await page.$eval('#r2-next', (b) => b.disabled))) {
     await page.click('#r2-next');
@@ -199,8 +200,8 @@ for (const [file, fmt] of FORMATS) {
     `Einrichtungen: ${groups.orgs.join(' | ')}; Personen: ${groups.persons.join(', ')}`);
   await goTo(page, 'a3');
   await ackAll(page);
-  const ampel = await page.$eval('#ampel', (e) => e.innerText.replace(/\s+/g, ' '));
-  check('Ampel: „2 Personen und 3 Einrichtungen ersetzt“', /2 Personen und 3 Einrichtungen ersetzt/.test(ampel));
+  const ampel = await page.$eval('#save-lead', (e) => e.textContent.replace(/\s+/g, ' '));
+  check('Speichern: „2 Personen und 3 Einrichtungen sind ersetzt“', /2 Personen und 3 Einrichtungen sind ersetzt/.test(ampel), ampel);
   const kd = await saveKey(page);
   const keyPath = path.join(outDir, `${++seq}-${kd.suggestedFilename()}`);
   await kd.saveAs(keyPath);
@@ -282,8 +283,8 @@ log('## Art-Wechsel: Einrichtung → Person → Einrichtung (rückbaufähig)');
   await page.waitForFunction(() => window.__anon.app.result.orgs.size === 0);
   await goTo(page, 'a3');
   const b = await counts();
-  const ampelB = await page.$eval('#ampel', (e) => e.innerText.replace(/\s+/g, ' '));
-  check('„ist eine Person“: Platzhalter, Zählung und Kennung folgen; Schlüssel muss neu gespeichert werden', a.orgs === 1 && b.orgs === 0 && b.persons === a.persons + 1 && /Vorname [A-Z] Nachname [A-Z]|Name [A-Z]/.test(b.line) && b.kennung !== st0.k && b.saveDisabled && !/Einrichtung/.test(ampelB.split('Ersetzte Personen')[1].split('.')[0]),
+  const ampelB = await page.$eval('#save-lead', (e) => e.textContent.replace(/\s+/g, ' '));
+  check('„ist eine Person“: Platzhalter, Zählung und Kennung folgen; Schlüssel muss neu gespeichert werden', a.orgs === 1 && b.orgs === 0 && b.persons === a.persons + 1 && /Vorname [A-Z] Nachname [A-Z]|Name [A-Z]/.test(b.line) && b.kennung !== st0.k && b.saveDisabled && !/Einrichtung/.test(ampelB.split('.')[0]),
     `vorher: ${a.persons} Personen/${a.orgs} Einrichtung, „${a.line}“; nachher: ${b.persons}/${b.orgs}, „${b.line}“, Kennung ${st0.k} → ${b.kennung}`);
   await ackAll(page);
   await saveKey(page);
@@ -294,8 +295,8 @@ log('## Art-Wechsel: Einrichtung → Person → Einrichtung (rückbaufähig)');
   await page.waitForFunction(() => window.__anon.app.result.orgs.size === 1);
   await goTo(page, 'a3');
   const c = await counts();
-  const ampelC = await page.$eval('#ampel', (e) => e.innerText.replace(/\s+/g, ' '));
-  check('„ist eine Einrichtung“ zurück: wieder „Einrichtung A“, Zählung und Kennung folgen', c.orgs === 1 && c.persons === a.persons && c.line === a.line && c.kennung !== k2 && c.saveDisabled && /und 1 Einrichtung ersetzt/.test(ampelC), `„${c.line}“, Kennung ${k2} → ${c.kennung}`);
+  const ampelC = await page.$eval('#save-lead', (e) => e.textContent.replace(/\s+/g, ' '));
+  check('„ist eine Einrichtung“ zurück: wieder „Einrichtung A“, Zählung und Kennung folgen', c.orgs === 1 && c.persons === a.persons && c.line === a.line && c.kennung !== k2 && c.saveDisabled && /und 1 Einrichtung sind ersetzt/.test(ampelC), `„${c.line}“, Kennung ${k2} → ${c.kennung}`);
   await ctx.close();
 }
 log('');
@@ -359,17 +360,25 @@ log('## Oberfläche: Legende, KI-Hinweis, Modi');
   await startAnon(page, 'person');
   await loadIn(page, path.join(fx, 'einrichtung.txt'));
   await goTo(page, 'a2');
-  const legend = await page.evaluate(() => [...document.querySelectorAll('.legend mark')].map((m) => { const cs = getComputedStyle(m); return { t: m.textContent, outline: cs.outlineStyle, bg: cs.backgroundColor, fg: cs.color, ol: cs.outlineColor, bs: cs.boxShadow }; }));
-  const org = legend.find((x) => x.t === 'Einrichtung');
+  // Version 2.5.0: nur zwei Markierungen im Text („wird ersetzt“ gelb, „Frage“ gestrichelt), für Personen, Einrichtungen,
+  // Kontaktdaten und eigene Namen gleich; keine hochgestellten Buchstaben
+  await markOrg(page, ORG.haupt);
+  const look = await page.evaluate(() => {
+    const r = window.__anon.app.result;
+    const st = (m) => { const cs = getComputedStyle(m); return { bg: cs.backgroundColor, fg: cs.color, after: getComputedStyle(m, '::after').content }; };
+    const ms = [...document.querySelectorAll('#docview mark[data-h]')];
+    const org = ms.find((m) => r.hits[Number(m.dataset.h)].type === 'org' && r.hits[Number(m.dataset.h)].on);
+    const per = ms.find((m) => r.hits[Number(m.dataset.h)].type === 'person' && r.hits[Number(m.dataset.h)].on);
+    return { org: org && st(org), per: per && st(per) };
+  });
   const lum = (c) => { const [r, g, b] = c.match(/\d+/g).slice(0, 3).map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
   const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
-  check('Legende: eigene Markierung „Einrichtung“, auch ohne Farbe unterscheidbar (doppelter Rahmen, sonst keiner)', !!org && org.outline === 'double' && legend.filter((x) => x.outline === 'double').length === 1, legend.map((x) => `${x.t}: Rahmen ${x.outline}`).join(', '));
-  check('Kontrast Schrift/Hintergrund mindestens 4,5:1, Rahmen mindestens 3:1', ratio(org.fg, org.bg) >= 4.5 && ratio(org.ol, org.bg) >= 3, `Schrift ${ratio(org.fg, org.bg).toFixed(1)}:1, Rahmen ${ratio(org.ol, org.bg).toFixed(1)}:1`);
+  check('Einrichtung im Text wie jede ersetzte Stelle markiert (gleiche gelbe Fläche wie Personen, kein hochgestellter Buchstabe)', !!look.org && !!look.per && look.org.bg === look.per.bg && /none|normal/.test(look.org.after), JSON.stringify(look));
+  check('Kontrast Schrift/Hintergrund der Markierung mindestens 4,5:1', ratio(look.org.fg, look.org.bg) >= 4.5, `${ratio(look.org.fg, look.org.bg).toFixed(1)}:1`);
   const hints = await page.evaluate(() => window.__anon.KI_HINT);
   check('„Hinweis für die KI“ nennt „Einrichtung A“ (bzw. „[EINRICHTUNG]“)', /„Einrichtung A“/.test(hints.reversible) && /„Einrichtung A“/.test(hints.person) && /„\[EINRICHTUNG\]“/.test(hints.name));
-  await markOrg(page, ORG.haupt);
-  const mark = await page.$eval('#docview mark.org', (m) => ({ l: m.dataset.l, t: m.title }));
-  check('Treffer der Einrichtung in der Prüfansicht markiert (Kürzel, Titel)', mark.l === 'Einr. A' && /Einrichtung A/.test(mark.t), `${mark.l} · ${mark.t}`);
+  const mark = await page.evaluate(() => { const r = window.__anon.app.result; const m = [...document.querySelectorAll('#docview mark[data-h]')].find((x) => r.hits[Number(x.dataset.h)].type === 'org'); return { t: m.title }; });
+  check('Treffer der Einrichtung in der Prüfansicht markiert (Hinweis beim Überfahren nennt den Platzhalter)', /Einrichtung A/.test(mark.t), mark.t);
   for (const mode of ['name']) {
     const out = await page.evaluate(async (m) => { window.__anon.app.state.settings.mode = m; window.__anon.runAnalysis(); return (await window.__anon.buildOutput('txt')).text.split('\n')[0]; }, mode);
     check('Modus „[NAME]“: „[EINRICHTUNG]“', out === 'Bericht aus dem [EINRICHTUNG]', out);
@@ -440,7 +449,7 @@ for (const file of ['einrichtung-umbruch.txt', 'einrichtung-umbruch-crlf.txt']) 
     await startAnon(page, mode);
     await loadIn(page, path.join(fx, file));
     await goTo(page, 'a2');
-    const marks = await page.$$eval('#docview mark.org', (ms) => ms.map((m) => m.textContent));
+    const marks = await page.evaluate(() => { const r = window.__anon.app.result; return [...document.querySelectorAll('#docview mark[data-h]')].filter((m) => r.hits[Number(m.dataset.h)].type === 'org').map((m) => m.textContent); }); // seit 2.5.0 ohne eigene Klasse
     await ackAll(page);
     let kp = null;
     if (mode === 'reversible') { const kd = await saveKey(page); kp = path.join(outDir, `${++seq}-${kd.suggestedFilename()}`); await kd.saveAs(kp); }
@@ -540,9 +549,10 @@ async function scRun(file, mode, after) {
   await loadIn(page, path.join(fx, file));
   if (after) await after(page);
   await goTo(page, 'a3');
-  await ackAll(page);
+  await ackAll(page, { questions: false }); // Version 2.5.0: nicht bestätigen, damit die Sperre sichtbar bleibt
+  await waitCheck(page);
   if (mode === 'reversible') await saveKey(page);
-  const items = await page.$$eval('#leaks li', (els) => els.map((e) => e.innerText.replace(/\s+/g, ' ')));
+  const items = await page.$$eval('#points li.bad', (els) => els.map((e) => e.innerText.replace(/\s+/g, ' ')));
   const own = items.filter((x) => /Einrichtung aus deiner Liste/.test(x));
   const fmt = file.endsWith('.docx') ? 'docx' : 'txt';
   const r = await exportOnce(page, fmt);
@@ -557,7 +567,7 @@ for (const [name, want, desc] of SC) {
   for (const fmt of ['docx', 'txt']) {
     for (const mode of ['person', 'reversible']) {
       const r = await scRun(`sc-${name}.${fmt}`, mode);
-      const first = r.own[0] ? r.own[0].replace(/^.*?– steht in: /, '').slice(0, 170) : '–';
+      const first = r.own[0] ? r.own[0].replace(/^.*?steht noch in: /, '').slice(0, 170) : '–';
       log(`| ${desc} | ${fmt} | ${mode} | ${r.own.length} (${want}) | ${first} | ${r.own.length ? (r.blocked ? 'ja' : 'NEIN') : '–'} |`);
       const okHint = !want || r.own.every((x) => (fmt === 'docx' ? /Entferne den Absatz in Word/ : /Entferne die Leerzeile/).test(x));
       const extra = name === 'freie-person' ? /^(?:Person A|Nachname A|Vorname A|Name A) Freie$/.test(r.out.split('\n')[0]) : true;
@@ -568,17 +578,17 @@ for (const [name, want, desc] of SC) {
 // Kopfzeile, Fußzeile, Bildbeschreibung (Word)
 for (const mode of ['person', 'reversible']) {
   const r = await scRun('sc-kopf-fuss-bild.docx', mode);
-  log(`| Kopfzeile und Fußzeile über zwei Absätze, Bildbeschreibung vollständig ersetzt | docx | ${mode} | ${r.own.length} (2) | ${r.own.map((x) => x.replace(/^.*?– steht in: /, '').slice(0, 60)).join(' / ')} | ${r.blocked ? 'ja' : 'NEIN'} |`);
-  check(`Kopf-/Fußzeile/Bildbeschreibung, ${mode}: Kopfzeile und Fußzeile gemeldet, Bildbeschreibung (ersetzt) nicht`, r.own.length === 2 && r.own.some((x) => /steht in: Kopfzeile/.test(x)) && r.own.some((x) => /steht in: Fußzeile/.test(x)) && !r.own.some((x) => /Bildbeschreibung/.test(x)) && r.blocked);
+  log(`| Kopfzeile und Fußzeile über zwei Absätze, Bildbeschreibung vollständig ersetzt | docx | ${mode} | ${r.own.length} (2) | ${r.own.map((x) => x.replace(/^.*?steht noch in: /, '').slice(0, 60)).join(' / ')} | ${r.blocked ? 'ja' : 'NEIN'} |`);
+  check(`Kopf-/Fußzeile/Bildbeschreibung, ${mode}: Kopfzeile und Fußzeile gemeldet, Bildbeschreibung (ersetzt) nicht`, r.own.length === 2 && r.own.some((x) => /steht noch in: Kopfzeile/.test(x)) && r.own.some((x) => /steht noch in: Fußzeile/.test(x)) && !r.own.some((x) => /Bildbeschreibung/.test(x)) && r.blocked);
   // Treffer in der Bildbeschreibung ausschalten -> wird gemeldet (Fundort Bildbeschreibung)
   const r2 = await scRun('sc-kopf-fuss-bild.docx', mode, async (page) => {
     await goTo(page, 'a2');
-    const mk = await page.evaluateHandle(() => [...document.querySelectorAll('#docview .unit')].filter((e) => /Bildbeschreibung/.test(e.textContent)).flatMap((e) => [...e.querySelectorAll('mark.org.on')])[0]);
+    const mk = await page.evaluateHandle(() => { const r = window.__anon.app.result; return [...document.querySelectorAll('#docview .placeline')].filter((e) => /Bildbeschreibung/.test(e.textContent)).flatMap((e) => [...e.querySelectorAll('mark.hit.on')]).find((m) => r.hits[Number(m.dataset.h)].type === 'org'); });
     await mk.asElement().scrollIntoViewIfNeeded();
     await mk.asElement().click();
   });
-  log(`| … Treffer in der Bildbeschreibung ausgeschaltet | docx | ${mode} | ${r2.own.length} (3) | ${r2.own.map((x) => x.replace(/^.*?– steht in: /, '').slice(0, 60)).join(' / ')} | ${r2.blocked ? 'ja' : 'NEIN'} |`);
-  check(`Bildbeschreibung, ${mode}: ausgeschalteter Treffer wird mit Fundort „Bildbeschreibung“ gemeldet`, r2.own.length === 3 && r2.own.some((x) => /steht in: Bildbeschreibung/.test(x) && /Ein Teil des Namens ist nicht als Einrichtung ersetzt/.test(x)));
+  log(`| … Treffer in der Bildbeschreibung ausgeschaltet | docx | ${mode} | ${r2.own.length} (3) | ${r2.own.map((x) => x.replace(/^.*?steht noch in: /, '').slice(0, 60)).join(' / ')} | ${r2.blocked ? 'ja' : 'NEIN'} |`);
+  check(`Bildbeschreibung, ${mode}: ausgeschalteter Treffer wird mit Fundort „Bildbeschreibung“ gemeldet`, r2.own.length === 3 && r2.own.some((x) => /steht noch in: Bildbeschreibung/.test(x) && /Ein Teil des Namens ist nicht als Einrichtung ersetzt/.test(x)));
 }
 log('');
 

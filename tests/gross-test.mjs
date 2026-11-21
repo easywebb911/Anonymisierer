@@ -8,7 +8,7 @@ import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import JSZip from 'jszip';
-import { startAnon, loadIn, ackAll, exportWithAck, saveKey } from './ui-helpers.mjs';
+import { startAnon, loadIn, ackAll, exportWithAck, saveKey, rbConfirm } from './ui-helpers.mjs';
 import { PEOPLE, lines, TEILE, SCHRIFT, schriftLines, GEGEN_WORDS, GEGEN_PERSONEN } from './make-gross.mjs';
 import { fold } from '../src/core/fold.js';
 
@@ -53,7 +53,9 @@ async function run(html, file, { mode = 'person', fmt, manual = [], orgs = [], l
     const leaks = await A.finalCheck(o);
     const res = A.app.result;
     const hits = res.hits.filter((h) => h.type === 'person').map((h) => ({ w: res.fullText.slice(h.s, h.e), cert: h.cert, on: h.on, keys: (h.comps || []).filter((c) => c.type === 'W').map((c) => c.key) }));
-    return { zip: o.zip ? Array.from(o.bytes) : null, text: o.text || null, leaks: leaks.map((l) => ({ word: l.word, context: l.context || '', where: l.where })), hits };
+    // Version 2.5.0: ausgeschaltete Stellen mit offener Frage je Stelle (D.3/D.5) – stehen nicht zusätzlich im Schlusscheck
+    const asked = (A.questions ? A.questions() : []).filter((q) => q.kind === 'place' && !A.app.answers.has(q.id) && !q.hit.on).map((q) => res.fullText.slice(q.hit.s, q.hit.e));
+    return { zip: o.zip ? Array.from(o.bytes) : null, text: o.text || null, leaks: leaks.map((l) => ({ word: l.word, context: l.context || '', where: l.where })), hits, asked };
   }, [bytes, path.basename(file), mode, fmt, manual, orgs]);
   await ctx.close();
   r.out = await plain(r, fmt);
@@ -81,6 +83,7 @@ async function plain(r, fmt) {
 // Zustand einer Form an einer Stelle (needle = der ganze Abschnitt um die Form, z. B. „Form 7: MÜLLERS Unterlagen“)
 function status(r, needle, form) {
   if (!r.out.includes(needle)) return 'ersetzt';
+  if ((r.asked || []).includes(form)) return 'gefragt';
   // Schlusscheck: Fundwort ist die Form (oder ihr Wortteil vor dem Apostroph) und die Fundstelle ist dieser Abschnitt
   const hit = r.leaks.some((l) => form.startsWith(l.word) && (l.context.replace(/&apos;/g, "'").includes(needle) || l.context.replace(/&apos;/g, "'").includes(form)));
   return hit ? 'gemeldet' : 'UNBEMERKT';
@@ -90,13 +93,13 @@ const confirmed = (r, name) => r.hits.some((h) => h.on && h.keys.includes(fold(n
 log('# GROSSSCHREIBUNG mit Endung (Version 2.3.2): Tests');
 log('');
 log('Testdokumente: tests/make-gross.mjs (alle Personen erfunden). Vorher = Version 2.3.1, nachher = diese Version. Modus „Person A“, sofern nicht anders angegeben.');
-log('„ersetzt“ = steht nicht mehr in der Ausgabe; „gemeldet“ = steht noch da, der Schlusscheck meldet die Stelle (Export gesperrt bis zur Bestätigung); „UNBEMERKT“ = steht noch da und wird nicht gemeldet.');
+log('„ersetzt“ = steht nicht mehr in der Ausgabe; „gemeldet“ = steht noch da, der Schlusscheck meldet die Stelle (Export gesperrt bis zur Bestätigung); „gefragt“ (seit 2.5.0) = steht noch da, offene Frage je Stelle (Speichern ebenfalls erst mit dem Häkchen); „UNBEMERKT“ = steht noch da, weder gefragt noch gemeldet.');
 log('Gezählt wird nur bei bestätigten Namen (mindestens ein eingeschalteter Treffer dieser Person). Ein Name, den das Tool gar nicht kennt, ist nicht bestätigt.');
 log('');
 
 // ---------- je Form vorher / nachher ----------
 log('## Je Form: vorher (2.3.1) / nachher');
-const tally = { vorher: { ersetzt: 0, gemeldet: 0, UNBEMERKT: 0 }, nachher: { ersetzt: 0, gemeldet: 0, UNBEMERKT: 0 } };
+const tally = { vorher: { ersetzt: 0, gemeldet: 0, gefragt: 0, UNBEMERKT: 0 }, nachher: { ersetzt: 0, gemeldet: 0, gefragt: 0, UNBEMERKT: 0 } };
 const SCEN = [['mit', [], 'normal geschriebener Name mit Anrede im Dokument, keine eigenen Namen'],
   ['einzig', [], 'nur GROSS-Formen mit Endung, keine eigenen Namen'],
   ['einzig', SURNAMES, 'nur GROSS-Formen mit Endung, Nachnamen von Hand markiert (eigene Namen)'],
@@ -110,7 +113,7 @@ for (const [variant, manual, desc] of SCEN) {
     log('');
     log('| Name | Form | Art | vorher | nachher |');
     log('|---|---|---|---|---|');
-    const cnt = { vorher: { ersetzt: 0, gemeldet: 0, UNBEMERKT: 0 }, nachher: { ersetzt: 0, gemeldet: 0, UNBEMERKT: 0 } };
+    const cnt = { vorher: { ersetzt: 0, gemeldet: 0, gefragt: 0, UNBEMERKT: 0 }, nachher: { ersetzt: 0, gemeldet: 0, gefragt: 0, UNBEMERKT: 0 } };
     let notConf = 0;
     let worse = 0;
     const rows = lines(variant).filter((l) => l.form).map((l) => ({ name: l.name, form: l.form, kind: l.kind, needle: l.text.replace(/ liegen vor\.$/, '') }));
@@ -123,18 +126,18 @@ for (const [variant, manual, desc] of SCEN) {
       if (ca) cnt.vorher[sa]++;
       if (cb) cnt.nachher[sb]++;
       if (!cb) notConf++;
-      const rank = { ersetzt: 2, gemeldet: 1, UNBEMERKT: 0, 'nicht bestätigt': -1 };
+      const rank = { ersetzt: 2, gemeldet: 1, gefragt: 1, UNBEMERKT: 0, 'nicht bestätigt': -1 };
       if (ca && cb && rank[sb] < rank[sa]) worse++;
       log(`| ${row.name} | ${row.form} | ${row.kind} | ${sa} | ${sb}${sa !== sb ? ' (geändert)' : ''} |`);
     }
     for (const w of ['vorher', 'nachher']) for (const k of Object.keys(cnt[w])) tally[w][k] += cnt[w][k];
     log('');
-    log(`- vorher: ersetzt ${cnt.vorher.ersetzt}, gemeldet ${cnt.vorher.gemeldet}, unbemerkt ${cnt.vorher.UNBEMERKT}; nachher: ersetzt ${cnt.nachher.ersetzt}, gemeldet ${cnt.nachher.gemeldet}, unbemerkt ${cnt.nachher.UNBEMERKT}; nicht bestätigt: ${notConf}`);
+    log(`- vorher: ersetzt ${cnt.vorher.ersetzt}, gemeldet ${cnt.vorher.gemeldet}, unbemerkt ${cnt.vorher.UNBEMERKT}; nachher: ersetzt ${cnt.nachher.ersetzt}, gemeldet ${cnt.nachher.gemeldet}, gefragt ${cnt.nachher.gefragt}, unbemerkt ${cnt.nachher.UNBEMERKT}; nicht bestätigt: ${notConf}`);
     check(`${file} (${desc}): nachher 0 unbemerkt, keine Form schlechter als vorher`, cnt.nachher.UNBEMERKT === 0 && worse === 0, `vorher ${cnt.vorher.UNBEMERKT} unbemerkt`);
     log('');
   }
 }
-log(`**Summe über alle Formen und Szenarien: vorher ersetzt ${tally.vorher.ersetzt} / gemeldet ${tally.vorher.gemeldet} / unbemerkt ${tally.vorher.UNBEMERKT}; nachher ersetzt ${tally.nachher.ersetzt} / gemeldet ${tally.nachher.gemeldet} / unbemerkt ${tally.nachher.UNBEMERKT}.**`);
+log(`**Summe über alle Formen und Szenarien: vorher ersetzt ${tally.vorher.ersetzt} / gemeldet ${tally.vorher.gemeldet} / unbemerkt ${tally.vorher.UNBEMERKT}; nachher ersetzt ${tally.nachher.ersetzt} / gemeldet ${tally.nachher.gemeldet} / gefragt ${tally.nachher.gefragt} / unbemerkt ${tally.nachher.UNBEMERKT}.**`);
 check('Spalte „unbemerkt“ nachher insgesamt 0', tally.nachher.UNBEMERKT === 0);
 log('');
 
@@ -303,8 +306,7 @@ async function restoreUI(file, key) {
   await page.waitForFunction(() => document.querySelector('#rb-key-status').textContent);
   await page.click('#rb-btn-check');
   const plan = await page.evaluate(() => ({ verdict: window.__anon.rb.plan.verdict, issues: window.__anon.rb.plan.issues.length }));
-  if (await page.$('#rb-kennung-ack')) await page.check('#rb-kennung-ack');
-  if (await page.$('#rb-confirm')) await page.check('#rb-confirm');
+  await rbConfirm(page, true); // Version 2.5.0: alle Punkte mit EINEM Häkchen
   await page.click('#r2-next');
   if (await page.$('#rb-left-ack')) await page.check('#rb-left-ack').catch(() => {});
   const dlP = page.waitForEvent('download');

@@ -12,7 +12,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import JSZip from 'jszip';
 import * as esbuild from 'esbuild';
-import { startAnon, loadIn, ackAll, goTo, exportWithAck, saveKey } from './ui-helpers.mjs';
+import { startAnon, loadIn, ackAll, goTo, exportWithAck, saveKey, rbConfirm } from './ui-helpers.mjs';
 import { XLSX_NAMES, DOCX_NAMES, GEGEN, FX } from './make-pfade.mjs';
 
 const pw = createRequire('/opt/node22/lib/node_modules/')('playwright');
@@ -79,14 +79,14 @@ async function restoreUI(browser, html, file, key) {
   await page.setInputFiles('#rb-key', key);
   await page.waitForFunction(() => document.querySelector('#rb-key-status').textContent);
   await page.click('#rb-btn-check');
-  for (const id of ['#rb-kennung-ack', '#rb-confirm', '#rb-rest-ack']) if (await page.$(id)) await page.check(id);
+  const rbi = await rbConfirm(page, true);
   const verdict = await page.evaluate(() => window.__anon.rb.plan.verdict);
   await page.click('#r2-next');
   const dlP = page.waitForEvent('download', { timeout: 20000 }).catch(() => null);
   await page.click('#rb-btn-save');
   let dl = await Promise.race([dlP, page.waitForFunction(() => /blockiert/.test(document.querySelector('#rb-status').textContent), null, { timeout: 20000 }).then(() => null).catch(() => null)]);
-  let left = [];
-  if (!dl && await page.$('#rb-left input[type=checkbox]')) {
+  let left = rbi.left || [];
+  if (!dl && await page.$('#rb-left input[type=checkbox]')) { // nur bis 2.4.1
     left = await page.$$eval('#rb-left li', (l) => l.map((x) => x.textContent));
     await page.check('#rb-left input[type=checkbox]');
     const p2 = page.waitForEvent('download'); await page.click('#rb-btn-save'); dl = await p2;

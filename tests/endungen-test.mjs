@@ -8,7 +8,7 @@ import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import JSZip from 'jszip';
-import { startAnon, loadIn, ackAll, exportWithAck, saveKey } from './ui-helpers.mjs';
+import { startAnon, loadIn, ackAll, exportWithAck, saveKey, rbConfirm } from './ui-helpers.mjs';
 import { PEOPLE, lines, COMMON, GEGEN_PERSONEN } from './make-endungen.mjs';
 
 const { chromium } = createRequire('/opt/node22/lib/node_modules/')('playwright');
@@ -163,8 +163,7 @@ async function restoreUI(file, key) {
   await page.waitForFunction(() => document.querySelector('#rb-key-status').textContent);
   await page.click('#rb-btn-check');
   const verdict = await page.evaluate(() => window.__anon.rb.plan.verdict);
-  if (await page.$('#rb-kennung-ack')) await page.check('#rb-kennung-ack');
-  if (await page.$('#rb-confirm')) await page.check('#rb-confirm');
+  await rbConfirm(page, true); // Version 2.5.0: alle Punkte mit EINEM Häkchen
   await page.click('#r2-next');
   if (await page.$('#rb-left-ack')) await page.check('#rb-left-ack').catch(() => {});
   const dlP = page.waitForEvent('download');

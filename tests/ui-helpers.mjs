@@ -103,6 +103,10 @@ export async function exportOnce(page, fmt) {
 // Speichern; blockiert der Schlusscheck (oder ein offener Punkt), Fundstellen festhalten, das eine Häkchen setzen,
 // erneut speichern
 export async function exportWithAck(page, fmt) {
+  // Version 2.5.0: Schlusscheck-Funde stehen als rote offene Punkte da; sie gelten als „gemeldet“, auch wenn das eine
+  // Häkchen schon gesetzt war (dann wird ohne erneute Sperre gespeichert)
+  let shown = [];
+  if (await page.$('#ack-all')) { await goTo(page, 'a3'); await waitCheck(page); shown = await page.$$eval('#points > li.bad', (els) => els.map((e) => e.innerText.replace(/\s+/g, ' ').trim())); }
   let { dl, status } = await exportOnce(page, fmt);
   let blocked = null;
   if (!dl && /blockiert|abhaken/.test(status)) {
@@ -110,7 +114,7 @@ export async function exportWithAck(page, fmt) {
     blocked = { status, items: await page.$$eval(neu ? '#points > li.bad' : '#leaks li', (els) => els.map((e) => e.innerText.replace(/\s+/g, ' ').trim())) };
     await page.check(neu ? '#ack-all' : '#leak-ack');
     ({ dl, status } = await exportOnce(page, fmt));
-  }
+  } else if (shown.length) blocked = { status: 'Schlusscheck-Funde mit dem Häkchen bestätigt', items: shown };
   return { dl, status, blocked };
 }
 // Sichtbare Hauptknöpfe (für den Beleg „genau ein Hauptknopf“)
