@@ -76,7 +76,12 @@ export function lookupWord(word) {
   return res;
 }
 
-// Für beliebige (auch manuell markierte) Wörter: Grundform ohne Endung, falls die Grundform bekannt ist
+// Endungen für bekannte Namen (unverändert seit Version 1): 's, ’s, ', ’, s, es, n, ns
+const STEM_ENDINGS = ["'s", '’s', "'", '’', 's', 'es', 'n', 'ns'];
+// Für beliebige (auch manuell markierte) Wörter: Grundform ohne Endung, falls die Grundform bekannt ist.
+// Version 2.3.1: Zuerst wie bisher die kürzeste Zerlegung (so bleiben alle bisherigen Ergebnisse gleich). Passt sie
+// nicht, werden die übrigen Zerlegungen mit denselben Endungen probiert, z. B. „Quabbenjansens“ = „Quabbenjansen“ + „s“
+// (bisher nur „Quabbenjanse“ + „ns“ versucht). Keine neuen Endungen; Groß-/Kleinschreibung der Endung wie bisher.
 export function stemFor(word, knownKeys) {
   const key = fold(word);
   if (knownKeys.has(key)) return { key, stemLen: word.length, suffix: '' };
@@ -84,6 +89,12 @@ export function stemFor(word, knownKeys) {
   if (m) {
     const k2 = fold(m[1]);
     if (knownKeys.has(k2)) return { key: k2, stemLen: m[1].length, suffix: m[2] };
+  }
+  for (const end of STEM_ENDINGS) {
+    if (word.length <= end.length || word.slice(-end.length) !== end) continue;
+    const stem = word.slice(0, -end.length);
+    const k3 = fold(stem);
+    if (knownKeys.has(k3)) return { key: k3, stemLen: stem.length, suffix: end };
   }
   return null;
 }
