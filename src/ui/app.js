@@ -10,7 +10,7 @@ import {
 import { fold } from '../core/fold.js';
 import { readTxt, writeTxt, readCsv, writeCsv, encodeText, encodeTextPlain } from '../formats/text.js';
 import { MODE_REVERSIBLE, buildRestoreKey } from '../core/reversible.js';
-import { parseKeyFile, planRestore, makeRestoreString, findLeftovers } from '../core/restore.js';
+import { parseKeyFile, planRestore, makeRestoreString, findLeftovers, findPlaceholderRests } from '../core/restore.js';
 import { readDocx, writeDocx, buildDocx } from '../formats/docx.js';
 import { readXlsx, writeXlsx } from '../formats/xlsx.js';
 import { collectZipTexts } from '../formats/xmlutil.js';
@@ -1355,7 +1355,7 @@ function init() {
 }
 
 // ---------- Rückbau ----------
-const rb = { file: null, key: null, plan: null, leftAck: false, confirmAck: false, saved: null, keyKennung: null, kennungAck: false };
+const rb = { file: null, key: null, plan: null, leftAck: false, confirmAck: false, restAck: false, saved: null, keyKennung: null, kennungAck: false };
 
 async function rbLoadFile(bytes, name) {
   const st = $('#rb-file-status');
@@ -1404,6 +1404,7 @@ function rbReset() {
   rb.plan = null;
   rb.leftAck = false;
   rb.confirmAck = false;
+  rb.restAck = false;
   rb.kennungAck = false;
   rb.saved = null;
   $('#rb-report').replaceChildren();
@@ -1459,6 +1460,14 @@ function kennungRow() {
 }
 function kennungBlocked() { const k = kennungState(); return k.needsAck && !rb.kennungAck; }
 
+// Fundstelle eines Abschnitts der zurückzubauenden Datei in einfacher Sprache
+function rbPlace(ui) {
+  const u = rb.file.units[ui];
+  if (rb.file.kind === 'txt') return `Zeile ${ui + 1}`;
+  return u && u.label ? u.label : `Abschnitt ${ui + 1}`;
+}
+function restBlocked() { return !!(rb.plan && rb.plan.rests.length && !rb.restAck); }
+
 function renderR2() {
   const plan = rb.plan;
   const rows = [kennungRow()];
@@ -1479,6 +1488,14 @@ function renderR2() {
       ? ampelRow('warn', 'Auffällige Stellen', `${plan.issues.length} Stelle(n) werden NICHT ersetzt und bleiben als Platzhalter stehen.`,
         h('ul', {}, ...plan.issues.slice(0, 300).map((x) => h('li', {}, h('strong', {}, x.text), ` – ${ART[x.art] || x.art}${x.vermutlich ? ' (gemeint vermutlich „' + x.vermutlich + '“)' : ''} – ${x.where}: „…${x.kontext}…“`))))
       : ampelRow('ok', 'Auffällige Stellen', 'Keine. In Ordnung.'));
+    // Sicherheitsnetz (2.3.3): Reste, die nach dem Rückbau noch wie ein Platzhalter aussehen – rot, sperrt bis zur Bestätigung
+    if (plan.rests.length) {
+      rows.push(ampelRow(rb.restAck ? 'warn' : 'bad', 'Platzhalter-Reste nach dem Rückbau', `${plan.rests.length} Stelle(n) sehen nach dem Rückbau noch wie ein Platzhalter aus. Sie werden nicht zurückgebaut und bleiben so stehen. Prüfe jede Stelle (beschädigter Platzhalter oder Wort aus dem Original?).`,
+        h('ul', { id: 'rb-rests' }, ...plan.rests.slice(0, 300).map((x) => h('li', { class: 'bad' }, h('strong', {}, x.text), ` – ${rbPlace(x.unit)}: „…${x.kontext}…“`))),
+        plan.rests.length > 300 ? h('p', {}, `… und ${plan.rests.length - 300} weitere.`) : null,
+        h('label', { class: 'check' }, h('input', { type: 'checkbox', id: 'rb-rest-ack', checked: rb.restAck, onchange: (e) => { rb.restAck = e.target.checked; renderR2(); } }),
+          ' Ich habe diese Stellen geprüft. Sie bleiben so stehen und müssen ggf. von Hand korrigiert werden.')));
+    } else rows.push(ampelRow('ok', 'Platzhalter-Reste nach dem Rückbau', 'Keine. In Ordnung.'));
     if (plan.needsConfirm) {
       rows.push(ampelRow(rb.confirmAck ? 'ok' : 'warn', 'Bestätigung nötig', 'Es gibt Abweichungen. Bestätige, dass du sie geprüft hast.',
         h('label', { class: 'check' }, h('input', { type: 'checkbox', id: 'rb-confirm', checked: rb.confirmAck, onchange: (e) => { rb.confirmAck = e.target.checked; renderR2(); } }),
@@ -1486,7 +1503,7 @@ function renderR2() {
     }
   }
   $('#rb-report').replaceChildren(h('ul', { class: 'ampel' }, ...rows));
-  const blocked = plan.verdict === 'falsch' || (plan.needsConfirm && !rb.confirmAck) || kennungBlocked();
+  const blocked = plan.verdict === 'falsch' || (plan.needsConfirm && !rb.confirmAck) || restBlocked() || kennungBlocked();
   $('#r2-next').disabled = blocked;
   $('#r2-info').textContent = plan.verdict === 'falsch' ? 'Rückbau nicht möglich' : blocked ? 'Bitte bestätigen' : '';
 }
@@ -1522,6 +1539,7 @@ async function rbSave(copy) {
   const st = $('#rb-status');
   if (!rb.plan || rb.plan.verdict === 'falsch') return;
   if (rb.plan.needsConfirm && !rb.confirmAck) { st.textContent = 'Bitte zuerst die Abweichungen im Bericht prüfen und bestätigen.'; st.className = 'status bad'; return; }
+  if (restBlocked()) { st.textContent = 'Bitte zuerst die Platzhalter-Reste im Bericht prüfen und bestätigen (Schritt „Prüfen“).'; st.className = 'status bad'; return; }
   if (kennungBlocked()) { st.textContent = 'Bitte zuerst die Kennung prüfen und bestätigen (Schritt „Prüfen“).'; st.className = 'status bad'; return; }
   st.textContent = 'Erzeuge Datei und führe Schlusscheck durch …';
   st.className = 'status';
@@ -1529,6 +1547,16 @@ async function rbSave(copy) {
     const out = await rbBuild();
     const texts = out.zip ? await collectZipTexts(await JSZip.loadAsync(out.bytes)) : [{ where: 'Text', text: out.text }];
     const left = findLeftovers(rb.key, texts);
+    // Sicherheitsnetz (2.3.3) über die ganze Datei: Reste, die nicht schon im Bericht bestätigt wurden (z. B. in Teilen
+    // außerhalb der Abschnitte), und die nicht schon oben als Platzhalter aus der Schlüsseldatei gemeldet sind
+    const known = rb.plan.rests.map((x) => x.text).concat(left.map((x) => x.text));
+    for (const t of texts) {
+      for (const r of findPlaceholderRests(t.text)) {
+        const i = known.indexOf(r.text);
+        if (i >= 0) { known.splice(i, 1); continue; }
+        left.push({ where: t.where, text: r.text, kontext: r.kontext });
+      }
+    }
     for (const x of out.sheetIssues || []) left.push({ where: 'Excel', text: x.requested, kontext: `Blattname nicht zulässig, gespeichert als „${x.actual}“` });
     const box = $('#rb-left');
     box.hidden = !left.length;
@@ -1536,7 +1564,7 @@ async function rbSave(copy) {
       box.replaceChildren(h('h2', { class: 'small-h' }, 'Schlusscheck: Platzhalter noch im Ergebnis'),
         h('ul', {}, ...left.slice(0, 200).map((x) => h('li', {}, h('strong', {}, x.text), ` – ${x.where}: „…${x.kontext}…“`))),
         h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: rb.leftAck, onchange: (e) => { rb.leftAck = e.target.checked; } }), ' Ich habe diese Stellen geprüft und will trotzdem speichern.'));
-      if (!rb.leftAck) { st.textContent = `Schlusscheck: ${left.length} Platzhalter aus der Schlüsseldatei stehen noch im Ergebnis. Speichern blockiert – bitte prüfen.`; st.className = 'status bad'; return; }
+      if (!rb.leftAck) { st.textContent = `Schlusscheck: ${left.length} Platzhalter (oder Reste davon) stehen noch im Ergebnis. Speichern blockiert – bitte prüfen.`; st.className = 'status bad'; return; }
     }
     if (copy) {
       const ok = await copyText(out.text);

@@ -81,7 +81,10 @@ export function assignReversible(result) {
     if (h.type === 'org') {
       // Ganze Bezeichnung (ohne Endung am Schluss, die bleibt wie bei Personen im Text stehen) = ein Platzhalter
       const og = result.orgs.get(h.entity);
-      const stemEnd = h.e - (h.suffix ? h.suffix.length : 0);
+      // Version 2.3.3: Endung mit Großbuchstaben („BÜRGERVEREINS“) gehört wie bei Personen zur Schreibweise des
+      // Platzhalters („Einrichtung A2“ = „… BÜRGERVEREINS“); dahinter („Einrichtung A2S“) erkennt der Rückbau sie nicht
+      if (/\p{Lu}/u.test(h.suffix || '')) h.suffixInPh = true;
+      const stemEnd = h.e - (h.suffix && !h.suffixInPh ? h.suffix.length : 0);
       // Über einen Zeilenumbruch (TXT): eigene Schreibweise mit dem echten Zeilenende, damit der Rückbau es herstellt
       const value = h.unit2 !== undefined ? fullText.slice(h.s, h.split) + h.eol + fullText.slice(h.split + 1, stemEnd) : fullText.slice(h.s, stemEnd);
       const vk = 'O|' + og.letter;
@@ -98,8 +101,8 @@ export function assignReversible(result) {
       const en = entities.get(h.entity);
       // Version 2.3.2: Endung mit Großbuchstaben („MÜLLERS“) gehört zur Schreibweise des Platzhalters („Nachname A2“ =
       // „MÜLLERS“). Stünde sie dahinter („Nachname AS“), läse der Rückbau einen anderen Platzhalter.
-      const upperSuffix = /\p{Lu}/u.test(h.suffix || '');
-      const parts = splitHit(upperSuffix ? { ...h, suffix: '' } : h, h.origEntity || h.entity, singleRoles);
+      if (/\p{Lu}/u.test(h.suffix || '')) h.suffixInPh = true;
+      const parts = splitHit(h.suffixInPh ? { ...h, suffix: '' } : h, h.origEntity || h.entity, singleRoles);
       h.parts = parts.map((p) => {
         const value = fullText.slice(p.s, p.e);
         const vk = en.letter + '|' + p.role;

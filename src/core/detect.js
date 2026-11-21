@@ -840,6 +840,14 @@ function mergeAdjacent(hits, fullText) {
   for (let i = hits.length - 1; i >= 0; i--) if (hits[i].dead) hits.splice(i, 1);
 }
 
+// Endung hinter dem Platzhalter (Modi „Person A“ und „[NAME]“). Version 2.3.3: eine große Endung wird klein geschrieben
+// („MÜLLERS“ → „Person As“), damit „Person AS“ nie wie eine andere Person „AS“ aussieht. Im Modus rückbaufähig
+// gehört eine große Endung zum Platzhalter selbst (reversible.js), dort kommt hier nur eine kleine Endung an.
+function outSuffix(suffix) {
+  if (!suffix) return '';
+  return /\p{Lu}/u.test(suffix) ? suffix.toLowerCase() : suffix;
+}
+
 // Ersetzungen je Einheit: [{s, e, text}] relativ zur Einheit
 export function replacementsByUnit(result, units) {
   const per = units.map(() => []);
@@ -850,7 +858,7 @@ export function replacementsByUnit(result, units) {
     if (h.unit2 !== undefined) {
       // Platzhalter am Ende von Zeile 1, Rest des Namens am Anfang von Zeile 2 entfällt, die Zeilen werden verbunden
       const label = h.parts ? h.parts[0].text : h.label;
-      per[h.unit].push({ s: h.s - base, e: h.split - base, text: label + (h.suffix || '') });
+      per[h.unit].push({ s: h.s - base, e: h.split - base, text: label + (h.suffixInPh ? '' : outSuffix(h.suffix)) });
       per[h.unit2].push({ s: 0, e: h.e - result.unitStarts[h.unit2], text: '' });
       result.joins.add(h.unit);
       continue;
@@ -860,7 +868,7 @@ export function replacementsByUnit(result, units) {
       for (const p of h.parts) per[h.unit].push({ s: p.s - base, e: p.e - base, text: p.text });
       continue;
     }
-    const text = h.label + (h.type === 'person' || h.type === 'org' ? (h.suffix || '') : '');
+    const text = h.label + (h.type === 'person' || h.type === 'org' ? outSuffix(h.suffix) : '');
     per[h.unit].push({ s: h.s - base, e: h.e - base, text });
   }
   return per;

@@ -5,6 +5,8 @@
 // - Bildbeschreibungen (seit 2.2): Nur Dokumente MIT Alt-Text/Titel an Bildern oder Formen dürfen sich ändern, und nur
 //   in diesen Beschreibungen (Word/Excel) bzw. durch die zusätzlichen Zeilen „[Bildbeschreibung …] …“ (Text-Ausgabe).
 // - Endungsprüfung (2.3.1) und GROSSSCHREIBUNG mit Endung (2.3.2): nur Zeilen mit diesen Formen dürfen sich ändern.
+// - Kleine Endung hinter dem Platzhalter (2.3.3): eine Zeile darf sich NUR dadurch ändern, dass eine große Endung hinter
+//   „Person X“, „[NAME]“, „Einrichtung X“ oder „[EINRICHTUNG]“ klein geschrieben wird.
 // Aufruf: node tests/regression.mjs <alte-index.html> [neue-index.html]
 import fs from 'node:fs';
 import path from 'node:path';
@@ -107,6 +109,9 @@ let endingChanged = 0;
 // Version 2.3.2: GROSSSCHREIBUNG mit großer Endung (Testdokument endungen.*), jetzt ersetzt
 const CAPS_FORMS = /LÜDINGHAUSS|WITTEKINDHORNS|QUABBENJANSENS|OSTERVELKENSS|HALLERMESS|TÖNNIESKAMPES/;
 let capsChanged = 0;
+// Version 2.3.3: große Endung hinter dem Platzhalter klein („Person AS“ → „Person As“)
+const lowerSuffix = (l) => l.replace(/(Person [A-Z]{1,3}|Einrichtung [A-Z]{1,3}|\[NAME\]|\[EINRICHTUNG\])('S|’S|ES|NS|S|N)(?![\p{L}\p{N}])/gu, (m, a, b) => a + b.toLowerCase());
+let lowerChanged = 0;
 const withoutAltLines = (t) => t.split('\n').filter((l) => !/^\[Bildbeschreibung /.test(l)).join('\n');
 const sameParts = (a, b) => !!a && !!b && JSON.stringify(Object.entries(a).sort()) === JSON.stringify(Object.entries(b).sort());
 let total = 0;
@@ -149,12 +154,21 @@ for (const [file, formats] of FIXTURES) {
         if (caps) reasons.push(`- ${file}, Modus ${mode}, Ausgabe .${f}: ${diff.length} Zeilen geändert, nur GROSS-Formen mit Endung jetzt ersetzt (${diff.map((i) => `„${ol[i]}“ → „${nl[i]}“`).join('; ')}). Grund: Version 2.3.2 behandelt die große Endung nach einem GROSS geschriebenen Namen wie die kleine.`);
       }
       if (caps) capsChanged++;
+      let lower = false;
+      if (!ok && !kOnly && !alt && !ending && !caps && b[f].text !== null && a[f].text !== null) {
+        const ol = a[f].text.split('\n');
+        const nl = b[f].text.split('\n');
+        const diff = nl.map((l, i) => (l !== ol[i] ? i : -1)).filter((i) => i >= 0);
+        lower = ol.length === nl.length && diff.length > 0 && diff.every((i) => lowerSuffix(ol[i]) === nl[i]);
+        if (lower) reasons.push(`- ${file}, Modus ${mode}, Ausgabe .${f}: ${diff.length} Zeilen geändert, nur große Endung hinter dem Platzhalter jetzt klein (${diff.slice(0, 2).map((i) => `„${ol[i]}“ → „${nl[i]}“`).join('; ')}${diff.length > 2 ? '; …' : ''}). Grund: Version 2.3.3, damit „Person AS“ nie wie eine andere Person aussieht.`);
+      }
+      if (lower) lowerChanged++;
       if (ok) same++;
       if (kOnly) onlyKennung++;
       if (alt) altChanged++;
       if (ending) endingChanged++;
       const label = `${file}, Modus ${({ person: '„Person A“', name: '„[NAME]“', reversible: '„rückbaufähig“' })[mode]}, Ausgabe .${f}`;
-      lines.push(`- ${label}: ${ok ? 'identisch' : kOnly ? 'gleich bis auf die Kennung (Eigenschaft)' : alt ? 'geändert nur in Bildbeschreibungen (Grund unten)' : ending ? 'geändert nur durch die Endungsprüfung (Grund unten)' : caps ? 'geändert nur durch GROSS-Formen mit Endung (Grund unten)' : 'UNTERSCHIEDLICH'} (${a[f].sha.slice(0, 12)} / ${b[f].sha.slice(0, 12)})`);
+      lines.push(`- ${label}: ${ok ? 'identisch' : kOnly ? 'gleich bis auf die Kennung (Eigenschaft)' : alt ? 'geändert nur in Bildbeschreibungen (Grund unten)' : ending ? 'geändert nur durch die Endungsprüfung (Grund unten)' : caps ? 'geändert nur durch GROSS-Formen mit Endung (Grund unten)' : lower ? 'geändert nur durch kleine Endung hinter dem Platzhalter (Grund unten)' : 'UNTERSCHIEDLICH'} (${a[f].sha.slice(0, 12)} / ${b[f].sha.slice(0, 12)})`);
       if (alt) {
         if (b[f].text !== null) reasons.push(`- ${label}: neue Zeilen ${b[f].text.split('\n').filter((l) => /^\[Bildbeschreibung /.test(l)).map((l) => `„${l}“`).join(', ')} (Bildbeschreibungen sind jetzt eigene Textabschnitte); alle übrigen Zeilen gleich.`);
         else {
@@ -170,8 +184,8 @@ for (const [file, formats] of FIXTURES) {
   }
 }
 await browser.close();
-const bad = total - same - onlyKennung - altChanged - endingChanged - capsChanged;
-const out = [`Regression: ${same} von ${total} Ausgaben byte-identisch, ${onlyKennung} gleich bis auf die Kennung, ${altChanged} nur in Bildbeschreibungen geändert, ${endingChanged} nur durch die Endungsprüfung geändert, ${capsChanged} nur durch GROSS-Formen mit Endung geändert, ${bad} unterschiedlich (Referenz ${sha(fs.readFileSync(oldHtml)).slice(0, 16)}…, neu ${sha(fs.readFileSync(newHtml)).slice(0, 16)}…)`,
+const bad = total - same - onlyKennung - altChanged - endingChanged - capsChanged - lowerChanged;
+const out = [`Regression: ${same} von ${total} Ausgaben byte-identisch, ${onlyKennung} gleich bis auf die Kennung, ${altChanged} nur in Bildbeschreibungen geändert, ${endingChanged} nur durch die Endungsprüfung geändert, ${capsChanged} nur durch GROSS-Formen mit Endung geändert, ${lowerChanged} nur durch kleine Endung hinter dem Platzhalter geändert, ${bad} unterschiedlich (Referenz ${sha(fs.readFileSync(oldHtml)).slice(0, 16)}…, neu ${sha(fs.readFileSync(newHtml)).slice(0, 16)}…)`,
   ...lines, '', reasons.length ? '## Geänderte Ausgaben einzeln mit Grund' : '', ...reasons].join('\n');
 console.log(out);
 process.exit(bad === 0 ? 0 : 1);
