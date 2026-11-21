@@ -84,14 +84,11 @@ const app = {
   doc: null, // {kind, units, warnings, bytes, name, info, raw, metaNames}
   state: defaultState(),
   result: null,
-  ackWarnings: new Set(),
-  leakAck: false,
   persist: false,
   screen: 'start',
   modeChosen: false,
   answers: new Map(), // Frage-Kennung -> 'ja' | 'nein'
   qReview: -1, // >= 0: Fragen werden noch einmal gezeigt (Position)
-  questionsAck: false, // ausdrücklich mit offenen Fragen speichern
   openMenu: null, // Personenliste: offenes Menü (Personen-Schlüssel)
   preview: null, // Schlusscheck-Vorschau auf dem Speichern-Bildschirm {stamp, format, out, leaks, busy}
   saved: null, // {name}
@@ -101,8 +98,10 @@ const app = {
   keyKennung: null, // Kennung der zuletzt gespeicherten Schlüsseldatei
   imagesOpen: false, // Bilderliste aufgeklappt
   imagesSeen: false, // Bilderliste wurde mindestens einmal geöffnet (Voraussetzung für das Abhaken)
-  imagesAck: false, // „Ich habe die Bilder angesehen. Darauf steht kein Name.“
   imageUrls: new Map(), // Bild-Nr. -> blob:-Adresse der Vorschau (nur im Arbeitsspeicher, verworfen bei „Nächstes Dokument“)
+  ackSig: null, // Version 2.5.0: EIN Häkchen „Ich habe alle Punkte gesehen …“ (gilt nur für genau diesen Stand der Punkte)
+  sheetTab: 0, // Excel: gezeigtes Blatt in der Prüfansicht
+  addedSinceLoad: false, // Hinweis „Diese Liste gilt nur, bis du die Seite schließt …“
   imageBig: new Set(), // Bild-Nr. groß angezeigt
 };
 
@@ -204,7 +203,6 @@ function changed() {
   // Wurde zur aktuellen Kennung schon eine Schlüsseldatei gespeichert, bekommt jeder neue Stand eine neue Kennung.
   // So gibt es nie zwei verschiedene Schlüsseldateien mit derselben Kennung.
   if (app.keyKennung && app.keyKennung === app.kennung) app.kennung = newKennung();
-  app.leakAck = false;
   app.stamp += 1;
   app.preview = null;
   app.saved = null;
@@ -267,13 +265,30 @@ async function buildOutput(format) {
   return { text: plainTextExport() };
 }
 // Schlusscheck: ALLE Teile der Ausgabedatei (Text, Eigenschaften, SharePoint-Daten, Bilder …) nach bestätigten
-// Namen und nach Namen aus den Original-Metadaten durchsuchen. Fundstelle in einfacher Sprache.
+// Namen und nach Namen aus den Original-Metadaten durchsuchen.
+// Version 2.5.0: Fundort und Ausschnitt in einfacher Sprache. Zuerst werden die Abschnitte der Ausgabe durchsucht
+// (Fundort „Blatt Liste, Zelle B2“, Ausschnitt = sichtbarer Text), danach die ganze Datei; dort zählen nur Funde, die über
+// die Abschnitte hinausgehen (je Wort nie weniger als bisher). Stellen, die als Frage offen oder mit „Nein“ entschieden
+// sind, erscheinen nicht zusätzlich im Schlusscheck (D.5).
 async function finalCheck(out) {
   const { forms, phrases } = checkForms();
+  const unitLeaks = [];
+  newUnitTexts().forEach((t, ui) => {
+    for (const l of findLeaks(forms, [{ where: '', text: t, plain: t }], phrases)) unitLeaks.push({ ...l, unit: ui, where: unitPlace(ui) });
+  });
   let texts;
-  if (out.zip) texts = (await collectZipTexts(await JSZip.loadAsync(out.bytes), { inflatePng: true, userText: true })).map((t) => ({ ...t, where: describePart(t.where) }));
-  else texts = [{ where: 'Text', text: out.text }];
-  const leaks = findLeaks(forms, texts, phrases);
+  if (out.zip) texts = await collectZipTexts(await JSZip.loadAsync(out.bytes), { inflatePng: true, userText: true });
+  else texts = [{ where: '', text: out.text, plain: out.text }];
+  const fileLeaks = [];
+  for (const t of texts) {
+    for (const l of findLeaks(forms, [t], phrases)) fileLeaks.push({ ...l, where: out.zip ? plainPart(t.where) : 'Text', context: visibleContext(t, l.word, l.context) });
+  }
+  const keyOf = (l) => (l.org ? 'O|' : 'P|') + fold(l.word);
+  const inUnits = new Map();
+  for (const l of unitLeaks) inUnits.set(keyOf(l), (inUnits.get(keyOf(l)) || 0) + 1);
+  const seen = new Map();
+  const extra = fileLeaks.filter((l) => { const k = keyOf(l); const n = (seen.get(k) || 0) + 1; seen.set(k, n); return n > (inUnits.get(k) || 0); });
+  const leaks = [...withoutDecided(unitLeaks), ...extra];
   // Version 2.3: jede Einrichtung aus der Liste im Originaltext; nicht vollständig ersetzte Fundstellen melden
   const org = orgCheckLeaks();
   if (!org.length) return leaks;
@@ -282,14 +297,78 @@ async function finalCheck(out) {
   // dieselbe Stelle nicht doppelt melden (die Suche in der Ausgabe findet sie ggf. auch)
   return [...org, ...leaks.filter((l) => !(l.org && have.has(norm(l.word))))];
 }
+// D.5: ausgeschaltete Stellen, die als Frage offen oder mit „Nein“ entschieden sind
+function decidedOffHits() {
+  const list = [];
+  for (const q of questions()) {
+    const a = answerOf(q);
+    if (a === 'ja') continue;
+    const hs = q.kind === 'place' ? [q.hit] : q.kind === 'word' ? (a === 'nein' || !q.hits.length ? q.neinHits : q.hits) : [];
+    for (const x of hs) if (!x.on) list.push(x);
+  }
+  return list;
+}
+function withoutDecided(unitLeaks) {
+  const rest = [...unitLeaks];
+  const r = app.result;
+  for (const x of decidedOffHits()) {
+    for (const w of r.fullText.slice(x.s, x.e).split(/[^\p{L}\p{M}\p{N}'’-]+/u).filter(Boolean)) {
+      const i = rest.findIndex((l) => l.unit === x.unit && !l.org && (fold(l.word) === fold(w) || l.word.split('-').some((p) => fold(p) === fold(w))));
+      if (i >= 0) rest.splice(i, 1);
+    }
+  }
+  return rest;
+}
+// Ausschnitt nur aus sichtbarem Text (Textknoten), ohne Formatwerte
+function visibleContext(t, word, fallback) {
+  const src = typeof t.plain === 'string' && t.plain.includes(word) ? t.plain : null;
+  if (!src) return (fallback || '').replace(/\s+/g, ' ');
+  const i = src.indexOf(word);
+  return src.slice(Math.max(0, i - 30), Math.min(src.length, i + word.length + 30)).replace(/\s+/g, ' ');
+}
+// Teil einer Office-Datei in einfacher Sprache (ohne Pfad)
+function plainPart(where) {
+  const n = where.replace(/ \(binär.*$/, '');
+  const rules = [
+    [/(^|\/)docProps\/|(^|\/)(core|app|custom)\.xml$/i, 'Dateieigenschaften'], [/customXml\//i, 'Zusatzdaten (SharePoint)'],
+    [/\/media\/|\.(jpe?g|png|gif|tiff?|emf|wmf|svg|bmp)$/i, 'Bild (versteckte Bildangaben)'], [/embeddings\//i, 'eingebettetes Objekt'],
+    [/threadedComment|comments/i, 'Kommentar'], [/header/i, 'Kopfzeile'], [/footer/i, 'Fußzeile'], [/footnotes/i, 'Fußnote'], [/endnotes/i, 'Endnote'],
+    [/people|persons/i, 'Personenliste'], [/sharedStrings|worksheets|sheet/i, 'Tabelle'], [/workbook/i, 'Arbeitsmappe (Blattnamen)'],
+    [/drawing|chart|diagram/i, 'Zeichnung oder Diagramm'], [/document\.xml$/i, 'Text'], [/\.rels$/i, 'Verweise in der Datei'],
+  ];
+  for (const [re, label] of rules) if (re.test(n)) return label;
+  return 'weiterer Teil der Datei';
+}
 // Fundort eines Abschnitts in einfacher Sprache
 function unitPlace(ui) {
   const u = app.doc.units[ui];
   const k = app.doc.kind;
   if (k === 'txt') return `Zeile ${ui + 1}`;
-  if (k === 'csv') return u.label || `Abschnitt ${ui + 1}`;
-  if (k === 'docx' && (u.label === 'Text' || !u.label)) return 'Text';
-  return u.label || `Abschnitt ${ui + 1}`;
+  return plainLabel(u.label, k) || `Abschnitt ${ui + 1}`;
+}
+function plainLabel(label, kind) {
+  let l = (label || '').replace(/ \(mit gelöschtem Text aus Änderungsverfolgung\)$/, '');
+  const hidden = / \(ausgeblendet\)$/.test(l);
+  l = l.replace(/ \(ausgeblendet\)$/, '');
+  const hs = hidden ? ' (ausgeblendet)' : '';
+  if (/^Bildbeschreibung/.test(l)) return 'Bildbeschreibung';
+  if (kind === 'docx') return !l || l === 'Text' ? 'Text' : l === 'Sonstiges' ? 'weiterer Teil' : l;
+  if (kind === 'xlsx') {
+    let m = l.match(/^(.*)!([A-Z]+\d+)(?: \((Formel|Formelergebnis)\))?$/);
+    if (m) return `Blatt ${m[1]}${hs}, Zelle ${m[2]}${m[3] ? ' (' + m[3] + ')' : ''}`;
+    m = l.match(/^(.*): (Kopfzeile|Fußzeile)$/);
+    if (m) return `${m[2]}, Blatt ${m[1]}${hs}`;
+    m = l.match(/^(.*): Gültigkeitsregel\/Formel$/);
+    if (m) return `Gültigkeitsregel, Blatt ${m[1]}${hs}`;
+    m = l.match(/^Kommentar(?: \(Unterhaltung\))? (\S+)$/);
+    if (m) return `Kommentar zu Zelle ${m[1]}`;
+    if (l === 'Blattname') return `Name eines Blatts${hs}`;
+    if (/^Definierter Name/.test(l)) return 'Name eines Bereichs';
+    if (l === 'Gemeinsamer Text (nicht verwendet)') return 'nicht verwendeter Text';
+    if (l === 'Textfeld/Form') return 'Textfeld';
+    return l;
+  }
+  return l;
 }
 function orgCheckLeaks() {
   if (!app.result || !app.state.orgTerms.length) return [];
@@ -358,17 +437,35 @@ function isReversible() { return app.state.settings.mode === MODE_REVERSIBLE; }
 function mainFormat() { return app.doc ? ({ docx: 'docx', xlsx: 'xlsx', csv: 'csv' }[app.doc.kind] || 'txt') : 'txt'; }
 function keySaved() { return app.keyStamp === app.stamp; }
 
-// ---------- Fragen (unsichere Treffer und Namen aus den Dateiangaben) ----------
-// Eine Frage pro Person bzw. Wort (nicht pro Vorkommen). Ja schaltet alle unsicheren Vorkommen an, Nein alle aus.
+// ---------- Fragen (Version 2.5.0) ----------
+// 1. Frage zum Wort („Ist „X“ ein Name?“) für unsichere Wörter ohne klaren Kontext. „Ja“ schaltet nur die Stellen an,
+//    die NICHT im Sachkontext stehen; „Nein“ schaltet alle unsicheren Stellen aus (wie bisher).
+// 2. Frage je Stelle für Stellen im Sachkontext (nur Wörter der Liste „mehrdeutig“: nach Artikel/Präposition oder
+//    gebeugte Form), wenn die Person im Dokument sicher erkannt oder bestätigt ist; ohne Antwort bleibt die Stelle,
+//    wie sie im Moment ist.
+// 3. Frage je Stelle für die GROSS-Form mit Endung eines von Hand übernommenen Namens (bleibt ohne Antwort stehen).
+// Keine Frage für Wochentage/Monate (Regel b2). Namen aus den Dateiangaben wie bisher.
+function hitText(x) { return app.result.fullText.slice(x.s, x.e); }
+function confirmedEntity(en) {
+  return en.manual || app.answers.get('p:' + en.key) === 'ja' || en.hits.some((x) => x.cert === 'sicher' && !x.capsManual);
+}
 function questions() {
   const r = app.result;
   if (!r) return [];
   const qs = [];
   for (const en of r.entities.values()) {
-    const unsure = en.hits.filter((x) => x.type === 'person' && x.cert === 'unsicher');
-    if (!unsure.length) continue;
-    const word = r.fullText.slice(unsure[0].s, unsure[0].e);
-    qs.push({ id: 'p:' + en.key, kind: 'hit', en, hits: unsure, word, first: unsure[0] });
+    const unsure = en.hits.filter((x) => x.cert === 'unsicher' && !x.calendar && !x.capsManual);
+    const plain = unsure.filter((x) => !x.sachkontext);
+    const wordAns = app.answers.get('p:' + en.key);
+    const conf = confirmedEntity(en);
+    if (plain.length || (unsure.length && (!conf || wordAns))) {
+      const first = plain[0] || unsure[0];
+      qs.push({ id: 'p:' + en.key, kind: 'word', en, hits: plain.length ? plain : [], neinHits: unsure, word: hitText(first), first });
+    }
+    if (wordAns === 'nein' || !conf) continue;
+    for (const x of en.hits) {
+      if ((x.sachkontext && !x.calendar) || x.capsManual) qs.push({ id: 'h:' + x.key, kind: 'place', en, hit: x, first: x });
+    }
   }
   for (const m of app.doc.metaNames || []) {
     // Firma/Organisation (Version 2.3): als Einrichtung übernehmen; Autor, Bearbeiter, Manager bleiben Personen
@@ -380,11 +477,23 @@ function questions() {
 }
 function answerOf(q) { return app.answers.get(q.id) || (q.kind === 'meta' && q.taken ? 'ja' : null); }
 function openQuestions() { return questions().filter((q) => !answerOf(q)); }
+// Treffer, die zu einer offenen Frage gehören (Markierung „Frage“ im Text)
+function askHits() {
+  const s = new Set();
+  for (const q of openQuestions()) {
+    if (q.kind === 'place') s.add(q.hit);
+    else if (q.kind === 'word') for (const x of (q.hits.length ? q.hits : q.neinHits)) s.add(x);
+  }
+  return s;
+}
 function answer(q, yes) {
   app.answers.set(q.id, yes ? 'ja' : 'nein');
   if (app.qReview >= 0) app.qReview += 1;
-  if (q.kind === 'hit') setHits(q.hits, yes);
+  if (q.kind === 'word') setHits(yes ? q.hits : q.neinHits, yes);
+  else if (q.kind === 'place') setHits([q.hit], yes);
   else if (yes && !q.taken) { if (q.org) addOrg(q.name); else addManual(q.name); } // rechnet neu und zeichnet alles
+  else changed();
+  refreshMarks();
   renderQuestions();
   renderA2Info();
 }
@@ -395,18 +504,18 @@ function contextOf(hit) {
   const base = r.unitStarts[ui];
   const t = app.doc.units[ui].text;
   const s = hit.s - base;
-  const e = hit.e - base;
+  const e = Math.min(hit.e - base, t.length);
   let a = s;
   while (a > 0 && !/[.!?\n]/.test(t[a - 1]) && s - a < 120) a--;
   let b = e;
   while (b < t.length && !/[.!?\n]/.test(t[b]) && b - e < 120) b++;
   if (b < t.length && /[.!?]/.test(t[b])) b++;
-  return h('p', { class: 'qctx' }, (a > 0 ? '…' : '') + t.slice(a, s).trimStart(), h('mark', { class: 'hit unsure on' }, t.slice(s, e)), t.slice(e, b).trimEnd() + (b < t.length ? '…' : ''));
+  return h('p', { class: 'qctx' }, (a > 0 ? '…' : '') + t.slice(a, s).trimStart(), h('mark', {}, t.slice(s, e)), t.slice(e, b).trimEnd() + (b < t.length ? '…' : ''));
 }
 function renderQuestions() {
   const box = $('#qcard');
   const qs = questions();
-  if (!qs.length) { box.replaceChildren(h('p', { class: 'qcount' }, 'Keine Fragen'), h('p', {}, 'Es gibt keine unsicheren Treffer und keine Namen in den Dateiangaben.')); return; }
+  if (!qs.length) { box.replaceChildren(h('p', { class: 'qcount' }, 'Keine Fragen'), h('p', {}, 'Es gibt nichts zu entscheiden.')); return; }
   let idx;
   if (app.qReview >= 0) {
     if (app.qReview >= qs.length) app.qReview = -1; else idx = app.qReview;
@@ -414,22 +523,31 @@ function renderQuestions() {
   if (idx === undefined) idx = qs.findIndex((q) => !answerOf(q));
   if (idx < 0) {
     box.replaceChildren(h('p', { class: 'qcount' }, `${qs.length} von ${qs.length} Fragen`), h('p', { class: 'qask' }, 'Alle Fragen beantwortet'),
-      h('button', { type: 'button', class: 'secondary', id: 'q-again', onclick: () => { app.qReview = 0; renderQuestions(); } }, 'Fragen noch einmal zeigen'));
+      h('button', { type: 'button', class: 'secondary small', id: 'q-again', onclick: () => { app.qReview = 0; renderQuestions(); } }, 'Fragen noch einmal zeigen'));
     return;
   }
   const q = qs[idx];
   const prev = answerOf(q);
   const kids = [h('p', { class: 'qcount' }, `Frage ${idx + 1} von ${qs.length}`)];
-  if (q.kind === 'hit') {
-    kids.push(contextOf(q.first), h('p', { class: 'qask' }, `Ist „${q.word}“ hier ein Name?`));
-    if (q.hits.length > 1) kids.push(h('p', { class: 'hint' }, `Gilt für alle ${q.hits.length} unsicheren Stellen dieser Person.`));
+  let yes = 'Ja, Name';
+  if (q.kind === 'word') {
+    kids.push(contextOf(q.first), h('p', { class: 'qask' }, `Ist „${q.word}“ ein Name?`));
+    const n = q.hits.length;
+    if (n > 1) kids.push(h('p', { class: 'hint' }, `Gilt für ${n} Stellen.`));
+    const sk = q.neinHits.length - n;
+    if (sk > 0) kids.push(h('p', { class: 'hint' }, `${sk === 1 ? 'Eine Stelle' : sk + ' Stellen'} wie „im Winter“ oder „die Rosen“ ${sk === 1 ? 'wird' : 'werden'} danach einzeln gefragt.`));
+  } else if (q.kind === 'place') {
+    kids.push(contextOf(q.hit), h('p', { class: 'qask' }, `Ist hier die Person ${q.en.display} gemeint?`),
+      h('p', { class: 'qstate', id: 'q-state' }, q.hit.on ? 'Wird im Moment ersetzt.' : 'Bleibt im Moment stehen.'));
+    yes = 'Ja, ersetzen';
   } else {
     kids.push(h('p', { class: 'qask' }, `In den Dateiangaben steht „${q.name}“. ${q.org ? 'Als Einrichtung übernehmen?' : 'Als Namen übernehmen?'}`),
       h('p', { class: 'hint' }, `${q.where}. Bei „Ja“ wird ${q.org ? 'die Einrichtung' : 'der Name'} überall im Text ersetzt. Aus den Dateiangaben wird ${q.org ? 'sie' : 'er'} so oder so entfernt.`));
+    yes = 'Ja, übernehmen';
   }
   if (prev) kids.push(h('p', { class: 'hint' }, `Bisherige Antwort: ${prev === 'ja' ? 'Ja' : 'Nein'}`));
   kids.push(h('div', { class: 'qbtns' },
-    h('button', { type: 'button', class: 'secondary', id: 'q-yes', onclick: () => answer(q, true) }, q.kind === 'hit' ? 'Ja, Name' : 'Ja, übernehmen'),
+    h('button', { type: 'button', class: 'secondary', id: 'q-yes', onclick: () => answer(q, true) }, yes),
     h('button', { type: 'button', class: 'secondary', id: 'q-no', onclick: () => answer(q, false) }, 'Nein')),
   h('p', { class: 'qkeys' }, 'Tasten: J = Ja, N = Nein'));
   box.replaceChildren(...kids);
@@ -490,18 +608,30 @@ function render() {
   if (app.screen === 'a3') renderSave();
 }
 
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 function renderSummary() {
   const r = app.result;
-  const persons = r.hits.filter((x) => x.type === 'person');
-  const sure = persons.filter((x) => x.cert === 'sicher').length;
-  const contacts = r.hits.length - persons.length;
-  const orgHits = r.hits.filter((x) => x.type === 'org').length;
-  const orgPart = r.orgs.size ? ` · ${r.orgs.size} ${r.orgs.size === 1 ? 'Einrichtung' : 'Einrichtungen'} (${orgHits} Stellen)` : '';
-  $('#summary').textContent = `${app.doc.name || 'Eingefügter Text'} · ${r.entities.size} ${r.entities.size === 1 ? 'Person' : 'Personen'} · ${persons.length} Namens-Treffer (${sure} sicher, ${persons.length - sure} unsicher)${orgPart} · ${contacts - orgHits} Kontaktdaten · aktiv: ${r.hits.filter((x) => x.on).length}` + (app.doc.info ? ' · ' + app.doc.info : '');
+  const parts = [plural(r.entities.size, 'Person', 'Personen')];
+  if (r.orgs.size) parts.push(plural(r.orgs.size, 'Einrichtung', 'Einrichtungen'));
+  $('#summary').textContent = parts.join(', ');
 }
 
+// Hinweis beim Überfahren: wer es ist und was passiert
 function hitTitle(x) {
-  return (x.on ? 'wird ersetzt durch: ' + x.label : 'bleibt stehen (aus)') + (x.type === 'org' ? ' · Einrichtung' : '') + (x.cert === 'unsicher' ? ' · unsicherer Treffer' : '') + (x.origin === 'manual' ? ' · von dir markiert' : '') + (x.link ? ' · zugeordnet über ' + x.link : '') + ' · Tippen = an/aus';
+  const who = x.type === 'person' ? (app.result.entities.get(x.entity) || {}).display : x.type === 'org' ? (app.result.orgs.get(x.entity) || {}).display : '';
+  return (x.on ? 'wird ersetzt durch: ' + x.label : 'bleibt stehen') + (who ? ` · ${x.type === 'org' ? 'Einrichtung' : 'Person'}: ${who}` : '') + ' · Klick = umschalten';
+}
+// Klassen einer Markierung: nur „wird ersetzt“ (on) und „Frage“ (ask); aus = unmarkiert
+function markClass(x, ask) { return 'hit ' + (x.on ? 'on' : 'off') + (ask.has(x) ? ' ask' : ''); }
+function refreshMarks() {
+  if (!app.result) return;
+  const ask = askHits();
+  for (const m of document.querySelectorAll('#docview mark[data-h]')) {
+    const x = app.result.hits[Number(m.dataset.h)];
+    if (!x) continue;
+    m.className = markClass(x, ask);
+    m.title = hitTitle(x);
+  }
 }
 
 // Schnelles Umschalten ohne Neuberechnung (Treffer bleiben gleich, nur an/aus ändert sich)
@@ -509,94 +639,113 @@ function setHits(list, on) {
   for (const x of list) {
     x.on = on;
     app.state.overrides[x.key] = on;
-    for (const m of document.querySelectorAll(`mark[data-h="${x.id}"]`)) { m.classList.toggle('on', on); m.classList.toggle('off', !on); m.title = hitTitle(x); }
   }
   changed();
+  refreshMarks();
   renderSummary();
   renderEntities();
+  renderQuestions();
   renderA2Info();
   if (app.screen === 'a3') renderSave();
 }
 
-// Anzeige-Gruppe eines Abschnitts: Kopfzeilen, Fußnoten, Kommentare, Excel-Blätter, PDF-Seiten …
-// Haupttext und Tabellen bekommen kein Etikett; Tabellenzeilen werden als Zeilen gezeigt.
-function unitView(u) {
-  const label = u.label.replace(/ \(mit gelöschtem Text aus Änderungsverfolgung\)$/, '');
-  const deleted = label !== u.label;
-  const kind = app.doc.kind;
-  const alt = label.match(/^Bildbeschreibung \((Alt-Text|Titel)\)(?: – (.+))?$/);
-  if (alt) return { section: 'Bildbeschreibungen (Alt-Text und Titel von Bildern und Formen)', note: `Bildbeschreibung · ${alt[1]}${alt[2] ? ' · ' + alt[2] : ''}` };
-  if (kind === 'docx') {
-    if (label === 'Text' || label === 'Tabelle') return { section: '', row: u.row, cell: u.cell, deleted };
-    return { section: label, row: u.row, cell: u.cell, deleted };
-  }
-  if (kind === 'xlsx') {
-    const m = label.match(/^(.*)!([A-Z]+)(\d+)( \((?:Formel|Formelergebnis)\))?( \(ausgeblendet\))?$/);
-    if (m) return { section: `Blatt „${m[1]}“${m[5] ? ' (ausgeblendet)' : ''}`, row: 'x:' + m[1] + ':' + m[3], cell: m[2], ref: m[2] + m[3] + (m[4] || '') };
-    return { section: label };
-  }
-  if (kind === 'csv') {
-    const m = label.match(/^Zeile (\d+), Spalte (\d+)$/);
-    if (m) return { section: '', row: 'c:' + m[1], cell: m[2] };
-    return { section: label };
-  }
-  return { section: label };
-}
-
-function renderDoc() {
+// Text eines Abschnitts mit Markierungen (data-u für Markieren und Antippen)
+function unitText(ui, ctx) {
   const r = app.result;
+  const u = app.doc.units[ui];
+  const base = r.unitStarts[ui];
+  const tx = h('span', { class: 'utext', 'data-u': ui });
+  let pos = 0;
+  // Fortsetzung einer Einrichtung aus der vorigen Zeile (TXT, über einen Zeilenumbruch)
+  const cont = ctx.contOf.get(ui);
+  if (cont) {
+    pos = Math.min(cont.e - base, u.text.length);
+    tx.append(h('mark', { class: markClass(cont, ctx.ask), 'data-h': cont.id, title: hitTitle(cont) }, u.text.slice(0, pos)));
+  }
+  for (const x of ctx.byUnit.get(ui) || []) {
+    const s = x.s - base;
+    const e = Math.min(x.e - base, u.text.length);
+    if (s < pos) continue;
+    if (s > pos) tx.append(document.createTextNode(u.text.slice(pos, s)));
+    tx.append(h('mark', { class: markClass(x, ctx.ask), 'data-h': x.id, title: hitTitle(x) }, u.text.slice(s, e)));
+    pos = e;
+  }
+  if (pos < u.text.length) tx.append(document.createTextNode(u.text.slice(pos)));
+  return tx;
+}
+function docContext() {
+  const r = app.result;
+  const byUnit = new Map();
+  for (const x of r.hits) {
+    if (!byUnit.has(x.unit)) byUnit.set(x.unit, []);
+    byUnit.get(x.unit).push(x);
+  }
+  return { byUnit, contOf: new Map(r.hits.filter((x) => x.unit2 !== undefined).map((x) => [x.unit2, x])), ask: askHits() };
+}
+const placeLine = (label, content) => h('div', { class: 'placeline' }, h('span', { class: 'where' }, label), h('span', {}, content));
+const colNum = (c) => { let n = 0; for (const ch of c) n = n * 26 + (ch.charCodeAt(0) - 64); return n; };
+const colName = (n) => { let s = ''; while (n > 0) { const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); } return s; };
+// Tabelle aus Zellen {r, c, u | value}: Spaltenköpfe, Zeilennummern, kompakte Zellen, lange Texte umbrechen
+function gridTable(cells, ctx, colLabel) {
+  if (!cells.length) return null;
+  const rows = [...new Set(cells.map((x) => x.r))].sort((a, b) => a - b);
+  const maxC = Math.max(...cells.map((x) => x.c));
+  const at = new Map(cells.map((x) => [x.r + ':' + x.c, x]));
+  const head = h('tr', {}, h('th', { class: 'rn' }, ''), ...Array.from({ length: maxC }, (_, i) => h('th', {}, colLabel(i + 1))));
+  const body = rows.map((r) => h('tr', {}, h('th', { class: 'rn' }, String(r)), ...Array.from({ length: maxC }, (_, i) => {
+    const x = at.get(r + ':' + (i + 1));
+    if (!x) return h('td', {});
+    if (x.u === undefined) return h('td', { class: 'numval' }, x.value);
+    return h('td', { class: app.doc.units[x.u].text.length > 40 ? 'wrap' : '' }, unitText(x.u, ctx));
+  })));
+  return h('div', { class: 'tscroll' }, h('table', { class: 'sheet' }, h('thead', {}, head), h('tbody', {}, ...body)));
+}
+function renderDoc() {
   const view = $('#docview');
+  const ctx = docContext();
+  const kind = app.doc.kind;
+  const units = app.doc.units;
   const frag = document.createDocumentFragment();
-  let hi = 0;
-  const hits = r.hits;
+  const shown = new Set();
+  if (kind === 'xlsx' && app.doc.raw.view && app.doc.raw.view.length) {
+    const sheets = app.doc.raw.view;
+    if (!(app.sheetTab >= 0 && app.sheetTab < sheets.length)) app.sheetTab = 0;
+    for (const sh of sheets) for (const c of sh.cells) if (c.u !== undefined) shown.add(c.u);
+    frag.append(h('div', { class: 'tabs', role: 'tablist', 'aria-label': 'Blätter' }, ...sheets.map((sh, i) => h('button', { type: 'button', role: 'tab', 'aria-selected': i === app.sheetTab ? 'true' : 'false', 'data-tab': i,
+      onclick: () => { app.sheetTab = i; renderDoc(); } }, sh.name + (sh.hidden ? ' (ausgeblendet)' : '')))));
+    const sh = sheets[app.sheetTab];
+    const cells = sh.cells.map((c) => { const m = c.ref.match(/^([A-Z]+)(\d+)$/); return m ? { r: Number(m[2]), c: colNum(m[1]), u: c.u, value: c.value } : null; }).filter(Boolean);
+    frag.append(gridTable(cells, ctx, colName) || h('p', { class: 'muted' }, 'Dieses Blatt ist leer.'));
+  } else if (kind === 'csv') {
+    const cells = [];
+    units.forEach((u, ui) => { const m = u.label.match(/^Zeile (\d+), Spalte (\d+)$/); if (m && u.text.trim()) { cells.push({ r: Number(m[1]), c: Number(m[2]), u: ui }); shown.add(ui); } });
+    const t = gridTable(cells, ctx, (i) => String(i));
+    if (t) frag.append(t);
+  }
+  // übrige Abschnitte: Absätze, Word-Tabellen, benannte Stellen (Kopfzeile, Kommentar, Bildbeschreibung …)
   let section = null;
+  let table = null;
+  let tableKey = null;
   let rowEl = null;
   let rowKey = null;
-  let cellEl = null;
   let cellKey = null;
-  const contOf = new Map(hits.filter((x) => x.unit2 !== undefined).map((x) => [x.unit2, x]));
-  app.doc.units.forEach((u, ui) => {
-    if (!u.text.trim()) return;
-    const v = unitView(u);
-    if (v.section !== section) {
-      section = v.section;
-      rowEl = null; rowKey = null;
-      if (section) frag.append(h('h3', { class: 'section-label' }, section));
-    }
-    const base = r.unitStarts[ui];
-    const box = h('div', { class: 'unit' });
-    if (v.deleted) box.append(h('span', { class: 'cellref' }, 'mit gelöschtem Text aus der Änderungsverfolgung'));
-    if (v.note) box.append(h('span', { class: 'cellref' }, v.note));
-    const tx = h('div', { class: 'utext', 'data-u': ui });
-    let pos = 0;
-    // Fortsetzung einer Einrichtung aus der vorigen Zeile (TXT, über einen Zeilenumbruch)
-    const cont = contOf.get(ui);
-    if (cont) {
-      pos = cont.e - base;
-      tx.append(h('mark', { class: 'hit org' + (cont.on ? ' on' : ' off'), 'data-h': cont.id, 'data-l': '', title: hitTitle(cont) }, u.text.slice(0, pos)));
-    }
-    while (hi < hits.length && hits[hi].s < base) hi++;
-    while (hi < hits.length && hits[hi].s < base + u.text.length + 1) {
-      const x = hits[hi];
-      const s = x.s - base;
-      const e = Math.min(x.e - base, u.text.length);
-      if (s > pos) tx.append(document.createTextNode(u.text.slice(pos, s)));
-      const cls = ['hit', x.type === 'person' ? (x.cert === 'sicher' ? 'sure' : 'unsure') : x.type === 'org' ? 'org' : 'contact', x.origin === 'manual' ? 'manual' : '', x.on ? 'on' : 'off'].filter(Boolean).join(' ');
-      const tag = x.type === 'person' ? (app.state.settings.mode === 'name' ? 'NAME' : r.entities.get(x.entity).letter)
-        : x.type === 'org' ? (app.state.settings.mode === 'name' ? 'EINR.' : 'Einr. ' + r.orgs.get(x.entity).letter) : x.label.replace(/[[\]]/g, '');
-      tx.append(h('mark', { class: cls, 'data-h': x.id, 'data-l': tag, title: hitTitle(x) }, u.text.slice(s, e)));
-      pos = e;
-      hi++;
-    }
-    if (pos < u.text.length) tx.append(document.createTextNode(u.text.slice(pos)));
-    box.append(tx);
-    if (v.row !== null && v.row !== undefined) {
-      if (v.row !== rowKey) { rowKey = v.row; rowEl = h('div', { class: 'trow' }); frag.append(rowEl); cellKey = null; }
-      if (v.cell !== cellKey) { cellKey = v.cell; cellEl = h('div', { class: 'tcell' }); rowEl.append(cellEl); }
-      if (v.ref) box.prepend(h('span', { class: 'cellref' }, v.ref));
-      cellEl.append(box);
+  const others = kind === 'xlsx' || kind === 'csv';
+  if (others && units.some((u, ui) => !shown.has(ui) && u.text.trim())) frag.append(h('h3', { class: 'section-label' }, kind === 'xlsx' ? 'Weitere Stellen' : 'Weitere Abschnitte'));
+  units.forEach((u, ui) => {
+    if (shown.has(ui) || !u.text.trim()) return;
+    if (others || /^Bildbeschreibung/.test(u.label)) { table = null; frag.append(placeLine(plainLabel(u.label, kind) || u.label, unitText(ui, ctx))); return; }
+    const label = u.label.replace(/ \(mit gelöschtem Text aus Änderungsverfolgung\)$/, '');
+    const sec = kind === 'docx' && (label === 'Text' || label === 'Tabelle') ? '' : kind === 'txt' ? '' : label;
+    if (sec !== section) { section = sec; table = null; if (sec) frag.append(h('h3', { class: 'section-label' }, sec === 'Sonstiges' ? 'Weitere Teile' : sec)); }
+    const box = h('div', { class: 'unit' }, label !== u.label ? h('small', { class: 'muted' }, 'gelöschter Text aus der Änderungsverfolgung: ') : null, unitText(ui, ctx));
+    if (kind === 'docx' && u.row !== null && u.row !== undefined) {
+      const tk = String(u.row).replace(/#.*$/, '') + '|' + section;
+      if (!table || tableKey !== tk) { table = h('table', { class: 'wtable' }, h('tbody')); tableKey = tk; frag.append(h('div', { class: 'tscroll plain' }, table)); rowKey = null; }
+      if (u.row !== rowKey) { rowKey = u.row; rowEl = h('tr'); table.tBodies[0].append(rowEl); cellKey = null; }
+      if (u.cell !== cellKey) { cellKey = u.cell; rowEl.append(h('td')); }
+      rowEl.lastChild.append(box);
     } else {
-      rowEl = null; rowKey = null;
+      table = null;
       frag.append(box);
     }
   });
@@ -610,20 +759,20 @@ function renderEntities() {
   const orgs = [...r.orgs.values()];
   const rowsOf = (arr) => arr.map((en) => {
     const active = en.hits.filter((x) => x.on).length;
-    const unsure = en.hits.filter((x) => x.cert === 'unsicher').length;
     const open = app.openMenu === en.key;
+    // Einschalten: alle Stellen außer den einzeln gefragten GROSS-Formen von Hand übernommener Namen
     const row = h('div', { class: 'entity' + (active ? '' : ' muted') },
-      h('label', { class: 'switch' }, h('input', { type: 'checkbox', checked: active > 0, 'aria-label': `${en.label} (${en.display}) an/aus`, onchange: (e) => setHits(en.hits, e.target.checked) })),
-      h('span', { class: 'ename' }, h('strong', {}, en.display), h('small', {}, en.label + (unsure ? ` · ${unsure} unsicher` : '') + (en.org ? '' : en.manual ? ' · von dir markiert' : ''))),
-      h('span', { class: 'count', title: 'Treffer (aktiv / gesamt)' }, `${active}/${en.count}`),
+      h('label', { class: 'switch' }, h('input', { type: 'checkbox', checked: active > 0, 'aria-label': `${en.display} an/aus`, onchange: (e) => setHits(e.target.checked ? en.hits.filter((x) => !x.capsManual) : en.hits, e.target.checked) })),
+      h('span', { class: 'ename', title: en.label }, h('strong', {}, en.display), ' ', h('small', {}, en.label)),
+      h('span', { class: 'count', title: 'Stellen (ersetzt / gesamt)' }, `${active}/${en.count}`),
       h('button', { type: 'button', class: 'menubtn', 'aria-label': `Mehr zu ${en.display}`, 'aria-expanded': open ? 'true' : 'false', onclick: () => { app.openMenu = open ? null : en.key; renderEntities(); } }, icon('dots')));
     if (open) row.append(entityMenu(en, en.org ? orgs : ents));
     return row;
   });
-  const kids = ents.length ? rowsOf(ents) : [h('p', { class: 'muted' }, 'Keine Personen erkannt. Nicht erkannte Namen bitte im Text markieren.')];
-  // Version 2.3: eigene Gruppe „Einrichtungen“ (nur vom Nutzer markiert oder aus den Dateiangaben übernommen)
-  kids.push(h('h2', { class: 'small-h', id: 'orgs-h' }, 'Einrichtungen'),
-    h('div', { id: 'orgs' }, ...(orgs.length ? rowsOf(orgs) : [h('p', { class: 'muted' }, 'Keine Einrichtungen. Eine Bezeichnung markieren und „Als Einrichtung markieren“ wählen.')])));
+  const kids = ents.length ? rowsOf(ents) : [h('p', { class: 'muted entity' }, 'Keine Personen erkannt. Nicht erkannte Namen bitte im Text markieren.')];
+  // Einrichtungen als eigene Gruppe
+  kids.push(h('p', { class: 'grouph', id: 'orgs-h' }, 'Einrichtungen'),
+    h('div', { id: 'orgs' }, ...(orgs.length ? rowsOf(orgs) : [h('p', { class: 'muted entity' }, 'Keine. Eine Bezeichnung markieren und „Als Einrichtung markieren“ wählen.')])));
   list.replaceChildren(...kids);
 }
 function entityMenu(en, ents) {
@@ -719,8 +868,17 @@ function renderLists() {
     ...chipList(app.state.orgTerms, (i) => { app.state.orgTerms.splice(i, 1); saveStored(); runAnalysisOrRender(); }, 'Einrichtung'));
   $('#exc-chips').replaceChildren(...chipList(app.state.exceptions, (i) => { app.state.exceptions.splice(i, 1); saveStored(); runAnalysisOrRender(); }));
   $('#persist').checked = app.persist;
-  $('#names-empty').hidden = app.state.manualTerms.length + app.state.orgTerms.length > 0;
+  const np = app.state.manualTerms.length;
+  const no = app.state.orgTerms.length;
+  $('#names-empty').hidden = np + no > 0;
   $('#exc-empty').hidden = app.state.exceptions.length > 0;
+  // Stand der Liste „Eigene Namen“ auf dem Datei-Bildschirm
+  const parts = [];
+  if (no) parts.push(plural(no, 'Einrichtung', 'Einrichtungen'));
+  if (np) parts.push(plural(np, 'Person', 'Personen'));
+  $('#names-state').textContent = 'Eigene Namen: ' + (parts.length ? parts.join(', ') : 'keine');
+  // Hinweis beim Hinzufügen, solange die Liste nicht im Browser gespeichert wird
+  $('#persist-hint').hidden = !(app.addedSinceLoad && !app.persist && np + no + app.state.exceptions.length > 0);
 }
 function runAnalysisOrRender() { if (app.doc) runAnalysis(); else renderLists(); }
 
@@ -795,6 +953,7 @@ function caretOffsetAt(x, y) {
 function addManual(term) {
   const t = cleanTerm(term || '');
   if (!t || !/\p{L}{2,}/u.test(t)) { showMarkBar(null); return; }
+  app.addedSinceLoad = true;
   app.state.orgTerms = app.state.orgTerms.filter((m) => fold(m) !== fold(t)); // Art: Person (nicht beides)
   if (!app.state.manualTerms.some((m) => fold(m) === fold(t))) app.state.manualTerms.push(t);
   app.state.exceptions = app.state.exceptions.filter((e) => fold(e) !== fold(t));
@@ -809,6 +968,7 @@ function addManual(term) {
 function addOrg(term) {
   const t = cleanOrgTerm(term || '');
   if (!t || !/\p{L}{2,}/u.test(t)) { showMarkBar(null); return; }
+  app.addedSinceLoad = true;
   app.state.manualTerms = app.state.manualTerms.filter((m) => fold(m) !== fold(t)); // Art: Einrichtung (nicht beides)
   if (!app.state.orgTerms.some((m) => fold(m) === fold(t))) app.state.orgTerms.push(t);
   app.state.exceptions = app.state.exceptions.filter((e) => fold(e) !== fold(t));
@@ -824,80 +984,118 @@ function cleanOrgTerm(s) {
 }
 const orgKeyOf = (t) => orgTermTokens(t).key;
 
-// ---------- Speichern-Bildschirm (Ampel) ----------
+// ---------- Speichern-Bildschirm (Version 2.5.0: offene Punkte in EINER Fläche, EIN Häkchen) ----------
 function allWarnings() {
   if (!app.doc) return [];
   // Bis 2.3.3 stand hier die Warnung „Beim Rückbau würde dieser Text ebenfalls ersetzt“ (mit Abhaken). Seit 2.3.4
-  // vergibt das Tool solche Platzhalter nicht mehr; der Hinweis steht als eigene Zeile ohne Sperre (placeholderWordsRow).
+  // vergibt das Tool solche Platzhalter nicht mehr; der Hinweis steht unter „Details“ (placeholderWords).
   return [...app.doc.warnings];
 }
-function unackedWarnings() { return allWarnings().filter((w) => !app.ackWarnings.has(w)); }
-
-function ampelRow(state, title, text, ...extra) {
-  return h('li', { class: state === 'ok' ? 'ok' : state },
-    h('span', { class: 'icon' }, icon(state === 'ok' ? 'check' : state === 'info' ? 'dots' : 'alert')),
-    h('div', { class: 'body' }, h('p', { class: 'title' }, title), text ? h('p', { class: 'state' }, text) : null, ...extra));
+// (I) reine Information: das Tool hat die Sache erledigt (Phase 0: Nr. 8, 13, 16)
+function isInfoWarning(w) { return /ausgeblendete\(s\) Blatt|^Große Datei|^PDF-Eingabe:/.test(w); }
+// (E) in einfacher Sprache; eingebettete Objekte mit der Folge für Ausgabe und Rückbau (Phase 0: Nr. 6, 7)
+function plainWarning(w) {
+  const m = w.match(/enthält (\d+) eingebettete/);
+  if (m) return `${m[1] === '1' ? 'Ein eingebettetes Objekt' : m[1] + ' eingebettete Objekte'} (z. B. eine Tabelle in Word) ${m[1] === '1' ? 'wird' : 'werden'} geleert. Der Inhalt fehlt in der Ausgabe und auch nach dem Rückbau.`;
+  return w;
 }
+const NUMWORDS = ['Kein', 'Ein', 'Zwei', 'Drei', 'Vier', 'Fünf', 'Sechs', 'Sieben', 'Acht', 'Neun', 'Zehn', 'Elf', 'Zwölf'];
+const countWord = (n) => (n < NUMWORDS.length ? NUMWORDS[n] : String(n));
+function ampelRow(state, title, text, ...extra) {
+  return h('li', { class: state }, h('span', {}, h('strong', {}, title), text ? ' – ' + text : ''), ...extra);
+}
+// Offene Punkte (E): jede Zeile mit Handlungslink
+function savePoints() {
+  const r = app.result;
+  const pts = [];
+  if (!r.hits.some((x) => x.on)) pts.push({ id: 'nichts', text: 'Es wird nichts ersetzt.', small: 'Prüfe im Schritt „Prüfen“, ob Namen fehlen.', acts: [['Prüfen', () => show('a2')]] });
+  const open = openQuestions().length;
+  if (open) pts.push({ id: 'fragen:' + open, text: `${open === 1 ? 'Eine Frage ist' : open + ' Fragen sind'} noch offen.`, small: 'Ohne Antwort bleibt jede Stelle so, wie sie im Moment ist.', acts: [['Beantworten', () => { app.qReview = -1; show('a2'); }]] });
+  for (const w of allWarnings()) if (!isInfoWarning(w)) pts.push({ id: 'w:' + w, text: plainWarning(w) });
+  if (app.doc.images && app.doc.images.length) {
+    const n = app.doc.images.length;
+    pts.push({ id: 'bilder', text: `${n === 1 ? 'Ein Bild' : n + ' Bilder'} im Dokument.`, small: `Das Tool ändert Bilder nicht. Steht auf einem Bild ein Name oder ein Logo, entferne es vorher in ${app.doc.kind === 'xlsx' ? 'Excel' : 'Word'}.`,
+      acts: [[app.imagesOpen ? 'Ausblenden' : 'Ansehen', () => openImages(!app.imagesOpen), 'btn-images']] });
+  }
+  const p = app.preview;
+  if (!p || p.busy) pts.push({ id: 'busy', busy: true, text: 'Der Schlusscheck läuft …' });
+  else if (p.error) pts.push({ id: 'check-error', text: 'Schlusscheck: Fehler – ' + p.error });
+  else { const offered = new Set(); p.leaks.slice(0, 200).forEach((l, i) => pts.push(leakPoint(l, i, offered))); }
+  if (p && !p.busy && p.leaks.length > 200) pts.push({ id: 'more', text: `… und ${p.leaks.length - 200} weitere Fundstellen.` });
+  return pts;
+}
+// Ausgeschaltete Stellen im selben Abschnitt mit diesem Wort (für „Ersetzen“)
+function offHitsFor(l) {
+  if (l.unit === undefined) return [];
+  const w = fold(l.word);
+  return app.result.hits.filter((x) => !x.on && x.unit === l.unit && x.type === 'person' && hitText(x).split(/[^\p{L}\p{M}\p{N}'’-]+/u).some((t) => fold(t) === w));
+}
+function leakPoint(l, i, offered = new Set()) {
+  const kind = l.orgCheck ? 'Einrichtung aus deiner Liste, nicht vollständig ersetzt' : l.meta ? (l.metaOrg ? 'Einrichtung aus den Dateiangaben' : 'Name aus den Dateiangaben') : l.org ? 'bestätigte Einrichtung' : 'bestätigter Name';
+  const pt = { id: `leak:${i}:${l.word}:${l.where}`, leak: true, text: [h('strong', {}, `„${l.word.replace(/\s+/g, ' ')}“`), ` steht noch in: ${l.where}`], small: `${kind} · „…${(l.context || '').replace(/\s+/g, ' ')}…“`, hint: l.hint || null, acts: [] };
+  const taken = (t) => app.state.manualTerms.some((m) => fold(m) === fold(t)) || app.state.orgTerms.some((m) => fold(m) === fold(t));
+  if (l.orgCheck || l.org) pt.acts.push(['Im Text zeigen', () => show('a2')]);
+  else if (l.meta) { if (!taken(l.full) && !offered.has(fold(l.full))) pt.acts.push(l.metaOrg ? ['Als Einrichtung übernehmen', () => addOrg(l.full)] : ['Als Namen übernehmen', () => addManual(l.full)]); offered.add(fold(l.full)); }
+  else if (l.entity === 'Blattname') pt.acts = [];
+  else {
+    const off = offHitsFor(l);
+    if (off.length) pt.acts.push(['Ersetzen', () => setHits(off, true)]);
+    else pt.acts.push(['Als Namen übernehmen', () => addManual(l.word)]);
+  }
+  return pt;
+}
+function pointSig(pts) { return app.stamp + '#' + pts.filter((p) => !p.busy).map((p) => p.id).join('|'); }
+function eCount(pts) { return pts.filter((p) => !p.busy && p.id !== 'more').length; }
+function ackValid() { const pts = savePoints(); return !eCount(pts) || app.ackSig === pointSig(pts); }
 
 function renderSave() {
   if (!app.doc || !app.result) return;
   const r = app.result;
-  const rows = [];
+  const pts = savePoints();
+  const n = eCount(pts);
   const persons = [...r.entities.values()].filter((en) => en.hits.some((x) => x.on)).length;
   const orgsOn = [...r.orgs.values()].filter((og) => og.hits.some((x) => x.on)).length;
+  const who = [persons ? plural(persons, 'Person', 'Personen') : '', orgsOn ? plural(orgsOn, 'Einrichtung', 'Einrichtungen') : ''].filter(Boolean).join(' und ');
+  const lead = who ? `${who} ${persons + orgsOn === 1 ? 'ist' : 'sind'} ersetzt.` : (r.hits.some((x) => x.on) ? 'Kontaktdaten sind ersetzt.' : 'Es wird nichts ersetzt.');
+  $('#save-lead').textContent = lead + (n ? ` ${countWord(n)} ${n === 1 ? 'Punkt' : 'Punkte'} bitte noch ansehen:` : pts.some((p) => p.busy) ? ' Der Schlusscheck läuft …' : '');
+  $('#points').replaceChildren(...pts.filter((p) => !p.busy).map((p) => h('li', { class: p.leak ? 'bad' : '' },
+    h('span', { class: 'ptext' }, ...(Array.isArray(p.text) ? p.text : [p.text]), p.small ? h('small', {}, p.small) : null, p.hint ? h('small', {}, p.hint) : null),
+    p.acts && p.acts.length ? h('span', { class: 'pact' }, ...p.acts.map(([label, fn, id]) => h('button', { type: 'button', class: 'secondary small', id: id || null, onclick: fn }, label))) : null)));
+  // Bilderliste (aufgeklappt unter der Fläche)
+  $('#imgbox').replaceChildren(...(app.imagesOpen && app.doc.images && app.doc.images.length ? [h('ul', { class: 'imglist', id: 'img-list' }, ...app.doc.images.map((im) => imageTile(im, app.doc.kind === 'xlsx' ? 'Excel' : 'Word')))] : []));
+  // EIN Häkchen; erst wählbar, wenn die Bilderliste geöffnet wurde (falls Bilder da sind); fällt bei jeder Änderung zurück
+  const needImages = !!(app.doc.images && app.doc.images.length && !app.imagesSeen);
+  $('#ack-all-row').hidden = !n;
+  $('#ack-all-row').classList.toggle('disabled', needImages);
+  $('#ack-all').disabled = needImages;
+  $('#ack-all').checked = !!n && app.ackSig === pointSig(pts);
+  $('#ack-all-row').title = needImages ? 'Erst die Bilder ansehen.' : '';
+  // Details: alles, was in Ordnung ist oder das Tool erledigt hat (I)
+  const info = [];
   const spots = r.hits.filter((x) => x.on && x.type === 'person').length;
   const orgSpots = r.hits.filter((x) => x.on && x.type === 'org').length;
   const contacts = r.hits.filter((x) => x.on && x.type !== 'person' && x.type !== 'org').length;
-  // Version 2.3: „6 Personen und 1 Einrichtung ersetzt“ (ohne Einrichtung wie bisher)
-  const who = orgsOn
-    ? `${persons} ${persons === 1 ? 'Person' : 'Personen'} und ${orgsOn} ${orgsOn === 1 ? 'Einrichtung' : 'Einrichtungen'} ersetzt · ${spots} Namens-Stellen · ${orgSpots} Einrichtungs-Stellen · ${contacts} Kontaktdaten werden ersetzt. In Ordnung.`
-    : `${persons} ${persons === 1 ? 'Person' : 'Personen'} · ${spots} Namens-Stellen · ${contacts} Kontaktdaten werden ersetzt. In Ordnung.`;
-  rows.push(spots || contacts || orgSpots
-    ? ampelRow('ok', 'Ersetzte Personen und Stellen', who)
-    : ampelRow('warn', 'Ersetzte Personen und Stellen', 'Es wird nichts ersetzt. Prüfe in Schritt 2, ob Namen fehlen.'));
-  // Fragen
+  info.push(ampelRow('ok', 'Ersetzt', `${spots} Namens-Stellen${orgSpots ? `, ${orgSpots} Einrichtungs-Stellen` : ''}, ${contacts} Kontaktdaten.`));
   const qs = questions();
-  const open = qs.filter((q) => !answerOf(q)).length;
-  if (qs.length) {
-    rows.push(open
-      ? ampelRow(app.questionsAck ? 'ok' : 'warn', 'Fragen', `Noch ${open} ${open === 1 ? 'Frage' : 'Fragen'} offen. Beantworte sie oder bestätige, dass du trotzdem speichern willst.`,
-        h('div', { class: 'row' }, h('button', { type: 'button', class: 'secondary small', onclick: () => { app.qReview = -1; show('a2'); } }, 'Zurück zu den Fragen')),
-        h('label', { class: 'check' }, h('input', { type: 'checkbox', id: 'ack-questions', checked: app.questionsAck, onchange: (e) => { app.questionsAck = e.target.checked; renderSave(); } }), ' Ich speichere trotzdem mit offenen Fragen.'))
-      : ampelRow('ok', 'Fragen', 'Alle Fragen beantwortet. In Ordnung.'));
-  }
-  // Versteckte Angaben (nur Word/Excel)
+  if (qs.length && !open0()) info.push(ampelRow('ok', 'Fragen', 'Alle Fragen beantwortet.'));
   if (app.doc.kind === 'docx' || app.doc.kind === 'xlsx') {
     const names = (app.doc.metaNames || []).map((m) => m.name);
-    rows.push(ampelRow('ok', 'Versteckte Angaben werden geleert', 'Autor, Bearbeiter, Firma, Manager, Kommentar-Autoren, SharePoint-Felder und Bild-Metadaten. In Ordnung.',
-      names.length ? h('p', { class: 'hint' }, 'In den Dateiangaben gefunden: ' + names.join(', ')) : null));
+    info.push(ampelRow('ok', 'Versteckte Angaben werden geleert', 'Autor, Bearbeiter, Firma, Manager, Kommentar-Autoren, SharePoint-Felder und Bild-Metadaten.' + (names.length ? ' In den Dateiangaben gefunden: ' + names.join(', ') : '')));
   }
-  // Bilder (nur Word/Excel): ansehen, dann abhaken
-  if (app.doc.images && app.doc.images.length) rows.push(imagesRow());
-  // Datei-Hinweise, je einer mit Abhaken (Sperre wie bisher)
-  for (const w of allWarnings()) {
-    const done = app.ackWarnings.has(w);
-    rows.push(Object.assign(ampelRow(done ? 'ok' : 'warn', 'Hinweis zur Datei', w,
-      h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: done, onchange: (e) => { if (e.target.checked) app.ackWarnings.add(w); else app.ackWarnings.delete(w); renderSave(); } }), ' Gelesen')), { className: (done ? 'ok' : 'warn') + ' docwarn' }));
-  }
-  const pw = placeholderWordsRow();
-  if (pw) rows.push(pw);
-  if (app.doc.kind === 'pdf') rows.push(ampelRow('warn', 'PDF-Eingabe', 'Ausgabe nur als Text (.txt/.docx). Das Originallayout bleibt NICHT erhalten.'));
-  // Schlüsseldatei
-  if (isReversible()) {
-    rows.push(keySaved()
-      ? ampelRow('ok', 'Schlüsseldatei', 'Gespeichert. Bewahre sie getrennt und sicher auf.')
-      : ampelRow('warn', 'Schlüsseldatei', 'Noch nicht gespeichert. Erst „1 Schlüssel speichern“, dann „2 Datei speichern“. Ohne Schlüsseldatei ist kein Rückbau möglich.'));
-  }
-  // Schlusscheck
-  rows.push(schlusscheckRow());
-  if (app.saved) rows.push(ampelRow('ok', 'Gespeichert', `${app.saved.name} – ${app.saved.note}`));
-  $('#ampel').replaceChildren(...rows);
+  for (const w of allWarnings()) if (isInfoWarning(w)) info.push(ampelRow('info', 'Hinweis', w));
+  const pw = placeholderWordsInfo();
+  if (pw) info.push(pw);
+  const p = app.preview;
+  if (p && !p.busy && !p.error && !p.leaks.length) info.push(ampelRow('ok', 'Schlusscheck', 'Kein Klarname im Ergebnis gefunden.'));
+  if (isReversible()) info.push(ampelRow(keySaved() ? 'ok' : 'info', 'Schlüsseldatei', keySaved() ? 'Gespeichert. Bewahre sie getrennt und sicher auf.' : 'Noch nicht gespeichert.'));
+  if (app.saved) info.push(ampelRow('ok', 'Gespeichert', `${app.saved.name} – ${app.saved.note}`));
+  $('#ampel').replaceChildren(...info);
   renderFileCards();
   renderSaveButtons();
   // Danach
   const fmt = mainFormat();
-  $('#save-hint').textContent = fmt === 'docx' ? SAVE_HINT_WORD : fmt === 'xlsx' ? SAVE_HINT_EXCEL : '';
-  $('#save-hint').hidden = !(fmt === 'docx' || fmt === 'xlsx');
+  $('#save-hint').textContent = fmt === 'docx' ? 'Lade die Datei danach direkt hoch, ohne sie vorher in Word zu öffnen. Sonst trägt Word deinen Namen wieder ein.'
+    : fmt === 'xlsx' ? 'Lade die Datei danach direkt hoch, ohne sie vorher in Excel zu öffnen. Sonst trägt Excel deinen Namen wieder ein.' : 'Lade die Datei danach direkt hoch.';
   // Andere Wege
   const k = app.doc.kind;
   $('#btn-txt').hidden = fmt === 'txt';
@@ -907,33 +1105,21 @@ function renderSave() {
   $('#mapping').hidden = isReversible(); // im Modus rückbaufähig ersetzt die Schlüsseldatei die Zuordnungstabelle
   if (!app.preview) startPreview();
 }
-// Version 2.3.4: Wörter im Text, die wie Platzhalter aussehen (bernstein, ohne Sperre)
-function placeholderWordsRow() {
+function open0() { return openQuestions().length; }
+// Version 2.3.4: Wörter im Text, die wie Platzhalter aussehen (Information, das Tool weicht ihnen aus)
+function placeholderWordsInfo() {
   const pw = app.result && app.result.placeholderWords;
   if (!pw || !pw.words.size) return null;
   const list = [...pw.words.keys()];
   const shown = list.slice(0, 8).map((w) => `„${w}“`).join(', ') + (list.length > 8 ? ' …' : '');
   let text = `Im Text stehen Wörter, die wie Platzhalter aussehen (${shown}). Das Tool verwendet diese Platzhalter nicht.`;
   if (app.state.settings.mode === 'name') text += ' Im Modus „[NAME]“ heißen alle Namen gleich; die KI kann dort Wörter aus dem Original und Platzhalter des Tools nicht unterscheiden.';
-  return ampelRow('warn', 'Wörter wie Platzhalter', text);
+  const li = ampelRow('info', 'Wörter wie Platzhalter', text);
+  li.id = 'placeholder-words';
+  return li;
 }
 // ---------- Bilder ----------
-function imagesPending() { return !!(app.doc && app.doc.images && app.doc.images.length && !app.imagesAck); }
-function imagesRow() {
-  const imgs = app.doc.images;
-  const n = imgs.length;
-  const prog = app.doc.kind === 'xlsx' ? 'Excel' : 'Word';
-  const row = ampelRow(app.imagesAck ? 'ok' : 'warn', 'Bilder', `${n} ${n === 1 ? 'Bild' : 'Bilder'} im Dokument`,
-    h('p', { class: 'hint', id: 'img-hint' }, 'Das Tool lässt Bilder unverändert. Steht auf einem Bild ein Name oder ein Logo, entferne es vorher in Word bzw. Excel.'),
-    h('div', { class: 'row' }, h('button', { type: 'button', class: 'secondary small', id: 'btn-images', 'aria-expanded': app.imagesOpen ? 'true' : 'false', 'aria-controls': 'img-list',
-      onclick: () => openImages(!app.imagesOpen) }, app.imagesOpen ? 'Bilder ausblenden' : 'Bilder ansehen')),
-    app.imagesOpen ? h('ul', { class: 'imglist', id: 'img-list' }, ...imgs.map((im) => imageTile(im, prog))) : null,
-    h('label', { class: 'check' + (app.imagesSeen ? '' : ' disabled') }, h('input', { type: 'checkbox', id: 'ack-images', checked: app.imagesAck, disabled: !app.imagesSeen,
-      onchange: (e) => { app.imagesAck = e.target.checked; renderSave(); } }), ' Ich habe die Bilder angesehen. Darauf steht kein Name.'),
-    app.imagesSeen ? null : h('p', { class: 'hint' }, 'Abhaken geht erst, nachdem du die Bilder angesehen hast.'));
-  row.classList.add('images');
-  return row;
-}
+function imagesPending() { return !!(app.doc && app.doc.images && app.doc.images.length && !(app.imagesSeen && ackValid())); }
 function placeholder(lines) { return h('div', { class: 'imgph' }, ...lines.map((l, i) => h(i ? 'span' : 'strong', {}, l))); }
 function imageTile(im, prog) {
   let pic;
@@ -976,37 +1162,6 @@ function dropImagePreviews() {
   app.imageBig = new Set();
   app.imagesOpen = false;
   app.imagesSeen = false;
-  app.imagesAck = false;
-}
-function schlusscheckRow() {
-  const p = app.preview;
-  if (!p || p.busy) return ampelRow('warn', 'Schlusscheck', 'Der Schlusscheck läuft …');
-  if (p.error) return ampelRow('bad', 'Schlusscheck', 'Fehler: ' + p.error);
-  if (!p.leaks.length) return ampelRow('ok', 'Schlusscheck', 'Kein Klarname im Ergebnis gefunden. In Ordnung.');
-  return ampelRow(app.leakAck ? 'ok' : 'warn', 'Schlusscheck', `${p.leaks.length} Klarname(n) noch im Ergebnis. Übernimm sie als Namen oder lass sie bewusst stehen.`, leaksBox(p.leaks));
-}
-// Fundstellen des Schlusschecks mit beiden Wegen (als Namen übernehmen / bewusst stehen lassen)
-function leaksBox(leaks) {
-  const place = (w) => { const m = w.match(/^(.*?) – (.+)$/); return m ? { ort: m[1], teil: m[2] } : { ort: w, teil: '' }; };
-  const offered = new Set(); // „als Namen übernehmen“ nur einmal je Name anbieten
-  const items = leaks.slice(0, 200).map((l) => {
-    const pl = place(l.where);
-    const taken = !l.full || offered.has(fold(l.full)) || app.state.manualTerms.some((t) => fold(t) === fold(l.full)) || app.state.orgTerms.some((t) => fold(t) === fold(l.full));
-    if (l.full) offered.add(fold(l.full));
-    return h('li', {}, h('strong', {}, l.word), ' – steht in: ', h('strong', {}, pl.ort), pl.teil ? ` (${pl.teil})` : '',
-      ` · ${l.orgCheck ? 'Einrichtung aus deiner Liste ' + l.entity + ', nicht vollständig ersetzt' : l.meta ? (l.metaOrg ? 'Einrichtung ' : 'Name ') + l.entity : l.org ? 'bestätigte Einrichtung, ' + l.entity : 'bestätigter Name, ' + l.entity}: „…${l.context.replace(/\s+/g, ' ')}…“ `,
-      l.hint ? h('p', { class: 'hint lbhint' }, l.hint) : l.org && /[\r\n]/.test(l.word) ? h('p', { class: 'hint lbhint' }, `Der Name steht über einen Zeilenumbruch. Entferne den Umbruch ${app.doc.kind === 'xlsx' ? 'in Excel' : app.doc.kind === 'docx' ? 'in Word' : 'in der Datei'} oder markiere die Teile einzeln.`) : null,
-      l.meta && !taken ? (l.metaOrg
-        ? h('button', { type: 'button', class: 'secondary small', onclick: () => addOrg(l.full) }, `„${l.full}“ als Einrichtung übernehmen`)
-        : h('button', { type: 'button', class: 'secondary small', onclick: () => addManual(l.full) }, `„${l.full}“ als Namen übernehmen`)) : null);
-  });
-  return h('div', { id: 'leaks', class: 'leaks' },
-    h('p', {}, 'Bestätigte Namen (z. B. weil einzelne Treffer ausgeschaltet sind) oder Namen aus den Dateiangaben der Originaldatei (Autor, Bearbeiter, Firma …).'),
-    h('p', {}, h('strong', {}, 'Was tun? '), 'Entweder „als Namen übernehmen“ (bzw. den Treffer in Schritt 2 einschalten): Dann wird der Name überall ersetzt. Oder bewusst stehen lassen: unten abhaken.'),
-    h('ul', {}, ...items),
-    leaks.length > 200 ? h('p', {}, `… und ${leaks.length - 200} weitere.`) : null,
-    h('label', { class: 'check' }, h('input', { type: 'checkbox', id: 'leak-ack', checked: app.leakAck, onchange: (e) => { app.leakAck = e.target.checked; renderSave(); } }),
-      ' Ich habe diese Fundstellen geprüft und lasse sie bewusst stehen.'));
 }
 async function startPreview() {
   const stamp = app.stamp;
@@ -1022,13 +1177,12 @@ async function startPreview() {
 }
 function renderFileCards() {
   const fmt = mainFormat();
-  const cards = [h('div', { class: 'filecard' }, h('p', { class: 'hint' }, 'Für die KI'), h('p', { class: 'fname', id: 'fname-out' }, outName(fmt)))];
+  const kids = [h('span', {}, h('span', { class: 'fname', id: 'fname-out' }, outName(fmt)), ' geht an die KI')];
   if (isReversible()) {
-    cards.push(h('div', { class: 'filecard key' }, h('p', {}, h('strong', {}, 'Bleibt auf diesem PC · enthält echte Namen')), h('p', { class: 'fname', id: 'fname-key' }, keyName()),
-      h('p', {}, 'Ohne diese Datei ist kein Rückbau möglich. Nie weitergeben, nie an eine KI.'),
-      h('p', { id: 'key-status', class: 'status' + (keySaved() ? ' ok' : '') }, keySaved() ? app.keyNote : '')));
+    kids.unshift(h('span', { class: 'key' }, h('span', { class: 'fname', id: 'fname-key' }, keyName()), ' bleibt auf diesem PC (enthält echte Namen, nie weitergeben)'));
+    kids.push(h('span', { id: 'key-status', class: 'status' + (keySaved() ? ' ok' : ' hint') }, keySaved() ? app.keyNote : 'Erst „1 Schlüssel speichern“, dann „2 Datei speichern“. Ohne Schlüsseldatei ist kein Rückbau möglich.'));
   }
-  $('#filecards').replaceChildren(...cards);
+  $('#filecards').replaceChildren(...kids);
 }
 // Genau ein Hauptknopf: rückbaufähig erst „1 Schlüssel speichern“, dann „2 Datei speichern“
 function renderSaveButtons() {
@@ -1048,14 +1202,11 @@ function renderSaveButtons() {
   $('#a3-info').textContent = done ? 'Gespeichert' : '';
 }
 
-// Speichern über die echte Oberfläche. Alle Sperren wie bisher (Hinweise, Schlusscheck) plus offene Fragen und
-// Schlüsseldatei-Reihenfolge. Gilt für den Hauptknopf UND alle anderen Wege.
+// Speichern über die echte Oberfläche. Offene Punkte brauchen das eine Häkchen; dazu die Reihenfolge der Schlüsseldatei.
+// Gilt für den Hauptknopf UND alle anderen Wege.
 async function doExport(format) {
   const status = $('#export-status');
   if (!app.doc || !app.result) return;
-  if (unackedWarnings().length) { status.textContent = 'Bitte zuerst alle Hinweise in der Liste oben abhaken.'; status.className = 'status bad'; return; }
-  if (imagesPending()) { status.textContent = 'Bitte zuerst die Bilder ansehen und abhaken („Bilder ansehen“ in der Liste oben).'; status.className = 'status bad'; return; }
-  if (openQuestions().length && !app.questionsAck) { status.textContent = 'Es sind noch Fragen offen. Beantworte sie in Schritt 2 oder bestätige oben, dass du trotzdem speichern willst.'; status.className = 'status bad'; return; }
   if (isReversible() && !keySaved()) { status.textContent = 'Bitte zuerst „1 Schlüssel speichern“. Ohne Schlüsseldatei ist kein Rückbau möglich.'; status.className = 'status bad'; return; }
   status.textContent = 'Erzeuge Ausgabe und führe Schlusscheck durch …';
   status.className = 'status';
@@ -1066,13 +1217,15 @@ async function doExport(format) {
     if (p && !p.busy && !p.error && p.stamp === app.stamp && p.format === f) res = { out: p.out, leaks: p.leaks };
     else {
       res = await outputWithCheck(f);
-      if (f === mainFormat()) app.preview = { stamp: app.stamp, format: f, out: res.out, leaks: res.leaks };
+      // Funde dieses Formats erscheinen als Punkte; das Häkchen gilt dann neu
+      if (f === mainFormat() || res.leaks.length) app.preview = { stamp: app.stamp, format: f, out: res.out, leaks: res.leaks };
     }
     const { out, leaks } = res;
-    if (leaks.length && !app.leakAck) {
-      if (f !== mainFormat()) app.preview = { stamp: app.stamp, format: f, out, leaks };
+    if (!ackValid()) {
       renderSave();
-      status.textContent = `Schlusscheck: ${leaks.length} Klarname(n) noch im Ergebnis gefunden (bestätigte Namen oder Namen aus den Dateiangaben). Export blockiert – bitte prüfen (siehe Liste oben).`;
+      status.textContent = leaks.length
+        ? `Schlusscheck: ${leaks.length} Klarname(n) noch im Ergebnis. Speichern blockiert – bitte die Punkte oben ansehen und „Ich habe alle Punkte gesehen und speichere so.“ abhaken.`
+        : 'Speichern blockiert – bitte zuerst die Punkte oben ansehen und „Ich habe alle Punkte gesehen und speichere so.“ abhaken.';
       status.className = 'status bad';
       return;
     }
@@ -1159,10 +1312,10 @@ function resetDoc() {
   dropImagePreviews(); // Vorschauen verwerfen (blob:-Adressen freigeben)
   app.doc = null;
   app.result = null;
-  app.ackWarnings = new Set();
   app.answers = new Map();
   app.qReview = -1;
-  app.questionsAck = false;
+  app.ackSig = null;
+  app.sheetTab = 0;
   app.openMenu = null;
   app.preview = null;
   app.saved = null;
@@ -1170,7 +1323,6 @@ function resetDoc() {
   app.keyNote = '';
   app.kennung = null;
   app.keyKennung = null;
-  app.leakAck = false;
   app.state.overrides = {};
   app.state.merges = {};
   app.state.unlinks = [];
@@ -1179,6 +1331,8 @@ function resetDoc() {
   $('#qcard').replaceChildren();
   $('#summary').textContent = '';
   $('#ampel').replaceChildren();
+  $('#points').replaceChildren();
+  $('#imgbox').replaceChildren();
   $('#filecards').replaceChildren();
   $('#export-status').textContent = '';
   $('#kihint-status').textContent = '';
@@ -1281,6 +1435,12 @@ function init() {
   $('#btn-mark-org').addEventListener('click', () => addOrg(pendingTermRaw || pendingTerm));
   $('#btn-mark-cancel').addEventListener('click', () => showMarkBar(null));
   $('#a2-next').addEventListener('click', () => show('a3'));
+  $('#tgl-entities').addEventListener('click', () => {
+    const el = $('#entities');
+    el.hidden = !el.hidden;
+    $('#tgl-entities').setAttribute('aria-expanded', el.hidden ? 'false' : 'true');
+    $('#tgl-entities').textContent = el.hidden ? 'Liste zeigen' : 'Liste ausblenden';
+  });
   // Tasten J/N: nur auf dem Prüfen-Bildschirm und nur, wenn kein Eingabefeld den Fokus hat
   document.addEventListener('keydown', (e) => {
     if (app.screen !== 'a2' || e.ctrlKey || e.metaKey || e.altKey) return;
@@ -1298,6 +1458,7 @@ function init() {
     const v = $('#name-input').value;
     const org = $('#name-kind').value === 'org';
     $('#name-input').value = '';
+    if (v.trim()) app.addedSinceLoad = true;
     if (app.doc) { if (org) addOrg(v); else addManual(v); return; }
     const t = org ? cleanOrgTerm(v) : cleanTerm(v);
     if (t && org) { app.state.manualTerms = app.state.manualTerms.filter((m) => fold(m) !== fold(t)); if (!app.state.orgTerms.some((m) => fold(m) === fold(t))) app.state.orgTerms.push(t); }
@@ -1309,21 +1470,24 @@ function init() {
     e.preventDefault();
     const t = cleanTerm($('#exc-input').value);
     $('#exc-input').value = '';
+    if (t) app.addedSinceLoad = true;
     if (t && !app.state.exceptions.some((m) => fold(m) === fold(t))) app.state.exceptions.push(t);
     saveStored();
     runAnalysisOrRender();
   });
+  const enablePersist = () => {
+    const ok = window.confirm('Die Merkliste enthält ECHTE NAMEN. Sie wird dann unverschlüsselt im Speicher dieses Browsers abgelegt (nur auf diesem Gerät, wird nicht gesendet). Fortfahren?');
+    if (ok) { app.persist = true; saveStored(); }
+    renderLists();
+  };
   $('#persist').addEventListener('change', (e) => {
-    if (e.target.checked) {
-      const ok = window.confirm('Die Merkliste enthält ECHTE NAMEN. Sie wird dann unverschlüsselt im Speicher dieses Browsers abgelegt (nur auf diesem Gerät, wird nicht gesendet). Fortfahren?');
-      if (!ok) { e.target.checked = false; return; }
-      app.persist = true;
-      saveStored();
-    } else {
+    if (e.target.checked) { e.target.checked = false; enablePersist(); } else {
       app.persist = false;
       storeDel();
+      renderLists();
     }
   });
+  $('#btn-persist').addEventListener('click', enablePersist);
   $('#btn-clear').addEventListener('click', () => {
     if (!window.confirm('Merkliste „Eigene Namen“ und Ausnahmeliste wirklich löschen (auch im Browser-Speicher)?')) return;
     app.state.manualTerms = [];
@@ -1354,6 +1518,7 @@ function init() {
     } catch { window.alert('Die Datei ist keine gültige Merkliste.'); }
   });
   // A3
+  $('#ack-all').addEventListener('change', (e) => { app.ackSig = e.target.checked ? pointSig(savePoints()) : null; renderSave(); });
   $('#btn-save').addEventListener('click', () => doExport(mainFormat()));
   $('#btn-key').addEventListener('click', exportKey);
   $('#btn-next-doc').addEventListener('click', nextDocument);
@@ -1370,7 +1535,7 @@ function init() {
 }
 
 // ---------- Rückbau ----------
-const rb = { file: null, key: null, plan: null, leftAck: false, confirmAck: false, restAck: false, saved: null, keyKennung: null, kennungAck: false };
+const rb = { file: null, key: null, plan: null, left: null, ackSig: null, saved: null, keyKennung: null };
 
 async function rbLoadFile(bytes, name) {
   const st = $('#rb-file-status');
@@ -1417,10 +1582,8 @@ async function rbLoadKey(text) {
 }
 function rbReset() {
   rb.plan = null;
-  rb.leftAck = false;
-  rb.confirmAck = false;
-  rb.restAck = false;
-  rb.kennungAck = false;
+  rb.left = null;
+  rb.ackSig = null;
   rb.saved = null;
   $('#rb-report').replaceChildren();
   $('#rb-left').hidden = true;
@@ -1442,15 +1605,16 @@ function renderR1() {
   $('#r1-info').textContent = ok ? '' : !rb.file && !rb.key ? 'Lade beide Dateien.' : !rb.file ? 'Es fehlt die bearbeitete Datei.' : 'Es fehlt die Schlüsseldatei.';
 }
 
-const ART = { unbekannt: 'unbekannter Platzhalter (nicht in der Schlüsseldatei) – bleibt stehen', verändert: 'veränderter Platzhalter (z. B. Kleinschreibung) – NICHT ersetzt', gebeugt: 'gebeugter Platzhalter (z. B. „des Nachnamens A“) – NICHT ersetzt', getrennt: 'getrennter Platzhalter (Zeilenumbruch) – NICHT ersetzt' };
-
 function rbCheck() {
   rbReset();
   if (!rb.file || !rb.key) { $('#r1-info').textContent = 'Bitte zuerst die bearbeitete Datei UND die Schlüsseldatei laden.'; return; }
   const plan = planRestore(rb.file.units, rb.key);
   rb.plan = plan;
+  rb.left = null;
   renderR2();
   show('r2');
+  // Schlusscheck nach dem Rückbau gleich hier (Version 2.5.0), damit alle Punkte zusammen mit EINEM Häkchen bestätigt werden
+  if (plan.verdict !== 'falsch') rbLeftovers().then((left) => { if (rb.plan === plan) { rb.left = left; renderR2(); } }).catch((e) => { if (rb.plan === plan) { rb.left = [{ where: 'Datei', text: 'Fehler', kontext: e.message }]; renderR2(); } });
 }
 // Kennung: Gehören Datei und Schlüssel zusammen? Die Eigenschaft in der Datei gilt vor dem Dateinamen.
 function kennungState() {
@@ -1463,76 +1627,84 @@ function kennungState() {
   if (doc === key) return { state: 'ok', doc, key, conflict, needsAck: false };
   return { state: 'other', doc, key, conflict, needsAck: true };
 }
-function kennungRow() {
-  const k = kennungState();
-  const ack = () => h('label', { class: 'check' }, h('input', { type: 'checkbox', id: 'rb-kennung-ack', checked: rb.kennungAck, onchange: (e) => { rb.kennungAck = e.target.checked; renderR2(); } }),
-    k.state === 'other' ? ' Ich weiß, dass die Kennungen nicht passen, und will trotzdem zurückbauen.' : ' Ich habe geprüft, dass Datei und Schlüssel zusammengehören.');
-  const extra = k.conflict ? h('p', { class: 'hint' }, k.conflict) : null;
-  if (k.state === 'ok') return ampelRow('ok', 'Kennung', `Kennung ${k.doc} passt.`, extra);
-  if (k.state === 'other') return ampelRow(rb.kennungAck ? 'warn' : 'bad', 'Kennung', `Diese Schlüsseldatei gehört zu einem anderen Dokument (Dokument: ${k.doc}, Schlüssel: ${k.key}).`, extra, ack());
-  if (k.state === 'none') return ampelRow(rb.kennungAck ? 'ok' : 'warn', 'Kennung', `Im Dokument steht keine Kennung. Der Schlüssel hat die Kennung ${k.key}. Bitte prüfe, ob beide zusammengehören.`, extra, ack());
-  return ampelRow('warn', 'Kennung', `Schlüssel ohne Kennung (erstellt vor Version 2.1). Der Rückbau funktioniert wie bisher; prüfe selbst, ob Datei und Schlüssel zusammengehören.${k.doc ? ` Das Dokument hat die Kennung ${k.doc}.` : ''}`, extra);
-}
-function kennungBlocked() { const k = kennungState(); return k.needsAck && !rb.kennungAck; }
+function kennungBlocked() { const k = kennungState(); return k.needsAck && !rbAckValid(); }
 
 // Fundstelle eines Abschnitts der zurückzubauenden Datei in einfacher Sprache
 function rbPlace(ui) {
   const u = rb.file.units[ui];
   if (rb.file.kind === 'txt') return `Zeile ${ui + 1}`;
-  return u && u.label ? u.label : `Abschnitt ${ui + 1}`;
+  return u && u.label ? plainLabel(u.label, rb.file.kind) : `Abschnitt ${ui + 1}`;
 }
-function restBlocked() { return !!(rb.plan && rb.plan.rests.length && !rb.restAck); }
-
+function rbWhere(w) { return String(w || '').replace(/^Zeile (\d+)$/, 'Zeile $1').replace(/^(.*)!([A-Z]+\d+)$/, 'Blatt $1, Zelle $2'); }
+function restBlocked() { return !!(rb.plan && rb.plan.rests.length && !rbAckValid()); }
+const ART = { unbekannt: 'unbekannter Platzhalter (nicht in der Schlüsseldatei) – bleibt stehen', verändert: 'veränderter Platzhalter (z. B. Kleinschreibung) – wird NICHT ersetzt', gebeugt: 'gebeugter Platzhalter (z. B. „des Nachnamens A“) – wird NICHT ersetzt', getrennt: 'getrennter Platzhalter (Zeilenumbruch) – wird NICHT ersetzt' };
+const STATUS = { weniger: 'weniger als erwartet (gelöscht oder umgeschrieben?)', mehr: 'mehr als erwartet (eingefügt?)' };
+// Auffälligkeiten des Rückbaus (E); fatal: kein Rückbau möglich
+function rbPoints() {
+  const plan = rb.plan;
+  const pts = [];
+  const k = kennungState();
+  const extra = k.conflict ? ' ' + k.conflict : '';
+  if (k.state === 'other') pts.push({ id: 'kennung', cls: 'bad', text: `Diese Schlüsseldatei gehört zu einem anderen Dokument (Dokument: ${k.doc}, Schlüssel: ${k.key}).${extra}` });
+  else if (k.state === 'none') pts.push({ id: 'kennung', text: `Im Dokument steht keine Kennung. Der Schlüssel hat die Kennung ${k.key}. Prüfe, ob beide zusammengehören.${extra}` });
+  else if (k.state === 'oldkey') pts.push({ id: 'kennung', text: `Schlüssel ohne Kennung (erstellt vor Version 2.1). Prüfe selbst, ob Datei und Schlüssel zusammengehören.${k.doc ? ` Das Dokument hat die Kennung ${k.doc}.` : ''}${extra}` });
+  if (plan.verdict === 'falsch') { pts.push({ id: 'falsch', fatal: true, text: 'Die Schlüsseldatei passt nicht: Kein einziger Platzhalter aus der Schlüsseldatei wurde in der Datei gefunden. Es wird nichts erzeugt. Prüfe, ob Datei und Schlüsseldatei zusammengehören.' }); return pts; }
+  if (plan.verdict === 'zweifelhaft') pts.push({ id: 'zweifel', text: `Wahrscheinlich die falsche Schlüsseldatei: ${plan.matchedKeys} von ${rb.key.entries.size} Platzhaltern gefunden, nur bei ${plan.okRows} stimmt die Anzahl, ${plan.unknown} unbekannte Platzhalter in der Datei.` });
+  for (const r of plan.rows.filter((x) => x.status !== 'ok')) pts.push({ id: 'row:' + r.platzhalter, text: `„${r.platzhalter}“ (${r.kategorie}): erwartet ${r.erwartet}, gefunden ${r.gefunden} – ${STATUS[r.status] || r.status}` });
+  plan.issues.slice(0, 300).forEach((x, i) => pts.push({ id: 'issue:' + i, text: `„${x.text}“ – ${ART[x.art] || x.art}${x.vermutlich ? ' (gemeint vermutlich „' + x.vermutlich + '“)' : ''}`, small: `${rbWhere(x.where)}: „…${x.kontext}…“` }));
+  plan.rests.slice(0, 300).forEach((x, i) => pts.push({ id: 'rest:' + i, rest: true, text: `„${x.text}“ sieht nach dem Rückbau noch wie ein Platzhalter aus und bleibt so stehen.`, small: `${rbPlace(x.unit)}: „…${x.kontext}…“` }));
+  for (const o of plan.originals || []) if (o.gefunden !== o.erwartet) pts.push({ id: 'orig:' + o.text, text: `„${o.text}“ stand schon im Original (${o.erwartet}×), gefunden: ${o.gefunden}× (geändert, gelöscht oder eingefügt?).` });
+  (rb.left || []).slice(0, 200).forEach((x, i) => pts.push({ id: 'left:' + i, text: `„${x.text}“ steht nach dem Rückbau noch als Platzhalter in der Datei.`, small: `${rbWhere(x.where)}: „…${x.kontext}…“` }));
+  if (plan.needsConfirm && !pts.length) pts.push({ id: 'confirm', text: 'Es gibt Abweichungen. Nicht ersetzte Stellen bleiben als Platzhalter stehen und müssen von Hand korrigiert werden.' });
+  return pts;
+}
+function rbSig(pts) { return pts.map((p) => p.id).join('|'); }
+function rbAckValid() { const pts = rbPoints(); return !pts.length || rb.ackSig === rbSig(pts); }
+function rbBlocked() {
+  const pts = rbPoints();
+  return pts.some((p) => p.fatal) || rb.left === null || (pts.length > 0 && rb.ackSig !== rbSig(pts));
+}
 function renderR2() {
   const plan = rb.plan;
-  const rows = [kennungRow()];
-  if (plan.verdict === 'falsch') {
-    rows.push(ampelRow('bad', 'Schlüsseldatei passt nicht', 'Kein einziger Platzhalter aus der Schlüsseldatei wurde in der Datei gefunden. Es wird nichts erzeugt. Prüfe, ob Datei und Schlüsseldatei zusammengehören.'));
-  } else {
-    if (plan.verdict === 'zweifelhaft') {
-      rows.push(ampelRow('bad', 'Wahrscheinlich die falsche Schlüsseldatei', `${plan.matchedKeys} von ${rb.key.entries.size} Platzhaltern gefunden, nur bei ${plan.okRows} stimmt die Anzahl, ${plan.unknown} unbekannte Platzhalter in der Datei. Bitte prüfen, ob Datei und Schlüsseldatei zusammengehören.`));
-    }
-    const bad = plan.rows.filter((r) => r.status !== 'ok');
-    rows.push(ampelRow(bad.length ? 'warn' : 'ok', 'Platzhalter', `${plan.totalFound} Platzhalter werden ersetzt (${plan.matchedKeys} verschiedene). Abweichende Anzahl: ${bad.length}.`,
+  const pts = rbPoints();
+  const fatal = pts.some((p) => p.fatal);
+  const n = pts.length;
+  const lead = fatal ? 'Rückbau nicht möglich.' : n ? `${countWord(n)} ${n === 1 ? 'Punkt' : 'Punkte'} bitte ansehen:` : rb.left === null ? 'Prüfe …' : 'Alles passt.';
+  const kids = [h('p', { class: 'lead', id: 'rb-lead2' }, lead)];
+  if (n) kids.push(h('ul', { class: 'points', id: 'rb-points' }, ...pts.map((p) => h('li', { class: p.fatal || p.rest || p.cls === 'bad' ? 'bad' : '', 'data-id': p.id },
+    h('span', { class: 'ptext' }, p.rest ? h('strong', {}, p.text) : p.text, p.small ? h('small', {}, p.small) : null)))));
+  if (n && !fatal) {
+    kids.push(h('label', { class: 'check ackrow' }, h('input', { type: 'checkbox', id: 'rb-ack', checked: rb.ackSig === rbSig(pts), onchange: (e) => { rb.ackSig = e.target.checked ? rbSig(rbPoints()) : null; renderR2(); } }),
+      h('span', {}, 'Ich habe alle Punkte gesehen und baue so zurück.')));
+  }
+  if (rb.left === null && !fatal) kids.push(h('p', { class: 'hint' }, 'Der Schlusscheck nach dem Rückbau läuft …'));
+  // Details: vollständige Tabelle und alles, was in Ordnung ist
+  if (!fatal) {
+    const k = kennungState();
+    const info = [];
+    if (k.state === 'ok') { const li = ampelRow('ok', 'Kennung', `Kennung ${k.doc} passt.${k.conflict ? ' ' + k.conflict : ''}`); li.id = 'rb-kennung-ok'; info.push(li); }
+    info.push(ampelRow('ok', 'Platzhalter', `${plan.totalFound} Platzhalter werden ersetzt (${plan.matchedKeys} verschiedene).`));
+    if (!plan.issues.length) info.push(ampelRow('ok', 'Auffällige Stellen', 'Keine.'));
+    if (!plan.rests.length) info.push(ampelRow('ok', 'Platzhalter-Reste nach dem Rückbau', 'Keine.'));
+    for (const o of plan.originals || []) if (o.gefunden === o.erwartet) info.push(ampelRow('info', `„${o.text}“ stand schon im Original (${o.erwartet}×)`, 'Bleibt unverändert. Kein Platzhalter des Tools.'));
+    kids.push(h('details', { class: 'otherways', id: 'rb-details' }, h('summary', {}, 'Details'), h('ul', { class: 'infolist' }, ...info),
       h('div', { class: 'rbscroll' }, h('table', { class: 'rbtable' },
         h('thead', {}, h('tr', {}, h('th', {}, 'Platzhalter'), h('th', {}, 'Art'), h('th', {}, 'erwartet'), h('th', {}, 'gefunden'), h('th', {}, 'Status'))),
         h('tbody', {}, ...plan.rows.map((r) => h('tr', { class: r.status === 'ok' ? '' : 'bad' },
           h('td', {}, r.platzhalter), h('td', {}, r.kategorie), h('td', {}, String(r.erwartet)), h('td', {}, String(r.gefunden)),
-          h('td', {}, r.status === 'ok' ? 'in Ordnung' : r.status === 'weniger' ? 'weniger als erwartet (gelöscht oder umgeschrieben?)' : 'mehr als erwartet (eingefügt?)'))))))));
-    rows.push(plan.issues.length
-      ? ampelRow('warn', 'Auffällige Stellen', `${plan.issues.length} Stelle(n) werden NICHT ersetzt und bleiben als Platzhalter stehen.`,
-        h('ul', {}, ...plan.issues.slice(0, 300).map((x) => h('li', {}, h('strong', {}, x.text), ` – ${ART[x.art] || x.art}${x.vermutlich ? ' (gemeint vermutlich „' + x.vermutlich + '“)' : ''} – ${x.where}: „…${x.kontext}…“`))))
-      : ampelRow('ok', 'Auffällige Stellen', 'Keine. In Ordnung.'));
-    // Sicherheitsnetz (2.3.3): Reste, die nach dem Rückbau noch wie ein Platzhalter aussehen – rot, sperrt bis zur Bestätigung
-    if (plan.rests.length) {
-      rows.push(ampelRow(rb.restAck ? 'warn' : 'bad', 'Platzhalter-Reste nach dem Rückbau', `${plan.rests.length} Stelle(n) sehen nach dem Rückbau noch wie ein Platzhalter aus. Sie werden nicht zurückgebaut und bleiben so stehen. Prüfe jede Stelle (beschädigter Platzhalter oder Wort aus dem Original?).`,
-        h('ul', { id: 'rb-rests' }, ...plan.rests.slice(0, 300).map((x) => h('li', { class: 'bad' }, h('strong', {}, x.text), ` – ${rbPlace(x.unit)}: „…${x.kontext}…“`))),
-        plan.rests.length > 300 ? h('p', {}, `… und ${plan.rests.length - 300} weitere.`) : null,
-        h('label', { class: 'check' }, h('input', { type: 'checkbox', id: 'rb-rest-ack', checked: rb.restAck, onchange: (e) => { rb.restAck = e.target.checked; renderR2(); } }),
-          ' Ich habe diese Stellen geprüft. Sie bleiben so stehen und müssen ggf. von Hand korrigiert werden.')));
-    } else rows.push(ampelRow('ok', 'Platzhalter-Reste nach dem Rückbau', 'Keine. In Ordnung.'));
-    // Version 2.3.4: Wörter, die laut Schlüssel schon im Original standen – neutral; abweichende Anzahl bernstein
-    for (const o of plan.originals || []) {
-      const same = o.gefunden === o.erwartet;
-      rows.push(ampelRow(same ? 'info' : 'warn', `„${o.text}“ stand schon im Original (${o.erwartet}×)`,
-        same ? 'Bleibt unverändert. Kein Platzhalter des Tools.' : `Bleibt unverändert. Gefunden: ${o.gefunden}× statt ${o.erwartet}× (geändert, gelöscht oder eingefügt?). Bitte prüfen.`));
-    }
-    if (plan.needsConfirm) {
-      rows.push(ampelRow(rb.confirmAck ? 'ok' : 'warn', 'Bestätigung nötig', 'Es gibt Abweichungen. Bestätige, dass du sie geprüft hast.',
-        h('label', { class: 'check' }, h('input', { type: 'checkbox', id: 'rb-confirm', checked: rb.confirmAck, onchange: (e) => { rb.confirmAck = e.target.checked; renderR2(); } }),
-          ' Ich habe die Abweichungen geprüft. Nicht ersetzte Stellen bleiben als Platzhalter stehen und müssen von Hand korrigiert werden.')));
-    }
+          h('td', {}, r.status === 'ok' ? 'in Ordnung' : STATUS[r.status] || r.status))))))));
   }
-  $('#rb-report').replaceChildren(h('ul', { class: 'ampel' }, ...rows));
-  const blocked = plan.verdict === 'falsch' || (plan.needsConfirm && !rb.confirmAck) || restBlocked() || kennungBlocked();
+  $('#rb-report').replaceChildren(...kids);
+  const blocked = rbBlocked();
   $('#r2-next').disabled = blocked;
-  $('#r2-info').textContent = plan.verdict === 'falsch' ? 'Rückbau nicht möglich' : blocked ? 'Bitte bestätigen' : '';
+  $('#r2-info').textContent = fatal ? 'Rückbau nicht möglich' : rb.left === null ? 'Prüfe …' : blocked ? 'Bitte bestätigen' : '';
 }
 function renderR3() {
   if (!rb.plan || !rb.file) return;
-  const rows = [ampelRow('ok', 'Rückbau bereit', `${rb.plan.totalFound} Platzhalter werden durch die echten Namen ersetzt.`),
-    ampelRow('warn', 'Nicht zurück kommen', 'Autor, Kommentar-Autoren und andere Dateiangaben (z. B. Firma) werden nicht wiederhergestellt.')];
-  if (rb.saved) rows.push(ampelRow('ok', 'Gespeichert', rb.saved));
+  $('#rb-lead').textContent = `${rb.plan.totalFound} Platzhalter werden durch die echten Namen ersetzt.`;
+  $('#rb-fname').textContent = `wiederhergestellt_${f2base(rb.file.kind)}.${rb.file.kind}`;
+  const rows = [ampelRow('info', 'Nicht zurück kommen', 'Autor, Kommentar-Autoren und andere Dateiangaben (z. B. Firma) werden nicht wiederhergestellt.')];
+  if (rb.saved) rows.unshift(ampelRow('ok', 'Gespeichert', rb.saved));
   $('#rb-ampel').replaceChildren(...rows);
   $('#rb-btn-copy').hidden = rb.file.kind !== 'txt';
   $('#rb-btn-save').textContent = `Wiederhergestellte Datei speichern (.${rb.file.kind})`;
@@ -1555,38 +1727,42 @@ async function rbBuild() {
   if (f.kind === 'csv') return { text: writeCsv(f.raw, texts()), bom: f.raw.bom };
   return { text: writeTxt(f.raw, texts()), bom: f.raw.bom };
 }
+// Schlusscheck nach dem Rückbau: Platzhalter (oder Reste davon), die noch in der Datei stehen
+async function rbLeftovers(out) {
+  out = out || await rbBuild();
+  const texts = out.zip ? await collectZipTexts(await JSZip.loadAsync(out.bytes)) : [{ where: 'Text', text: out.text }];
+  const left = findLeftovers(rb.key, texts).map((x) => ({ ...x, where: out.zip ? plainPart(x.where) : x.where }));
+  // Sicherheitsnetz (2.3.3) über die ganze Datei: Reste, die nicht schon im Bericht stehen (z. B. in Teilen außerhalb der
+  // Abschnitte), und die nicht schon als Platzhalter aus der Schlüsseldatei gemeldet sind
+  const known = rb.plan.rests.map((x) => x.text).concat(left.map((x) => x.text));
+  for (const t of texts) {
+    for (const r of findPlaceholderRests(t.text)) {
+      if (rb.key.original && rb.key.original.has(r.text)) continue; // stand schon im Original (2.3.4)
+      const i = known.indexOf(r.text);
+      if (i >= 0) { known.splice(i, 1); continue; }
+      left.push({ where: out.zip ? plainPart(t.where) : t.where, text: r.text, kontext: r.kontext });
+    }
+  }
+  for (const x of out.sheetIssues || []) left.push({ where: 'Excel', text: x.requested, kontext: `Blattname nicht zulässig, gespeichert als „${x.actual}“` });
+  return left;
+}
 
 async function rbSave(copy) {
   const st = $('#rb-status');
   if (!rb.plan || rb.plan.verdict === 'falsch') return;
-  if (rb.plan.needsConfirm && !rb.confirmAck) { st.textContent = 'Bitte zuerst die Abweichungen im Bericht prüfen und bestätigen.'; st.className = 'status bad'; return; }
-  if (restBlocked()) { st.textContent = 'Bitte zuerst die Platzhalter-Reste im Bericht prüfen und bestätigen (Schritt „Prüfen“).'; st.className = 'status bad'; return; }
-  if (kennungBlocked()) { st.textContent = 'Bitte zuerst die Kennung prüfen und bestätigen (Schritt „Prüfen“).'; st.className = 'status bad'; return; }
+  if (rbBlocked()) { st.textContent = 'Bitte zuerst im Schritt „Prüfen“ die Punkte ansehen und das Häkchen setzen.'; st.className = 'status bad'; return; }
   st.textContent = 'Erzeuge Datei und führe Schlusscheck durch …';
   st.className = 'status';
   try {
     const out = await rbBuild();
-    const texts = out.zip ? await collectZipTexts(await JSZip.loadAsync(out.bytes)) : [{ where: 'Text', text: out.text }];
-    const left = findLeftovers(rb.key, texts);
-    // Sicherheitsnetz (2.3.3) über die ganze Datei: Reste, die nicht schon im Bericht bestätigt wurden (z. B. in Teilen
-    // außerhalb der Abschnitte), und die nicht schon oben als Platzhalter aus der Schlüsseldatei gemeldet sind
-    const known = rb.plan.rests.map((x) => x.text).concat(left.map((x) => x.text));
-    for (const t of texts) {
-      for (const r of findPlaceholderRests(t.text)) {
-        if (rb.key.original && rb.key.original.has(r.text)) continue; // stand schon im Original (2.3.4)
-        const i = known.indexOf(r.text);
-        if (i >= 0) { known.splice(i, 1); continue; }
-        left.push({ where: t.where, text: r.text, kontext: r.kontext });
-      }
-    }
-    for (const x of out.sheetIssues || []) left.push({ where: 'Excel', text: x.requested, kontext: `Blattname nicht zulässig, gespeichert als „${x.actual}“` });
-    const box = $('#rb-left');
-    box.hidden = !left.length;
-    if (left.length) {
-      box.replaceChildren(h('h2', { class: 'small-h' }, 'Schlusscheck: Platzhalter noch im Ergebnis'),
-        h('ul', {}, ...left.slice(0, 200).map((x) => h('li', {}, h('strong', {}, x.text), ` – ${x.where}: „…${x.kontext}…“`))),
-        h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: rb.leftAck, onchange: (e) => { rb.leftAck = e.target.checked; } }), ' Ich habe diese Stellen geprüft und will trotzdem speichern.'));
-      if (!rb.leftAck) { st.textContent = `Schlusscheck: ${left.length} Platzhalter (oder Reste davon) stehen noch im Ergebnis. Speichern blockiert – bitte prüfen.`; st.className = 'status bad'; return; }
+    const left = await rbLeftovers(out);
+    // Neue Funde gegenüber dem Schritt „Prüfen“: erst dort ansehen und bestätigen
+    if (left.length !== (rb.left || []).length) {
+      rb.left = left;
+      renderR2();
+      st.textContent = `Schlusscheck: ${left.length} Platzhalter (oder Reste davon) stehen noch im Ergebnis. Bitte im Schritt „Prüfen“ ansehen und bestätigen.`;
+      st.className = 'status bad';
+      return;
     }
     if (copy) {
       const ok = await copyText(out.text);
@@ -1648,6 +1824,6 @@ function initRestore() {
 }
 
 // Für automatische Tests (nur lesend nutzbar, kein Netzwerk)
-window.__anon = { app, openBytes, imagesPending, buildOutput, finalCheck, addManual, addOrg, KI_HINT, runAnalysis, rb, rbLoadFile, rbLoadKey, rbCheck, show, questions, newKennung };
+window.__anon = { app, openBytes, imagesPending, buildOutput, finalCheck, addManual, addOrg, KI_HINT, runAnalysis, rb, rbLoadFile, rbLoadKey, rbCheck, show, questions, newKennung, answer, answerOf, savePoints };
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();

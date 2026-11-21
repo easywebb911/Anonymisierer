@@ -81,23 +81,26 @@ async function restore(file, key, { ack = false, save = false, name } = {}) {
   await page.setInputFiles('#rb-key', key);
   await page.waitForFunction(() => document.querySelector('#rb-key-status').textContent);
   await page.click('#rb-btn-check');
-  const row = await page.$eval('#rb-report .ampel > li', (li) => ({ cls: li.className, text: li.querySelector('.body').innerText.replace(/\s+/g, ' ').trim(), hasAck: !!li.querySelector('#rb-kennung-ack') }));
+  // Version 2.5.0: Kennung als offener Punkt (rot = anderes Dokument, bernstein = keine Kennung / Schlüssel ohne Kennung)
+  // oder unter „Details“ (passt, grün); alle Punkte mit EINEM Häkchen
+  await page.waitForFunction(() => { const r = window.__anon.rb; return !r.plan || r.plan.verdict === 'falsch' || r.left !== null; }, null, { timeout: 120000 });
+  const row = await page.evaluate(() => {
+    const li = document.querySelector('#rb-points li[data-id="kennung"]');
+    if (li) return { cls: li.classList.contains('bad') ? 'bad' : 'warn', text: li.innerText.replace(/\s+/g, ' ').trim(), hasAck: !!document.querySelector('#rb-ack') };
+    const ok = document.querySelector('#rb-kennung-ok');
+    return { cls: 'ok', text: ok ? ok.textContent.replace(/\s+/g, ' ').trim() : '', hasAck: false };
+  });
   const verdict = await page.evaluate(() => window.__anon.rb.plan.verdict);
   const blocked = await page.$eval('#r2-next', (b) => b.disabled);
   let afterAck = null;
   let bytes = null;
-  let otherConfirm = false;
+  const otherConfirm = await page.evaluate(() => [...document.querySelectorAll('#rb-points li')].some((li) => li.dataset.id !== 'kennung'));
   if (ack && row.hasAck) {
-    await page.check('#rb-kennung-ack');
-    // Die bisherige Prüfung („passt wahrscheinlich nicht“) bleibt bestehen und verlangt ggf. eine eigene Bestätigung
-    if (await page.$('#rb-confirm')) { otherConfirm = true; await page.check('#rb-confirm'); }
-    // Version 2.3.3: Platzhalter-Reste (z. B. bei fremdem Schlüssel) verlangen ebenfalls eine eigene Bestätigung
-    if (await page.$('#rb-rest-ack')) { otherConfirm = true; await page.check('#rb-rest-ack'); }
+    await page.check('#rb-ack');
     afterAck = !(await page.$eval('#r2-next', (b) => b.disabled));
   }
-  if (save && await page.$('#rb-rest-ack') && (await page.$eval('#r2-next', (b) => b.disabled)) && !(await page.$('#rb-kennung-ack:not(:checked)'))) await page.check('#rb-rest-ack');
+  if (save && (await page.$eval('#r2-next', (b) => b.disabled)) && await page.$('#rb-ack')) await page.check('#rb-ack');
   if (save && !(await page.$eval('#r2-next', (b) => b.disabled))) {
-    if (await page.$('#rb-confirm')) await page.check('#rb-confirm');
     await page.click('#r2-next');
     const dlP = page.waitForEvent('download');
     await page.click('#rb-btn-save');
@@ -173,7 +176,7 @@ if (oldHtml) {
     const x = await restore(d.anon, d.key, { save: true });
     const back = x.bytes ? await textOf(x.bytes, fmt) : '';
     const orig = await textOf(fs.readFileSync(path.join(fx, `vertausch-1.${fmt}`)), fmt);
-    check(`${fmt}: Schlüssel aus 2.0 (${d.keyName}, Feld „kennung“: ${hasK ? 'ja' : 'nein'}) → bernstein „Schlüssel ohne Kennung“, Rückbau exakt`, !hasK && state(x.row) === 'bernstein' && /ohne Kennung/.test(x.row.text) && !x.blocked && back === orig, x.row.text.slice(0, 120));
+    check(`${fmt}: Schlüssel aus 2.0 (${d.keyName}, Feld „kennung“: ${hasK ? 'ja' : 'nein'}) → bernstein „Schlüssel ohne Kennung“, seit 2.5.0 offener Punkt mit dem einen Häkchen, Rückbau exakt`, !hasK && state(x.row) === 'bernstein' && /ohne Kennung/.test(x.row.text) && x.blocked && back === orig, x.row.text.slice(0, 120));
   }
 } else log('- übersprungen (keine index.html der Version 2.0 angegeben)');
 log('');

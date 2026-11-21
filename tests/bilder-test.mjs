@@ -11,6 +11,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import JSZip from 'jszip';
 import { startAnon, loadIn, goTo, ackAll, ackImages, exportOnce, exportWithAck, saveKey } from './ui-helpers.mjs';
+import { waitCheck, rbConfirm } from './ui-helpers.mjs';
 import { BILDER_PEOPLE } from './make-bilder.mjs';
 
 const { chromium } = createRequire('/opt/node22/lib/node_modules/')('playwright');
@@ -126,15 +127,16 @@ for (const [file, fmt] of FILES) {
   await startAnon(page, 'person');
   await loadIn(page, path.join(fx, file));
   await goTo(page, 'a3');
-  const row = await page.$eval('#ampel li.images', (li) => ({ text: li.innerText.replace(/\s+/g, ' '), cls: li.className }));
+  // Version 2.5.0: Zeile „Bilder“ ist ein offener Punkt mit Knopf „Ansehen“; das EINE Häkchen ist erst nach dem Öffnen wählbar
+  const row = await page.$eval('#btn-images', (b) => ({ text: b.closest('li').innerText.replace(/\s+/g, ' ') }));
   const n = await page.evaluate(() => window.__anon.app.doc.images.length);
-  check('Ampel-Zeile „Bilder“ mit Anzahl und Knopf „Bilder ansehen“', new RegExp(`${n} Bilder im Dokument`).test(row.text) && /Bilder ansehen/.test(row.text) && /\bwarn\b/.test(row.cls), `„${n} Bilder im Dokument“`);
-  check('Hinweis „Das Tool lässt Bilder unverändert …“ steht in der Zeile', row.text.includes('Das Tool lässt Bilder unverändert. Steht auf einem Bild ein Name oder ein Logo, entferne es vorher in Word bzw. Excel.'));
-  check('Abhaken ist gesperrt, bevor die Liste geöffnet wurde', await page.isDisabled('#ack-images'));
+  check('Offener Punkt „Bilder“ mit Anzahl und Knopf „Ansehen“', new RegExp(`${n} Bilder im Dokument`).test(row.text) && /Ansehen/.test(row.text), `„${n} Bilder im Dokument“`);
+  check('Hinweis „Das Tool ändert Bilder nicht …“ steht in der Zeile', row.text.includes(`Das Tool ändert Bilder nicht. Steht auf einem Bild ein Name oder ein Logo, entferne es vorher in ${prog}.`), row.text);
+  check('Häkchen ist gesperrt, bevor die Liste geöffnet wurde', await page.isDisabled('#ack-all'));
   // Übrige Hinweise abhaken (Sperre wie bisher), Bilder bewusst noch nicht
   await ackAll(page, { images: false });
   let r = await exportOnce(page, fmt);
-  check('Speichern blockiert, solange die Bilder nicht angesehen sind', !r.dl && /Bilder ansehen/.test(r.status), r.status);
+  check('Speichern blockiert, solange die Bilder nicht angesehen sind', !r.dl && /blockiert/.test(r.status), r.status);
   // Liste öffnen (auf derselben Seite)
   await page.click('#btn-images');
   await page.waitForSelector('#img-list');
@@ -167,16 +169,11 @@ for (const [file, fmt] of FILES) {
   const large = await page.$eval('#img-list li[data-nr="1"] img.thumb', (i) => i.getBoundingClientRect().width);
   check('„Größer anzeigen“ vergrößert die Vorschau auf derselben Seite', large > small * 2 && ctx.pages().length === 1, `${Math.round(small)} → ${Math.round(large)} px`);
   await page.click('#img-list li[data-nr="1"] button.zoom');
-  check('Nach dem Öffnen ist Abhaken möglich; Speichern bleibt bis zum Haken blockiert', !(await page.isDisabled('#ack-images')) && !(await exportOnce(page, fmt)).dl);
-  // Übrige Sperren unverändert: Datei-Hinweis wieder abwählen
-  await page.check('#ack-images');
-  const warnBox = await page.$('#ampel .docwarn input[type=checkbox]:checked');
-  if (warnBox) {
-    await warnBox.click();
-    r = await exportOnce(page, fmt);
-    check('Übrige Sperren unverändert: ein nicht abgehakter Datei-Hinweis blockiert weiterhin', !r.dl && /alle Hinweise/.test(r.status), r.status);
-    await ackAll(page);
-  }
+  check('Nach dem Öffnen ist das Häkchen wählbar; Speichern bleibt bis zum Haken blockiert', !(await page.isDisabled('#ack-all')) && !(await exportOnce(page, fmt)).dl);
+  // Version 2.5.0: dasselbe Häkchen gilt für alle offenen Punkte (auch Datei-Hinweise); danach wird gespeichert
+  await page.check('#ack-all');
+  r = await exportOnce(page, fmt);
+  check('Mit dem einen Häkchen wird gespeichert', !!r.dl, r.status);
   // Vorschauen vor dem Verwerfen laden lassen (Kontrolle), dann speichern
   const urls = await page.evaluate(() => [...window.__anon.app.imageUrls.values()]);
   const probe = (u) => page.evaluate((x) => new Promise((res) => { const i = new Image(); i.onload = () => res('geladen'); i.onerror = () => res('weg'); i.src = x; }), u);
@@ -212,13 +209,13 @@ log('## Bildbeschreibungen in der Prüfansicht');
   await startAnon(page, 'person');
   await loadIn(page, path.join(fx, 'bilder-word.docx'));
   await goTo(page, 'a2');
-  const boxes = await page.$$eval('#docview .unit', (els) => els.filter((e) => /Bildbeschreibung/.test(e.textContent)).map((e) => ({ note: e.querySelector('.cellref') && e.querySelector('.cellref').textContent, marks: [...e.querySelectorAll('mark.hit.on')].map((m) => m.textContent) })));
-  const section = await page.$$eval('#docview h3.section-label', (els) => els.map((e) => e.textContent));
-  check('Eigene Textabschnitte, gekennzeichnet als „Bildbeschreibung“', boxes.length === 4 && section.some((s) => /^Bildbeschreibungen/.test(s)), boxes.map((b) => b.note).join(' | '));
+  // Version 2.5.0: eigene, klar benannte Zeilen „Bildbeschreibung“
+  const boxes = await page.$$eval('#docview .placeline', (els) => els.filter((e) => e.querySelector('.where').textContent === 'Bildbeschreibung').map((e) => ({ note: e.querySelector('.where').textContent, marks: [...e.querySelectorAll('mark.hit.on')].map((m) => m.textContent) })));
+  check('Eigene Textabschnitte, gekennzeichnet als „Bildbeschreibung“', boxes.length === 4, boxes.map((b) => b.note).join(' | '));
   check('Namen in Bildbeschreibungen werden erkannt und markiert', boxes.some((b) => b.marks.join(' ').includes('Sandmann')) && boxes.some((b) => b.marks.join(' ').includes('Kleinschmidt')), boxes.map((b) => b.marks.join('+')).filter(Boolean).join(' | '));
   // Markierbar: ein Wort einer Bildbeschreibung von Hand als Name markieren (wie ein Mensch: Klick ins Wort)
   const pos = await page.evaluate(() => {
-    const unit = [...document.querySelectorAll('#docview .unit')].find((e) => /Abteilungszeichen/.test(e.textContent) && /Bildbeschreibung/.test(e.textContent));
+    const unit = [...document.querySelectorAll('#docview .placeline')].find((e) => /Abteilungszeichen/.test(e.textContent) && /Bildbeschreibung/.test(e.textContent));
     const walker = document.createTreeWalker(unit.querySelector('.utext'), NodeFilter.SHOW_TEXT);
     let t;
     while ((t = walker.nextNode())) {
@@ -243,12 +240,13 @@ log('## Bildbeschreibungen in der Prüfansicht');
   await startAnon(page, 'person');
   await loadIn(page, path.join(fx, 'kurse.docx'));
   await goTo(page, 'a2');
-  const markSel = await page.evaluateHandle(() => [...document.querySelectorAll('#docview .unit')].filter((e) => /Bildbeschreibung/.test(e.textContent))
+  const markSel = await page.evaluateHandle(() => [...document.querySelectorAll('#docview .placeline')].filter((e) => /Bildbeschreibung/.test(e.textContent))
     .flatMap((e) => [...e.querySelectorAll('mark.hit.on')]).find((m) => /Kowalski/.test(m.textContent)));
   await markSel.asElement().scrollIntoViewIfNeeded();
   await markSel.asElement().click();
   await goTo(page, 'a3');
-  const leaks = await page.$$eval('#leaks li', (els) => els.map((e) => e.textContent.replace(/\s+/g, ' ')));
+  await waitCheck(page);
+  const leaks = await page.$$eval('#points li.bad', (els) => els.map((e) => e.textContent.replace(/\s+/g, ' ')));
   check('Treffer nur in der Bildbeschreibung ausgeschaltet (Name sonst im Text ersetzt): Schlusscheck meldet ihn mit Fundstelle', leaks.some((l) => /Kowalski/.test(l)), leaks.slice(0, 2).join(' | '));
   await ctx.close();
 }
@@ -280,8 +278,7 @@ async function restore(file, key) {
   await page.setInputFiles('#rb-key', key);
   await page.waitForFunction(() => document.querySelector('#rb-key-status').textContent);
   await page.click('#rb-btn-check');
-  if (await page.$('#rb-kennung-ack')) await page.check('#rb-kennung-ack');
-  if (await page.$('#rb-confirm')) await page.check('#rb-confirm');
+  await rbConfirm(page, true);
   await page.click('#r2-next');
   const dlP = page.waitForEvent('download');
   await page.click('#rb-btn-save');
@@ -330,8 +327,8 @@ log('## PDF-Eingabe unverändert');
   await startAnon(page, 'person');
   await loadIn(page, path.join(fx, 'protokoll.pdf'));
   await goTo(page, 'a3');
-  const t = await page.$eval('#ampel', (e) => e.innerText);
-  check('PDF: Hinweis „Bilder bleiben nicht erhalten“ wie bisher, keine Zeile „Bilder“', /Originallayout \(Spalten, Tabellen, Bilder\) bleibt NICHT erhalten/.test(t) && !(await page.$('#ampel li.images')));
+  const t = await page.$eval('#ampel', (e) => e.textContent);
+  check('PDF: Hinweis „Bilder bleiben nicht erhalten“ wie bisher (unter „Details“), keine Zeile „Bilder“', /Originallayout \(Spalten, Tabellen, Bilder\) bleibt NICHT erhalten/.test(t) && !(await page.$('#btn-images')));
   await ctx.close();
 }
 log('');
@@ -350,7 +347,7 @@ for (const w of [390, 1280, 1920]) {
     const tiles = [...document.querySelectorAll('#img-list li')].map((e) => e.getBoundingClientRect());
     return { scroll: document.documentElement.scrollWidth, client: document.documentElement.clientWidth, right: Math.max(...tiles.map((r) => r.right)), left: Math.min(...tiles.map((r) => r.left)), n: tiles.length };
   });
-  await page.$eval('#ampel li.images', (e) => e.scrollIntoView());
+  await page.$eval('#img-list', (e) => e.scrollIntoView());
   await page.screenshot({ path: path.join(outDir, `bilder-${w}.png`), fullPage: false });
   check(`${w} px: kein waagrechtes Scrollen, alle Kacheln im Bild`, m.scroll <= m.client && m.right <= m.client && m.left >= 0, `Seite ${m.scroll}/${m.client} px, Kacheln ${Math.round(m.left)}–${Math.round(m.right)} px`);
   await ctx.close();

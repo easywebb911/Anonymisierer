@@ -1,6 +1,6 @@
 {
   "name": "anonymisierer",
-  "version": "2.4.1",
+  "version": "2.5.0",
   "private": true,
   "description": "Offline-Anonymisierer für Klarnamen – Build-Werkzeuge für index.html",
   "license": "UNLICENSED",

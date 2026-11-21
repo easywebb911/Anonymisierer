@@ -8,7 +8,7 @@ import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import JSZip from 'jszip';
-import { startAnon, loadIn, ackAll, goTo, exportWithAck, saveKey } from './ui-helpers.mjs';
+import { startAnon, loadIn, ackAll, goTo, exportWithAck, saveKey, rbConfirm } from './ui-helpers.mjs';
 import { ORG, KOLLISION, ORIG_WORDS, MANUAL_NAME, ZIFFERN } from './make-kollision.mjs';
 import { analyze, defaultState, replacementsByUnit, applyReplacements } from '../src/core/detect.js';
 import { buildRestoreKey } from '../src/core/reversible.js';
@@ -63,7 +63,7 @@ async function anonUI(html, file, fmt, mode, { orgTerms = [], manual = [] } = {}
   await loadIn(page, file);
   await ackAll(page);
   await goTo(page, 'a3');
-  const ampel = await page.$$eval('#ampel > li', (l) => l.map((x) => ({ cls: x.className, text: x.innerText.replace(/\s+/g, ' ').trim(), box: !!x.querySelector('input[type=checkbox]') })));
+  const ampel = await page.$$eval('#ampel > li', (l) => l.map((x) => ({ cls: x.className, text: x.textContent.replace(/\s+/g, ' ').trim(), box: !!x.querySelector('input[type=checkbox]') })));
   let kp = null;
   if (mode === 'reversible') {
     const kd = await saveKey(page);
@@ -85,15 +85,17 @@ async function restoreUI(html, file, key) {
   await page.waitForFunction(() => document.querySelector('#rb-key-status').textContent);
   const keyStatus = await page.textContent('#rb-key-status');
   await page.click('#rb-btn-check');
-  const rows = await page.$$eval('#rb-report .ampel > li', (l) => l.map((x) => ({ cls: x.className, text: x.innerText.replace(/\s+/g, ' ').trim() })));
-  const rests = await page.$$eval('#rb-rests li strong', (l) => l.map((x) => x.textContent));
-  for (const id of ['#rb-kennung-ack', '#rb-confirm', '#rb-rest-ack']) if (await page.$(id)) await page.check(id);
+  const rbi = await rbConfirm(page, false);
+  // Zeilen des Berichts: bis 2.4.1 Ampel-Zeilen; seit 2.5.0 offene Punkte plus „Details“ (neutral = info)
+  const rows = await page.$$eval('#rb-report .ampel > li, #rb-report #rb-points > li, #rb-report #rb-details li', (l) => l.map((x) => ({ cls: x.className || (x.closest('#rb-points') ? 'warn' : ''), text: x.textContent.replace(/\s+/g, ' ').trim() })));
+  const rests = rbi.rests;
+  await rbConfirm(page, true);
   const plan = await page.evaluate(() => ({ verdict: window.__anon.rb.plan.verdict, issues: window.__anon.rb.plan.issues.map((x) => x.art + ' ' + x.text) }));
   await page.click('#r2-next');
   const dlP = page.waitForEvent('download', { timeout: 20000 }).catch(() => null);
   await page.click('#rb-btn-save');
   let dl = await Promise.race([dlP, page.waitForFunction(() => /blockiert/.test(document.querySelector('#rb-status').textContent), null, { timeout: 20000 }).then(() => null).catch(() => null)]);
-  if (!dl && await page.$('#rb-left input[type=checkbox]')) { await page.check('#rb-left input[type=checkbox]'); const p2 = page.waitForEvent('download'); await page.click('#rb-btn-save'); dl = await p2; }
+  if (!dl && await page.$('#rb-left input[type=checkbox]')) { await page.check('#rb-left input[type=checkbox]'); const p2 = page.waitForEvent('download'); await page.click('#rb-btn-save'); dl = await p2; } // nur bis 2.4.1
   const p = path.join(outDir, `w${++seq}-${dl.suggestedFilename()}`);
   await dl.saveAs(p);
   await ctx.close();
@@ -136,9 +138,9 @@ for (const mode of ['person', 'name', 'reversible']) {
     const hint = a.ampel.find((r) => /wie Platzhalter|wie ein Platzhalter/.test(r.text));
     log(`- ${mode}, ${lbl}: Zeile 1 „${out[0]}“, Zeile 2 „${out[1]}“; Hinweis: ${hint ? `[${hint.cls}${hint.box ? ', mit Abhaken' : ', ohne Abhaken'}] ${hint.text.slice(0, 220)}` : 'keiner'}`);
     if (lbl === 'nachher') {
-      const ok = hint && /warn/.test(hint.cls) && !hint.box && /Das Tool verwendet diese Platzhalter nicht/.test(hint.text) && (mode !== 'name' || /nicht unterscheiden/.test(hint.text));
+      const ok = hint && /info/.test(hint.cls) && !hint.box /* seit 2.5.0: Information (I) unter „Details“ */ && /Das Tool verwendet diese Platzhalter nicht/.test(hint.text) && (mode !== 'name' || /nicht unterscheiden/.test(hint.text));
       const avoid = mode === 'person' ? /Person B/.test(out[0]) && /Einrichtung B/.test(out[1]) : true;
-      check(`${mode}: Hinweis bernstein ohne Sperre${mode === 'name' ? ' mit Zusatz zur KI' : ''}${mode === 'person' ? '; „Person A“ und „Einrichtung A“ werden nicht vergeben (Personen ab B, Einrichtung B)' : ''}`, !!ok && avoid);
+      check(`${mode}: Hinweis als Information unter „Details“ (seit 2.5.0, vorher bernstein), ohne Sperre${mode === 'name' ? ' mit Zusatz zur KI' : ''}${mode === 'person' ? '; „Person A“ und „Einrichtung A“ werden nicht vergeben (Personen ab B, Einrichtung B)' : ''}`, !!ok && avoid);
     }
   }
 }

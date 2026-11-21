@@ -3,18 +3,18 @@
 Testdokumente: tests/make-platzhalter.mjs (alles erfunden). Vorher = Version 2.3.2, nachher = diese Version.
 
 ## 1. Einrichtung „Lindenauer Bürgerverein“ in GROSS mit Endung, Modus rückbaufähig, Kreislauf über die Oberfläche
-- einrichtung-gross.docx: vorher 12/18 Formen exakt zurück (nicht exakt: GROSS+S, GROSS+ES, GROSS+N, GROSS+NS, Kopfzeile, Bildbeschreibung); nachher 18/18. Beispiel nachher: „Form 5: Akte des Einrichtung A5 liegt vor.“
+- einrichtung-gross.docx: vorher 0/18 Formen exakt zurück (nicht exakt: Grundform, GROSS, GROSS+'S, GROSS+’S, GROSS+S, GROSS+ES, GROSS+N, GROSS+NS, gemischt+'s, gemischt+’s, gemischt+', gemischt+’, gemischt+s, gemischt+es, gemischt+n, gemischt+ns, Kopfzeile, Bildbeschreibung); nachher 18/18. Beispiel nachher: „Form 5: Akte des Einrichtung A5 liegt vor.“
 - OK: einrichtung-gross.docx: Kreislauf nachher exakt (alle Formen, ganze Datei), keine Reste, Urteil „passend“ – Reste 0, Auffälligkeiten 0
-  - vorher blieb im Ergebnis stehen: Einrichtung A2S, Einrichtung A2ES, Einrichtung A2N, Einrichtung A2NS
-- einrichtung-gross.txt: vorher 12/16 Formen exakt zurück (nicht exakt: GROSS+S, GROSS+ES, GROSS+N, GROSS+NS); nachher 16/16. Beispiel nachher: „Form 5: Akte des Einrichtung A5 liegt vor.“
+  - vorher blieb im Ergebnis stehen: –
+- einrichtung-gross.txt: vorher 0/16 Formen exakt zurück (nicht exakt: Grundform, GROSS, GROSS+'S, GROSS+’S, GROSS+S, GROSS+ES, GROSS+N, GROSS+NS, gemischt+'s, gemischt+’s, gemischt+', gemischt+’, gemischt+s, gemischt+es, gemischt+n, gemischt+ns); nachher 16/16. Beispiel nachher: „Form 5: Akte des Einrichtung A5 liegt vor.“
 - OK: einrichtung-gross.txt: Kreislauf nachher exakt (alle Formen, ganze Datei), keine Reste, Urteil „passend“ – Reste 0, Auffälligkeiten 0
-  - vorher blieb im Ergebnis stehen: Einrichtung A2S, Einrichtung A2ES, Einrichtung A2N, Einrichtung A2NS
-- einrichtung-gross.csv: vorher 12/16 Formen exakt zurück (nicht exakt: GROSS+S, GROSS+ES, GROSS+N, GROSS+NS); nachher 16/16. Beispiel nachher: „Form 5: Akte des Einrichtung A5 liegt vor."“
+  - vorher blieb im Ergebnis stehen: –
+- einrichtung-gross.csv: vorher 0/16 Formen exakt zurück (nicht exakt: Grundform, GROSS, GROSS+'S, GROSS+’S, GROSS+S, GROSS+ES, GROSS+N, GROSS+NS, gemischt+'s, gemischt+’s, gemischt+', gemischt+’, gemischt+s, gemischt+es, gemischt+n, gemischt+ns); nachher 16/16. Beispiel nachher: „Form 5: Akte des Einrichtung A5 liegt vor."“
 - OK: einrichtung-gross.csv: Kreislauf nachher exakt (alle Formen, ganze Datei), keine Reste, Urteil „passend“ – Reste 0, Auffälligkeiten 0
-  - vorher blieb im Ergebnis stehen: Einrichtung A2S, Einrichtung A2ES, Einrichtung A2N, Einrichtung A2NS
-- einrichtung-gross.xlsx: vorher 12/18 Formen exakt zurück (nicht exakt: GROSS+S, GROSS+ES, GROSS+N, GROSS+NS, Kopfzeile, Bildbeschreibung); nachher 18/18. Beispiel nachher: „Form 5: Akte des Einrichtung A5 liegt vor.“
+  - vorher blieb im Ergebnis stehen: –
+- einrichtung-gross.xlsx: vorher 0/18 Formen exakt zurück (nicht exakt: Grundform, GROSS, GROSS+'S, GROSS+’S, GROSS+S, GROSS+ES, GROSS+N, GROSS+NS, gemischt+'s, gemischt+’s, gemischt+', gemischt+’, gemischt+s, gemischt+es, gemischt+n, gemischt+ns, Kopfzeile, Bildbeschreibung); nachher 18/18. Beispiel nachher: „Form 5: Akte des Einrichtung A5 liegt vor.“
 - OK: einrichtung-gross.xlsx: Kreislauf nachher exakt (alle Formen, ganze Datei), keine Reste, Urteil „passend“ – Reste 0, Auffälligkeiten 0
-  - vorher blieb im Ergebnis stehen: Einrichtung A2ES, Einrichtung A2S, Einrichtung A2N, Einrichtung A2NS
+  - vorher blieb im Ergebnis stehen: –
 
 ## 2. Verwechslung: 50 Personen und 50 Einrichtungen („Person AS“ ist eine eigene Person); „MÜLLERS“ gehört zu Person A
 - verwechslung.txt, Modus person: Zeile 45 „45. Frau Person AS ist Mitglied im Einrichtung AS.“; letzte Zeile vorher „Die Akte Person AS liegt beim Einrichtung AS Vorstand.“ → nachher „Die Akte Person As liegt beim Einrichtung As Vorstand.“
@@ -33,18 +33,18 @@ Testdokumente: tests/make-platzhalter.mjs (alles erfunden). Vorher = Version 2.3
 
 ## 3. Sicherheitsnetz: absichtlich beschädigte Platzhalter im anonymisierten Text
 - OK: txt, unbeschädigt: keine Meldung, nicht gesperrt
-- txt, beschädigt: rote Zeilen 4 (Einrichtung A2S – Zeile 3: „…Notiz: Einrichtung A2S und Nachname AS.…“ | Nachname AS – Zeile 3: „…tiz: Einrichtung A2S und Nachname AS.…“ | Vorname B9 – Zeile 6: „…Kontakt Vorname B9 unter [E-MAIL-99].…“ | [E-MAIL-99] – Zeile 6: „…Kontakt Vorname B9 unter [E-MAIL-99].…“)
+- txt, beschädigt: rote Zeilen 4 („Einrichtung A2S“ sieht nach dem Rückbau noch wie ein Platzhalter aus und bleibt so stehen | „Nachname AS“ sieht nach dem Rückbau noch wie ein Platzhalter aus und bleibt so stehen.Zei | „Vorname B9“ sieht nach dem Rückbau noch wie ein Platzhalter aus und bleibt so stehen.Zeil | „[E-MAIL-99]“ sieht nach dem Rückbau noch wie ein Platzhalter aus und bleibt so stehen.Zei)
 - OK: txt, beschädigt: jeder der 4 Reste als rote Zeile mit Fundstelle; „Weiter“ gesperrt bis zur Bestätigung, danach frei – gefunden: Einrichtung A2S, Nachname AS, Vorname B9, [E-MAIL-99]
 - OK: txt, beschädigt, ohne Bestätigung: Speichern nicht erreichbar
 - OK: docx, unbeschädigt: keine Meldung, nicht gesperrt
-- docx, beschädigt: rote Zeilen 4 (Einrichtung A2S – Text: „…Notiz: Einrichtung A2S und Nachname AS.…“ | Nachname AS – Text: „…tiz: Einrichtung A2S und Nachname AS.…“ | Vorname B9 – Text: „…Kontakt Vorname B9 unter [E-MAIL-99].…“ | [E-MAIL-99] – Text: „…Kontakt Vorname B9 unter [E-MAIL-99].…“)
-  - zusätzlich beim Speichern (ganze Datei): Nachname ZZ9 – docProps/core.xml: „…Nachname ZZ9…“
+- docx, beschädigt: rote Zeilen 4 („Einrichtung A2S“ sieht nach dem Rückbau noch wie ein Platzhalter aus und bleibt so stehen | „Nachname AS“ sieht nach dem Rückbau noch wie ein Platzhalter aus und bleibt so stehen.Tex | „Vorname B9“ sieht nach dem Rückbau noch wie ein Platzhalter aus und bleibt so stehen.Text | „[E-MAIL-99]“ sieht nach dem Rückbau noch wie ein Platzhalter aus und bleibt so stehen.Tex)
+  - zusätzlich beim Speichern (ganze Datei): Nachname ZZ9 – Dateieigenschaften: „…Nachname ZZ9…“
 - OK: docx, beschädigt: jeder der 4 Reste als rote Zeile mit Fundstelle; „Weiter“ gesperrt bis zur Bestätigung, danach frei – gefunden: Einrichtung A2S, Nachname AS, Vorname B9, [E-MAIL-99]
 - OK: docx: Rest außerhalb der Abschnitte (Titel „Nachname ZZ9“) wird beim Speichern gemeldet und sperrt bis zur Bestätigung
 - OK: docx, beschädigt, ohne Bestätigung: Speichern nicht erreichbar
 
 ## 4. Gegenprobe: Originaltext mit Wörtern wie „Person A“ oder „Einrichtung B“ (rückbaufähig, Kreislauf)
-- vorher: Rückbau exakt ja; gemeldete Reste 0; beim Speichern zusätzlich 0
+- vorher: Rückbau exakt NEIN; gemeldete Reste 0; beim Speichern zusätzlich 0
 - nachher: Rückbau exakt ja; gemeldete Reste 0; beim Speichern zusätzlich 0
   - Alle gemeldeten Stellen stehen so im Original (kein Name, kein beschädigter Platzhalter): Fehlalarme, nicht abgeschwächt (MINI-STOPP).
 - OK: Gegenprobe: Kreislauf trotzdem exakt (nach Bestätigung)

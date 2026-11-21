@@ -24,10 +24,10 @@ Ausgabedatei entpackt, ALLE Teile (XML, VML, Bilder, Verweise) nach den Testname
 
 ## Ziel (b): Jedes Bild vor dem Speichern sehen – Liste, Kacheln, Sperre
 ### bilder-word.docx
-- OK: Ampel-Zeile „Bilder“ mit Anzahl und Knopf „Bilder ansehen“ – „6 Bilder im Dokument“
-- OK: Hinweis „Das Tool lässt Bilder unverändert …“ steht in der Zeile
-- OK: Abhaken ist gesperrt, bevor die Liste geöffnet wurde
-- OK: Speichern blockiert, solange die Bilder nicht angesehen sind – Bitte zuerst die Bilder ansehen und abhaken („Bilder ansehen“ in der Liste oben).
+- OK: Offener Punkt „Bilder“ mit Anzahl und Knopf „Ansehen“ – „6 Bilder im Dokument“
+- OK: Hinweis „Das Tool ändert Bilder nicht …“ steht in der Zeile – 6 Bilder im Dokument. Das Tool ändert Bilder nicht. Steht auf einem Bild ein Name oder ein Logo, entferne es vorher in Word. Ansehen
+- OK: Häkchen ist gesperrt, bevor die Liste geöffnet wurde
+- OK: Speichern blockiert, solange die Bilder nicht angesehen sind – Speichern blockiert – bitte zuerst die Punkte oben ansehen und „Ich habe alle Punkte gesehen und speichere so.“ abhaken.
 - OK: Liste öffnet auf derselben Seite (kein neues Fenster), eine Kachel je Bild – 6 Kacheln
   - Kachel 1: Größer anzeigen Bild 1 · PNG Fundort: im Text bei „Foto vom Empfang:“ Beschreibung (Alt-Text): „Foto von Frau Wiebke Sandmann am Empfang“ Die Beschreibung wird wie Text geprüft und ersetzt (Schritt 2). [Vorschau angezeigt, 48 px breit, Quelle blob:…]
   - Kachel 2: Größer anzeigen Bild 2 · GIF Fundort: Tabelle bei „Zeichen der Abteilung“ Beschreibung (Alt-Text): „Abteilungszeichen“ Die Beschreibung wird wie Text geprüft und ersetzt (Schritt 2). [Vorschau angezeigt, 1 px breit, Quelle blob:…]
@@ -41,18 +41,18 @@ Ausgabedatei entpackt, ALLE Teile (XML, VML, Bilder, Verweise) nach den Testname
 - OK: SVG nie als Markup eingebettet: kein <svg> in der Liste, SVG nur als <img>
 - OK: Fundort in einfacher Sprache und Beschreibung (Alt-Text, Titel) je Bild – Fundort: im Text bei „Foto vom Empfang:“ | Fundort: Kopfzeile bei „Interne Notiz“
 - OK: Word: Fundorte Text („im Text bei …“), Tabelle, Kopfzeile
-- OK: „Größer anzeigen“ vergrößert die Vorschau auf derselben Seite – 120 → 857 px
-- OK: Nach dem Öffnen ist Abhaken möglich; Speichern bleibt bis zum Haken blockiert
-- OK: Übrige Sperren unverändert: ein nicht abgehakter Datei-Hinweis blockiert weiterhin – Bitte zuerst alle Hinweise in der Liste oben abhaken.
+- OK: „Größer anzeigen“ vergrößert die Vorschau auf derselben Seite – 104 → 884 px
+- OK: Nach dem Öffnen ist das Häkchen wählbar; Speichern bleibt bis zum Haken blockiert
+- OK: Mit dem einen Häkchen wird gespeichert – Gespeichert: anonymisiert_dokument.docx – Schlusscheck ohne Fund.
 - OK: Mit geöffneter Liste und Haken wird gespeichert – Gespeichert: anonymisiert_dokument.docx – Schlusscheck ohne Fund.
 - OK: Gespeicherte Datei (über die Oberfläche): keine Testnamen in allen Teilen
 - OK: Bildinhalte unverändert (Bilder ohne Bildangaben byte-gleich zum Original) – 6 von 6 Bilddateien byte-gleich
 - OK: Nach „Nächstes Dokument“: keine Vorschau mehr im Speicher (blob:-Adressen freigegeben, keine Bilder auf der Seite) – vorher ladbar: geladen; nachher 4 von 4 Adressen ungültig
 ### bilder-excel.xlsx
-- OK: Ampel-Zeile „Bilder“ mit Anzahl und Knopf „Bilder ansehen“ – „6 Bilder im Dokument“
-- OK: Hinweis „Das Tool lässt Bilder unverändert …“ steht in der Zeile
-- OK: Abhaken ist gesperrt, bevor die Liste geöffnet wurde
-- OK: Speichern blockiert, solange die Bilder nicht angesehen sind – Bitte zuerst die Bilder ansehen und abhaken („Bilder ansehen“ in der Liste oben).
+- OK: Offener Punkt „Bilder“ mit Anzahl und Knopf „Ansehen“ – „6 Bilder im Dokument“
+- OK: Hinweis „Das Tool ändert Bilder nicht …“ steht in der Zeile – 6 Bilder im Dokument. Das Tool ändert Bilder nicht. Steht auf einem Bild ein Name oder ein Logo, entferne es vorher in Excel. Ansehen
+- OK: Häkchen ist gesperrt, bevor die Liste geöffnet wurde
+- OK: Speichern blockiert, solange die Bilder nicht angesehen sind – Speichern blockiert – bitte zuerst die Punkte oben ansehen und „Ich habe alle Punkte gesehen und speichere so.“ abhaken.
 - OK: Liste öffnet auf derselben Seite (kein neues Fenster), eine Kachel je Bild – 6 Kacheln
   - Kachel 1: Größer anzeigen Bild 1 · PNG Fundort: Blatt „Teilnehmer“, Zelle A4 Beschreibung (Alt-Text): „Foto von Frau Wiebke Sandmann am Empfang“ Die Beschreibung wird wie Text geprüft und ersetzt (Schritt 2). [Vorschau angezeigt, 48 px breit, Quelle blob:…]
   - Kachel 2: Größer anzeigen Bild 2 · JPEG Fundort: Blatt „Teilnehmer“, Zelle B4 Titel: „Porträt von Herrn Torben Kleinschmidt“ Die Beschreibung wird wie Text geprüft und ersetzt (Schritt 2). [Vorschau angezeigt, 48 px breit, Quelle blob:…]
@@ -66,19 +66,19 @@ Ausgabedatei entpackt, ALLE Teile (XML, VML, Bilder, Verweise) nach den Testname
 - OK: SVG nie als Markup eingebettet: kein <svg> in der Liste, SVG nur als <img>
 - OK: Fundort in einfacher Sprache und Beschreibung (Alt-Text, Titel) je Bild – Fundort: Blatt „Teilnehmer“, Zelle A4 | Fundort: Blatt „Teilnehmer“, Zelle B4
 - OK: Excel: Fundorte Blattname mit Zelle und Kopf-/Fußzeile
-- OK: „Größer anzeigen“ vergrößert die Vorschau auf derselben Seite – 120 → 857 px
-- OK: Nach dem Öffnen ist Abhaken möglich; Speichern bleibt bis zum Haken blockiert
-- OK: Übrige Sperren unverändert: ein nicht abgehakter Datei-Hinweis blockiert weiterhin – Bitte zuerst alle Hinweise in der Liste oben abhaken.
+- OK: „Größer anzeigen“ vergrößert die Vorschau auf derselben Seite – 104 → 884 px
+- OK: Nach dem Öffnen ist das Häkchen wählbar; Speichern bleibt bis zum Haken blockiert
+- OK: Mit dem einen Häkchen wird gespeichert – Gespeichert: anonymisiert_tabelle.xlsx – Schlusscheck ohne Fund.
 - OK: Mit geöffneter Liste und Haken wird gespeichert – Gespeichert: anonymisiert_tabelle.xlsx – Schlusscheck ohne Fund.
 - OK: Gespeicherte Datei (über die Oberfläche): keine Testnamen in allen Teilen
 - OK: Bildinhalte unverändert (Bilder ohne Bildangaben byte-gleich zum Original) – 6 von 6 Bilddateien byte-gleich
 - OK: Nach „Nächstes Dokument“: keine Vorschau mehr im Speicher (blob:-Adressen freigegeben, keine Bilder auf der Seite) – vorher ladbar: geladen; nachher 4 von 4 Adressen ungültig
 
 ## Bildbeschreibungen in der Prüfansicht
-- OK: Eigene Textabschnitte, gekennzeichnet als „Bildbeschreibung“ – Bildbeschreibung · Alt-Text | Bildbeschreibung · Alt-Text | Bildbeschreibung · Alt-Text | Bildbeschreibung · Titel · Kopfzeile
+- OK: Eigene Textabschnitte, gekennzeichnet als „Bildbeschreibung“ – Bildbeschreibung | Bildbeschreibung | Bildbeschreibung | Bildbeschreibung
 - OK: Namen in Bildbeschreibungen werden erkannt und markiert – Wiebke Sandmann | Torben Kleinschmidt
 - OK: Von Hand markiertes Wort in einer Bildbeschreibung wird im Export ersetzt (auch im Attribut descr) – descr="Foto von Frau Person B am Empfang", descr="Person C", descr="Lageplan"
-- OK: Treffer nur in der Bildbeschreibung ausgeschaltet (Name sonst im Text ersetzt): Schlusscheck meldet ihn mit Fundstelle – Kowalski – steht in: Text (word/document.xml) · bestätigter Name, Person M: „…to 1 Foto: Kursleiterin Marta Kowalski mit Gruppe Foto 1 Foto: Kursl…“  | Kowalski – steht in: Text (word/document.xml) · bestätigter Name, Person M: „…to 1 Foto: Kursleiterin Marta Kowalski mit Gruppe Titel Lehrkraft Be…“ 
+- OK: Treffer nur in der Bildbeschreibung ausgeschaltet (Name sonst im Text ersetzt): Schlusscheck meldet ihn mit Fundstelle – „Familienzentrum Sonnenblume“ steht noch in: KopfzeileEinrichtung aus den Dateiangaben · „… Familienzentrum Sonnenblume…“Als Einrichtung übernehmen | „Kowalski“ steht noch in: Bildbeschreibungbestätigter Name · „…Foto: Kursleiterin Marta Kowalski mit Gruppe…“Ersetzen
 
 ## Kreislauf (rückbaufähig) mit Namen in Bildbeschreibungen
 - OK: bilder-word.docx: Kreislauf exakt (alle Texte und alle Bildbeschreibungen wie im Original) – 9 Textstücke, 7 Beschreibungs-Attribute geprüft
@@ -93,12 +93,12 @@ Ausgabedatei entpackt, ALLE Teile (XML, VML, Bilder, Verweise) nach den Testname
 - OK: bilder-excel.xlsx: zwei Läufe (rückbaufähig) inhaltlich gleich (Kennung ausgenommen)
 
 ## PDF-Eingabe unverändert
-- OK: PDF: Hinweis „Bilder bleiben nicht erhalten“ wie bisher, keine Zeile „Bilder“
+- OK: PDF: Hinweis „Bilder bleiben nicht erhalten“ wie bisher (unter „Details“), keine Zeile „Bilder“
 
 ## Breiten (Liste geöffnet)
-- OK: 390 px: kein waagrechtes Scrollen, alle Kacheln im Bild – Seite 390/390 px, Kacheln 101–357 px
-- OK: 1280 px: kein waagrechtes Scrollen, alle Kacheln im Bild – Seite 1280/1280 px, Kacheln 235–1113 px
-- OK: 1920 px: kein waagrechtes Scrollen, alle Kacheln im Bild – Seite 1920/1920 px, Kacheln 555–1433 px
+- OK: 390 px: kein waagrechtes Scrollen, alle Kacheln im Bild – Seite 390/390 px, Kacheln 16–374 px
+- OK: 1280 px: kein waagrechtes Scrollen, alle Kacheln im Bild – Seite 1280/1280 px, Kacheln 190–1090 px
+- OK: 1920 px: kein waagrechtes Scrollen, alle Kacheln im Bild – Seite 1920/1920 px, Kacheln 510–1410 px
 
 Prüfungen: 58 von 58 bestanden.
 Netzwerkanfragen außer lokalen Dateien: 0.
