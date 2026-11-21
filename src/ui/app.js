@@ -14,6 +14,7 @@ import { parseKeyFile, planRestore, makeRestoreString, findLeftovers, findPlaceh
 import { readDocx, writeDocx, buildDocx } from '../formats/docx.js';
 import { readXlsx, writeXlsx } from '../formats/xlsx.js';
 import { collectZipTexts } from '../formats/xmlutil.js';
+import { partIndex } from '../formats/parts.js';
 import { describePart, readKennungProperty } from '../formats/meta.js';
 import { listImages, getImageBytes } from '../formats/images.js';
 import { newKennung, isKennung, kennungFromFileName } from './kennung.js';
@@ -148,6 +149,11 @@ async function sniff(bytes, name) {
     try { zip = await JSZip.loadAsync(bytes); } catch { throw new Error('Die Datei ist beschädigt oder kein unterstütztes Format.'); }
     if (zip.file('word/document.xml')) return 'docx';
     if (zip.file('xl/workbook.xml') || zip.file('xl/workbook.bin')) return 'xlsx';
+    // Version 2.4.1: Hauptteil an ungewöhnlicher Stelle über die Paket-Beziehung und den Inhaltstyp erkennen
+    const idx = await partIndex(zip);
+    const mct = idx.main ? idx.ct(idx.main) : '';
+    if (/wordprocessingml\.(document|template)\.main\+xml$/.test(mct)) return 'docx';
+    if (/spreadsheetml\.(sheet|template)\.main\+xml$|ms-excel\.sheet\.binary/.test(mct)) return 'xlsx';
     if (zip.file('ppt/presentation.xml')) throw new Error('PowerPoint-Dateien werden nicht unterstützt.');
     if (zip.file('content.xml')) throw new Error('OpenDocument-Dateien (.odt/.ods) werden nicht unterstützt. Bitte als .docx/.xlsx speichern.');
     throw new Error('Unbekanntes ZIP-Format. Unterstützt: .txt, .pdf, .docx, .xlsx, .csv');
@@ -265,7 +271,7 @@ async function buildOutput(format) {
 async function finalCheck(out) {
   const { forms, phrases } = checkForms();
   let texts;
-  if (out.zip) texts = (await collectZipTexts(await JSZip.loadAsync(out.bytes), { inflatePng: true })).map((t) => ({ ...t, where: describePart(t.where) }));
+  if (out.zip) texts = (await collectZipTexts(await JSZip.loadAsync(out.bytes), { inflatePng: true, userText: true })).map((t) => ({ ...t, where: describePart(t.where) }));
   else texts = [{ where: 'Text', text: out.text }];
   const leaks = findLeaks(forms, texts, phrases);
   // Version 2.3: jede Einrichtung aus der Liste im Originaltext; nicht vollständig ersetzte Fundstellen melden

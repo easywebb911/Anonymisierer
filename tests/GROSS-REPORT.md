@@ -1030,17 +1030,21 @@ Gezählt wird nur bei bestätigten Namen (mindestens ein eingeschalteter Treffer
 - OK: Ersetzer außerhalb der Prüfansicht (reversible): „MÜLLERS“ ersetzt oder gemeldet
 
 ## Schlusscheck-Vergleich über alle Testdokumente (Modus „Person A“ und „rückbaufähig“; Ausgabe im eigenen Format)
-- 87 Dokumente, je zwei Modi: Meldungen vorher 298, nachher 84; neu 12, entfallen 226
-  - neu: gegenprobe-endungen-personen.docx (person): „Rosen“ in Text – word/document.xml – „preserve Im Garten blühen die Rosen. preserve Die Marken liegen i“
-  - neu: gegenprobe-endungen-personen.docx (reversible): „Rosen“ in Text – word/document.xml – „preserve Im Garten blühen die Rosen. preserve Die Marken liegen i“
+- 87 Dokumente, je zwei Modi: Meldungen vorher 298, nachher 86; neu 14, entfallen 226
+  - neu: einrichtung.docx (person): „Familienzentrum
+Sonnenblume“ in Text – word/document.xml – „on B liest vor. Treffpunkt im Familienzentrum Sonnenblume, Saal 2. Logo: Bild 1 Logo d“
+  - neu: einrichtung.docx (reversible): „Familienzentrum
+Sonnenblume“ in Text – word/document.xml – „me B liest vor. Treffpunkt im Familienzentrum Sonnenblume, Saal 2. Logo: Bild 1 Logo d“
+  - neu: gegenprobe-endungen-personen.docx (person): „Rosen“ in Text – word/document.xml – „sind da. Im Garten blühen die Rosen. Die Marken liegen im Album.“
+  - neu: gegenprobe-endungen-personen.docx (reversible): „Rosen“ in Text – word/document.xml – „sind da. Im Garten blühen die Rosen. Die Marken liegen im Album.“
   - neu: gegenprobe-endungen-personen.txt (person): „Rosen“ in Text – „sind da. Im Garten blühen die Rosen. Die Marken liegen im Album.“
   - neu: gegenprobe-endungen-personen.txt (reversible): „Rosen“ in Text – „sind da. Im Garten blühen die Rosen. Die Marken liegen im Album.“
-  - neu: gegenprobe-gross-personen.docx (person): „Rosen“ in Text – word/document.xml – „preserve Im Garten blühen die Rosen. Heading1 preserve Person Bs“
-  - neu: gegenprobe-gross-personen.docx (reversible): „Rosen“ in Text – word/document.xml – „preserve Im Garten blühen die Rosen. Heading1 preserve Nachname B“
+  - neu: gegenprobe-gross-personen.docx (person): „Rosen“ in Text – word/document.xml – „erson An Im Garten blühen die Rosen. Person Bs Die Kälte des Wint“
+  - neu: gegenprobe-gross-personen.docx (reversible): „Rosen“ in Text – word/document.xml – „hname A2 Im Garten blühen die Rosen. Nachname B2 Die Kälte des Wi“
   - neu: gegenprobe-gross-personen.txt (person): „Rosen“ in Text – „erson An Im Garten blühen die Rosen. Person Bs Die Kälte des Wint“
   - neu: gegenprobe-gross-personen.txt (reversible): „Rosen“ in Text – „hname A2 Im Garten blühen die Rosen. Nachname B2 Die Kälte des Wi“
-  - neu: gegenprobe-gross.docx (person): „Winters“ in Text – word/document.xml – „son As preserve Die Kälte des Winters ist vorbei. Heading1 preserve“
-  - neu: gegenprobe-gross.docx (reversible): „Winters“ in Text – word/document.xml – „name A preserve Die Kälte des Winters ist vorbei. Heading1 preserve“
+  - neu: gegenprobe-gross.docx (person): „Winters“ in Text – word/document.xml – „osen. Person As Die Kälte des Winters ist vorbei. MARKEN Die Marken“
+  - neu: gegenprobe-gross.docx (reversible): „Winters“ in Text – word/document.xml – „sen. Nachname A Die Kälte des Winters ist vorbei. MARKEN Die Marken“
   - neu: gegenprobe-gross.txt (person): „Winters“ in Text – „osen. Person As Die Kälte des Winters ist vorbei. MARKEN Die Marken“
   - neu: gegenprobe-gross.txt (reversible): „Winters“ in Text – „sen. Nachname A Die Kälte des Winters ist vorbei. MARKEN Die Marken“
   - entfallen: endungen.csv (person): „LÜDINGHAUSS“ in Text

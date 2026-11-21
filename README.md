@@ -210,6 +210,8 @@ Schulen, Vereine, Firmen und Behörden bekommen einen **eigenen Platzhalter**, d
 | **.xlsx** | **alle Blätter, auch ausgeblendete**, Blattnamen, Zellen, Text in Formeln, Kopf-/Fußzeilen, Kommentare, Textfelder, Diagramme | .xlsx (**Zellstruktur bleibt**), .txt |
 | **.pdf** | **nur die Textebene** | .txt oder .docx (**Layout bleibt NICHT erhalten**) |
 
+**Teile an ungewöhnlicher Stelle (seit Version 2.4.1):** Eine .docx/.xlsx-Datei ist ein Paket aus vielen Teilen. Manche Programme (z. B. `openpyxl`) legen Kommentare, Kopfzeilen, Fußnoten oder Dateieigenschaften nicht am üblichen Ort ab, etwa `xl/comments/comment1.xml` statt `xl/comments1.xml`. Das Tool findet jeden Teil jetzt über die **Verweise im Paket** (Beziehungen und Inhaltstypen), nicht nur über den üblichen Pfad. Solche Teile werden genauso gelesen, in der Prüfansicht gezeigt, ersetzt, bereinigt und zurückgebaut wie am üblichen Ort. Das gilt auch, wenn der Haupttext oder die Arbeitsmappe selbst woanders liegt. Bisher blieben Namen in solchen Teilen stehen (Excel-Kommentar, Excel-Kopfzeile, Word-Fußnote, -Kopfzeile, -Kommentar).
+
 **Nicht unterstützt** (wird klar gemeldet, nie stillschweigend halb verarbeitet): `.doc`, `.xls`, passwortgeschützte Dateien,
 gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), `.docm`/`.xlsm`/`.xlsb`, PowerPoint, OpenDocument, RTF.
 
@@ -228,7 +230,7 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 - Vorschaubild (Thumbnail) wird entfernt, egal wo es liegt
 - Benutzernamen in Pfaden (z. B. `C:\Users\name\…`) und E-Mail-Adressen in Links
 - Blattnamen werden auch in Formeln, definierten Namen und der Blattliste konsistent umbenannt
-- Eingebettete Objekte (z. B. eine Excel-Tabelle in Word) werden **geleert**, weil ihr Inhalt nicht geprüft werden kann (Hinweis erscheint)
+- Eingebettete Objekte (z. B. eine Excel-Tabelle in Word) werden **geleert**, weil ihr Inhalt nicht geprüft werden kann (Hinweis erscheint). Seit 2.4.1 auch, wenn sie nicht im üblichen Ordner liegen (über ihren Verweis gefunden).
 
 ---
 
@@ -303,7 +305,7 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 - **Word/Excel tragen beim Speichern den eigenen Namen wieder ein.** Die anonymisierte Datei deshalb direkt hochladen, nicht vorher in Word/Excel öffnen und speichern.
 - **SharePoint-Felder, die an Inhaltssteuerelemente im Text gebunden sind:** Wird so ein Feld geleert, kann Word beim Öffnen auch den gebundenen Text im Dokument leer anzeigen (durch Code ungeprüft).
 
-### Alle Stellen mit möglichen Klarnamen (.docx/.xlsx), Stand Version 2.3
+### Alle Stellen mit möglichen Klarnamen (.docx/.xlsx), Stand Version 2.4.1
 
 | Stelle | wird bereinigt? |
 |---|---|
@@ -319,13 +321,29 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 | Bild-Metadaten anderer Typen (TIFF, EMF, WMF, SVG …) | **nein**: Hinweis mit Typ, der Schlusscheck sucht darin |
 | Alt-Texte und Titel von Bildern und Formen | **ja** (seit 2.2): eigene Abschnitte „Bildbeschreibung“, Erkennung wie Text |
 | Bildinhalt (Logo, Fotos, Scans) | **nein**, wird nie verändert; seit 2.2 Liste „Bilder ansehen“ mit Vorschau und Pflicht-Bestätigung |
-| Kopf-/Fußzeilen, Fußnoten, Kommentartext, Textfelder | ja, gleiche Erkennung wie der Haupttext |
+| Kopf-/Fußzeilen, Fußnoten, Kommentartext, Textfelder | ja, gleiche Erkennung wie der Haupttext; seit 2.4.1 auch an ungewöhnlichem Ort (über Verweise gefunden) |
 | Feldfunktionen, Links, Vorlagenpfad | teilweise: erkannte Namen und Benutzerordner |
 | Literaturangaben (Quellen-Autoren in `customXml`) | teilweise: nur erkannte Namen (**offen**) |
 | Eingebettete Objekte | ja (werden geleert, mit Hinweis) |
 | Excel: Zellen, ausgeblendete Blätter, Blattnamen, Kopfzeilen | ja |
 | Excel: Pivot-Zwischenspeicher, externe Verknüpfungen | teilweise |
-| **Schlusscheck** | durchsucht **alle** Teile der Ausgabedatei nach bestätigten Namen und Namen aus den Dateiangaben, auch in Bildern (Text in UTF-8/UTF-16, entpackte PNG-Textblöcke) |
+| **Schlusscheck** | durchsucht **alle** Teile der Ausgabedatei nach bestätigten Namen und Namen aus den Dateiangaben, auch in Bildern (Text in UTF-8/UTF-16, entpackte PNG-Textblöcke). Seit 2.4.1 nur Inhalte mit **Nutzertext** (siehe unten) |
+
+### Schlusscheck: was durchsucht wird (seit Version 2.4.1)
+Der Schlusscheck sucht nur dort, wo Nutzertext stehen kann. Formatangaben meldet er nicht mehr als Namen. Bisher meldete er z. B. die Rahmenart „thin“ als bestätigten Namen „Thi“.
+- **Durchsucht:**
+  - aller Text in allen Teilen: Zellen, Absätze, Kommentare, Kopf- und Fußzeilen, Fußnoten, Textfelder, Diagramme, Dateieigenschaften, SharePoint-Felder;
+  - dazu Felder mit Nutzertext: Bildbeschreibungen und -titel, Objekt- und Bildnamen, Blattnamen, definierte Namen, Tabellen- und Spaltennamen, Autoren, Kürzel und Benutzerkennungen;
+  - Feldfunktionen, Inhaltssteuerelemente (Titel, Tag, Auswahlliste), Formularfelder, Textmarken, Link-Ziele und -Hinweise, Gültigkeitsregeln, Filterwerte und bedingte Formatierung „Text enthält“;
+  - Pivot-Felder und -Werte, Verbindungen und verknüpfte Dateien (mit Pfaden), Namen eigener Formatvorlagen, Text in Anführungszeichen im Zahlenformat, Verweisziele und Teilnamen;
+  - bei Binärteilen der Text in UTF-8 und UTF-16.
+- **Nicht durchsucht** (Formatangaben):
+  - Rahmenart, Ausrichtung, Farbe, Schriftart, Sprache, Maße, Stilverweise;
+  - Name eingebauter Formatvorlagen;
+  - Funktionsnamen in Formeln (Zeichenketten und Blattverweise werden durchsucht) und Steuercodes der Excel-Kopfzeile (der Text wird durchsucht);
+  - Aufbau- und Zufallskennungen, Verweis- und Inhaltstypen.
+- **Teile mit unbekanntem Aufbau** werden wie bisher vollständig durchsucht, mit allen Werten. Das sind fremde Namensräume, SharePoint- und Zusatzdaten (`customXml`) und Teile, die kein sauberes XML sind.
+- Der Beweis steht in `tests/PFADE-REPORT.md`: Ein Prüfname wurde absichtlich in jedes durchsuchte Feld gesetzt (92 Felder, alle gefunden). In 23 Formatfeldern wird er nicht gemeldet.
 - **PDF:** nur Textebene; gescannte Seiten fehlen (es wird gewarnt); das Layout geht verloren; schlecht kodierte PDFs liefern unlesbaren Text (es wird gewarnt).
 - **Pivot-Tabellen** in Excel: Werte im Zwischenspeicher werden ersetzt; bitte nach dem Öffnen aktualisieren und prüfen.
 - **Dateigröße:** Grenze 20 MB, Warnhinweis ab 5 MB. Gemessen am Desktop (Chromium, headless): 1 MB Text ≈ 3 s Analyse + 3 s Export (≈ 80 MB Arbeitsspeicher); 10 MB Text ≈ 50 s + 30 s (≈ 560 MB); Excel mit 20 000 Zeilen ≈ 8 s + 17 s (≈ 260 MB).
@@ -337,9 +355,9 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 |---|---|
 | Chromium/Chrome (Desktop) | **geprüft** (automatische Tests, headless) |
 | Chromium mit 390, 1280 und 1920 px Breite | **geprüft** (kein waagrechtes Scrollen, Knöpfe mindestens 44 px, Antippen, Markieren, Tasten J/N) |
-| Edge und Chrome unter Windows (Firmen-PC, `file://`) | Version 1.0 laut Easy **am PC geprüft**; Versionen 1.1 bis 2.4.0 **durch Code ungeprüft** |
+| Edge und Chrome unter Windows (Firmen-PC, `file://`) | Version 1.0 laut Easy **am PC geprüft**; Versionen 1.1 bis 2.4.1 **durch Code ungeprüft** |
 | Microsoft Word / Excel: Öffnen der bereinigten Datei ohne Reparatur-Meldung | **durch Code ungeprüft** (auch die unsichtbare Kennung, seit 2.1). Geprüft: LibreOffice öffnet alle Ausgaben, alle XML-Teile sind wohlgeformt, keine Verweise ins Leere |
-| Firefox (Desktop) | **ungeprüft** |
+| Firefox (Desktop) | **durch Code ungeprüft** (Firefox ließ sich in der Testumgebung nicht starten; Befund zu Version 2.4.1 siehe PR) |
 | Safari (macOS) | **ungeprüft** |
 | Safari auf dem iPhone | **ungeprüft**. Code ist auf Safari ≥ 15 ausgelegt (keine Lookbehind-Regex, keine neueren Sprachfunktionen). |
 
@@ -350,12 +368,12 @@ Die Datei muss in einem Browser geöffnet werden (z. B. über „Teilen → in S
 
 ## Version und Prüfsumme
 
-Version **2.4.0**, Stand 2026-11-21 (steht auch im Fußbereich des Tools).
+Version **2.4.1**, Stand 2026-11-21 (steht auch im Fußbereich des Tools).
 
 SHA-256 der `index.html` dieser Version:
 
 ```
-f4162bb516cedf58e77cc2e530dfb993398da89eefb4700e1a53bf496a19c7e7
+6e67c6f8f1fb70e22bf90d8063970be125ff6d33e2c0046475d74e7af1e3d61e
 ```
 
 Eine Datei kann ihre eigene Prüfsumme nicht enthalten, deshalb steht sie nur hier und im PR-Text. Prüfen unter Windows: `certutil -hashfile index.html SHA256`.
@@ -427,8 +445,10 @@ node tests/make-kennung.mjs  # Vertausch-Testpaar: gleiche Vorlage, andere (erfu
 node tests/kennung-test.mjs <index.html-2.0>  # Kennung: Vertausch, Veraltet, Umbenennen, Alt-Schlüssel, LibreOffice, Zufall → tests/KENNUNG-REPORT.md
 node tests/korpus-test.mjs [--zellen] [--src <alter src-Ordner>]  # Messkorpus (seit 2.4.0): Fehltreffer und echte Namen je Wort, Vergleich mit tests/korpus/erwartung.json → tests/KORPUS-REPORT.md
 node tests/wortliste-test.mjs <src-Ordner 2.3.4>  # Wortliste „mehrdeutig“ und Wochentag vor Uhrzeit: Einzelprüfungen, Zusammenspiel → tests/WORTLISTE-REPORT.md
+node tests/make-pfade.mjs    # Teile an ungewöhnlicher Stelle (seit 2.4.1): Excel/Word, üblich/ungewöhnlich/Hauptteil, Phase-0-Datei, Gegenprobe (erfunden) → tests/fixtures-pfade/
+node tests/pfade-test.mjs <index.html-2.4.0>  # Namen je Teil vorher/nachher, Kreislauf, Gegenprobe, Sicherheitsbeweis Schlusscheck, Doppellauf → tests/PFADE-REPORT.md
 ```
 
 **Messkorpus (seit 2.4.0):** `tests/korpus/korpus-quelle.mjs` enthält rund 3000 Wörter erfundener Alltagstexte (Kursbeschreibungen, Elternbrief, Protokoll, Einladung, Tabelle, Liste …). Jeder echte Personenname ist dort mit ⟦…⟧ gekennzeichnet. `tests/korpus-test.mjs` zählt je Wort: Fehltreffer (sicher / unsicher an / unsicher aus), echte Namen (ersetzt / nur als Frage / ganz übersehen), Fragen und Schlusscheck-Meldungen. Jede Änderung an der Erkennung muss dieselben Zahlen liefern wie `tests/korpus/erwartung.json`, oder die Abweichung wird gezeigt (Erwartung nur nach bewusster Änderung mit `--update` neu schreiben).
 
-Aufbau: `src/core` (Erkennung, Muster, Namenslisten-Zugriff, `reversible.js` = Modus rückbaufähig und Schlüsseldatei, `restore.js` = Rückbau), `src/formats` (TXT/CSV/DOCX/XLSX/PDF, `meta.js` = versteckte Angaben: Dateieigenschaften, SharePoint-Felder, Bild-Metadaten, `images.js` = Bilderliste und Bildbeschreibungen), `src/ui` (Oberfläche mit den Bildschirmen Start/Datei/Prüfen/Speichern und Rückbau, Netzwerksperre, Vorlage, Stil), `build/` (Build-Skripte), `tests/` (Testdaten, Tests, Bericht).
+Aufbau: `src/core` (Erkennung, Muster, Namenslisten-Zugriff, `reversible.js` = Modus rückbaufähig und Schlüsseldatei, `restore.js` = Rückbau), `src/formats` (TXT/CSV/DOCX/XLSX/PDF, `parts.js` = Teile über Beziehungen und Inhaltstypen finden, `meta.js` = versteckte Angaben: Dateieigenschaften, SharePoint-Felder, Bild-Metadaten, `images.js` = Bilderliste und Bildbeschreibungen), `src/ui` (Oberfläche mit den Bildschirmen Start/Datei/Prüfen/Speichern und Rückbau, Netzwerksperre, Vorlage, Stil), `build/` (Build-Skripte), `tests/` (Testdaten, Tests, Bericht).

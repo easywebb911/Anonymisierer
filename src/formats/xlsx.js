@@ -8,6 +8,7 @@ import {
 } from './xmlutil.js';
 import { collectMetaNames, findPropertyParts, cleanProperties, cleanCustomXml, removeThumbnails, stripImages, imageWarnings, setKennungProperty } from './meta.js';
 import { altTextUnits } from './images.js';
+import { partIndex, EMBED_REL } from './parts.js';
 
 const natural = (a, b) => a.localeCompare(b, 'en', { numeric: true });
 const childEls = (el, ln) => Array.from(el.childNodes).filter((c) => c.nodeType === 1 && (!ln || c.localName === ln));
@@ -143,23 +144,31 @@ function groupUnit(container, label, owned) {
   return u.text.trim() ? u : null;
 }
 
+// Arbeitsmappe über die Paket-Beziehung (officeDocument) finden; am üblichen Ort xl/workbook.xml wie bisher
+const WB_CT = /spreadsheetml\.(sheet|template)\.main\+xml$/;
 async function open(bytes) {
   let zip;
   try { zip = await JSZip.loadAsync(bytes); } catch { throw new Error('Die Datei ist keine gültige Excel-Datei (.xlsx).'); }
   if (zip.file('xl/workbook.bin')) throw new Error('Excel-Binärdateien (.xlsb) werden nicht unterstützt.');
   const ct = zip.file('[Content_Types].xml');
-  if (!ct || !zip.file('xl/workbook.xml')) throw new Error('Die Datei ist keine gültige Excel-Datei (.xlsx).');
+  const idx = await partIndex(zip);
+  if (idx.main && /\.bin$/i.test(idx.main)) throw new Error('Excel-Binärdateien (.xlsb) werden nicht unterstützt.');
+  const wbPart = zip.file('xl/workbook.xml') ? 'xl/workbook.xml' : (idx.main && /\.xml$/i.test(idx.main) && WB_CT.test(idx.ct(idx.main)) ? idx.main : null);
+  if (!ct || !wbPart) throw new Error('Die Datei ist keine gültige Excel-Datei (.xlsx).');
   if (/macroEnabled/i.test(await ct.async('string'))) throw new Error('Excel-Dateien mit Makros (.xlsm) werden nicht unterstützt.');
-  return zip;
+  return { zip, idx, wbPart };
 }
 
 export async function readXlsx(bytes) {
-  const zip = await open(bytes);
+  const { zip, idx, wbPart } = await open(bytes);
   const names = Object.keys(zip.files).filter((n) => !zip.files[n].dir);
   const docs = new Map();
   for (const n of names.filter((x) => /\.(xml|rels)$/i.test(x))) docs.set(n, parseXml(await zip.file(n).async('string'), n));
-  const wb = docs.get('xl/workbook.xml');
-  const wbRels = relsOf(docs, 'xl/workbook.xml');
+  const wb = docs.get(wbPart);
+  const wbRels = relsOf(docs, wbPart);
+  // Teile einer Art: fester Pfad (wie bisher) ODER Beziehungstyp ODER Inhaltstyp (Version 2.4.1)
+  const xmlNames = names.filter((x) => /\.xml$/i.test(x) && docs.has(x));
+  const partsOf = (fixed, relRe, ctRe) => xmlNames.filter((n) => fixed.test(n) || idx.is(n, relRe, ctRe));
   const sheets = allElements(wb).filter((e) => isS(e) && e.localName === 'sheet').map((el) => {
     const rid = Array.from(el.attributes).find((a) => a.localName === 'id' && a.namespaceURI && a.namespaceURI.includes('relationships'));
     const rel = rid ? wbRels.get(rid.value) : null;
@@ -171,13 +180,13 @@ export async function readXlsx(bytes) {
   const units = [];
   const owned = new Set();
   const siDone = new Set();
-  const push = (u, extra) => { if (u) { Object.assign(u, extra || {}); units.push(u); } };
+  const push = (u, extra, part) => { if (u) { Object.assign(u, extra || {}); if (part) u.part = part; units.push(u); } };
 
   for (const sh of sheets) {
     const hidden = sh.state !== 'visible' ? ' (ausgeblendet)' : '';
     // Blattname
     const nameSeg = { text: sh.name.normalize('NFC'), writable: true, newName: null, set(t) { this.newName = t; } };
-    push(makeUnit([nameSeg], 'Blattname' + hidden), { kind: 'sheetname', sheet: sh, seg: nameSeg });
+    push(makeUnit([nameSeg], 'Blattname' + hidden), { kind: 'sheetname', sheet: sh, seg: nameSeg }, wbPart);
     const sdoc = sh.part ? docs.get(sh.part) : null;
     if (!sdoc) continue;
     for (const c of allElements(sdoc).filter((e) => isS(e) && e.localName === 'c')) {
@@ -188,67 +197,73 @@ export async function readXlsx(bytes) {
       const f = childEls(c, 'f')[0];
       if (t === 's' && v) {
         const idx = parseInt(v.textContent, 10);
-        if (siList[idx] && !siDone.has(idx)) { siDone.add(idx); push(groupUnit(siList[idx], lab + hidden, owned)); }
+        if (siList[idx] && !siDone.has(idx)) { siDone.add(idx); push(groupUnit(siList[idx], lab + hidden, owned), null, ssPart.target); }
       } else if (t === 'inlineStr') {
         const is = childEls(c, 'is')[0];
-        if (is) push(groupUnit(is, lab + hidden, owned));
+        if (is) push(groupUnit(is, lab + hidden, owned), null, sh.part);
       } else if (t === 'str' && v && v.textContent.trim()) {
         owned.add(v);
-        push(makeUnit([textSegment(v, false)], lab + ' (Formelergebnis)' + hidden));
+        push(makeUnit([textSegment(v, false)], lab + ' (Formelergebnis)' + hidden), null, sh.part);
       }
       if (f && f.textContent.includes('"')) {
         owned.add(f);
-        push(makeUnit([textSegment(f, false)], lab + ' (Formel)' + hidden), { kind: 'formula' });
+        push(makeUnit([textSegment(f, false)], lab + ' (Formel)' + hidden), { kind: 'formula' }, sh.part);
       }
     }
     for (const hf of allElements(sdoc).filter((e) => isS(e) && /^(odd|even|first)(Header|Footer)$/.test(e.localName))) {
       owned.add(hf);
       const u = headerFooterUnit(hf, `${sh.name}: ${/Header/.test(hf.localName) ? 'Kopfzeile' : 'Fußzeile'}${hidden}`);
-      if (u.text.trim()) push(u);
+      if (u.text.trim()) push(u, null, sh.part);
     }
     for (const fe of allElements(sdoc).filter((e) => /^formula[12]?$/.test(e.localName) || (e.localName === 'f' && !isS(e)))) {
       if (fe.textContent.includes('"')) {
         owned.add(fe);
-        push(makeUnit([textSegment(fe, false)], `${sh.name}: Gültigkeitsregel/Formel${hidden}`), { kind: 'formula' });
+        push(makeUnit([textSegment(fe, false)], `${sh.name}: Gültigkeitsregel/Formel${hidden}`), { kind: 'formula' }, sh.part);
       }
     }
   }
-  siList.forEach((si, idx) => { if (!siDone.has(idx)) push(groupUnit(si, 'Gemeinsamer Text (nicht verwendet)', owned)); });
+  siList.forEach((si, i) => { if (!siDone.has(i)) push(groupUnit(si, 'Gemeinsamer Text (nicht verwendet)', owned), null, ssPart.target); });
 
   // Definierte Namen mit Text
   for (const dn of allElements(wb).filter((e) => e.localName === 'definedName')) {
     if (dn.textContent.includes('"')) {
       owned.add(dn);
-      push(makeUnit([textSegment(dn, false)], 'Definierter Name ' + dn.getAttribute('name')), { kind: 'formula' });
+      push(makeUnit([textSegment(dn, false)], 'Definierter Name ' + dn.getAttribute('name')), { kind: 'formula' }, wbPart);
     }
   }
   // Kommentare
-  for (const n of names.filter((x) => /^xl\/comments\d*\.xml$/.test(x)).sort(natural)) {
+  // Kommentare: fester Pfad wie bisher oder über Beziehung/Inhaltstyp (z. B. xl/comments/comment1.xml von openpyxl)
+  const commentParts = partsOf(/^xl\/comments\d*\.xml$/, /\/comments$/, /spreadsheetml\.comments\+xml$/);
+  const threadedParts = partsOf(/^xl\/threadedComments\/.*\.xml$/, /\/threadedComment$/, /threadedcomments\+xml$/i).filter((n) => !commentParts.includes(n));
+  for (const n of commentParts.sort(natural)) {
     for (const cm of allElements(docs.get(n)).filter((e) => isS(e) && e.localName === 'comment')) {
       const text = childEls(cm, 'text')[0];
-      if (text) push(groupUnit(text, 'Kommentar ' + (cm.getAttribute('ref') || ''), owned));
+      if (text) push(groupUnit(text, 'Kommentar ' + (cm.getAttribute('ref') || ''), owned), null, n);
     }
   }
-  for (const n of names.filter((x) => /^xl\/threadedComments\/.*\.xml$/.test(x)).sort(natural)) {
+  for (const n of threadedParts.sort(natural)) {
     for (const tc of allElements(docs.get(n)).filter((e) => e.localName === 'threadedComment')) {
       const text = childEls(tc, 'text')[0];
-      if (text && text.textContent.trim()) { owned.add(text); push(makeUnit([textSegment(text, false)], 'Kommentar (Unterhaltung) ' + (tc.getAttribute('ref') || ''))); }
+      if (text && text.textContent.trim()) { owned.add(text); push(makeUnit([textSegment(text, false)], 'Kommentar (Unterhaltung) ' + (tc.getAttribute('ref') || '')), null, n); }
     }
   }
-  // Textfelder, Formen, Diagramme
-  for (const n of names.filter((x) => /^xl\/(drawings|charts)\/[^/]+\.xml$/.test(x)).sort(natural)) {
+  // Textfelder, Formen, Diagramme (fester Ordner wie bisher oder über Beziehung/Inhaltstyp)
+  const drawingParts = partsOf(/^xl\/drawings\/[^/]+\.xml$/, /\/drawing$/, /\.drawing\+xml$/);
+  const chartParts = partsOf(/^xl\/charts\/[^/]+\.xml$/, /\/chart$/, /drawingml\.chart\+xml$/);
+  const isChart = (n) => /charts/.test(n) || (!drawingParts.includes(n) && chartParts.includes(n));
+  for (const n of [...new Set([...drawingParts, ...chartParts])].sort(natural)) {
     const doc = docs.get(n);
     for (const p of allElements(doc).filter((e) => isA(e) && e.localName === 'p')) {
       const ts = allElements(p).filter((e) => isA(e) && e.localName === 't');
       if (!ts.length) continue;
       const segs = [];
       for (const t of ts) { segs.push(textSegment(t, false)); owned.add(t); }
-      const u = makeUnit(segs, /charts/.test(n) ? 'Diagramm' : 'Textfeld/Form');
-      if (u.text.trim()) push(u);
+      const u = makeUnit(segs, isChart(n) ? 'Diagramm' : 'Textfeld/Form');
+      if (u.text.trim()) push(u, null, n);
     }
     for (const v of allElements(doc).filter((e) => e.localName === 'v' && e.namespaceURI && e.namespaceURI.includes('chart') && /\p{L}/u.test(e.textContent))) {
       owned.add(v);
-      push(makeUnit([textSegment(v, false)], 'Diagramm (Wert)'));
+      push(makeUnit([textSegment(v, false)], 'Diagramm (Wert)'), null, n);
     }
   }
 
@@ -267,7 +282,7 @@ export async function readXlsx(bytes) {
   const placeOf = (part) => ({ label: places.get(part) || (/chart/.test(part) ? 'Diagramm' : 'Sonstiges') });
   // Bildbeschreibungen (Alt-Text, Titel von Bildern und Formen): eigene Abschnitte am Ende
   const ownedAttrs = new Map();
-  units.push(...altTextUnits(docs, names.filter((x) => /^xl\/drawings\/[^/]+\.xml$/.test(x)).sort(natural).map((n) => [n, placeOf(n).label]), ownedAttrs));
+  units.push(...altTextUnits(docs, drawingParts.sort(natural).map((n) => [n, placeOf(n).label]), ownedAttrs));
   // Kopf-/Fußzeilenbilder (VML): Titel der Bilder ebenfalls als Bildbeschreibung. VML-Teile werden nur gelesen, wenn
   // sie sauberes XML sind, und nur neu geschrieben, wenn sich eine Beschreibung ändert.
   const vmlDocs = new Map();
@@ -279,15 +294,15 @@ export async function readXlsx(bytes) {
   const warnings = [];
   const hiddenSheets = sheets.filter((s) => s.state !== 'visible');
   if (hiddenSheets.length) warnings.push(`Die Datei enthält ${hiddenSheets.length} ausgeblendete(s) Blatt/Blätter. Diese wurden mitgelesen und werden mit anonymisiert.`);
-  const embedded = names.filter((n) => /^xl\/embeddings\//.test(n));
+  const embedded = names.filter((n) => /^xl\/embeddings\//.test(n) || idx.is(n, EMBED_REL));
   if (embedded.length) warnings.push(`Die Datei enthält ${embedded.length} eingebettete(s) Objekt(e). Deren Inhalt wird NICHT anonymisiert und vor dem Export geleert.`);
   // Bilder: eigene Zeile „Bilder“ auf dem Speichern-Bildschirm (Liste mit Vorschau), kein allgemeiner Hinweis mehr
-  if (names.some((n) => /^xl\/pivotCache/.test(n))) warnings.push('Die Datei enthält Pivot-Tabellen. Deren zwischengespeicherte Werte werden ersetzt; bitte die Pivot-Tabellen nach dem Öffnen aktualisieren und prüfen.');
-  if (names.some((n) => /^xl\/externalLinks\//.test(n))) warnings.push('Die Datei enthält Verknüpfungen zu anderen Dateien. Gespeicherte Werte werden geprüft, die verknüpften Dateien selbst nicht.');
+  if (names.some((n) => /^xl\/pivotCache/.test(n) || idx.is(n, /\/pivotCacheDefinition$/))) warnings.push('Die Datei enthält Pivot-Tabellen. Deren zwischengespeicherte Werte werden ersetzt; bitte die Pivot-Tabellen nach dem Öffnen aktualisieren und prüfen.');
+  if (names.some((n) => /^xl\/externalLinks\//.test(n) || idx.is(n, /\/externalLink$/))) warnings.push('Die Datei enthält Verknüpfungen zu anderen Dateien. Gespeicherte Werte werden geprüft, die verknüpften Dateien selbst nicht.');
   warnings.push(...await imageWarnings(zip));
   // Namen aus den Original-Metadaten (Autor, Bearbeiter, Manager, Firma, Kommentarautoren, SharePoint-Personen)
   const metaNames = await collectMetaNames(zip, docs);
-  return { kind: 'xlsx', zip, docs, vmlDocs, units, owned, ownedAttrs, sheets, names, warnings, ssDoc, siList, metaNames, imageCtx: { placeOf } };
+  return { kind: 'xlsx', zip, docs, vmlDocs, units, owned, ownedAttrs, sheets, names, warnings, ssDoc, siList, metaNames, imageCtx: { placeOf }, wbPart, embedded };
 }
 
 function cellString(sheetDoc, ref, siList) {
@@ -417,7 +432,9 @@ export async function writeXlsx(bytes, repsPerUnit, generic, opts = {}) {
   }
   // Alle geänderten Teile ermitteln (Einheiten-Änderungen): konservativ alle XML-Teile mit Einheiten neu schreiben
   for (const [n] of d.docs) if (/^xl\//.test(n) && !/\.rels$/.test(n)) changed.add(n);
-  changed.add('xl/workbook.xml');
+  changed.add(d.wbPart);
+  // Teile mit Abschnitten außerhalb von xl/ (Version 2.4.1: über Beziehungen gefunden) ebenfalls neu schreiben
+  for (const u of d.units) if (u.part && !u.vml && d.docs.has(u.part)) changed.add(u.part);
   // .rels: externe Pfade, Vorschaubild
   for (const n of d.names.filter((x) => /\.rels$/.test(x))) {
     const doc = d.docs.get(n);
@@ -434,7 +451,7 @@ export async function writeXlsx(bytes, repsPerUnit, generic, opts = {}) {
   }
   for (const n of clean ? d.names : []) {
     if (/^docProps\/thumbnail\./i.test(n)) d.zip.remove(n);
-    else if (/^xl\/embeddings\//.test(n)) d.zip.file(n, new Uint8Array(0), { date: FIXED_DATE, createFolders: false });
+    else if (d.embedded.includes(n)) d.zip.file(n, new Uint8Array(0), { date: FIXED_DATE, createFolders: false });
   }
   // Modus rückbaufähig: Kennung als unsichtbare benutzerdefinierte Eigenschaft (nach der Bereinigung)
   if (clean && opts.kennung) await setKennungProperty(d.zip, d.docs, changed, opts.kennung);

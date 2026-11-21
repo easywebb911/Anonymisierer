@@ -78,7 +78,7 @@ Ausgabedatei entpackt, ALLE Teile (XML, VML, Bilder, Verweise) nach den Testname
 - OK: Eigene Textabschnitte, gekennzeichnet als „Bildbeschreibung“ – Bildbeschreibung · Alt-Text | Bildbeschreibung · Alt-Text | Bildbeschreibung · Alt-Text | Bildbeschreibung · Titel · Kopfzeile
 - OK: Namen in Bildbeschreibungen werden erkannt und markiert – Wiebke Sandmann | Torben Kleinschmidt
 - OK: Von Hand markiertes Wort in einer Bildbeschreibung wird im Export ersetzt (auch im Attribut descr) – descr="Foto von Frau Person B am Empfang", descr="Person C", descr="Lageplan"
-- OK: Treffer nur in der Bildbeschreibung ausgeschaltet (Name sonst im Text ersetzt): Schlusscheck meldet ihn mit Fundstelle – Kowalski – steht in: Text (word/document.xml) · bestätigter Name, Person M: „…to 1 Foto: Kursleiterin Marta Kowalski mit Gruppe http://schemas.ope…“  | Kowalski – steht in: Text (word/document.xml) · bestätigter Name, Person M: „…to 1 Foto: Kursleiterin Marta Kowalski mit Gruppe rIdImg2 0 0 144000…“ 
+- OK: Treffer nur in der Bildbeschreibung ausgeschaltet (Name sonst im Text ersetzt): Schlusscheck meldet ihn mit Fundstelle – Kowalski – steht in: Text (word/document.xml) · bestätigter Name, Person M: „…to 1 Foto: Kursleiterin Marta Kowalski mit Gruppe Foto 1 Foto: Kursl…“  | Kowalski – steht in: Text (word/document.xml) · bestätigter Name, Person M: „…to 1 Foto: Kursleiterin Marta Kowalski mit Gruppe Titel Lehrkraft Be…“ 
 
 ## Kreislauf (rückbaufähig) mit Namen in Bildbeschreibungen
 - OK: bilder-word.docx: Kreislauf exakt (alle Texte und alle Bildbeschreibungen wie im Original) – 9 Textstücke, 7 Beschreibungs-Attribute geprüft
