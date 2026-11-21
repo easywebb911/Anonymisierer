@@ -2,16 +2,17 @@
 // Schreibweisen mit Nummer "Nachname A2") und eindeutige Kontakt-Platzhalter ("[E-MAIL-1]").
 // Jeder Platzhalter steht für genau EINE Schreibweise, deshalb ist der Rückbau exakt möglich.
 import * as lex from './lexicon.js';
+import { findContacts } from './patterns.js';
 
 export const MODE_REVERSIBLE = 'reversible';
-export const CONTACT_BASE = { email: 'E-MAIL', phone: 'TELEFON', iban: 'IBAN', address: 'ADRESSE' };
-export const CONTACT_NAMES = { email: 'E-Mail', phone: 'Telefon', iban: 'IBAN', address: 'Adresse' };
+export const CONTACT_BASE = { email: 'E-MAIL', phone: 'TELEFON', iban: 'IBAN', address: 'ADRESSE', web: 'WEBADRESSE', account: 'KONTO' };
+export const CONTACT_NAMES = { email: 'E-Mail', phone: 'Telefon', iban: 'IBAN', address: 'Adresse', web: 'Webadresse', account: 'Konto' };
 export const KEY_FORMAT = 'anonymisierer-rueckbau-schluessel';
 export const KEY_WARNING = 'Enthält echte Namen. Nie weitergeben, nie an eine KI.';
 
 // Erkennt Platzhalter dieses Modus in beliebigem Text (für Kollisionsprüfung und Rückbau)
 export const NAME_PH_RE = /(^|[^\p{L}\p{N}])((?:Vorname|Nachname|Initiale|Name) [A-Z]{1,3}\d*)(?=(?:'s|’s|'|’|s|es|ns|n)?(?![\p{L}\p{N}]))/gu;
-export const CONTACT_PH_RE = /\[(?:E-MAIL|TELEFON|IBAN|ADRESSE)-\d+\]/g;
+export const CONTACT_PH_RE = /\[(?:E-MAIL|TELEFON|IBAN|ADRESSE|WEBADRESSE|KONTO)-\d+\]/g;
 // Einrichtungen (Version 2.3): der ganze Name als EIN Platzhalter, weitere Schreibweisen mit Nummer
 export const ORG_PH_RE = /(^|[^\p{L}\p{N}])(Einrichtung [A-Z]{1,3}\d*)(?=(?:'s|’s|'|’|s|es|ns|n)?(?![\p{L}\p{N}]))/gu;
 
@@ -20,7 +21,7 @@ export const ORG_PH_RE = /(^|[^\p{L}\p{N}])(Einrichtung [A-Z]{1,3}\d*)(?=(?:'s|�
 // Großbuchstaben, danach weitere Großbuchstaben oder Ziffern und höchstens eine Endung der Liste; dazu Platzhalter in
 // eckigen Klammern („[E-MAIL-1]“, „[NAME]“, „[EINRICHTUNG]“).
 const LIKE_NAME_RE = /(^|[^\p{L}\p{N}])((?:Vorname|Nachname|Initiale|Name|Person|Einrichtung)[ \u00a0][A-Z][A-Z\d]*(?:'s|’s|'|’|s|es|ns|n)?)(?![\p{L}\p{N}])/gu;
-const LIKE_BRACKET_RE = /\[(?:E-MAIL|TELEFON|IBAN|ADRESSE|NAME|EINRICHTUNG)(?:-[\p{L}\p{N}]*)?\][\p{L}\p{N}]*/gu;
+const LIKE_BRACKET_RE = /\[(?:E-MAIL|TELEFON|IBAN|ADRESSE|WEBADRESSE|KONTO|NAME|EINRICHTUNG)(?:-[\p{L}\p{N}]*)?\][\p{L}\p{N}]*/gu;
 export function findPlaceholderLike(text) {
   const out = [];
   for (const m of text.matchAll(LIKE_NAME_RE)) { const s = m.index + m[1].length; out.push({ text: m[2], s, e: s + m[2].length }); }
@@ -176,6 +177,21 @@ export function assignReversible(result) {
       h.label = contactNums.get(ck);
     }
   }
+  // Version 2.7.0: Webadressen und Konten, die nur in Link-Zielen, Link-Hinweisen oder Feldfunktionen stehen, bekommen
+  // die nächsten Nummern (nach allen Stellen im Text, damit deren Nummern gleich bleiben). Sie stehen mit Anzahl 0 im
+  // Schlüssel (Zahl bezieht sich auf den Text) und machen den Rückbau der Link-Ziele exakt.
+  for (const t of result.linkTexts || []) {
+    for (const c of findContacts(t, { web: true })) {
+      if ((c.type !== 'web' && c.type !== 'account') || c.cert !== 'sicher') continue;
+      const value = t.slice(c.s, c.e);
+      const ck = c.type + '|' + value;
+      if (contactNums.has(ck)) continue;
+      let ph;
+      do { contactCount[c.type] = (contactCount[c.type] || 0) + 1; ph = `[${CONTACT_BASE[c.type]}-${contactCount[c.type]}]`; } while (reserved.has(ph));
+      contactNums.set(ck, ph);
+      placeholderInfo.set(ph, { wert: value, kategorie: CONTACT_NAMES[c.type], nurVerweis: true });
+    }
+  }
   result.reversible = { placeholderInfo, contactNums, orgExact };
   // Bis 2.3.3 stand hier eine Warnung „Beim Rückbau würde dieser Text ebenfalls ersetzt“. Seit 2.3.4 vergibt das Tool
   // solche Platzhalter nicht mehr (siehe reserved); der Hinweis steht im Speichern-Schritt (result.placeholderWords).
@@ -200,9 +216,9 @@ export function buildRestoreKey(result, meta) {
   }
   const eintraege = [];
   for (const [ph, info] of result.reversible.placeholderInfo) {
-    if (!counts.has(ph)) continue;
+    if (!counts.has(ph) && !info.nurVerweis) continue;
     eintraege.push({ platzhalter: ph, kategorie: info.kategorie, ...(info.rolle ? { rolle: info.rolle, person: info.person } : {}),
-      ...(info.einrichtung ? { einrichtung: info.einrichtung } : {}), wert: info.wert, anzahl: counts.get(ph) });
+      ...(info.einrichtung ? { einrichtung: info.einrichtung } : {}), wert: info.wert, anzahl: counts.get(ph) || 0 });
   }
   const personen = [];
   for (const en of result.entities.values()) {

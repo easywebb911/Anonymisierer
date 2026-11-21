@@ -114,6 +114,26 @@ In Excel, CSV und Word-Tabellen schaut das Tool auf die **Überschrift einer Spa
 - **Spalte von Hand:** Im Schritt „Prüfen“ steht an jeder Spaltenüberschrift der Tabelle ein Schalter **„Namen“** (bei Word-Tabellen „Spalte 1“, „Spalte 2“ …). Eine erkannte Namensspalte ist angehakt und farbig. Anhaken wirkt wie ein starkes Kopfwort (auch bei Tabellen ohne Kopfzeile: dann alle Zeilen); Abhaken schaltet die Regel für diese Spalte aus. Das gilt als Änderung der Treffer: Das Häkchen beim Speichern muss neu gesetzt werden, und wurde schon eine Schlüsseldatei gespeichert, gibt es eine neue Kennung.
 - **Anrede in der Nachbarzelle (Excel):** Steht in einer Zelle nur „Frau“ oder „Herr“, gilt die rechte Nachbarzelle wie in Word und CSV als Name (Regel „Anrede allein“). Ist die Spalte eine Namensspalte, gilt die Namensspalte.
 
+### Webadressen und Konten (seit Version 2.7)
+Zwei neue Arten wie E-Mail und Telefon. Schalter **„Webadressen und Konten“** bei den anderen Kontakt-Schaltern, Standard: an.
+- **Webadresse:** alles mit `http://`, `https://` oder `www.` am Anfang, und Adressen ohne `www` mit einer bekannten Endung, z. B. `kita-sonne.de/kontakt`. Der Pfad gehört dazu. Platzhalter: **[WEBADRESSE]**, im Modus „rückbaufähig“ **[WEBADRESSE-1]**, [WEBADRESSE-2] … (gleiche Adresse = gleiche Nummer).
+  - Bekannte Endungen (Liste im Code, `src/core/patterns.js`): de, com, org, net, eu, info, at, ch, li, lu, nl, fr, pl, cz, dk, se, fi, uk, us, gr, pt, ie, tr, ru, biz, edu, gov, int, tv, io, app, online, shop, site, website, blog, news, digital, cloud, email, family, social, bayern, berlin, koeln, hamburg, nrw, ruhr, saarland, schule, wien, bzh, swiss, gmbh, kaufen, jetzt.
+  - **Keine Webadresse:** Dateinamen („bericht.docx“, „liste.xlsx“), Abkürzungen („z.B.“, „u.a.“), Zahlen und Uhrzeiten („13.20“). Der Teil hinter dem @ einer E-Mail-Adresse bleibt E-Mail.
+- **Konto:** der Kontoname nach Instagram, Facebook, TikTok, YouTube, LinkedIn, X, Twitter, Threads, Mastodon, Telegram, Snapchat oder WhatsApp-Kanal mit Doppelpunkt oder @ („Instagram: kita_sonne“, „TikTok @kita.sonne“), und ein allein stehendes @name. Nur der Kontoname wird ersetzt, das Wort „Instagram“ bleibt. Platzhalter: **[KONTO]**, rückbaufähig **[KONTO-1]** …
+- **Verknüpfungen in Word und Excel:** Eine ersetzte Webadresse steht auch nicht mehr im Ziel der Verknüpfung, in der Feldfunktion HYPERLINK oder im Link-Hinweis (Tooltip). Im Modus „rückbaufähig“ bekommt auch ein Ziel, das nur in der Verknüpfung steht (z. B. mit Pfad), eine eigene Nummer; es steht mit Anzahl 0 in der Schlüsseldatei, und der Rückbau setzt das Ziel exakt wieder ein.
+- Der „Hinweis für die KI“ nennt die neuen Platzhalter mit.
+
+### Sperre beim Speichern und Warnpunkt (seit Version 2.7)
+Neue Punkte auf „Speichern“. Sie laufen über das **eine Häkchen** wie alle Punkte und verschwinden, sobald ihr Grund weg ist.
+- **Es wird gar nichts ersetzt:** „In dieser Datei wird nichts ersetzt. Bitte prüfe Schulname, Firma, Webadresse und Konto und markiere sie von Hand.“
+- **Webadresse oder Konto steht noch im Text** (nur wenn der Schalter „Webadressen und Konten“ aus ist): jede Stelle mit Fundort und „Im Text zeigen“; „Ersetzen“ schaltet den Schalter ein.
+- **Warnpunkt „Hier könnte eine Einrichtung stehen.“** Das Tool ersetzt Einrichtungen noch nicht selbst. Es zeigt aber Stellen, die so aussehen:
+  - ein Kopfwort (Gymnasium, Schule und Wörter auf -schule, Universität, Kita, Kindergarten, Krippe, Hort, Kinderhaus, Familienzentrum, Jugendzentrum, Verein, Stiftung, Praxis, Klinik, Krankenhaus, Kanzlei, Firma, Institut, Akademie, auch mit Endung) direkt vor einem großgeschriebenen Wort („Gymnasium Tannhofen“), oder ein Wort mit Bindestrich davor („Tannhofen-Gymnasium“);
+  - ein großgeschriebenes Wort vor einer Rechtsform (GmbH, gGmbH, AG, KG, UG, GbR, eG, e. V., e.V., mbH);
+  - zwei bis sechs Wörter in Anführungszeichen, das erste großgeschrieben („Brandner lern und spiel“).
+  
+  Es sind höchstens zehn Stellen aufgeführt, dann „und n weitere“, jede mit Fundort und „Im Text zeigen“. Der Punkt **warnt nur**: Er ersetzt nichts, stellt keine Frage und ändert keine Ausgabe. Eine Stelle fällt weg, sobald sie ersetzt ist (von Hand als Einrichtung oder Name markiert). Auch Sachwörter können auftauchen („Ganztagsschule Schuljahr“, „Gesunde Pause“); dann einfach weiter.
+
 ### Eigene Namen und Ausnahmen (unter „Einstellungen und eigene Namen“)
 - **Eigene Namen (Merkliste):** Namen, die das Tool nicht kennt. Sie werden bei jedem weiteren Dokument automatisch mit ersetzt. Auch „Als Name markieren“, „Als Einrichtung markieren“ und „für nächstes Mal merken“ tragen dort ein.
   - Jeder Eintrag hat eine **Art** (Person oder Einrichtung), beim Hinzufügen wählbar. Datei und Browser-Speicher merken die Art. Ältere Merklisten (ohne Art) laden wie bisher als Personen.
@@ -124,7 +144,7 @@ In Excel, CSV und Word-Tabellen schaut das Tool auf die **Überschrift einer Spa
 - **Gespeichert wird nur auf ausdrücklichen Wunsch:** als Datei („Merkliste als Datei speichern“) oder im Browser (Schalter, **Standard: aus**). Die Liste **enthält echte Namen**. „Merkliste löschen“ entfernt alles, auch aus dem Browser.
 
 ### Einstellungen (unter „Einstellungen und eigene Namen“)
-- Zusätzlich ersetzen (einzeln schaltbar, Standard: an): E-Mail, Telefon, IBAN (mit Prüfziffer), Adresse/PLZ.
+- Zusätzlich ersetzen (einzeln schaltbar, Standard: an): E-Mail, Telefon, IBAN (mit Prüfziffer), Adresse/PLZ, seit 2.7 **Webadressen und Konten**. Wie jede Einstellung verwirft ein Umschalten alle Antworten (Regel seit 2.6.1).
 - „Unsichere Treffer standardmäßig ersetzen“ (Standard: an). Ausnahme: Wörter wie „die Rose“, „im Winter“, „mit voller Kraft“ (Artikel oder Präposition davor) bleiben aus, sind aber markiert.
 - „[NAME]“ statt „Person A, Person B …“ (kein Rückbau möglich).
 
@@ -143,7 +163,7 @@ In Excel, CSV und Word-Tabellen schaut das Tool auf die **Überschrift einer Spa
 - Jede Schreibweise hat genau einen Platzhalter. Eine weitere Schreibweise derselben Person bekommt eine Nummer: „MÜLLER“ wird „Nachname A2“, „Müller“ bleibt „Nachname A“.
 - Endungen und Anreden bleiben im Text stehen („Herrn Nachname As“) und kommen beim Rückbau genauso zurück („Herrn Müllers“).
 - Eine **große Endung** in GROSSSCHREIBUNG („MÜLLERS“, „DES LINDENAUER BÜRGERVEREINS“) gehört zum Platzhalter selbst und bekommt eine eigene Nummer (z. B. „Nachname A3“ = „MÜLLERS“; bei Einrichtungen ebenso „Einrichtung A“ mit Nummer). Für Personen seit 2.3.2, für Einrichtungen seit 2.3.3. So kommt sie beim Rückbau exakt zurück und sieht nie wie ein anderer Platzhalter aus („Nachname AS“).
-- Kontaktdaten werden nummeriert: [E-MAIL-1], [TELEFON-2], [IBAN-1], [ADRESSE-1]. Gleicher Wert bekommt die gleiche Nummer.
+- Kontaktdaten werden nummeriert: [E-MAIL-1], [TELEFON-2], [IBAN-1], [ADRESSE-1], seit 2.7 [WEBADRESSE-1] und [KONTO-1]. Gleicher Wert bekommt die gleiche Nummer. Locker umgeschriebene Formen („[Webadresse 1]“, „Konto-1“) erkennt der Rückbau und meldet sie mit „gemeint vermutlich …“; er rät aber nicht (wie bei allen Platzhaltern). Ältere Schlüsseldateien (ohne Webadressen und Konten) bauen genau wie bisher zurück; das Format der Schlüsseldatei bleibt gleich.
 - **Ziffern direkt hinter einem Namen** („Müller2“, „Yılmaz12“, seit 2.3.4) gehören zum Platzhalter und bekommen eine eigene Nummer („Nachname A2“ = „Müller2“). Vorher stand „Nachname A“ + „2“ im Text. Das sah aus wie die Schreibweise „Nachname A2“, und der Rückbau konnte still die falsche Schreibweise einsetzen. Allgemein gilt im Modus „rückbaufähig“: Direkt hinter einem Platzhalter steht nie ein Buchstabe oder eine Ziffer, die ihn wie einen anderen aussehen lässt.
 - **Wörter im Original, die wie Platzhalter aussehen** („Nachname A“, „Person A“, „Einrichtung A“, „[NAME]“, „[E-MAIL-1]“ …, seit 2.3.4): Das Tool vergibt diese Platzhalter nicht. Es nimmt die nächste freie Nummer („Nachname A2“) bzw. im Modus „Person A“ den nächsten freien Buchstaben („Person B“). Die Wörter bleiben im Text stehen und werden mit Anzahl in der Schlüsseldatei vermerkt (Zusatzfeld „imOriginal“, Format-Version unverändert). Beim Rückbau bleiben sie unberührt und erscheinen als neutrale Zeile „stand schon im Original (n×)“ unter „Details“, bei abweichender Anzahl als offener Punkt.
 - Einrichtungen (seit 2.3): „Einrichtung A“ für den ganzen Namen, weitere Schreibweisen „Einrichtung A2“ … Sie stehen als eigene Art in der Schlüsseldatei. Schlüsseldateien aus früheren Versionen funktionieren unverändert.
@@ -264,6 +284,15 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 ---
 
 ## Grenzen (bitte lesen)
+
+**Seit Version 2.7 (Webadressen, Konten, Warnpunkt):**
+- **Einrichtungen werden noch nicht selbst ersetzt.** Schulname, Träger und Kürzel („GYMTH“) bleiben im Klartext, bis du sie markierst. Der Warnpunkt zeigt Kandidaten; das Kürzel zeigt er nicht.
+- **Webadresse ohne bekannte Endung** (z. B. `kita.example`) oder ohne Punkt wird nicht erkannt. Eine bloße Domain mit GROSS geschriebener Endung („BEISPIEL.DE“) ebenfalls nicht; mit `www.` oder `https://` schon.
+- **Konto ohne Plattform-Wort und ohne @** (z. B. nur „kita_sonne“) wird nicht erkannt.
+- **Mailto-Verknüpfung:** Steht eine E-Mail-Adresse nur im Ziel einer Verknüpfung, wird sie wie bisher als „[E-MAIL]“ ohne Nummer ersetzt und kommt beim Rückbau nicht zurück.
+- **Word und ein Link-Ziel wie „[WEBADRESSE-2]“:** Das Ziel ist danach keine gültige Adresse mehr. LibreOffice öffnet die Datei (geprüft); Word wurde hier nicht geprüft.
+- **Umbruch in einer Webadresse (PDF):** Bricht eine Adresse mit „www.“ oder „http“ am Bindestrich um („www.lern-⏎und-spiel.de“), gilt sie als eine Adresse. Ein Umbruch an anderer Stelle (nach „/“ oder „.“) trennt sie; der Teil in der nächsten Zeile wird dann nur ersetzt, wenn er selbst wie eine Webadresse aussieht.
+- **Schlusscheck:** Er sucht wie bisher nur Namen und Einrichtungen, keine Kontaktdaten. Webadressen und Konten bei ausgeschaltetem Schalter meldet der Punkt „Webadresse oder Konto steht noch im Text“.
 
 **Seit Version 2.6 (Namensspalten, Zeilenende, „von“):**
 - **Unbekannter Vorname im Satz bleibt eine Grenze:** „Leitung: Dimitrios Papadopoulos“ – „Dimitrios“ steht in keiner Liste und ohne Anrede; er wird nicht erkannt. Nur in einer Namensspalte hilft die Spalte.
@@ -387,13 +416,15 @@ Die Datei muss in einem Browser geöffnet werden (z. B. über „Teilen → in S
 
 ## Version und Prüfsumme
 
-Version **2.6.1**, Stand 2026-11-21 (steht auch im Fußbereich des Tools).
+Version **2.7.0**, Stand 2026-11-21 (steht auch im Fußbereich des Tools).
 
 SHA-256 der `index.html` dieser Version:
 
 ```
-d411bf2f0f0b1e0ea0d545e681a1939475a81fb777a912710fb3b74c5fb15f1e
+631a2bcd05e3aaf859309893e57509b745c978e99932280cb89a3aedce8a934a
 ```
+
+Hinweis: Bei Version 2.6.1 stand hier versehentlich ein veralteter Wert (d411bf2f…). Die `index.html` von 2.6.1 hat die Prüfsumme f5b29a3d6cd1127b23a7226fbd44d155471d705c0dc961a6cf8853a983f18cc9.
 
 Eine Datei kann ihre eigene Prüfsumme nicht enthalten, deshalb steht sie nur hier und im PR-Text. Prüfen unter Windows: `certutil -hashfile index.html SHA256`.
 

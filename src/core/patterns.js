@@ -1,4 +1,4 @@
-// Kontaktdaten: E-Mail, Telefon, IBAN, Adresse/PLZ. Regelbasiert und deterministisch.
+// Kontaktdaten: E-Mail, Telefon, IBAN, Adresse/PLZ, seit Version 2.7.0 Webadresse und Konto. Regelbasiert und deterministisch.
 
 const EMAIL = /[\p{L}\p{N}._%+-]+@[\p{L}\p{N}-]+(?:\.[\p{L}\p{N}-]+)*\.\p{L}{2,}/gu;
 const IBAN_CAND = /\b[A-Z]{2}\d{2}(?: ?[A-Z0-9]){11,32}/g;
@@ -11,6 +11,29 @@ const STREET2 = /(^|[^\p{L}\p{N}])(?:Am|An der|An den|Auf der|Auf dem|Im|In der|
 const STREET_EN = /(^|[^\p{L}\p{N}])\d{1,5}[A-Za-z]?[ \u00a0]+(?:[A-Z][a-z]+[ \u00a0]){1,3}(?:Street|St\.|Road|Rd\.|Avenue|Ave\.|Lane|Ln\.|Drive|Way|Boulevard|Blvd\.|Court|Ct\.|Place|Pl\.|Square|Sq\.)/g;
 const PLZ = /(^|[^\p{L}\p{N}-])(?:(?:D|DE)-)?\d{5}[ \u00a0]+[\p{Lu}][\p{L}ß-]+(?:[ \u00a0]+(?:am|an der|im|in der|ob der|bei|vor der)[ \u00a0]+[\p{Lu}][\p{L}ß-]+|[ \u00a0]+\([\p{L} .]+\))?/gu;
 const PLZ4 = /(^|[^\p{L}\p{N}-])(?:A|AT|CH)-\d{4}[ \u00a0]+[\p{Lu}][\p{L}ß-]+/gu;
+
+// Version 2.7.0: Webadressen. http(s)://…, www.…, und Domains ohne www mit einer Endung aus dieser festen Liste (nur
+// kleingeschrieben). Nicht: Dateinamen (bericht.docx), Abkürzungen (z.B., u.a.), Zahlen (13.20); der Teil einer
+// E-Mail-Adresse bleibt E-Mail.
+export const WEB_TLDS = ['de', 'com', 'org', 'net', 'eu', 'info', 'at', 'ch', 'li', 'lu', 'nl', 'fr', 'pl', 'cz', 'dk', 'se', 'fi', 'uk',
+  'us', 'gr', 'pt', 'ie', 'tr', 'ru', 'biz', 'edu', 'gov', 'int', 'tv', 'io', 'app', 'online', 'shop', 'site', 'website', 'blog', 'news',
+  'digital', 'cloud', 'email', 'family', 'social', 'bayern', 'berlin', 'koeln', 'hamburg', 'nrw', 'ruhr', 'saarland', 'schule', 'wien',
+  'bzh', 'swiss', 'gmbh', 'kaufen', 'jetzt'];
+const TLD_ALT = WEB_TLDS.join('|');
+const URL_CHARS = '[^\\s<>"\'„“”‚‘»«()\\[\\]{}|]';
+const WEB_SCHEME = new RegExp('(^|[^\\p{L}\\p{N}])(?:https?|ftp)://' + URL_CHARS + '+', 'giu');
+const WEB_WWW = new RegExp('(^|[^\\p{L}\\p{N}@./-])www\\.[\\p{L}\\p{N}-]+(?:\\.[\\p{L}\\p{N}-]+)+(?:[/?#]' + URL_CHARS + '*)?', 'giu');
+const WEB_BARE = new RegExp('(^|[^\\p{L}\\p{N}@._/-])(?:[\\p{L}\\p{N}](?:[\\p{L}\\p{N}-]*[\\p{L}\\p{N}])?\\.)+(?:' + TLD_ALT + ')(?![\\p{L}\\p{N}-])(?:[/?#]' + URL_CHARS + '*)?', 'gu');
+// Satzzeichen am Ende gehören nicht zur Adresse
+const WEB_BARE_PRE = new RegExp('[\\p{L}\\p{N}]\\.(?:' + TLD_ALT + ')(?![\\p{L}\\p{N}-])', 'u');
+const trimUrl = (t) => t.replace(/[.,;:!?'’]+$/, '');
+// Version 2.7.0: Konten. Kontoname nach einem Plattform-Wort mit Doppelpunkt oder @ (das Plattform-Wort bleibt stehen),
+// dazu ein allein stehendes @name. Ersetzt wird der Kontoname (mit @, falls vorhanden).
+export const PLATFORMS = ['Instagram', 'Facebook', 'TikTok', 'YouTube', 'LinkedIn', 'X', 'Twitter', 'Threads', 'Mastodon', 'Telegram', 'Snapchat', 'WhatsApp-Kanal', 'WhatsApp'];
+const PLATFORM_PRE = /Instagram|Facebook|TikTok|YouTube|LinkedIn|Twitter|Threads|Mastodon|Telegram|Snapchat|WhatsApp|X[ \u00a0]*[:@]/;
+const HANDLE = '@?[\\p{L}\\p{N}_](?:[\\p{L}\\p{N}_.-]*[\\p{L}\\p{N}_])?';
+const ACCOUNT_PLATFORM = new RegExp('(^|[^\\p{L}\\p{N}-])(?:' + PLATFORMS.join('|') + ')(?:[ \\u00a0]*:[ \\u00a0]*|[ \\u00a0]+(?=@)|(?=@))(' + HANDLE + ')', 'gu');
+const ACCOUNT_AT = /(^|[^\p{L}\p{N}._%+@-])@([\p{L}\p{N}_](?:[\p{L}\p{N}_.]*[\p{L}\p{N}_])?)/gu;
 
 function ibanValid(raw) {
   const s = raw.replace(/ /g, '');
@@ -34,7 +57,7 @@ function phoneValid(m) {
   return true;
 }
 
-// Liefert [{s, e, type, cert}] für einen Text. opts: {email, phone, iban, address}
+// Liefert [{s, e, type, cert}] für einen Text. opts: {email, phone, iban, address, web}
 export function findContacts(text, opts) {
   const out = [];
   const push = (s, e, type, cert = 'sicher') => {
@@ -43,6 +66,43 @@ export function findContacts(text, opts) {
   };
   const hasDigit = /\d/.test(text);
   if (opts.email && text.includes('@')) for (const m of text.matchAll(EMAIL)) push(m.index, m.index + m[0].length, 'email');
+  // Version 2.7.0: Webadressen und Konten (Schalter „Webadressen und Konten“, opts.web)
+  if (opts.web && /[./:@]/.test(text)) {
+    // Umbruch mitten in einer Webadresse (PDF: „www.lern-⏎und-spiel.de“): Beginnt das Wort vor dem Zeilenende mit
+    // http(s):// oder www. und endet es auf -, geht die Adresse in der nächsten Zeile weiter. Nur zum Suchen
+    // wird der Umbruch durch ein Zeichen gleicher Länge ersetzt; die Stelle (samt Umbruch) bezieht sich aufs Original.
+    let wt = text;
+    for (let i = 0; i < 5 && wt.includes('\n'); i++) {
+      const nx = wt.replace(/((?:^|[^\S\n])(?:[hH][tT][tT][pP][sS]?:\/\/|[wW][wW][wW]\.)[^\s]*-)\n(?=[\p{Ll}\p{N}])/gu, '$1x');
+      if (nx === wt) break;
+      wt = nx;
+    }
+    // Vorfilter (Geschwindigkeit): jedes Muster nur, wenn sein Kennzeichen im Text steht
+    const use = [/:\/\//.test(wt) && WEB_SCHEME, /www\./i.test(wt) && WEB_WWW, WEB_BARE_PRE.test(wt) && WEB_BARE].filter(Boolean);
+    for (const re of use) {
+      for (const m of wt.matchAll(re)) {
+        const st = m.index + m[1].length;
+        const t = trimUrl(m[0].slice(m[1].length));
+        // Vor der Endung muss ein Buchstabe stehen („3.de“ ist keine Webadresse)
+        if (!/\p{L}/u.test(t.replace(/^(?:https?|ftp):\/\//i, '').split(/[/?#]/)[0].replace(/\.[^.]*$/, ''))) continue;
+        push(st, st + t.length, 'web');
+      }
+    }
+    if (PLATFORM_PRE.test(text)) for (const m of text.matchAll(ACCOUNT_PLATFORM)) {
+      const name = trimUrl(m[2]);
+      if (!/\p{L}|\d/u.test(name.replace('@', ''))) continue;
+      const st = m.index + m[0].length - m[2].length;
+      push(st, st + name.length, 'account');
+    }
+    if (text.includes('@')) {
+      for (const m of text.matchAll(ACCOUNT_AT)) {
+        const name = trimUrl('@' + m[2]);
+        if (name.length < 3 || !/\p{L}/u.test(name)) continue;
+        const st = m.index + m[1].length;
+        push(st, st + name.length, 'account');
+      }
+    }
+  }
   if (opts.iban && hasDigit && /[A-Z]{2}\d{2}/.test(text)) {
     for (const m of text.matchAll(IBAN_CAND)) {
       let cand = m[0];

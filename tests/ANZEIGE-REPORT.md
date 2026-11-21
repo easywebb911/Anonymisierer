@@ -1,6 +1,6 @@
 # Anzeige beim Prüfen (Version 2.6.1)
 
-Chromium headless gegen index.html (SHA-256 f5b29a3d6cd1127b…). Alle Namen in den Testdateien sind erfunden.
+Chromium headless gegen index.html (SHA-256 631a2bcd05e3aaf8…). Alle Namen in den Testdateien sind erfunden.
 
 ## a) Drei Zustände im Text und im Satz-Ausschnitt
 - OK: wird ersetzt: Fläche #FFF3C4, kein Rahmen – rgb(255, 243, 196), Rahmen 3px none rgb(23, 33, 43), Stärke 400
@@ -113,6 +113,20 @@ Fallen:
 - OK: liste.xlsx: 5 Antwort-Schritte (mit Änderungen), 35 Platzhalter zurück, Abweichungen 0
 - OK: bedienung.txt: 5 Antwort-Schritte (mit Änderungen), 9 Platzhalter zurück, Abweichungen 0
 
+## z) Kein Text „null“ oder „undefined“ (Fragekarte in jedem Zustand, Bildschirme Datei/Prüfen/Speichern je Format)
+- OK: #qcard „Frage offen (Frage 1)“: kein „null“/„undefined“ – Frage 1 von 7 ← → Frau Rose bringt Rosen mit. Ist hier die Person Rose
+- OK: #qcard „Frage beantwortet (zurück zur Frage 1)“: kein „null“/„undefined“ – Frage 1 von 7 ← → Frau Rose bringt Rosen mit. Ist hier die Person Rose
+- OK: #qcard „Alle Fragen beantwortet“: kein „null“/„undefined“ – 7 von 7 Fragen ← → Alle Fragen beantwortet Fragen noch einmal zeigen
+- OK: #qcard „mit Einstellungs-Hinweis (Frage offen)“: kein „null“/„undefined“ – Frage 1 von 7 ← → Du hast eine Einstellung geändert. Die Fragen sind w
+- OK: #qcard „mit Einstellungs-Hinweis (alle beantwortet)“: kein „null“/„undefined“ – 7 von 7 Fragen ← → Alle Fragen beantwortet Fragen noch einmal zeigen
+- OK: #qcard „Keine Fragen“: kein „null“/„undefined“ – Keine Fragen Es gibt nichts zu entscheiden.
+- OK: Einstellungs-Hinweis wurde tatsächlich gezeigt
+- OK: protokoll.txt: Datei, Prüfen, Speichern ohne „null“/„undefined“
+- OK: tabellen-stark.csv: Datei, Prüfen, Speichern ohne „null“/„undefined“
+- OK: kurse.docx: Datei, Prüfen, Speichern ohne „null“/„undefined“
+- OK: mehrblatt.xlsx: Datei, Prüfen, Speichern ohne „null“/„undefined“
+- OK: protokoll.pdf: Datei, Prüfen, Speichern ohne „null“/„undefined“
+
 - OK: Netzwerkanfragen nach außen: 0
 - OK: Keine JS-Fehler
 
@@ -127,8 +141,9 @@ Fallen:
 | s) Einstellung nach Antworten: wie frisch, Fragen offen, Hinweis | alle | 9 von 9 bestanden |
 | l) Liste: entfernt → Nein, hinzugefügt → unverändert | alle | 3 von 3 bestanden |
 | f) Rückbau nach geänderten Antworten exakt (docx, xlsx, txt) | alle | 3 von 3 bestanden |
+| z) kein „null“/„undefined“ in Fragekarte und Bildschirmen | alle | 12 von 12 bestanden |
 | n) 0 Anfragen nach außen, keine JS-Fehler | alle | 2 von 2 bestanden |
 
 Geprüfte Fragen (b): 41 in 8 Dateien. Weg-Gleichheit (e): 19 Fälle × 3 Modi. Rückbau (f): 3 Dateien.
 
-**Ergebnis: 87 von 87 Prüfungen bestanden.** Nur Chromium; Firefox prüft Easy.
+**Ergebnis: 99 von 99 Prüfungen bestanden.** Nur Chromium; Firefox prüft Easy.

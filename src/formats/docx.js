@@ -205,7 +205,7 @@ export async function writeDocx(bytes, repsPerUnit, generic, opts = {}) {
   }
 
   // Sonstige Texte (Feldfunktionen, benutzerdefinierte XML-Daten, Alternativtexte …)
-  const ATTRS = new Set(['descr', 'title', 'instr', 'alias', 'tag']);
+  const ATTRS = new Set(['descr', 'title', 'instr', 'alias', 'tag', 'tooltip']); // 2.7.0: Link-Hinweis (w:hyperlink w:tooltip)
   for (const [n, doc] of d.docs) {
     if (/\.rels$/.test(n)) continue; // Verweise werden unten eigens behandelt
     let mod = false;

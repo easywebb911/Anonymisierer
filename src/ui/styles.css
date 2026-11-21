@@ -244,3 +244,7 @@ label.coltgl { display: block; font-weight: 400; font-size: 12px; white-space: n
 label.coltgl input { margin: 0 .2rem 0 0; vertical-align: middle; }
 th.namecol { background: var(--hl, #fff4c2); color: var(--fg, inherit); }
 table.wtable th { border: 1px solid var(--line); padding: .1rem .45rem; font-size: 12px; text-align: left; color: var(--muted); }
+/* Version 2.7.0: Stellen eines Punkts (höchstens zehn) mit „Im Text zeigen“ */
+.points .plist { margin: .3rem 0 0; padding-left: 1.1rem; font-size: 14px; }
+.points .plist li { display: flex; gap: .4rem; align-items: center; flex-wrap: wrap; margin: .15rem 0; }
+.points .plist li > span { overflow-wrap: anywhere; }

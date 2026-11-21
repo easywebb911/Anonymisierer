@@ -498,6 +498,54 @@ for (const [file, kind, steps] of RB) {
 }
 
 }
+if (part('z')) {
+// ---------- z) Kein „null“/„undefined“ in der Oberfläche (Nachbesserung 2.7.0) ----------
+log('');
+log('## z) Kein Text „null“ oder „undefined“ (Fragekarte in jedem Zustand, Bildschirme Datei/Prüfen/Speichern je Format)');
+const BAD = /\b(null|undefined)\b/;
+const cardText = (page) => page.$eval('#qcard', (e) => e.innerText.replace(/\s+/g, ' ').trim());
+const screenText = (page, id) => page.$eval('#scr-' + id, (e) => e.innerText.replace(/\s+/g, ' ').trim());
+const bad = (t) => { const m = t.match(BAD); return m ? `„…${t.slice(Math.max(0, m.index - 40), m.index + 20)}…“` : ''; };
+{
+  // Befund Easy: protokoll.txt, Modus „Person A“, Prüfen, Frage 1
+  const { page, ctx } = await openUI(path.join(FS, 'protokoll.txt'), 'person');
+  const states = [];
+  states.push(['Frage offen (Frage 1)', await cardText(page)]);
+  await page.click('#q-yes');
+  await page.keyboard.press('ArrowLeft');
+  states.push(['Frage beantwortet (zurück zur Frage 1)', await cardText(page)]);
+  for (let i = 0; i < 60 && await page.$('#q-no'); i++) await page.click('#q-no');
+  states.push(['Alle Fragen beantwortet', await cardText(page)]);
+  // Einstellung ändern -> Hinweis „Du hast eine Einstellung geändert …“
+  await page.click('#scr-a2 [data-back]');
+  if (await page.isHidden('#opt-unsureOn')) await page.click('#tgl-adv');
+  await page.click('#opt-unsureOn');
+  await goTo(page, 'a2');
+  const withNote = await cardText(page);
+  states.push(['mit Einstellungs-Hinweis (Frage offen)', withNote]);
+  for (let i = 0; i < 60 && await page.$('#q-no'); i++) await page.click('#q-no');
+  states.push(['mit Einstellungs-Hinweis (alle beantwortet)', await cardText(page)]);
+  await ctx.close();
+  const pg2 = await openUI(path.join(here, 'fixtures-traeger', 'nurweb.txt'), 'person');
+  states.push(['Keine Fragen', await cardText(pg2.page)]);
+  await pg2.ctx.close();
+  for (const [name, t] of states) check('z', `#qcard „${name}“: kein „null“/„undefined“`, !BAD.test(t), bad(t) || t.slice(0, 70));
+  check('z', 'Einstellungs-Hinweis wurde tatsächlich gezeigt', /Du hast eine Einstellung geändert/.test(withNote));
+}
+for (const f of [path.join(FS, 'protokoll.txt'), path.join(FS, 'tabellen-stark.csv'), path.join(FX, 'kurse.docx'), path.join(FXA, 'mehrblatt.xlsx'), path.join(FX, 'protokoll.pdf')]) {
+  const pg = await newPage();
+  await startAnon(pg.page, 'person');
+  await loadIn(pg.page, f);
+  const t1 = await screenText(pg.page, 'a1');
+  await goTo(pg.page, 'a2');
+  const t2 = await screenText(pg.page, 'a2');
+  await goTo(pg.page, 'a3');
+  const t3 = await screenText(pg.page, 'a3');
+  await pg.ctx.close();
+  const b = [['Datei', t1], ['Prüfen', t2], ['Speichern', t3]].map(([n, t]) => (BAD.test(t) ? `${n}: ${bad(t)}` : '')).filter(Boolean);
+  check('z', `${path.basename(f)}: Datei, Prüfen, Speichern ohne „null“/„undefined“`, !b.length, b.join(' | '));
+}
+}
 // ---------- Zusammenfassung ----------
 log('');
 check('n', 'Netzwerkanfragen nach außen: 0', requests.length === 0, requests.join(', '));
@@ -509,7 +557,7 @@ log('|---|---|---|');
 const SOLL = { a: 'Farben, Rahmen, Schriftstärke je Zustand und im Satz-Ausschnitt', b: 'kräftig markiert = Stellen der gezeigten Frage, für jede Frage jeder Datei; 0 bei Dateiangaben und ohne Frage',
   c: 'erste Stelle nach jedem Fragenwechsel sichtbar, Excel-Reiter, kein Rollen bei Klick, Fokus bleibt', d: 'Zähler lückenlos, ← k−1, Knöpfe, Pfeiltasten, keine Wirkung in Eingabefeldern',
   e: 'Weg-Gleichheit je Fragen-Art und Richtung + Fallen, drei Modi und Schlüsseldatei', s: 'Einstellung nach Antworten: wie frisch, Fragen offen, Hinweis', l: 'Liste: entfernt → Nein, hinzugefügt → unverändert',
-  f: 'Rückbau nach geänderten Antworten exakt (docx, xlsx, txt)', n: '0 Anfragen nach außen, keine JS-Fehler' };
+  f: 'Rückbau nach geänderten Antworten exakt (docx, xlsx, txt)', z: 'kein „null“/„undefined“ in Fragekarte und Bildschirmen', n: '0 Anfragen nach außen, keine JS-Fehler' };
 for (const [k, v] of Object.entries(SOLL)) if (tally[k]) log(`| ${k}) ${v} | alle | ${tally[k].ok} von ${tally[k].n} bestanden |`);
 const nQ = tableB.reduce((s, r) => s + r[1], 0);
 log('');
