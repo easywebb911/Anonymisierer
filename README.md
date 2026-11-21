@@ -333,7 +333,7 @@ Version **2.3.1**, Stand 2026-11-21 (steht auch im Fußbereich des Tools).
 SHA-256 der `index.html` dieser Version:
 
 ```
-03d8c27ceb9230f6359019b80d5f1fcfa3e8bac92bd31ed26c6e1c4adb229e48
+df1f14af7f74ddfca8c36da1e022d26fd39b5740fba99bffe718ca986ef59a8e
 ```
 
 Eine Datei kann ihre eigene Prüfsumme nicht enthalten, deshalb steht sie nur hier und im PR-Text. Prüfen unter Windows: `certutil -hashfile index.html SHA256`.
