@@ -35,6 +35,32 @@ export const LINES = [
   'Treffpunkt im Familienzentrum⏎Sonnenblume, Saal 2.',
 ];
 
+// Zwei-Zeilen-Fälle (TXT): je Zeile eine Einheit
+export const ORG3 = 'Musikschule am Stadtpark';
+export const UMBRUCH_LINES = [
+  'Brief an die Musikschule', // Umbruch nach dem ersten Wort
+  'am Stadtpark, z. Hd. Frau Petra Hollmann.',
+  'Die Musikschule am', // Umbruch nach dem zweiten Wort
+  'Stadtpark lädt ein.',
+  'Vorstand des Lindenauer', // mit Endung am Schluss
+  'Bürgervereins tagt.',
+  'Gruß an die Musikschule', // zwei Umbrüche im Namen (nicht ersetzen, Schlusscheck meldet)
+  'am',
+  'Stadtpark (zwei Umbrüche).',
+  'Ein Satz ohne Einrichtung.',
+  'Musikschule am Stadtpark ohne Umbruch.',
+];
+async function absatzDocx(withText = false) {
+  const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+  const p = (t) => `<w:p><w:r><w:t xml:space="preserve">${esc(t)}</w:t></w:r></w:p>`;
+  const z = new JSZip();
+  z.file('[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>', ZO);
+  z.file('_rels/.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>', ZO);
+  // Briefkopf: Name auf zwei Absätze verteilt
+  z.file('word/document.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<w:document xmlns:w="${W}"><w:body>${p('Musikschule am')}${p('Stadtpark')}${p('Rundbrief an alle Eltern.')}${withText ? p('Die Musikschule am Stadtpark lädt ein.') : ''}<w:sectPr/></w:body></w:document>`, ZO);
+  return z.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
+}
+
 async function word() {
   const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
   const R = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
@@ -87,5 +113,15 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   // CSV: der Umbruch steht in einer Zelle (in Anführungszeichen); zweite Spalte: Ort
   const csv = ['Text;Ort', ...LINES.map((l, i) => `"${l.replace('⏎', '\n').replace(/"/g, '""')}";Raum ${i + 1}`)].join('\r\n') + '\r\n';
   fs.writeFileSync(path.join(fx, 'einrichtung.csv'), csv);
-  console.log('geschrieben: tests/fixtures/einrichtung.docx, .xlsx, .txt, .csv');
+  // Zwei-Zeilen-Fälle (TXT, Version 2.3): Umbruch nach dem 1. / 2. Wort, mit Endung, zwei Umbrüche; Unix und Windows
+  const UMBRUCH = UMBRUCH_LINES.join('\n') + '\n';
+  fs.writeFileSync(path.join(fx, 'einrichtung-umbruch.txt'), UMBRUCH);
+  fs.writeFileSync(path.join(fx, 'einrichtung-umbruch-crlf.txt'), UMBRUCH.replace(/\n/g, '\r\n'));
+  // Briefkopf über zwei getrennte Absätze (nur testen): TXT mit Leerzeile, Word mit zwei Absätzen
+  fs.writeFileSync(path.join(fx, 'einrichtung-absatz.txt'), 'Musikschule\n\nam Stadtpark\nRundbrief an alle Eltern.\n');
+  fs.writeFileSync(path.join(fx, 'einrichtung-absatz.docx'), await absatzDocx());
+  // Variante: die Einrichtung steht zusätzlich einmal im Text
+  fs.writeFileSync(path.join(fx, 'einrichtung-absatz-text.txt'), 'Musikschule\n\nam Stadtpark\nRundbrief an alle Eltern.\nDie Musikschule am Stadtpark lädt ein.\n');
+  fs.writeFileSync(path.join(fx, 'einrichtung-absatz-text.docx'), await absatzDocx(true));
+  console.log('geschrieben: tests/fixtures/einrichtung.docx, .xlsx, .txt, .csv, einrichtung-umbruch(-crlf).txt, einrichtung-absatz.txt/.docx');
 }

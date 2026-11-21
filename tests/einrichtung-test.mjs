@@ -11,7 +11,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import JSZip from 'jszip';
 import { startAnon, loadIn, goTo, ackAll, exportWithAck, saveKey, waitPreview } from './ui-helpers.mjs';
-import { ORG, WORDS, LINES } from './make-einrichtung.mjs';
+import { ORG, ORG3, WORDS, LINES, UMBRUCH_LINES } from './make-einrichtung.mjs';
 
 const { chromium } = createRequire('/opt/node22/lib/node_modules/')('playwright');
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -210,7 +210,7 @@ for (const [file, fmt] of FORMATS) {
   anonFiles[fmt] = anon;
   const key = JSON.parse(fs.readFileSync(keyPath, 'utf8').replace(/^﻿/, ''));
   const orgEntries = key.platzhalter.filter((e) => e.kategorie === 'Einrichtung');
-  check('Schlüsseldatei: Einrichtungen als eigene Art (kategorie „Einrichtung“, Liste „einrichtungen“)', orgEntries.length >= 4 && Array.isArray(key.einrichtungen) && key.einrichtungen.length === 3,
+  check('Schlüsseldatei: Einrichtungen als eigene Art (kategorie „Einrichtung“, Liste „einrichtungen“), Format-Version 2', key.formatVersion === 2 && orgEntries.length >= 4 && Array.isArray(key.einrichtungen) && key.einrichtungen.length === 3,
     orgEntries.map((e) => `${e.platzhalter} = „${e.wert.replace('\n', '⏎')}“ (${e.anzahl}×)`).join('; '));
   const blocked = r.blocked ? r.blocked.items.map((x) => x.replace(/\s+/g, ' ').slice(0, 90)) : [];
   // Fälle einzeln
@@ -231,8 +231,10 @@ for (const [file, fmt] of FORMATS) {
     const kept = !replaced && outSeg.includes(c.surface.split('\n')[0]);
     const note = !replaced && kept ? ` – NICHT ersetzt; Schlusscheck meldet: ${blocked.some((b) => /Familienzentrum/.test(b)) ? 'ja (Speichern gesperrt bis „bewusst stehen lassen“)' : 'NEIN'}` : '';
     log(`| ${c.id} | ${replaced ? 'ja' : 'nein'} | „${outSeg.replace(/\n/g, '⏎').slice(0, 90)}“${note} | ${exact ? 'ja' : 'NEIN'} |`);
-    const expectNo = c.id === 'Zeilenumbruch im Namen' && (fmt === 'txt' || fmt === 'docx'); // Grenze, siehe Bericht
-    if (expectNo) check(`${fmt}: ${c.id}: nicht ersetzt, aber der Schlusscheck meldet ihn (nie unbemerkt)`, !replaced && blocked.some((b) => /Familienzentrum/.test(b)) && exact, blocked[0]);
+    // Word, rückbaufähig, Zeilenumbruch <w:br/> im Namen: bewusst nicht ersetzt (Entscheidung Easy), Schlusscheck meldet mit Anleitung
+    const expectNo = c.id === 'Zeilenumbruch im Namen' && fmt === 'docx';
+    const msg = 'Der Name steht über einen Zeilenumbruch. Entferne den Umbruch in Word oder markiere die Teile einzeln.';
+    if (expectNo) check(`${fmt}: ${c.id}: nicht ersetzt, Schlusscheck meldet ihn mit Anleitung („${msg}“)`, !replaced && r.blocked.items.some((x) => /Familienzentrum/.test(x) && x.includes(msg)) && exact, blocked[0]);
     else check(`${fmt}: ${c.id}: ersetzt und Rückbau exakt`, replaced && exact);
   }
   const all = sb.length === so.length && sb.every((x, k) => x === so[k]);
@@ -240,7 +242,7 @@ for (const [file, fmt] of FORMATS) {
   const wh = await wordHits(fs.readFileSync(anon), fmt);
   const rest = Object.entries(wh).filter(([, v]) => v.c).map(([w, v]) => `${w} ${v.c}× (${v.where.join(', ')})`);
   log(`- Wortbestandteile in ALLEN Teilen der Ausgabe: ${WORDS.map((w) => `${w} ${wh[w].c}`).join(', ')}`);
-  const okRest = rest.length === 0 || ((fmt === 'txt' || fmt === 'docx') && rest.every((x) => /^(Familienzentrum|Sonnenblume) 1×/.test(x)) && blocked.length);
+  const okRest = rest.length === 0 || (fmt === 'docx' && rest.every((x) => /^(Familienzentrum|Sonnenblume) 1×/.test(x)) && blocked.length);
   check(`${fmt}: keine Reste${rest.length ? ' außer dem gemeldeten Zeilenumbruch-Fall' : ''}`, okRest, rest.join('; '));
   log('');
 }
@@ -375,16 +377,144 @@ log('## Oberfläche: Legende, KI-Hinweis, Modi');
 log('');
 
 // ---------- Rückwärts-Prüfung ----------
-log('## Rückwärts-Prüfung für den Revert-Weg: Version 2.2 mit Schlüsseldatei aus 2.3');
+log('## Rückwärts-Prüfung für den Revert-Weg: Version 2.2 mit Schlüsseldateien aus 2.3');
 if (oldHtml) {
-  const r = await restoreUI(anonFiles.txt, keys.txt, oldHtml);
-  const text = r.bytes ? r.bytes.toString('utf8') : '';
-  const left = (text.match(/Einrichtung [A-Z]\d*/g) || []);
-  log(`- Version 2.2 lädt die Schlüsseldatei: „${r.keyStatus}“`);
-  log(`- Urteil der bisherigen Prüfung: „${r.plan.verdict}“, Zeilen: ${r.plan.rows.join(', ')}`);
-  log(`- Ergebnis: Personen und Kontaktdaten zurück; Einrichtungs-Platzhalter bleiben stehen: ${left.length ? [...new Set(left)].join(', ') : 'keine'}`);
-  check('2.2 lädt den Schlüssel, baut Personen zurück, Einrichtungen bleiben als Platzhalter (gemeldet als Anzahl-Abweichung)', /Schlüsseldatei geladen/.test(r.keyStatus) && left.length > 0 && /Petra Hollmann/.test(text) && r.plan.rows.some((x) => /^Einrichtung A: 0\//.test(x)));
+  // a) Schlüssel MIT Einrichtung (Format-Version 2): 2.2 lehnt ihn klar ab
+  {
+    const { page, ctx } = await newPage(oldHtml);
+    await page.click('#go-restore');
+    await page.setInputFiles('#rb-file', anonFiles.txt);
+    await page.waitForFunction(() => document.querySelector('#rb-file-status').textContent);
+    await page.setInputFiles('#rb-key', keys.txt);
+    await page.waitForFunction(() => document.querySelector('#rb-key-status').textContent);
+    const st = await page.textContent('#rb-key-status');
+    const next = await page.$eval('#rb-btn-check', (b) => b.disabled).catch(() => null);
+    await ctx.close();
+    log(`- Schlüssel mit Einrichtung (Format-Version 2), Meldung von 2.2: „${st}“`);
+    check('2.2 lehnt einen Schlüssel mit Einrichtung klar ab (unbekannte Version)', /Unbekannte Version der Schlüsseldatei \(2\)/.test(st) && next !== false, `Prüfen-Knopf gesperrt: ${next}`);
+  }
+  // b) Schlüssel aus 2.3 OHNE Einrichtung (Format-Version 1): funktioniert in 2.2 unverändert
+  {
+    const { page, ctx } = await newPage();
+    await startAnon(page, 'reversible');
+    await loadIn(page, path.join(fx, 'vertausch-1.txt'));
+    await ackAll(page);
+    const kd = await saveKey(page);
+    const kp = path.join(outDir, `${++seq}-${kd.suggestedFilename()}`);
+    await kd.saveAs(kp);
+    const r = await exportWithAck(page, 'txt');
+    const ap = path.join(outDir, `${++seq}-${r.dl.suggestedFilename()}`);
+    await r.dl.saveAs(ap);
+    await ctx.close();
+    const k = JSON.parse(fs.readFileSync(kp, 'utf8').replace(/^\uFEFF/, ''));
+    const back = await restoreUI(ap, kp, oldHtml);
+    const orig = fs.readFileSync(path.join(fx, 'vertausch-1.txt'), 'utf8');
+    const got = back.bytes ? back.bytes.toString('utf8').replace(/^\uFEFF/, '') : '';
+    log(`- Schlüssel ohne Einrichtung (Format-Version ${k.formatVersion}), Meldung von 2.2: „${back.keyStatus}“, Urteil „${back.plan.verdict}“`);
+    check('2.3-Schlüssel ohne Einrichtung: Format-Version 1, 2.2 baut exakt zurück', k.formatVersion === 1 && !('einrichtungen' in k) && back.plan.verdict === 'passend' && got === orig);
+  }
 } else log('- übersprungen (keine index.html der Version 2.2 angegeben)');
+log('');
+
+// ---------- TXT: Einrichtung über einen Zeilenumbruch ----------
+log('## TXT: Einrichtung über einen Zeilenumbruch (Entscheidung Easy), alle drei Modi, Unix- und Windows-Zeilenenden');
+const UCASES = [
+  { id: 'Umbruch nach dem ersten Wort', src: 'Brief an die Musikschule', want: { person: /^Brief an die Einrichtung A, z\. Hd\. Frau Person A\.$/, name: /^Brief an die \[EINRICHTUNG\], z\. Hd\. Frau \[NAME\]\.$/, reversible: /^Brief an die Einrichtung A\d*, z\. Hd\. Frau Vorname A Nachname A\.$/ } },
+  { id: 'Umbruch nach dem zweiten Wort', src: 'Die Musikschule am', want: { person: /^Die Einrichtung A lädt ein\.$/, name: /^Die \[EINRICHTUNG\] lädt ein\.$/, reversible: /^Die Einrichtung A\d+ lädt ein\.$/ } },
+  { id: 'mit Endung am Schluss', src: 'Vorstand des Lindenauer', want: { person: /^Vorstand des Einrichtung Bs tagt\.$/, name: /^Vorstand des \[EINRICHTUNG\]s tagt\.$/, reversible: /^Vorstand des Einrichtung B\d*s tagt\.$/ } },
+  { id: 'zwei Umbrüche (nicht ersetzen, Schlusscheck meldet)', src: 'Gruß an die Musikschule', want: null },
+  { id: 'ohne Einrichtung (unverändert)', src: 'Ein Satz ohne Einrichtung.', want: { person: /^Ein Satz ohne Einrichtung\.$/, name: /^Ein Satz ohne Einrichtung\.$/, reversible: /^Ein Satz ohne Einrichtung\.$/ } },
+  { id: 'ohne Umbruch (Vergleich)', src: 'Musikschule am Stadtpark ohne', want: { person: /^Einrichtung A ohne Umbruch\.$/, name: /^\[EINRICHTUNG\] ohne Umbruch\.$/, reversible: /^Einrichtung A\d* ohne Umbruch\.$/ } },
+];
+const UWORDS = ['Musikschule', 'Stadtpark', 'Lindenauer', 'Bürgerverein', 'Hollmann'];
+for (const file of ['einrichtung-umbruch.txt', 'einrichtung-umbruch-crlf.txt']) {
+  const eol = /crlf/.test(file) ? 'Windows (CRLF)' : 'Unix (LF)';
+  for (const mode of ['person', 'name', 'reversible']) {
+    log(`### ${eol}, Modus ${({ person: '„Person A“', name: '„[NAME]“', reversible: 'rückbaufähig' })[mode]}`);
+    const { page, ctx } = await newPage();
+    await page.click('#go-anon');
+    if (await page.isHidden('#advanced')) await page.click('#tgl-adv');
+    for (const t of [ORG3, ORG.verein]) { await page.fill('#name-input', t); await page.selectOption('#name-kind', 'org'); await page.click('#name-add button[type=submit]'); }
+    await startAnon(page, mode);
+    await loadIn(page, path.join(fx, file));
+    await goTo(page, 'a2');
+    const marks = await page.$$eval('#docview mark.org', (ms) => ms.map((m) => m.textContent));
+    await ackAll(page);
+    let kp = null;
+    if (mode === 'reversible') { const kd = await saveKey(page); kp = path.join(outDir, `${++seq}-${kd.suggestedFilename()}`); await kd.saveAs(kp); }
+    const r = await exportWithAck(page, 'txt');
+    const ap = path.join(outDir, `${++seq}-${r.dl.suggestedFilename()}`);
+    await r.dl.saveAs(ap);
+    await ctx.close();
+    const raw = fs.readFileSync(ap, 'utf8').replace(/^\uFEFF/, '');
+    const out = raw.split(/\r?\n/);
+    const origRaw = fs.readFileSync(path.join(fx, file), 'utf8');
+    const orig = origRaw.split(/\r?\n/);
+    const blocked = r.blocked ? r.blocked.items.join(' ') : '';
+    const eolsKept = /crlf/.test(file) ? !/[^\r]\n/.test(raw) : !/\r/.test(raw);
+    log('');
+    log('| Fall | ersetzt | Ausgabe |');
+    log('|---|---|---|');
+    for (const c of UCASES) {
+      const oi = orig.findIndex((l) => l.startsWith(c.src));
+      // Ausgabezeile: die Zeile, auf die das erwartete Muster passt (Zeilen davor können verbunden sein)
+      const line = c.want ? (out.find((l) => c.want[mode].test(l)) || '(keine passende Zeile)') : (out.find((l) => l.startsWith(c.src)) || '');
+      if (!c.want) {
+        const kept = out.slice(out.indexOf(line), out.indexOf(line) + 3).join('⏎');
+        const ok = line === orig[oi] && /Musikschule/.test(blocked) && blocked.includes('Der Name steht über einen Zeilenumbruch');
+        log(`| ${c.id} | nein | „${kept}“ – Schlusscheck meldet: ${/Musikschule/.test(blocked) ? 'ja, mit Anleitung' : 'NEIN'} |`);
+        check(`${eol}, ${mode}: ${c.id}`, ok);
+        continue;
+      }
+      const ok = c.want[mode].test(line);
+      log(`| ${c.id} | ${ok && line !== orig[oi] ? 'ja' : ok ? 'unverändert' : 'NEIN'} | „${line}“ |`);
+      check(`${eol}, ${mode}: ${c.id}`, ok, line);
+    }
+    const left = UWORDS.map((w) => `${w} ${(raw.match(new RegExp(w, 'g')) || []).length}`).join(', ');
+    log(`- Wortbestandteile in der Ausgabe: ${left} (Reste nur im Fall „zwei Umbrüche“: Musikschule 1, Stadtpark 1)`);
+    // drei Einrichtungen über je einen Umbruch -> drei Zeilenpaare verbunden
+    check(`${eol}, ${mode}: Zeilenenden der Datei bleiben erhalten; Zeilen nur dort verbunden, wo eine Einrichtung über den Umbruch ging (3×)`, eolsKept && out.length === orig.length - 3, `${orig.length} → ${out.length} Zeilen`);
+    check(`${eol}, ${mode}: Reste nur im gemeldeten Zwei-Umbrüche-Fall`, (raw.match(/Musikschule/g) || []).length === 1 && (raw.match(/Stadtpark/g) || []).length === 1 && !/Lindenauer|Bürgerverein|Hollmann/.test(raw));
+    if (mode === 'reversible') {
+      const back = await restoreUI(ap, kp);
+      const got = back.bytes ? back.bytes.toString('utf8').replace(/^\uFEFF/, '') : '';
+      const k = JSON.parse(fs.readFileSync(kp, 'utf8').replace(/^\uFEFF/, ''));
+      log(`- Schlüssel: ${k.platzhalter.filter((e) => e.kategorie === 'Einrichtung').map((e) => `${e.platzhalter} = ${JSON.stringify(e.wert)}`).join('; ')}`);
+      check(`${eol}: Rückbau byte-genau, samt Zeilenumbruch im Namen`, got === origRaw && back.plan.verdict === 'passend', `Urteil „${back.plan.verdict}“`);
+    }
+    if (mode === 'person' && file === 'einrichtung-umbruch.txt') log(`- Markierungen in der Prüfansicht (Teile über zwei Zeilen): ${marks.map((m) => `„${m}“`).join(', ')}`);
+    log('');
+  }
+}
+
+// ---------- Nur testen: Briefkopf über zwei Absätze ----------
+log('## Nur getestet (nicht gebaut): Name auf zwei getrennten Absätzen (Briefkopf)');
+const absatz = {};
+for (const [file, fmt] of [['einrichtung-absatz.txt', 'txt'], ['einrichtung-absatz.docx', 'docx'], ['einrichtung-absatz-text.txt', 'txt'], ['einrichtung-absatz-text.docx', 'docx']]) {
+  for (const mode of ['person', 'reversible']) {
+    const { page, ctx } = await newPage();
+    await page.click('#go-anon');
+    if (await page.isHidden('#advanced')) await page.click('#tgl-adv');
+    await page.fill('#name-input', ORG3); await page.selectOption('#name-kind', 'org'); await page.click('#name-add button[type=submit]');
+    await startAnon(page, mode);
+    await loadIn(page, path.join(fx, file));
+    await goTo(page, 'a3');
+    await ackAll(page);
+    if (mode === 'reversible') await saveKey(page);
+    const r = await exportWithAck(page, fmt);
+    const p = path.join(outDir, `${++seq}-${r.dl.suggestedFilename()}`);
+    await r.dl.saveAs(p);
+    await ctx.close();
+    const items = r.blocked ? r.blocked.items.map((x) => x.replace(/\s+/g, ' ')) : [];
+    const flagged = items.some((x) => /Musikschule/.test(x));
+    absatz[file + mode] = flagged;
+    log(`- ${file}, ${mode}: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule ${((await segments(fs.readFileSync(p), fmt)).join('\n').match(/Musikschule/g) || []).length}×; Schlusscheck meldet: ${flagged ? 'ja – „' + items.find((x) => /Musikschule/.test(x)).slice(0, 140) + '…“' : 'NEIN'}`);
+  }
+}
+const onlyHead = ['einrichtung-absatz.txt', 'einrichtung-absatz.docx'].every((f) => !absatz[f + 'person'] && !absatz[f + 'reversible']);
+const withText = ['einrichtung-absatz-text.txt', 'einrichtung-absatz-text.docx'].every((f) => absatz[f + 'person'] && absatz[f + 'reversible']);
+log(`- Befund: Steht die Einrichtung NUR im Briefkopf (über zwei Absätze), meldet der Schlusscheck sie ${onlyHead ? 'NICHT' : 'doch'} (er sucht nur Einrichtungen, die im Dokument gefunden wurden). Steht sie zusätzlich im Text, meldet er den Briefkopf ${withText ? 'ja' : 'NICHT'}.`);
+check('Briefkopf über zwei Absätze: Befund wie gemeldet (nur Briefkopf: nicht gemeldet; mit Text: gemeldet)', onlyHead && withText);
 log('');
 
 // ---------- Firma aus den Dateiangaben: 2.2 / 2.3 ----------

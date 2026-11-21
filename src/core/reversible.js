@@ -82,7 +82,8 @@ export function assignReversible(result) {
       // Ganze Bezeichnung (ohne Endung am Schluss, die bleibt wie bei Personen im Text stehen) = ein Platzhalter
       const og = result.orgs.get(h.entity);
       const stemEnd = h.e - (h.suffix ? h.suffix.length : 0);
-      const value = fullText.slice(h.s, stemEnd);
+      // Über einen Zeilenumbruch (TXT): eigene Schreibweise mit dem echten Zeilenende, damit der Rückbau es herstellt
+      const value = h.unit2 !== undefined ? fullText.slice(h.s, h.split) + h.eol + fullText.slice(h.split + 1, stemEnd) : fullText.slice(h.s, stemEnd);
       const vk = 'O|' + og.letter;
       if (!variants.has(vk)) variants.set(vk, []);
       const list = variants.get(vk);
@@ -157,7 +158,9 @@ export function buildRestoreKey(result, meta) {
   }
   return {
     format: KEY_FORMAT,
-    formatVersion: 1,
+    // Version 2 (Entscheidung Easy): NUR Schlüssel mit mindestens einer Einrichtung. Ältere Versionen (2.2) lehnen sie
+    // dann klar ab, statt Einrichtungen still als Platzhalter stehen zu lassen. Ohne Einrichtung bleibt es Version 1.
+    formatVersion: einrichtungen.length ? 2 : 1,
     warnung: KEY_WARNING,
     hinweis: 'Rückbau-Schlüsseldatei des Anonymisierers. Ohne diese Datei ist kein Rückbau möglich.',
     toolVersion: meta.version,

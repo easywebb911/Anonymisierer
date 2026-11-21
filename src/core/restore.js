@@ -28,7 +28,7 @@ export function parseKeyFile(text) {
     if (data && Array.isArray(data.names)) return { ok: false, error: 'Das ist eine Merkliste („Eigene Namen“), keine Rückbau-Schlüsseldatei.' };
     return { ok: false, error: 'Die Datei ist keine Rückbau-Schlüsseldatei des Anonymisierers.' };
   }
-  if (data.formatVersion !== 1) return { ok: false, error: `Unbekannte Version der Schlüsseldatei (${data.formatVersion}). Bitte eine neuere Version des Tools verwenden.` };
+  if (data.formatVersion !== 1 && data.formatVersion !== 2) return { ok: false, error: `Unbekannte Version der Schlüsseldatei (${data.formatVersion}). Bitte eine neuere Version des Tools verwenden.` };
   const entries = new Map();
   for (const e of data.platzhalter || []) {
     if (!e || typeof e.platzhalter !== 'string' || typeof e.wert !== 'string') return { ok: false, error: 'Die Schlüsseldatei ist beschädigt (Eintrag ohne Platzhalter oder Wert).' };

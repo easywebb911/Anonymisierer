@@ -690,6 +690,43 @@ function matchOrgTerms(orgTerms, units, unitToks, unitStarts, covered, tokHit, f
         k += n - 1;
       }
     });
+    // TXT (Version 2.3, Entscheidung Easy): Einrichtung über GENAU EINEN Zeilenumbruch, d. h. Ende einer Zeile +
+    // Anfang der direkt folgenden Zeile (u.joinNext). Nur für markierte Einrichtungen. Die beiden Zeilen werden in der
+    // Ausgabe zu einer; der Wert enthält das echte Zeilenende (u.eol), damit der Rückbau den Umbruch exakt herstellt.
+    if (n < 2) continue;
+    units.forEach((u, ui) => {
+      if (!u.joinNext || ui + 1 >= units.length) return;
+      const A = unitToks[ui];
+      const B = unitToks[ui + 1];
+      for (let cut = 1; cut < n; cut++) { // cut Token in Zeile ui (am Zeilenende), n - cut Token am Anfang von Zeile ui + 1
+        if (A.length < cut || B.length < n - cut) continue;
+        const k = A.length - cut;
+        const seq = [...A.slice(k), ...B.slice(0, n - cut)];
+        const covs = [...covered[ui].slice(k), ...covered[ui + 1].slice(0, n - cut)];
+        if (covs.some(Boolean)) continue;
+        let ok = true;
+        let suffix = '';
+        for (let j = 0; j < n && ok; j++) {
+          const suf = orgTokMatch(seq[j], ot.toks[j]);
+          if (suf === null) { ok = false; break; }
+          if (j > 0) {
+            const gap = fullText.slice(seq[j - 1].e, seq[j].s);
+            // An der Zeilengrenze: Leerraum mit genau dem einen Zeilenwechsel; in der Bezeichnung muss dort Leerraum stehen
+            if (ot.gaps[j] === '' ? gap !== '' : !/^\s+$/.test(gap)) { ok = false; break; }
+            if (j === cut && (ot.gaps[j] === '' || (gap.match(/\n/g) || []).length !== 1)) { ok = false; break; }
+          }
+          if (j === n - 1) suffix = suf;
+        }
+        // nach dem Namensanfang darf in Zeile ui nichts mehr stehen (sonst wäre es kein Umbruch im Namen)
+        if (!ok || fullText.slice(seq[cut - 1].e, unitStarts[ui] + u.text.length).trim()) continue;
+        const h = { s: seq[0].s, e: seq[n - 1].e, type: 'org', cert: 'sicher', origin: 'org', unit: ui, unit2: ui + 1,
+          split: unitStarts[ui] + u.text.length, eol: u.eol || '\n', suffix, entity: ot.key, term: ot.text, comps: [] };
+        hits.push(h);
+        for (let j = k; j < A.length; j++) { covered[ui][j] = true; tokHit[ui][j] = h; }
+        for (let j = 0; j < n - cut; j++) { covered[ui + 1][j] = true; tokHit[ui + 1][j] = h; }
+        break;
+      }
+    });
   }
 }
 // Suchformen der eingeschalteten Einrichtungen für den Schlusscheck: jede Schreibweise als GANZE Wortfolge
@@ -750,9 +787,18 @@ function mergeAdjacent(hits, fullText) {
 // Ersetzungen je Einheit: [{s, e, text}] relativ zur Einheit
 export function replacementsByUnit(result, units) {
   const per = units.map(() => []);
+  result.joins = new Set(); // TXT: Zeile i wird mit Zeile i + 1 verbunden (Einrichtung über einen Zeilenumbruch)
   for (const h of result.hits) {
     if (!h.on) continue;
     const base = result.unitStarts[h.unit];
+    if (h.unit2 !== undefined) {
+      // Platzhalter am Ende von Zeile 1, Rest des Namens am Anfang von Zeile 2 entfällt, die Zeilen werden verbunden
+      const label = h.parts ? h.parts[0].text : h.label;
+      per[h.unit].push({ s: h.s - base, e: h.split - base, text: label + (h.suffix || '') });
+      per[h.unit2].push({ s: 0, e: h.e - result.unitStarts[h.unit2], text: '' });
+      result.joins.add(h.unit);
+      continue;
+    }
     if (h.parts) {
       // rückbaufähig: jeder Namensteil einzeln; Text dazwischen (Leerzeichen, Komma, Punkt der Initiale) und Endung bleiben
       for (const p of h.parts) per[h.unit].push({ s: p.s - base, e: p.e - base, text: p.text });

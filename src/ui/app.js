@@ -174,8 +174,10 @@ async function loadBytes(bytes, name) {
   else if (kind === 'pdf') doc = await readPdf(bytes);
   // row/cell nur für die Anzeige (Tabellenzeilen als Zeilen); die Erkennung nutzt nur text/label/follows/heading
   // fixed: Stellen fester Zeichen der Vorlage (z. B. Zeilenumbruch in Word), die beim Ersetzen stehen bleiben
-  const units = doc.units.map((u) => ({ text: u.text, label: u.label || '', follows: !!u.follows, heading: !!u.heading,
+  // TXT (2.3): joinNext/eol – Einrichtungen dürfen über genau einen Zeilenumbruch gehen (nur markierte Einrichtungen)
+  const units = doc.units.map((u, i) => ({ text: u.text, label: u.label || '', follows: !!u.follows, heading: !!u.heading,
     row: u.row !== undefined ? (u.part || '') + '#' + u.row : null, cell: u.cell,
+    ...(kind === 'txt' ? { joinNext: i + 1 < doc.units.length, eol: doc.eols[i] || '\n' } : {}),
     fixed: u.segments && u.segments.some((sg) => !sg.writable) ? u.segments.filter((sg) => !sg.writable).map((sg) => sg.start) : null }));
   const warnings = [...(doc.warnings || [])];
   if (bytes.length > WARN_BYTES) warnings.push(`Große Datei (${(bytes.length / 1048576).toFixed(1)} MB): Auf dem iPhone kann die Verarbeitung langsam sein oder abbrechen.`);
@@ -212,7 +214,7 @@ function plainTextExport() {
   const d = app.doc;
   // Beschriftungen können Namen enthalten (z. B. Blattname "Müller!A1") -> ebenfalls ersetzen
   const generic = makeGenericReplacer(app.result, app.state.settings);
-  if (d.kind === 'txt') return writeTxt(d.raw, texts);
+  if (d.kind === 'txt') return writeTxt(joinedRaw(d.raw), texts);
   if (d.kind === 'csv') return writeCsv(d.raw, texts);
   if (d.kind === 'pdf') return d.units.map((u, i) => `--- ${u.label} ---\n${texts[i]}`).join('\n\n');
   const main = /^(Text|Tabelle|Textfeld)$/;
@@ -223,7 +225,13 @@ function docxSections() {
   const d = app.doc;
   if (d.kind === 'pdf') return d.units.map((u, i) => ({ heading: u.label, pageBreak: true, paragraphs: texts[i].split('\n') }));
   if (d.kind === 'csv') return [{ paragraphs: writeCsv(d.raw, texts).split(/\r\n|\n|\r/).map((l) => l.split(d.raw.delim).join('\t')) }];
-  return [{ paragraphs: writeTxt(d.raw, texts).split(/\r\n|\n|\r/) }];
+  return [{ paragraphs: writeTxt(joinedRaw(d.raw), texts).split(/\r\n|\n|\r/) }];
+}
+// TXT (Version 2.3): Steht eine Einrichtung über einen Zeilenumbruch, werden die beiden Zeilen in der Ausgabe eine
+// (der Platzhalter steht für den ganzen Namen samt Umbruch; der Rückbau stellt den Umbruch wieder her)
+function joinedRaw(raw) {
+  const j = app.result && app.result.joins;
+  return j && j.size ? { ...raw, eols: raw.eols.map((e, i) => (j.has(i) ? '' : e)) } : raw;
 }
 // Suchformen für den Schlusscheck: bestätigte Namen + Namen aus den Original-Metadaten (Dateiangaben)
 function checkForms() {
@@ -457,8 +465,7 @@ function setHits(list, on) {
   for (const x of list) {
     x.on = on;
     app.state.overrides[x.key] = on;
-    const m = document.querySelector(`mark[data-h="${x.id}"]`);
-    if (m) { m.classList.toggle('on', on); m.classList.toggle('off', !on); m.title = hitTitle(x); }
+    for (const m of document.querySelectorAll(`mark[data-h="${x.id}"]`)) { m.classList.toggle('on', on); m.classList.toggle('off', !on); m.title = hitTitle(x); }
   }
   changed();
   renderSummary();
@@ -503,6 +510,7 @@ function renderDoc() {
   let rowKey = null;
   let cellEl = null;
   let cellKey = null;
+  const contOf = new Map(hits.filter((x) => x.unit2 !== undefined).map((x) => [x.unit2, x]));
   app.doc.units.forEach((u, ui) => {
     if (!u.text.trim()) return;
     const v = unitView(u);
@@ -517,11 +525,17 @@ function renderDoc() {
     if (v.note) box.append(h('span', { class: 'cellref' }, v.note));
     const tx = h('div', { class: 'utext', 'data-u': ui });
     let pos = 0;
+    // Fortsetzung einer Einrichtung aus der vorigen Zeile (TXT, über einen Zeilenumbruch)
+    const cont = contOf.get(ui);
+    if (cont) {
+      pos = cont.e - base;
+      tx.append(h('mark', { class: 'hit org' + (cont.on ? ' on' : ' off'), 'data-h': cont.id, 'data-l': '', title: hitTitle(cont) }, u.text.slice(0, pos)));
+    }
     while (hi < hits.length && hits[hi].s < base) hi++;
     while (hi < hits.length && hits[hi].s < base + u.text.length + 1) {
       const x = hits[hi];
       const s = x.s - base;
-      const e = x.e - base;
+      const e = Math.min(x.e - base, u.text.length);
       if (s > pos) tx.append(document.createTextNode(u.text.slice(pos, s)));
       const cls = ['hit', x.type === 'person' ? (x.cert === 'sicher' ? 'sure' : 'unsure') : x.type === 'org' ? 'org' : 'contact', x.origin === 'manual' ? 'manual' : '', x.on ? 'on' : 'off'].filter(Boolean).join(' ');
       const tag = x.type === 'person' ? (app.state.settings.mode === 'name' ? 'NAME' : r.entities.get(x.entity).letter)
@@ -928,6 +942,7 @@ function leaksBox(leaks) {
     if (l.full) offered.add(fold(l.full));
     return h('li', {}, h('strong', {}, l.word), ' – steht in: ', h('strong', {}, pl.ort), pl.teil ? ` (${pl.teil})` : '',
       ` · ${l.meta ? (l.metaOrg ? 'Einrichtung ' : 'Name ') + l.entity : l.org ? 'bestätigte Einrichtung, ' + l.entity : 'bestätigter Name, ' + l.entity}: „…${l.context.replace(/\s+/g, ' ')}…“ `,
+      l.org && /[\r\n]/.test(l.word) ? h('p', { class: 'hint lbhint' }, `Der Name steht über einen Zeilenumbruch. Entferne den Umbruch ${app.doc.kind === 'xlsx' ? 'in Excel' : app.doc.kind === 'docx' ? 'in Word' : 'in der Datei'} oder markiere die Teile einzeln.`) : null,
       l.meta && !taken ? (l.metaOrg
         ? h('button', { type: 'button', class: 'secondary small', onclick: () => addOrg(l.full) }, `„${l.full}“ als Einrichtung übernehmen`)
         : h('button', { type: 'button', class: 'secondary small', onclick: () => addManual(l.full) }, `„${l.full}“ als Namen übernehmen`)) : null);

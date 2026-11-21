@@ -9,7 +9,7 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 - OK: Beim Markieren erscheinen zwei Knöpfe: „Als Name markieren“ und „Als Einrichtung markieren“ – Als Name markieren | Als Einrichtung markieren | Abbrechen
 - OK: Gruppe „Einrichtungen“ mit eigenen Zeilen (Schalter, Name, Zahl, drei Punkte); Personen getrennt – Einrichtungen: Familienzentrum Sonnenblume Einrichtung A 6/6 | Lindenauer Bürgerverein Einrichtung B 2/2 | Astrid-Lindgren-Schule Einrichtung C 1/1; Personen: Petra Hollmann, Astrid Lindgren
 - OK: Ampel: „2 Personen und 3 Einrichtungen ersetzt“
-- OK: Schlüsseldatei: Einrichtungen als eigene Art (kategorie „Einrichtung“, Liste „einrichtungen“) – Einrichtung A = „Familienzentrum Sonnenblume“ (2×); Einrichtung A2 = „Familienzentrums Sonnenblume“ (2×); Einrichtung A3 = „FZS“ (1×); Einrichtung B = „Lindenauer Bürgerverein“ (2×); Einrichtung A4 = „FAMILIENZENTRUM SONNENBLUME“ (1×); Einrichtung C = „Astrid-Lindgren-Schule“ (1×)
+- OK: Schlüsseldatei: Einrichtungen als eigene Art (kategorie „Einrichtung“, Liste „einrichtungen“), Format-Version 2 – Einrichtung A = „Familienzentrum Sonnenblume“ (2×); Einrichtung A2 = „Familienzentrums Sonnenblume“ (2×); Einrichtung A3 = „FZS“ (1×); Einrichtung B = „Lindenauer Bürgerverein“ (2×); Einrichtung A4 = „FAMILIENZENTRUM SONNENBLUME“ (1×); Einrichtung C = „Astrid-Lindgren-Schule“ (1×)
 
 | Fall | ersetzt | Platzhalter / Ausgabe | Rückbau exakt |
 |---|---|---|---|
@@ -28,7 +28,7 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 | Personenname in der Einrichtung (Vorrang) | ja | „Auch die Einrichtung C macht mit. Frau Vorname B Nachname B liest vor.“ | ja |
 - OK: docx: Personenname in der Einrichtung (Vorrang): ersetzt und Rückbau exakt
 | Zeilenumbruch im Namen | nein | „Treffpunkt im Familienzentrum⏎Sonnenblume, Saal 2.“ – NICHT ersetzt; Schlusscheck meldet: ja (Speichern gesperrt bis „bewusst stehen lassen“) | ja |
-- OK: docx: Zeilenumbruch im Namen: nicht ersetzt, aber der Schlusscheck meldet ihn (nie unbemerkt) – Familienzentrum Sonnenblume – steht in: Text (word/document.xml) · bestätigte Einrichtung,
+- OK: docx: Zeilenumbruch im Namen: nicht ersetzt, Schlusscheck meldet ihn mit Anleitung („Der Name steht über einen Zeilenumbruch. Entferne den Umbruch in Word oder markiere die Teile einzeln.“) – Familienzentrum Sonnenblume – steht in: Text (word/document.xml) · bestätigte Einrichtung,
 | Kopfzeile | ja | „KOPF: Einrichtung A · Jahresbericht“ | ja |
 - OK: docx: Kopfzeile: ersetzt und Rückbau exakt
 | Bildbeschreibung | ja | „ALT: Logo des Einrichtung A2“ | ja |
@@ -41,7 +41,7 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 - OK: Frage zur Firma lautet „… Als Einrichtung übernehmen?“ – In den Dateiangaben steht „Familienzentrum Sonnenblume“. Als Einrichtung übernehmen?
 - OK: Gruppe „Einrichtungen“ mit eigenen Zeilen (Schalter, Name, Zahl, drei Punkte); Personen getrennt – Einrichtungen: Familienzentrum Sonnenblume Einrichtung A 7/7 | Lindenauer Bürgerverein Einrichtung B 2/2 | Astrid-Lindgren-Schule Einrichtung C 1/1; Personen: Petra Hollmann, Astrid Lindgren
 - OK: Ampel: „2 Personen und 3 Einrichtungen ersetzt“
-- OK: Schlüsseldatei: Einrichtungen als eigene Art (kategorie „Einrichtung“, Liste „einrichtungen“) – Einrichtung A = „Familienzentrum Sonnenblume“ (2×); Einrichtung A2 = „Familienzentrums Sonnenblume“ (2×); Einrichtung A3 = „FZS“ (1×); Einrichtung B = „Lindenauer Bürgerverein“ (2×); Einrichtung A4 = „FAMILIENZENTRUM SONNENBLUME“ (1×); Einrichtung C = „Astrid-Lindgren-Schule“ (1×); Einrichtung A5 = „Familienzentrum⏎Sonnenblume“ (1×)
+- OK: Schlüsseldatei: Einrichtungen als eigene Art (kategorie „Einrichtung“, Liste „einrichtungen“), Format-Version 2 – Einrichtung A = „Familienzentrum Sonnenblume“ (2×); Einrichtung A2 = „Familienzentrums Sonnenblume“ (2×); Einrichtung A3 = „FZS“ (1×); Einrichtung B = „Lindenauer Bürgerverein“ (2×); Einrichtung A4 = „FAMILIENZENTRUM SONNENBLUME“ (1×); Einrichtung C = „Astrid-Lindgren-Schule“ (1×); Einrichtung A5 = „Familienzentrum⏎Sonnenblume“ (1×)
 
 | Fall | ersetzt | Platzhalter / Ausgabe | Rückbau exakt |
 |---|---|---|---|
@@ -70,9 +70,9 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 - OK: xlsx: keine Reste
 
 ### einrichtung.txt
-- OK: Gruppe „Einrichtungen“ mit eigenen Zeilen (Schalter, Name, Zahl, drei Punkte); Personen getrennt – Einrichtungen: Familienzentrum Sonnenblume Einrichtung A 4/4 | Lindenauer Bürgerverein Einrichtung B 2/2 | Astrid-Lindgren-Schule Einrichtung C 1/1; Personen: Petra Hollmann, Astrid Lindgren
+- OK: Gruppe „Einrichtungen“ mit eigenen Zeilen (Schalter, Name, Zahl, drei Punkte); Personen getrennt – Einrichtungen: Familienzentrum Sonnenblume Einrichtung A 5/5 | Lindenauer Bürgerverein Einrichtung B 2/2 | Astrid-Lindgren-Schule Einrichtung C 1/1; Personen: Petra Hollmann, Astrid Lindgren
 - OK: Ampel: „2 Personen und 3 Einrichtungen ersetzt“
-- OK: Schlüsseldatei: Einrichtungen als eigene Art (kategorie „Einrichtung“, Liste „einrichtungen“) – Einrichtung A = „Familienzentrum Sonnenblume“ (1×); Einrichtung A2 = „Familienzentrums Sonnenblume“ (1×); Einrichtung A3 = „FZS“ (1×); Einrichtung B = „Lindenauer Bürgerverein“ (2×); Einrichtung A4 = „FAMILIENZENTRUM SONNENBLUME“ (1×); Einrichtung C = „Astrid-Lindgren-Schule“ (1×)
+- OK: Schlüsseldatei: Einrichtungen als eigene Art (kategorie „Einrichtung“, Liste „einrichtungen“), Format-Version 2 – Einrichtung A = „Familienzentrum Sonnenblume“ (1×); Einrichtung A2 = „Familienzentrums Sonnenblume“ (1×); Einrichtung A3 = „FZS“ (1×); Einrichtung B = „Lindenauer Bürgerverein“ (2×); Einrichtung A4 = „FAMILIENZENTRUM SONNENBLUME“ (1×); Einrichtung C = „Astrid-Lindgren-Schule“ (1×); Einrichtung A5 = „Familienzentrum⏎Sonnenblume“ (1×)
 
 | Fall | ersetzt | Platzhalter / Ausgabe | Rückbau exakt |
 |---|---|---|---|
@@ -90,16 +90,16 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 - OK: txt: GROSSSCHREIBUNG: ersetzt und Rückbau exakt
 | Personenname in der Einrichtung (Vorrang) | ja | „Auch die Einrichtung C macht mit. Frau Vorname B Nachname B liest vor.“ | ja |
 - OK: txt: Personenname in der Einrichtung (Vorrang): ersetzt und Rückbau exakt
-| Zeilenumbruch im Namen | nein | „Treffpunkt im Familienzentrum“ – NICHT ersetzt; Schlusscheck meldet: ja (Speichern gesperrt bis „bewusst stehen lassen“) | ja |
-- OK: txt: Zeilenumbruch im Namen: nicht ersetzt, aber der Schlusscheck meldet ihn (nie unbemerkt) – Familienzentrum Sonnenblume – steht in: Text · bestätigte Einrichtung, Einrichtung A: „…me
-- OK: txt: Rückbau insgesamt exakt (alle 9 Abschnitte) – Bericht: Einrichtung A: 1/1, Einrichtung A2: 1/1, Einrichtung A3: 1/1, Einrichtung B: 2/2, Einrichtung A4: 1/1, Einrichtung C: 1/1
-- Wortbestandteile in ALLEN Teilen der Ausgabe: Familienzentrum 1, Sonnenblume 1, FZS 0, Lindenauer 0, Bürgerverein 0, Astrid 0, Lindgren 0, Hollmann 0, Petra 0
-- OK: txt: keine Reste außer dem gemeldeten Zeilenumbruch-Fall – Familienzentrum 1× (Text); Sonnenblume 1× (Text)
+| Zeilenumbruch im Namen | ja | „Treffpunkt im Einrichtung A5, Saal 2.“ | ja |
+- OK: txt: Zeilenumbruch im Namen: ersetzt und Rückbau exakt
+- OK: txt: Rückbau insgesamt exakt (alle 9 Abschnitte) – Bericht: Einrichtung A: 1/1, Einrichtung A2: 1/1, Einrichtung A3: 1/1, Einrichtung B: 2/2, Einrichtung A4: 1/1, Einrichtung C: 1/1, Einrichtung A5: 1/1
+- Wortbestandteile in ALLEN Teilen der Ausgabe: Familienzentrum 0, Sonnenblume 0, FZS 0, Lindenauer 0, Bürgerverein 0, Astrid 0, Lindgren 0, Hollmann 0, Petra 0
+- OK: txt: keine Reste
 
 ### einrichtung.csv
 - OK: Gruppe „Einrichtungen“ mit eigenen Zeilen (Schalter, Name, Zahl, drei Punkte); Personen getrennt – Einrichtungen: Familienzentrum Sonnenblume Einrichtung A 5/5 | Lindenauer Bürgerverein Einrichtung B 2/2 | Astrid-Lindgren-Schule Einrichtung C 1/1; Personen: Petra Hollmann, Astrid Lindgren
 - OK: Ampel: „2 Personen und 3 Einrichtungen ersetzt“
-- OK: Schlüsseldatei: Einrichtungen als eigene Art (kategorie „Einrichtung“, Liste „einrichtungen“) – Einrichtung A = „Familienzentrum Sonnenblume“ (1×); Einrichtung A2 = „Familienzentrums Sonnenblume“ (1×); Einrichtung A3 = „FZS“ (1×); Einrichtung B = „Lindenauer Bürgerverein“ (2×); Einrichtung A4 = „FAMILIENZENTRUM SONNENBLUME“ (1×); Einrichtung C = „Astrid-Lindgren-Schule“ (1×); Einrichtung A5 = „Familienzentrum⏎Sonnenblume“ (1×)
+- OK: Schlüsseldatei: Einrichtungen als eigene Art (kategorie „Einrichtung“, Liste „einrichtungen“), Format-Version 2 – Einrichtung A = „Familienzentrum Sonnenblume“ (1×); Einrichtung A2 = „Familienzentrums Sonnenblume“ (1×); Einrichtung A3 = „FZS“ (1×); Einrichtung B = „Lindenauer Bürgerverein“ (2×); Einrichtung A4 = „FAMILIENZENTRUM SONNENBLUME“ (1×); Einrichtung C = „Astrid-Lindgren-Schule“ (1×); Einrichtung A5 = „Familienzentrum⏎Sonnenblume“ (1×)
 
 | Fall | ersetzt | Platzhalter / Ausgabe | Rückbau exakt |
 |---|---|---|---|
@@ -127,8 +127,8 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 - OK: „Astrid-Lindgren-Schule“ = ein Platzhalter; „Astrid Lindgren“ an anderer Stelle bleibt Person – Auch die Einrichtung C macht mit. Frau Vorname B Nachname B liest vor.
 
 ## Art-Wechsel: Einrichtung → Person → Einrichtung (rückbaufähig)
-- OK: „ist eine Person“: Platzhalter, Zählung und Kennung folgen; Schlüssel muss neu gespeichert werden – vorher: 2 Personen/1 Einrichtung, „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“; nachher: 3/0, „Das FZS plant gemeinsam mit dem Vorname B Nachname B ein Fest.“, Kennung 3S69 → 7S2T
-- OK: „ist eine Einrichtung“ zurück: wieder „Einrichtung A“, Zählung und Kennung folgen – „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“, Kennung 7S2T → A9N4
+- OK: „ist eine Person“: Platzhalter, Zählung und Kennung folgen; Schlüssel muss neu gespeichert werden – vorher: 2 Personen/1 Einrichtung, „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“; nachher: 3/0, „Das FZS plant gemeinsam mit dem Vorname B Nachname B ein Fest.“, Kennung 3D6M → H44D
+- OK: „ist eine Einrichtung“ zurück: wieder „Einrichtung A“, Zählung und Kennung folgen – „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“, Kennung H44D → 3Q55
 
 ## Merkliste mit Art
 - OK: Alte Merkliste ohne Art lädt als Personen; Ausgabe byte-gleich wie in 2.2 – Chips: Sonnenblume · Person; SHA d120ec136c8d / d120ec136c8d
@@ -142,11 +142,149 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 - OK: Treffer der Einrichtung in der Prüfansicht markiert (Kürzel, Titel) – Einr. A · wird ersetzt durch: Einrichtung A · Einrichtung · Tippen = an/aus
 - OK: Modus „[NAME]“: „[EINRICHTUNG]“ – Bericht aus dem [EINRICHTUNG]
 
-## Rückwärts-Prüfung für den Revert-Weg: Version 2.2 mit Schlüsseldatei aus 2.3
-- Version 2.2 lädt die Schlüsseldatei: „Schlüsseldatei geladen: 10 Platzhalter, Kennung T948 (erstellt mit Version 2.3.0, Quelle TXT).“
-- Urteil der bisherigen Prüfung: „zweifelhaft“, Zeilen: Einrichtung A: 0/1, Einrichtung A2: 0/1, Vorname A: 1/1, Nachname A: 1/1, Einrichtung A3: 0/1, Einrichtung B: 0/2, Einrichtung A4: 0/1, Einrichtung C: 0/1, Vorname B: 1/1, Nachname B: 1/1
-- Ergebnis: Personen und Kontaktdaten zurück; Einrichtungs-Platzhalter bleiben stehen: Einrichtung A, Einrichtung A2, Einrichtung A3, Einrichtung B, Einrichtung A4, Einrichtung C
-- OK: 2.2 lädt den Schlüssel, baut Personen zurück, Einrichtungen bleiben als Platzhalter (gemeldet als Anzahl-Abweichung)
+## Rückwärts-Prüfung für den Revert-Weg: Version 2.2 mit Schlüsseldateien aus 2.3
+- Schlüssel mit Einrichtung (Format-Version 2), Meldung von 2.2: „Unbekannte Version der Schlüsseldatei (2). Bitte eine neuere Version des Tools verwenden.“
+- OK: 2.2 lehnt einen Schlüssel mit Einrichtung klar ab (unbekannte Version) – Prüfen-Knopf gesperrt: true
+- Schlüssel ohne Einrichtung (Format-Version 1), Meldung von 2.2: „Schlüsseldatei geladen: 4 Platzhalter, Kennung 7F3X (erstellt mit Version 2.3.0, Quelle TXT).“, Urteil „passend“
+- OK: 2.3-Schlüssel ohne Einrichtung: Format-Version 1, 2.2 baut exakt zurück
+
+## TXT: Einrichtung über einen Zeilenumbruch (Entscheidung Easy), alle drei Modi, Unix- und Windows-Zeilenenden
+### Unix (LF), Modus „Person A“
+
+| Fall | ersetzt | Ausgabe |
+|---|---|---|
+| Umbruch nach dem ersten Wort | ja | „Brief an die Einrichtung A, z. Hd. Frau Person A.“ |
+- OK: Unix (LF), person: Umbruch nach dem ersten Wort – Brief an die Einrichtung A, z. Hd. Frau Person A.
+| Umbruch nach dem zweiten Wort | ja | „Die Einrichtung A lädt ein.“ |
+- OK: Unix (LF), person: Umbruch nach dem zweiten Wort – Die Einrichtung A lädt ein.
+| mit Endung am Schluss | ja | „Vorstand des Einrichtung Bs tagt.“ |
+- OK: Unix (LF), person: mit Endung am Schluss – Vorstand des Einrichtung Bs tagt.
+| zwei Umbrüche (nicht ersetzen, Schlusscheck meldet) | nein | „Gruß an die Musikschule⏎am⏎Stadtpark (zwei Umbrüche).“ – Schlusscheck meldet: ja, mit Anleitung |
+- OK: Unix (LF), person: zwei Umbrüche (nicht ersetzen, Schlusscheck meldet)
+| ohne Einrichtung (unverändert) | unverändert | „Ein Satz ohne Einrichtung.“ |
+- OK: Unix (LF), person: ohne Einrichtung (unverändert) – Ein Satz ohne Einrichtung.
+| ohne Umbruch (Vergleich) | ja | „Einrichtung A ohne Umbruch.“ |
+- OK: Unix (LF), person: ohne Umbruch (Vergleich) – Einrichtung A ohne Umbruch.
+- Wortbestandteile in der Ausgabe: Musikschule 1, Stadtpark 1, Lindenauer 0, Bürgerverein 0, Hollmann 0 (Reste nur im Fall „zwei Umbrüche“: Musikschule 1, Stadtpark 1)
+- OK: Unix (LF), person: Zeilenenden der Datei bleiben erhalten; Zeilen nur dort verbunden, wo eine Einrichtung über den Umbruch ging (3×) – 12 → 9 Zeilen
+- OK: Unix (LF), person: Reste nur im gemeldeten Zwei-Umbrüche-Fall
+- Markierungen in der Prüfansicht (Teile über zwei Zeilen): „Musikschule“, „am Stadtpark“, „Musikschule am“, „Stadtpark“, „Lindenauer“, „Bürgervereins“, „Musikschule am Stadtpark“
+
+### Unix (LF), Modus „[NAME]“
+
+| Fall | ersetzt | Ausgabe |
+|---|---|---|
+| Umbruch nach dem ersten Wort | ja | „Brief an die [EINRICHTUNG], z. Hd. Frau [NAME].“ |
+- OK: Unix (LF), name: Umbruch nach dem ersten Wort – Brief an die [EINRICHTUNG], z. Hd. Frau [NAME].
+| Umbruch nach dem zweiten Wort | ja | „Die [EINRICHTUNG] lädt ein.“ |
+- OK: Unix (LF), name: Umbruch nach dem zweiten Wort – Die [EINRICHTUNG] lädt ein.
+| mit Endung am Schluss | ja | „Vorstand des [EINRICHTUNG]s tagt.“ |
+- OK: Unix (LF), name: mit Endung am Schluss – Vorstand des [EINRICHTUNG]s tagt.
+| zwei Umbrüche (nicht ersetzen, Schlusscheck meldet) | nein | „Gruß an die Musikschule⏎am⏎Stadtpark (zwei Umbrüche).“ – Schlusscheck meldet: ja, mit Anleitung |
+- OK: Unix (LF), name: zwei Umbrüche (nicht ersetzen, Schlusscheck meldet)
+| ohne Einrichtung (unverändert) | unverändert | „Ein Satz ohne Einrichtung.“ |
+- OK: Unix (LF), name: ohne Einrichtung (unverändert) – Ein Satz ohne Einrichtung.
+| ohne Umbruch (Vergleich) | ja | „[EINRICHTUNG] ohne Umbruch.“ |
+- OK: Unix (LF), name: ohne Umbruch (Vergleich) – [EINRICHTUNG] ohne Umbruch.
+- Wortbestandteile in der Ausgabe: Musikschule 1, Stadtpark 1, Lindenauer 0, Bürgerverein 0, Hollmann 0 (Reste nur im Fall „zwei Umbrüche“: Musikschule 1, Stadtpark 1)
+- OK: Unix (LF), name: Zeilenenden der Datei bleiben erhalten; Zeilen nur dort verbunden, wo eine Einrichtung über den Umbruch ging (3×) – 12 → 9 Zeilen
+- OK: Unix (LF), name: Reste nur im gemeldeten Zwei-Umbrüche-Fall
+
+### Unix (LF), Modus rückbaufähig
+
+| Fall | ersetzt | Ausgabe |
+|---|---|---|
+| Umbruch nach dem ersten Wort | ja | „Brief an die Einrichtung A, z. Hd. Frau Vorname A Nachname A.“ |
+- OK: Unix (LF), reversible: Umbruch nach dem ersten Wort – Brief an die Einrichtung A, z. Hd. Frau Vorname A Nachname A.
+| Umbruch nach dem zweiten Wort | ja | „Die Einrichtung A2 lädt ein.“ |
+- OK: Unix (LF), reversible: Umbruch nach dem zweiten Wort – Die Einrichtung A2 lädt ein.
+| mit Endung am Schluss | ja | „Vorstand des Einrichtung Bs tagt.“ |
+- OK: Unix (LF), reversible: mit Endung am Schluss – Vorstand des Einrichtung Bs tagt.
+| zwei Umbrüche (nicht ersetzen, Schlusscheck meldet) | nein | „Gruß an die Musikschule⏎am⏎Stadtpark (zwei Umbrüche).“ – Schlusscheck meldet: ja, mit Anleitung |
+- OK: Unix (LF), reversible: zwei Umbrüche (nicht ersetzen, Schlusscheck meldet)
+| ohne Einrichtung (unverändert) | unverändert | „Ein Satz ohne Einrichtung.“ |
+- OK: Unix (LF), reversible: ohne Einrichtung (unverändert) – Ein Satz ohne Einrichtung.
+| ohne Umbruch (Vergleich) | ja | „Einrichtung A3 ohne Umbruch.“ |
+- OK: Unix (LF), reversible: ohne Umbruch (Vergleich) – Einrichtung A3 ohne Umbruch.
+- Wortbestandteile in der Ausgabe: Musikschule 1, Stadtpark 1, Lindenauer 0, Bürgerverein 0, Hollmann 0 (Reste nur im Fall „zwei Umbrüche“: Musikschule 1, Stadtpark 1)
+- OK: Unix (LF), reversible: Zeilenenden der Datei bleiben erhalten; Zeilen nur dort verbunden, wo eine Einrichtung über den Umbruch ging (3×) – 12 → 9 Zeilen
+- OK: Unix (LF), reversible: Reste nur im gemeldeten Zwei-Umbrüche-Fall
+- Schlüssel: Einrichtung A = "Musikschule\nam Stadtpark"; Einrichtung A2 = "Musikschule am\nStadtpark"; Einrichtung B = "Lindenauer\nBürgerverein"; Einrichtung A3 = "Musikschule am Stadtpark"
+- OK: Unix (LF): Rückbau byte-genau, samt Zeilenumbruch im Namen – Urteil „passend“
+
+### Windows (CRLF), Modus „Person A“
+
+| Fall | ersetzt | Ausgabe |
+|---|---|---|
+| Umbruch nach dem ersten Wort | ja | „Brief an die Einrichtung A, z. Hd. Frau Person A.“ |
+- OK: Windows (CRLF), person: Umbruch nach dem ersten Wort – Brief an die Einrichtung A, z. Hd. Frau Person A.
+| Umbruch nach dem zweiten Wort | ja | „Die Einrichtung A lädt ein.“ |
+- OK: Windows (CRLF), person: Umbruch nach dem zweiten Wort – Die Einrichtung A lädt ein.
+| mit Endung am Schluss | ja | „Vorstand des Einrichtung Bs tagt.“ |
+- OK: Windows (CRLF), person: mit Endung am Schluss – Vorstand des Einrichtung Bs tagt.
+| zwei Umbrüche (nicht ersetzen, Schlusscheck meldet) | nein | „Gruß an die Musikschule⏎am⏎Stadtpark (zwei Umbrüche).“ – Schlusscheck meldet: ja, mit Anleitung |
+- OK: Windows (CRLF), person: zwei Umbrüche (nicht ersetzen, Schlusscheck meldet)
+| ohne Einrichtung (unverändert) | unverändert | „Ein Satz ohne Einrichtung.“ |
+- OK: Windows (CRLF), person: ohne Einrichtung (unverändert) – Ein Satz ohne Einrichtung.
+| ohne Umbruch (Vergleich) | ja | „Einrichtung A ohne Umbruch.“ |
+- OK: Windows (CRLF), person: ohne Umbruch (Vergleich) – Einrichtung A ohne Umbruch.
+- Wortbestandteile in der Ausgabe: Musikschule 1, Stadtpark 1, Lindenauer 0, Bürgerverein 0, Hollmann 0 (Reste nur im Fall „zwei Umbrüche“: Musikschule 1, Stadtpark 1)
+- OK: Windows (CRLF), person: Zeilenenden der Datei bleiben erhalten; Zeilen nur dort verbunden, wo eine Einrichtung über den Umbruch ging (3×) – 12 → 9 Zeilen
+- OK: Windows (CRLF), person: Reste nur im gemeldeten Zwei-Umbrüche-Fall
+
+### Windows (CRLF), Modus „[NAME]“
+
+| Fall | ersetzt | Ausgabe |
+|---|---|---|
+| Umbruch nach dem ersten Wort | ja | „Brief an die [EINRICHTUNG], z. Hd. Frau [NAME].“ |
+- OK: Windows (CRLF), name: Umbruch nach dem ersten Wort – Brief an die [EINRICHTUNG], z. Hd. Frau [NAME].
+| Umbruch nach dem zweiten Wort | ja | „Die [EINRICHTUNG] lädt ein.“ |
+- OK: Windows (CRLF), name: Umbruch nach dem zweiten Wort – Die [EINRICHTUNG] lädt ein.
+| mit Endung am Schluss | ja | „Vorstand des [EINRICHTUNG]s tagt.“ |
+- OK: Windows (CRLF), name: mit Endung am Schluss – Vorstand des [EINRICHTUNG]s tagt.
+| zwei Umbrüche (nicht ersetzen, Schlusscheck meldet) | nein | „Gruß an die Musikschule⏎am⏎Stadtpark (zwei Umbrüche).“ – Schlusscheck meldet: ja, mit Anleitung |
+- OK: Windows (CRLF), name: zwei Umbrüche (nicht ersetzen, Schlusscheck meldet)
+| ohne Einrichtung (unverändert) | unverändert | „Ein Satz ohne Einrichtung.“ |
+- OK: Windows (CRLF), name: ohne Einrichtung (unverändert) – Ein Satz ohne Einrichtung.
+| ohne Umbruch (Vergleich) | ja | „[EINRICHTUNG] ohne Umbruch.“ |
+- OK: Windows (CRLF), name: ohne Umbruch (Vergleich) – [EINRICHTUNG] ohne Umbruch.
+- Wortbestandteile in der Ausgabe: Musikschule 1, Stadtpark 1, Lindenauer 0, Bürgerverein 0, Hollmann 0 (Reste nur im Fall „zwei Umbrüche“: Musikschule 1, Stadtpark 1)
+- OK: Windows (CRLF), name: Zeilenenden der Datei bleiben erhalten; Zeilen nur dort verbunden, wo eine Einrichtung über den Umbruch ging (3×) – 12 → 9 Zeilen
+- OK: Windows (CRLF), name: Reste nur im gemeldeten Zwei-Umbrüche-Fall
+
+### Windows (CRLF), Modus rückbaufähig
+
+| Fall | ersetzt | Ausgabe |
+|---|---|---|
+| Umbruch nach dem ersten Wort | ja | „Brief an die Einrichtung A, z. Hd. Frau Vorname A Nachname A.“ |
+- OK: Windows (CRLF), reversible: Umbruch nach dem ersten Wort – Brief an die Einrichtung A, z. Hd. Frau Vorname A Nachname A.
+| Umbruch nach dem zweiten Wort | ja | „Die Einrichtung A2 lädt ein.“ |
+- OK: Windows (CRLF), reversible: Umbruch nach dem zweiten Wort – Die Einrichtung A2 lädt ein.
+| mit Endung am Schluss | ja | „Vorstand des Einrichtung Bs tagt.“ |
+- OK: Windows (CRLF), reversible: mit Endung am Schluss – Vorstand des Einrichtung Bs tagt.
+| zwei Umbrüche (nicht ersetzen, Schlusscheck meldet) | nein | „Gruß an die Musikschule⏎am⏎Stadtpark (zwei Umbrüche).“ – Schlusscheck meldet: ja, mit Anleitung |
+- OK: Windows (CRLF), reversible: zwei Umbrüche (nicht ersetzen, Schlusscheck meldet)
+| ohne Einrichtung (unverändert) | unverändert | „Ein Satz ohne Einrichtung.“ |
+- OK: Windows (CRLF), reversible: ohne Einrichtung (unverändert) – Ein Satz ohne Einrichtung.
+| ohne Umbruch (Vergleich) | ja | „Einrichtung A3 ohne Umbruch.“ |
+- OK: Windows (CRLF), reversible: ohne Umbruch (Vergleich) – Einrichtung A3 ohne Umbruch.
+- Wortbestandteile in der Ausgabe: Musikschule 1, Stadtpark 1, Lindenauer 0, Bürgerverein 0, Hollmann 0 (Reste nur im Fall „zwei Umbrüche“: Musikschule 1, Stadtpark 1)
+- OK: Windows (CRLF), reversible: Zeilenenden der Datei bleiben erhalten; Zeilen nur dort verbunden, wo eine Einrichtung über den Umbruch ging (3×) – 12 → 9 Zeilen
+- OK: Windows (CRLF), reversible: Reste nur im gemeldeten Zwei-Umbrüche-Fall
+- Schlüssel: Einrichtung A = "Musikschule\r\nam Stadtpark"; Einrichtung A2 = "Musikschule am\r\nStadtpark"; Einrichtung B = "Lindenauer\r\nBürgerverein"; Einrichtung A3 = "Musikschule am Stadtpark"
+- OK: Windows (CRLF): Rückbau byte-genau, samt Zeilenumbruch im Namen – Urteil „passend“
+
+## Nur getestet (nicht gebaut): Name auf zwei getrennten Absätzen (Briefkopf)
+- einrichtung-absatz.txt, person: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 1×; Schlusscheck meldet: NEIN
+- einrichtung-absatz.txt, reversible: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 1×; Schlusscheck meldet: NEIN
+- einrichtung-absatz.docx, person: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 0×; Schlusscheck meldet: NEIN
+- einrichtung-absatz.docx, reversible: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 0×; Schlusscheck meldet: NEIN
+- einrichtung-absatz-text.txt, person: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 1×; Schlusscheck meldet: ja – „Musikschule am Stadtpark – steht in: Text · bestätigte Einrichtung, Einrichtung A: „…Musikschule am Stadtpark Rundbrief an alle Eltern. Die……“
+- einrichtung-absatz-text.txt, reversible: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 1×; Schlusscheck meldet: ja – „Musikschule am Stadtpark – steht in: Text · bestätigte Einrichtung, Einrichtung A: „…Musikschule am Stadtpark Rundbrief an alle Eltern. Die……“
+- einrichtung-absatz-text.docx, person: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 0×; Schlusscheck meldet: ja – „Musikschule am Stadtpark – steht in: Text (word/document.xml) · bestätigte Einrichtung, Einrichtung A: „…Musikschule am Stadtpark Rundbrief …“
+- einrichtung-absatz-text.docx, reversible: Briefkopf ersetzt: nein; in der Ausgabe: Musikschule 0×; Schlusscheck meldet: ja – „Musikschule am Stadtpark – steht in: Text (word/document.xml) · bestätigte Einrichtung, Einrichtung A: „…Musikschule am Stadtpark Rundbrief …“
+- Befund: Steht die Einrichtung NUR im Briefkopf (über zwei Absätze), meldet der Schlusscheck sie NICHT (er sucht nur Einrichtungen, die im Dokument gefunden wurden). Steht sie zusätzlich im Text, meldet er den Briefkopf ja.
+- OK: Briefkopf über zwei Absätze: Befund wie gemeldet (nur Briefkopf: nicht gemeldet; mit Text: gemeldet)
 
 ## Firma aus den Dateiangaben: Frage mit „Ja“ beantwortet, Version 2.2 gegen 2.3
 - meta-word.docx: Fragen 2.2: In den Dateiangaben steht „Rüdiger Spähmann“. Als Namen übernehmen? / In den Dateiangaben steht „Tamara Feldkirch“. Als Namen übernehmen? / In den Dateiangaben steht „Konstantin Abendroth“. Als Namen übernehmen? / In den Dateiangaben steht „Lindenhof Beratung GmbH“. Als Namen übernehmen? / In den Dateiangaben steht „Ottilie Rennwagen“. Als Namen übernehmen? / In den Dateiangaben steht „Wilhelmine Querbach“. Als Namen übernehmen?; 2.3: In den Dateiangaben steht „Rüdiger Spähmann“. Als Namen übernehmen? / In den Dateiangaben steht „Tamara Feldkirch“. Als Namen übernehmen? / In den Dateiangaben steht „Konstantin Abendroth“. Als Namen übernehmen? / In den Dateiangaben steht „Lindenhof Beratung GmbH“. Als Einrichtung übernehmen? / In den Dateiangaben steht „Ottilie Rennwagen“. Als Namen übernehmen? / In den Dateiangaben steht „Wilhelmine Querbach“. Als Namen übernehmen?
@@ -166,8 +304,8 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 ## Doppellauf
 - OK: einrichtung.docx: zwei Läufe byte-gleich – 2198e39ca61779b2
 - OK: einrichtung.xlsx: zwei Läufe byte-gleich – f83dd1a0bc705367
-- OK: einrichtung.txt: zwei Läufe byte-gleich – 7e970314a8ee5e1e
+- OK: einrichtung.txt: zwei Läufe byte-gleich – 75e61bf617952334
 - OK: einrichtung.csv: zwei Läufe byte-gleich – 1fb2f829a54e086c
 
-Prüfungen: 78 von 78 bestanden.
+Prüfungen: 130 von 130 bestanden.
 Netzwerkanfragen außer lokalen Dateien: 0.
