@@ -28,7 +28,9 @@ const FIXTURES = [['protokoll.txt', ['txt', 'docx']], ['mitarbeiter.csv', ['csv'
   ['meta-word.docx', ['docx', 'txt']], ['meta-tabelle.xlsx', ['xlsx', 'txt']], ['meta-falle.docx', ['docx', 'txt']],
   ['bilder-word.docx', ['docx', 'txt']], ['bilder-excel.xlsx', ['xlsx', 'txt']],
   // Version 2.3: Einrichtungs-Testdateien OHNE markierte Einrichtung (Zwei-Zeilen-Suche darf nichts ändern)
-  ['einrichtung-umbruch.txt', ['txt', 'docx']], ['einrichtung-umbruch-crlf.txt', ['txt']], ['einrichtung.txt', ['txt']], ['einrichtung.docx', ['docx', 'txt']]];
+  ['einrichtung-umbruch.txt', ['txt', 'docx']], ['einrichtung-umbruch-crlf.txt', ['txt']], ['einrichtung.txt', ['txt']], ['einrichtung.docx', ['docx', 'txt']],
+  // Version 2.3.1: Endungsprüfung (geänderte Ausgaben erwartet, Grund im Bericht von tests/endungen-test.mjs)
+  ['endungen.txt', ['txt']], ['gegenprobe-endungen.txt', ['txt']], ['gegenprobe-endungen-personen.txt', ['txt']]];
 const sha = (b) => crypto.createHash('sha256').update(b).digest('hex');
 
 const browser = await chromium.launch();
@@ -98,6 +100,9 @@ async function nsOrder(bytes) {
   for (const n of Object.keys(z.files).filter((x) => !z.files[x].dir && /\.(xml|vml)$/i.test(x))) out[n] = ((await z.file(n).async('string')).match(/\sxmlns(?::[\w.-]+)?="[^"]*"/g) || []).join('');
   return out;
 }
+// Version 2.3.1: gebeugte Formen, die erst die vollständige Endungsprüfung findet (nur diese Zeilen dürfen sich ändern)
+const ENDING_FORMS = /Wittekindhorns|Quabbenjansens|Tönnieskampes/;
+let endingChanged = 0;
 const withoutAltLines = (t) => t.split('\n').filter((l) => !/^\[Bildbeschreibung /.test(l)).join('\n');
 const sameParts = (a, b) => !!a && !!b && JSON.stringify(Object.entries(a).sort()) === JSON.stringify(Object.entries(b).sort());
 let total = 0;
@@ -121,11 +126,21 @@ for (const [file, formats] of FIXTURES) {
         if (b[f].text !== null) alt = withoutAltLines(b[f].text) === a[f].text;
         else alt = sameParts(a[f].noDesc, b[f].noDesc);
       }
+      // Version 2.3.1: Endungsprüfung – nur Zeilen mit den neu gefundenen gebeugten Formen dürfen sich ändern
+      let ending = false;
+      if (!ok && !kOnly && !alt && b[f].text !== null && a[f].text !== null) {
+        const ol = a[f].text.split('\n');
+        const nl = b[f].text.split('\n');
+        const diff = nl.map((l, i) => (l !== ol[i] ? i : -1)).filter((i) => i >= 0);
+        ending = ol.length === nl.length && diff.length > 0 && diff.every((i) => ENDING_FORMS.test(ol[i]) && !ENDING_FORMS.test(nl[i]));
+        if (ending) reasons.push(`- ${file}, Modus ${mode}, Ausgabe .${f}: ${diff.length} Zeilen geändert, nur gebeugte Formen jetzt ersetzt (z. B. „${ol[diff[0]]}“ → „${nl[diff[0]]}“). Grund: Die Endungsprüfung probiert jetzt alle Zerlegungen.`);
+      }
       if (ok) same++;
       if (kOnly) onlyKennung++;
       if (alt) altChanged++;
+      if (ending) endingChanged++;
       const label = `${file}, Modus ${({ person: '„Person A“', name: '„[NAME]“', reversible: '„rückbaufähig“' })[mode]}, Ausgabe .${f}`;
-      lines.push(`- ${label}: ${ok ? 'identisch' : kOnly ? 'gleich bis auf die Kennung (Eigenschaft)' : alt ? 'geändert nur in Bildbeschreibungen (Grund unten)' : 'UNTERSCHIEDLICH'} (${a[f].sha.slice(0, 12)} / ${b[f].sha.slice(0, 12)})`);
+      lines.push(`- ${label}: ${ok ? 'identisch' : kOnly ? 'gleich bis auf die Kennung (Eigenschaft)' : alt ? 'geändert nur in Bildbeschreibungen (Grund unten)' : ending ? 'geändert nur durch die Endungsprüfung (Grund unten)' : 'UNTERSCHIEDLICH'} (${a[f].sha.slice(0, 12)} / ${b[f].sha.slice(0, 12)})`);
       if (alt) {
         if (b[f].text !== null) reasons.push(`- ${label}: neue Zeilen ${b[f].text.split('\n').filter((l) => /^\[Bildbeschreibung /.test(l)).map((l) => `„${l}“`).join(', ')} (Bildbeschreibungen sind jetzt eigene Textabschnitte); alle übrigen Zeilen gleich.`);
         else {
@@ -141,8 +156,8 @@ for (const [file, formats] of FIXTURES) {
   }
 }
 await browser.close();
-const bad = total - same - onlyKennung - altChanged;
-const out = [`Regression: ${same} von ${total} Ausgaben byte-identisch, ${onlyKennung} gleich bis auf die Kennung, ${altChanged} nur in Bildbeschreibungen geändert, ${bad} unterschiedlich (Referenz ${sha(fs.readFileSync(oldHtml)).slice(0, 16)}…, neu ${sha(fs.readFileSync(newHtml)).slice(0, 16)}…)`,
+const bad = total - same - onlyKennung - altChanged - endingChanged;
+const out = [`Regression: ${same} von ${total} Ausgaben byte-identisch, ${onlyKennung} gleich bis auf die Kennung, ${altChanged} nur in Bildbeschreibungen geändert, ${endingChanged} nur durch die Endungsprüfung geändert, ${bad} unterschiedlich (Referenz ${sha(fs.readFileSync(oldHtml)).slice(0, 16)}…, neu ${sha(fs.readFileSync(newHtml)).slice(0, 16)}…)`,
   ...lines, '', reasons.length ? '## Geänderte Ausgaben einzeln mit Grund' : '', ...reasons].join('\n');
 console.log(out);
 process.exit(bad === 0 ? 0 : 1);
