@@ -1,6 +1,6 @@
 # Testbericht Anonymisierer
 
-Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.html (SHA-256 f4162bb516cedf58…). Alle Testpersonen sind erfunden.
+Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.html (SHA-256 6e67c6f8f1fb70e2…). Alle Testpersonen sind erfunden.
 
 ## protokoll.txt
 - Laden: Gelesen: protokoll.txt (TXT, 22 Textabschnitte).
@@ -39,13 +39,13 @@ Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.h
 - Fehltreffer (aktiv, kein Name bzw. Falle): 3 – Bill (Falle), Name, Kasse
 - Fallen im Text: 14, davon als unsicher markiert aber AUS (richtig stehen gelassen): 12
 - Personen in der Prüfansicht: 35; Treffer gesamt: 70 (sicher 52, unsicher 18)
-- Schlusscheck vor Nacharbeit hat den Export BLOCKIERT („Schlusscheck: 3 Klarname(n) noch im Ergebnis gefunden (bestätigte Namen oder Namen aus den Dateiangaben). Export blockiert – bitte prüfen (siehe Liste oben).“). Fundstellen: Winter – steht in: Text (word/document.xml) · bestätigter Name, Person S: „…über das Projekt im preserve Winter preserve ; die Ergebnisse lie…“  | Mai – steht in: Text (word/document.xml) · bestätigter Name, Person K: „…preserve preserve ) bietet ab Mai wieder Suppe an. Auf dem Tisc…“  | Rose – steht in: Text (word/document.xml) · bestätigter Name, Person U: „…em Tisch stand eine preserve Rose preserve . Unser preserve Ko…“ . Nach Bestätigung exportiert.
+- Schlusscheck vor Nacharbeit hat den Export BLOCKIERT („Schlusscheck: 3 Klarname(n) noch im Ergebnis gefunden (bestätigte Namen oder Namen aus den Dateiangaben). Export blockiert – bitte prüfen (siehe Liste oben).“). Fundstellen: Winter – steht in: Text (word/document.xml) · bestätigter Name, Person S: „…richtete über das Projekt im Winter ; die Ergebnisse liegen Pers…“  | Mai – steht in: Text (word/document.xml) · bestätigter Name, Person K: „…eitung: Person U ) bietet ab Mai wieder Suppe an. Auf dem Tisc…“  | Rose – steht in: Text (word/document.xml) · bestätigter Name, Person U: „…an. Auf dem Tisch stand eine Rose . Unser Koch hat gekündigt.…“ . Nach Bestätigung exportiert.
 - Export (.docx) vor Nacharbeit: Status „Gespeichert: anonymisiert_dokument.docx – mit bestätigten Restfunden.“
   - Unabhängige Nachprüfung der Ausgabedatei: 4 Klarnamen-Vorkommen übrig (Ijeoma, Uchendu, Xiong, Wenjie)
   - Manuell per Antippen markiert: „Ijeoma“ (über die Oberfläche)
   - Weitere manuell markiert: Uchendu, Xiong, Wenjie
   - Nach manuellem Markieren: 92 von 92 Vorkommen abgedeckt
-  - Schlusscheck nach Nacharbeit blockierte zunächst; Fundstellen: Winter – steht in: Text (word/document.xml) · bestätigter Name, Person S: „…über das Projekt im preserve Winter preserve ; die Ergebnisse lie…“  | Mai – steht in: Text (word/document.xml) · bestätigter Name, Person K: „…preserve preserve ) bietet ab Mai wieder Suppe an. Auf dem Tisc…“  | Rose – steht in: Text (word/document.xml) · bestätigter Name, Person U: „…em Tisch stand eine preserve Rose preserve . Unser preserve Ko…“ 
+  - Schlusscheck nach Nacharbeit blockierte zunächst; Fundstellen: Winter – steht in: Text (word/document.xml) · bestätigter Name, Person S: „…richtete über das Projekt im Winter ; die Ergebnisse liegen Pers…“  | Mai – steht in: Text (word/document.xml) · bestätigter Name, Person K: „…eitung: Person U ) bietet ab Mai wieder Suppe an. Auf dem Tisc…“  | Rose – steht in: Text (word/document.xml) · bestätigter Name, Person U: „…an. Auf dem Tisch stand eine Rose . Unser Koch hat gekündigt.…“ 
   - Export nach Nacharbeit: Status „Gespeichert: anonymisiert_dokument.docx – mit bestätigten Restfunden.“; unabhängige Nachprüfung: 0 Klarnamen-Vorkommen übrig
   - LibreOffice öffnet die Ausgabe: ja; Klarnamen im LibreOffice-Text: 0
   - Zusätzlich .txt-Export: Klarnamen übrig: 0
@@ -58,7 +58,7 @@ Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.h
 - Fehltreffer (aktiv, kein Name bzw. Falle): 0
 - Fallen im Text: 5, davon als unsicher markiert aber AUS (richtig stehen gelassen): 5
 - Personen in der Prüfansicht: 23; Treffer gesamt: 39 (sicher 33, unsicher 6)
-- Schlusscheck vor Nacharbeit hat den Export BLOCKIERT („Schlusscheck: 2 Klarname(n) noch im Ergebnis gefunden (bestätigte Namen oder Namen aus den Dateiangaben). Export blockiert – bitte prüfen (siehe Liste oben).“). Fundstellen: Rose – steht in: Tabelle (xl/sharedStrings.xml) · bestätigter Name, Person R: „…reserve Kantine preserve eine Rose als Deko preserve Leitung: p…“  | Mai – steht in: Tabelle (xl/sharedStrings.xml) · bestätigter Name, Person Q: „…e Gespräch mit Person S am 3. Mai preserve Die Reise nach Paris…“ . Nach Bestätigung exportiert.
+- Schlusscheck vor Nacharbeit hat den Export BLOCKIERT („Schlusscheck: 2 Klarname(n) noch im Ergebnis gefunden (bestätigte Namen oder Namen aus den Dateiangaben). Export blockiert – bitte prüfen (siehe Liste oben).“). Fundstellen: Rose – steht in: Tabelle (xl/sharedStrings.xml) · bestätigter Name, Person R: „…erson R Person R Kantine eine Rose als Deko Leitung: Person A N…“  | Mai – steht in: Tabelle (xl/sharedStrings.xml) · bestätigter Name, Person Q: „…C Gespräch mit Person S am 3. Mai Die Reise nach Paris im Winte…“ . Nach Bestätigung exportiert.
 - Export (.xlsx) vor Nacharbeit: Status „Gespeichert: anonymisiert_tabelle.xlsx – mit bestätigten Restfunden.“
   - Unabhängige Nachprüfung der Ausgabedatei: 0 Klarnamen-Vorkommen übrig
   - LibreOffice öffnet die Ausgabe: ja; Klarnamen im LibreOffice-Text: 0
@@ -72,13 +72,13 @@ Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.h
 - Fehltreffer (aktiv, kein Name bzw. Falle): 3 – Bill (Falle), Name, Kasse
 - Fallen im Text: 13, davon als unsicher markiert aber AUS (richtig stehen gelassen): 11
 - Personen in der Prüfansicht: 37; Treffer gesamt: 68 (sicher 50, unsicher 18)
-- Schlusscheck vor Nacharbeit hat den Export BLOCKIERT („Schlusscheck: 3 Klarname(n) noch im Ergebnis gefunden (bestätigte Namen oder Namen aus den Dateiangaben). Export blockiert – bitte prüfen (siehe Liste oben).“). Fundstellen: Winter – steht in: Text (word/document.xml) · bestätigter Name, Person S: „…erichtete über das Projekt im Winter; die preserve Ergebnisse lieg…“  | Mai – steht in: Text (word/document.xml) · bestätigter Name, Person K: „…(Leitung: Person U) bietet ab Mai wieder Suppe an. preserve Auf…“  | Rose – steht in: Text (word/document.xml) · bestätigter Name, Person U: „…erve Auf dem Tisch stand eine Rose. Unser Koch hat gekündigt. pr…“ . Nach Bestätigung exportiert.
+- Schlusscheck vor Nacharbeit hat den Export BLOCKIERT („Schlusscheck: 3 Klarname(n) noch im Ergebnis gefunden (bestätigte Namen oder Namen aus den Dateiangaben). Export blockiert – bitte prüfen (siehe Liste oben).“). Fundstellen: Winter – steht in: Text (word/document.xml) · bestätigter Name, Person S: „…erichtete über das Projekt im Winter; die Ergebnisse liegen Person…“  | Mai – steht in: Text (word/document.xml) · bestätigter Name, Person K: „…(Leitung: Person U) bietet ab Mai wieder Suppe an. Auf dem Tisc…“  | Rose – steht in: Text (word/document.xml) · bestätigter Name, Person U: „… an. Auf dem Tisch stand eine Rose. Unser Koch hat gekündigt. Pe…“ . Nach Bestätigung exportiert.
 - Export (.docx) vor Nacharbeit: Status „Gespeichert: anonymisiert_dokument.docx – mit bestätigten Restfunden.“
   - Unabhängige Nachprüfung der Ausgabedatei: 4 Klarnamen-Vorkommen übrig (Ijeoma, Uchendu, Xiong, Wenjie)
   - Manuell per Antippen markiert: „Ijeoma“ (über die Oberfläche)
   - Weitere manuell markiert: Uchendu, Xiong, Wenjie
   - Nach manuellem Markieren: 87 von 87 Vorkommen abgedeckt
-  - Schlusscheck nach Nacharbeit blockierte zunächst; Fundstellen: Winter – steht in: Text (word/document.xml) · bestätigter Name, Person S: „…erichtete über das Projekt im Winter; die preserve Ergebnisse lieg…“  | Mai – steht in: Text (word/document.xml) · bestätigter Name, Person K: „…(Leitung: Person U) bietet ab Mai wieder Suppe an. preserve Auf…“  | Rose – steht in: Text (word/document.xml) · bestätigter Name, Person U: „…erve Auf dem Tisch stand eine Rose. Unser Koch hat gekündigt. pr…“ 
+  - Schlusscheck nach Nacharbeit blockierte zunächst; Fundstellen: Winter – steht in: Text (word/document.xml) · bestätigter Name, Person S: „…erichtete über das Projekt im Winter; die Ergebnisse liegen Person…“  | Mai – steht in: Text (word/document.xml) · bestätigter Name, Person K: „…(Leitung: Person U) bietet ab Mai wieder Suppe an. Auf dem Tisc…“  | Rose – steht in: Text (word/document.xml) · bestätigter Name, Person U: „… an. Auf dem Tisch stand eine Rose. Unser Koch hat gekündigt. Pe…“ 
   - Export nach Nacharbeit: Status „Gespeichert: anonymisiert_dokument.docx – mit bestätigten Restfunden.“; unabhängige Nachprüfung: 0 Klarnamen-Vorkommen übrig
   - LibreOffice öffnet die Ausgabe: ja; Klarnamen im LibreOffice-Text: 0
   - Zusätzlich .txt-Export: Klarnamen übrig: 0
@@ -137,10 +137,10 @@ Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.h
 - Nach „Merkliste löschen“: localStorage 0 Einträge
 
 ## Größe/Geschwindigkeit (Desktop-Chromium, headless)
-- TXT 1 MB: Laden+Analyse 0.9 s, Export+Schlusscheck 2.4 s, JS-Speicher ca. 78 MB – Gelesen: gross.txt (TXT, 13289 Textabschnitte).
-- TXT 5 MB: Laden+Analyse 4.0 s, Export+Schlusscheck 11.3 s, JS-Speicher ca. 125 MB – Gelesen: gross.txt (TXT, 66419 Textabschnitte).
-- TXT 10 MB: Laden+Analyse 7.6 s, Export+Schlusscheck 24.8 s, JS-Speicher ca. 347 MB – Gelesen: gross.txt (TXT, 132815 Textabschnitte).
-- XLSX mit 20 000 Zeilen × 4 Spalten (0.5 MB gepackt): Laden+Analyse 3.2 s, Export+Schlusscheck 10.8 s, JS-Speicher ca. 179 MB – Gelesen: gross.xlsx (XLSX, 60052 Textabschnitte).
+- TXT 1 MB: Laden+Analyse 1.1 s, Export+Schlusscheck 2.4 s, JS-Speicher ca. 73 MB – Gelesen: gross.txt (TXT, 13289 Textabschnitte).
+- TXT 5 MB: Laden+Analyse 4.3 s, Export+Schlusscheck 12.1 s, JS-Speicher ca. 190 MB – Gelesen: gross.txt (TXT, 66419 Textabschnitte).
+- TXT 10 MB: Laden+Analyse 7.9 s, Export+Schlusscheck 24.6 s, JS-Speicher ca. 347 MB – Gelesen: gross.txt (TXT, 132815 Textabschnitte).
+- XLSX mit 20 000 Zeilen × 4 Spalten (0.5 MB gepackt): Laden+Analyse 3.2 s, Export+Schlusscheck 11.9 s, JS-Speicher ca. 133 MB – Gelesen: gross.xlsx (XLSX, 60052 Textabschnitte).
 
 ## Netzwerkzugriffe während aller Tests
 - Anfragen gesamt: 23; davon nicht lokal (http/https/ws …): 0
