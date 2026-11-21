@@ -325,7 +325,7 @@ export function analyze(units, state) {
 
   // 1b) Einrichtungen (Version 2.3): NUR vom Nutzer markierte oder aus den Dateiangaben übernommene Bezeichnungen,
   // keine automatische Suche. Sie haben Vorrang: Ihre Wörter sind danach belegt, darin entsteht kein Personen-Treffer.
-  matchOrgTerms(st.orgTerms || [], units, unitToks, unitStarts, covered, tokHit, fullText, hits);
+  matchOrgTerms(st.orgTerms || [], units, unitToks, unitStarts, covered, tokHit, fullText, hits, st.settings.mode === MODE_REVERSIBLE);
 
   // 2) Automatische Namenserkennung
   const mentions = [];
@@ -585,7 +585,9 @@ export function analyze(units, state) {
   for (const og of orgs.values()) {
     og.letter = letterFor(no++);
     og.label = st.settings.mode === 'name' ? '[EINRICHTUNG]' : 'Einrichtung ' + og.letter;
-    og.display = [...og.forms.entries()].sort((a, b) => b[1] - a[1] || b[0].length - a[0].length || (a[0] < b[0] ? -1 : 1))[0][0];
+    // Anzeige: die markierte Bezeichnung selbst (bei zusammengeführten die des Ziels), sonst die häufigste Schreibweise
+    const own = og.hits.find((x) => x.origEntity === og.key);
+    og.display = own ? own.term : [...og.forms.entries()].sort((a, b) => b[1] - a[1] || b[0].length - a[0].length || (a[0] < b[0] ? -1 : 1))[0][0];
   }
   const entities = new Map();
   for (const h of hits) {
@@ -649,7 +651,9 @@ function orgTokMatch(textTok, termTok) {
 }
 // Alle Vorkommen der Einrichtungs-Bezeichnungen als GANZE Wortfolge. Längere Bezeichnungen zuerst.
 // Zwischen zwei Wörtern darf beliebiger Leerraum stehen (auch ein Zeilenumbruch innerhalb eines Abschnitts).
-function matchOrgTerms(orgTerms, units, unitToks, unitStarts, covered, tokHit, fullText, hits) {
+// Modus rückbaufähig: NICHT über ein festes Zeichen der Vorlage hinweg (u. fixed, z. B. Zeilenumbruch <w:br/> in Word),
+// weil es beim Ersetzen stehen bliebe und der Rückbau dann nicht exakt wäre. Dort meldet der Schlusscheck den Namen.
+function matchOrgTerms(orgTerms, units, unitToks, unitStarts, covered, tokHit, fullText, hits, reversible) {
   const terms = [];
   const seen = new Set();
   for (const raw of orgTerms) {
@@ -675,6 +679,7 @@ function matchOrgTerms(orgTerms, units, unitToks, unitStarts, covered, tokHit, f
           if (j > 0) {
             const gap = fullText.slice(toks[k + j - 1].e, tk.s);
             if (ot.gaps[j] === '' ? gap !== '' : !/^\s+$/.test(gap)) { ok = false; break; }
+            if (reversible && u.fixed && u.fixed.some((p) => p >= toks[k + j - 1].e - unitStarts[ui] && p < tk.s - unitStarts[ui])) { ok = false; break; }
           }
           if (j === n - 1) suffix = suf;
         }
@@ -831,15 +836,18 @@ export function makeNameTest(forms, phrases) {
 // Sucht verbliebene Klarnamen in Texten. texts: [{where, text}]; phrases: Wortfolgen (z. B. Firmenname)
 export function findLeaks(forms, texts, phrases = []) {
   const leaks = [];
-  for (const { where, text } of texts) {
+  for (const { where, text, plain } of texts) {
     for (const ph of phrases) {
       // ohne Lookbehind (ältere Safari-Versionen): Wortgrenze vorn als Gruppe
       // Einrichtungen (2.3): auch mit Endung am Schluss ("des Lindenauer Bürgervereins"); Firmen aus Dateiangaben wie bisher
       const end = ph.org ? "(?:'s|’s|'|’|s|es|n|ns)?" : '';
       const re = new RegExp('(^|[^\\p{L}\\p{N}])(' + ph.words.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('[\\s\\u00a0]+') + end + ')(?![\\p{L}\\p{N}])', 'giu');
-      for (const m of text.matchAll(re)) {
+      // Einrichtungen: im reinen Text ohne Attributwerte suchen (eine Wortfolge kann in Word über mehrere Textläufe
+      // verteilt sein; dazwischen stünden sonst Attributwerte wie „preserve“). Alle anderen Suchen wie bisher.
+      const src = ph.org && typeof plain === 'string' ? plain : text;
+      for (const m of src.matchAll(re)) {
         const at = m.index + m[1].length;
-        leaks.push({ where, word: m[2], entity: ph.entity, full: ph.full, meta: !ph.org, org: !!ph.org, metaOrg: !!ph.metaOrg, context: text.slice(Math.max(0, at - 30), Math.min(text.length, at + m[2].length + 30)) });
+        leaks.push({ where, word: m[2], entity: ph.entity, full: ph.full, meta: !ph.org, org: !!ph.org, metaOrg: !!ph.metaOrg, context: src.slice(Math.max(0, at - 30), Math.min(src.length, at + m[2].length + 30)) });
       }
     }
     for (const tk of tokenize(text)) {
