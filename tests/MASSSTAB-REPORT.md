@@ -1,4 +1,4 @@
-# Maßstab: Was 2.7.0 ersetzt, ersetzt auch 2.8.0 (ohne Antwort, nach „Nein“ auf alle Einrichtungs-Fragen, nach „Ja“ → „Nein“, mit „Unsichere“ aus)
+# Maßstab: Was 2.7.0 ersetzt, ersetzt auch diese Version (2.8.1) (ohne Antwort, nach „Nein“ auf alle Einrichtungs-Fragen, nach „Ja“ → „Nein“, mit „Unsichere“ aus)
 
 Neue Version: Anonymisierer/index.html; Vorversion: index-270.html. Nur Chromium, Firefox prüft Easy.
 
@@ -117,9 +117,12 @@ Neue Version: Anonymisierer/index.html; Vorversion: index-270.html. Nur Chromium
 | fixtures-traeger/einrichtungen-auto.docx | 4 | 11 | alle | alle | alle | alle | alle | alle | 21: alle |
 | fixtures-traeger/einrichtungen-auto.txt | 4 | 11 | alle | alle | alle | alle | alle | alle | 21: alle |
 | fixtures-traeger/einrichtungen-auto.xlsx | 4 | 11 | alle | alle | alle | alle | alle | alle | 20: alle |
-| fixtures-traeger/nachbarn.csv | 37 | 17 | alle | alle | alle | alle | alle | alle | 40: alle |
-| fixtures-traeger/nachbarn.txt | 37 | 17 | alle | alle | alle | alle | alle | alle | 40: alle |
-| fixtures-traeger/nachbarn.xlsx | 37 | 17 | alle | alle | alle | alle | alle | alle | 40: alle |
+| fixtures-traeger/nachbarn-offen.csv | 12 | 0 | alle | alle | alle | alle | alle | alle | 12: alle |
+| fixtures-traeger/nachbarn-offen.txt | 12 | 0 | alle | alle | alle | alle | alle | alle | 12: alle |
+| fixtures-traeger/nachbarn-offen.xlsx | 12 | 0 | alle | alle | alle | alle | alle | alle | 12: alle |
+| fixtures-traeger/nachbarn.csv | 21 | 11 | alle | alle | alle | alle | alle | alle | 25: alle |
+| fixtures-traeger/nachbarn.txt | 21 | 11 | alle | alle | alle | alle | alle | alle | 25: alle |
+| fixtures-traeger/nachbarn.xlsx | 21 | 11 | alle | alle | alle | alle | alle | alle | 25: alle |
 | fixtures-traeger/nurweb.txt | 2 | 0 | alle | alle | alle | alle | alle | alle | 2: alle |
 | fixtures-traeger/sachtext.txt | 12 | 0 | alle | alle | alle | alle | alle | alle | 12: alle |
 | out/massstab/korpus-kursbeschreibungen.txt | 21 | 1 | alle | alle | alle | alle | alle | alle | 22: alle |
@@ -138,90 +141,9 @@ Neue Version: Anonymisierer/index.html; Vorversion: index-270.html. Nur Chromium
 | out/massstab/korpus-kurse2.txt | 12 | 0 | alle | alle | alle | alle | alle | alle | 12: alle |
 | out/massstab/korpus-aushang.txt | 2 | 0 | alle | alle | alle | alle | alle | alle | 2: alle |
 
-Geprüft: 133 Dateien (Testdateien und 15 Korpus-Abschnitte), 1920 Stellen der Vorversion, je sechs Abläufe; zweiter Maßstab: 2056 Stellen von 2.8.0 (ohne Antwort).
+Geprüft: 136 Dateien (Testdateien und 15 Korpus-Abschnitte), 1908 Stellen der Vorversion, je sechs Abläufe; zweiter Maßstab: 2047 Stellen von 2.8.0 (ohne Antwort).
 
-Ausnahmen (einzeln; Grund: Version 2.8.1, Teil 4 – „von / vom / von der“ und das Kopfwort danach gehören nicht mehr zum Personennamen; der Name der Person ist ersetzt, die Einrichtung dahinter wird selbst gefunden): 81
-- fixtures-traeger/nachbarn.csv, gegen 2.8.0: „Okonkwo vom Gymnasium“ → offen „vom“
-- fixtures-traeger/nachbarn.csv, gegen 2.8.0: „Lehmann von der Firma“ → offen „von der“
-- fixtures-traeger/nachbarn.csv, gegen 2.8.0: „Schuster vom Kindergarten“ → offen „vom“
-- fixtures-traeger/nachbarn.csv, gegen 2.8.0: „Demir vom Verein“ → offen „vom“
-- fixtures-traeger/nachbarn.csv, gegen 2.8.0: „Kowalski von der Musikschule“ → offen „von der“
-- fixtures-traeger/nachbarn.csv, gegen 2.8.0: „Albers vom Familienzentrum“ → offen „vom“
-- fixtures-traeger/nachbarn.csv, gegen 2.8.0: „Brennecke von der Grundschule“ → offen „von der“
-- fixtures-traeger/nachbarn.csv, gegen 2.8.0: „Ida vom Kindergarten Krüger“ → offen „vom“
-- fixtures-traeger/nachbarn.csv, gegen 2.8.0: „Paul Lenz von der Praxis Schulze“ → offen „von der“
-- fixtures-traeger/nachbarn.csv, ohne Antwort: „Okonkwo vom Gymnasium“ → offen „vom“
-- fixtures-traeger/nachbarn.csv, ohne Antwort: „Lehmann von der Firma“ → offen „von der“
-- fixtures-traeger/nachbarn.csv, ohne Antwort: „Schuster vom Kindergarten“ → offen „vom“
-- fixtures-traeger/nachbarn.csv, ohne Antwort: „Demir vom Verein“ → offen „vom“
-- fixtures-traeger/nachbarn.csv, ohne Antwort: „Kowalski von der Musikschule“ → offen „von der“
-- fixtures-traeger/nachbarn.csv, ohne Antwort: „Albers vom Familienzentrum“ → offen „vom“
-- fixtures-traeger/nachbarn.csv, ohne Antwort: „Brennecke von der Grundschule“ → offen „von der“
-- fixtures-traeger/nachbarn.csv, ohne Antwort: „Ida vom Kindergarten Krüger“ → offen „vom“
-- fixtures-traeger/nachbarn.csv, ohne Antwort: „Paul Lenz von der Praxis Schulze“ → offen „von der“
-- fixtures-traeger/nachbarn.csv, Liste aus, dann markiert: „Okonkwo vom Gymnasium“ → offen „vom“
-- fixtures-traeger/nachbarn.csv, Liste aus, dann markiert: „Lehmann von der Firma“ → offen „von der“
-- fixtures-traeger/nachbarn.csv, Liste aus, dann markiert: „Schuster vom Kindergarten“ → offen „vom“
-- fixtures-traeger/nachbarn.csv, Liste aus, dann markiert: „Demir vom Verein“ → offen „vom“
-- fixtures-traeger/nachbarn.csv, Liste aus, dann markiert: „Kowalski von der Musikschule“ → offen „von der“
-- fixtures-traeger/nachbarn.csv, Liste aus, dann markiert: „Albers vom Familienzentrum“ → offen „vom“
-- fixtures-traeger/nachbarn.csv, Liste aus, dann markiert: „Brennecke von der Grundschule“ → offen „von der“
-- fixtures-traeger/nachbarn.csv, Liste aus, dann markiert: „Ida vom Kindergarten Krüger“ → offen „vom“
-- fixtures-traeger/nachbarn.csv, Liste aus, dann markiert: „Paul Lenz von der Praxis Schulze“ → offen „von der“
-- fixtures-traeger/nachbarn.txt, gegen 2.8.0: „Okonkwo vom Gymnasium“ → offen „vom“
-- fixtures-traeger/nachbarn.txt, gegen 2.8.0: „Lehmann von der Firma“ → offen „von der“
-- fixtures-traeger/nachbarn.txt, gegen 2.8.0: „Schuster vom Kindergarten“ → offen „vom“
-- fixtures-traeger/nachbarn.txt, gegen 2.8.0: „Demir vom Verein“ → offen „vom“
-- fixtures-traeger/nachbarn.txt, gegen 2.8.0: „Kowalski von der Musikschule“ → offen „von der“
-- fixtures-traeger/nachbarn.txt, gegen 2.8.0: „Albers vom Familienzentrum“ → offen „vom“
-- fixtures-traeger/nachbarn.txt, gegen 2.8.0: „Brennecke von der Grundschule“ → offen „von der“
-- fixtures-traeger/nachbarn.txt, gegen 2.8.0: „Ida vom Kindergarten Krüger“ → offen „vom“
-- fixtures-traeger/nachbarn.txt, gegen 2.8.0: „Paul Lenz von der Praxis Schulze“ → offen „von der“
-- fixtures-traeger/nachbarn.txt, ohne Antwort: „Okonkwo vom Gymnasium“ → offen „vom“
-- fixtures-traeger/nachbarn.txt, ohne Antwort: „Lehmann von der Firma“ → offen „von der“
-- fixtures-traeger/nachbarn.txt, ohne Antwort: „Schuster vom Kindergarten“ → offen „vom“
-- fixtures-traeger/nachbarn.txt, ohne Antwort: „Demir vom Verein“ → offen „vom“
-- fixtures-traeger/nachbarn.txt, ohne Antwort: „Kowalski von der Musikschule“ → offen „von der“
-- fixtures-traeger/nachbarn.txt, ohne Antwort: „Albers vom Familienzentrum“ → offen „vom“
-- fixtures-traeger/nachbarn.txt, ohne Antwort: „Brennecke von der Grundschule“ → offen „von der“
-- fixtures-traeger/nachbarn.txt, ohne Antwort: „Ida vom Kindergarten Krüger“ → offen „vom“
-- fixtures-traeger/nachbarn.txt, ohne Antwort: „Paul Lenz von der Praxis Schulze“ → offen „von der“
-- fixtures-traeger/nachbarn.txt, Liste aus, dann markiert: „Okonkwo vom Gymnasium“ → offen „vom“
-- fixtures-traeger/nachbarn.txt, Liste aus, dann markiert: „Lehmann von der Firma“ → offen „von der“
-- fixtures-traeger/nachbarn.txt, Liste aus, dann markiert: „Schuster vom Kindergarten“ → offen „vom“
-- fixtures-traeger/nachbarn.txt, Liste aus, dann markiert: „Demir vom Verein“ → offen „vom“
-- fixtures-traeger/nachbarn.txt, Liste aus, dann markiert: „Kowalski von der Musikschule“ → offen „von der“
-- fixtures-traeger/nachbarn.txt, Liste aus, dann markiert: „Albers vom Familienzentrum“ → offen „vom“
-- fixtures-traeger/nachbarn.txt, Liste aus, dann markiert: „Brennecke von der Grundschule“ → offen „von der“
-- fixtures-traeger/nachbarn.txt, Liste aus, dann markiert: „Ida vom Kindergarten Krüger“ → offen „vom“
-- fixtures-traeger/nachbarn.txt, Liste aus, dann markiert: „Paul Lenz von der Praxis Schulze“ → offen „von der“
-- fixtures-traeger/nachbarn.xlsx, gegen 2.8.0: „Okonkwo vom Gymnasium“ → offen „vom“
-- fixtures-traeger/nachbarn.xlsx, gegen 2.8.0: „Lehmann von der Firma“ → offen „von der“
-- fixtures-traeger/nachbarn.xlsx, gegen 2.8.0: „Schuster vom Kindergarten“ → offen „vom“
-- fixtures-traeger/nachbarn.xlsx, gegen 2.8.0: „Demir vom Verein“ → offen „vom“
-- fixtures-traeger/nachbarn.xlsx, gegen 2.8.0: „Kowalski von der Musikschule“ → offen „von der“
-- fixtures-traeger/nachbarn.xlsx, gegen 2.8.0: „Albers vom Familienzentrum“ → offen „vom“
-- fixtures-traeger/nachbarn.xlsx, gegen 2.8.0: „Brennecke von der Grundschule“ → offen „von der“
-- fixtures-traeger/nachbarn.xlsx, gegen 2.8.0: „Ida vom Kindergarten Krüger“ → offen „vom“
-- fixtures-traeger/nachbarn.xlsx, gegen 2.8.0: „Paul Lenz von der Praxis Schulze“ → offen „von der“
-- fixtures-traeger/nachbarn.xlsx, ohne Antwort: „Okonkwo vom Gymnasium“ → offen „vom“
-- fixtures-traeger/nachbarn.xlsx, ohne Antwort: „Lehmann von der Firma“ → offen „von der“
-- fixtures-traeger/nachbarn.xlsx, ohne Antwort: „Schuster vom Kindergarten“ → offen „vom“
-- fixtures-traeger/nachbarn.xlsx, ohne Antwort: „Demir vom Verein“ → offen „vom“
-- fixtures-traeger/nachbarn.xlsx, ohne Antwort: „Kowalski von der Musikschule“ → offen „von der“
-- fixtures-traeger/nachbarn.xlsx, ohne Antwort: „Albers vom Familienzentrum“ → offen „vom“
-- fixtures-traeger/nachbarn.xlsx, ohne Antwort: „Brennecke von der Grundschule“ → offen „von der“
-- fixtures-traeger/nachbarn.xlsx, ohne Antwort: „Ida vom Kindergarten Krüger“ → offen „vom“
-- fixtures-traeger/nachbarn.xlsx, ohne Antwort: „Paul Lenz von der Praxis Schulze“ → offen „von der“
-- fixtures-traeger/nachbarn.xlsx, Liste aus, dann markiert: „Okonkwo vom Gymnasium“ → offen „vom“
-- fixtures-traeger/nachbarn.xlsx, Liste aus, dann markiert: „Lehmann von der Firma“ → offen „von der“
-- fixtures-traeger/nachbarn.xlsx, Liste aus, dann markiert: „Schuster vom Kindergarten“ → offen „vom“
-- fixtures-traeger/nachbarn.xlsx, Liste aus, dann markiert: „Demir vom Verein“ → offen „vom“
-- fixtures-traeger/nachbarn.xlsx, Liste aus, dann markiert: „Kowalski von der Musikschule“ → offen „von der“
-- fixtures-traeger/nachbarn.xlsx, Liste aus, dann markiert: „Albers vom Familienzentrum“ → offen „vom“
-- fixtures-traeger/nachbarn.xlsx, Liste aus, dann markiert: „Brennecke von der Grundschule“ → offen „von der“
-- fixtures-traeger/nachbarn.xlsx, Liste aus, dann markiert: „Ida vom Kindergarten Krüger“ → offen „vom“
-- fixtures-traeger/nachbarn.xlsx, Liste aus, dann markiert: „Paul Lenz von der Praxis Schulze“ → offen „von der“
+Ausnahmen (einzeln; erlaubt nur, wenn offen allein der Zusatz „vom / von der“ ist und jedes Namens-Zeichen ersetzt ist; Teil 4 ist herausgenommen, erwartet: 0): 0
 - OK: 0 Anfragen ins Netz (0)
 - OK: 0 Fehler in der Seite (0)
 

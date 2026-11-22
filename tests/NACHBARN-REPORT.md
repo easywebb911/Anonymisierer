@@ -143,7 +143,7 @@ Ausnahmen (einzeln; erlaubt nur, wenn offen allein der Zusatz „vom / von der�
 Soll hier nur: jede Person ersetzt (wie 2.8.0). Der Name der Einrichtung hinter „vom / von der“ bleibt wie in 2.8.0 Klartext (gelistet, kein Fehler).
 - OK: nachbarn-offen.txt, person: ohne Antwort jede Person ersetzt
 - OK: nachbarn-offen.txt, person: „Unsichere“ aus, „Nein“, „Ja“ → „Nein“, Liste aus: nichts im Klartext, was 2.7.0 oder 2.8.0 so ersetzt
-- OFFEN (eigener Auftrag): Wörter im Klartext ohne Antwort: Mit, Grüßen, Frau, Kirchberg, Tannhofen, Herr, GmbH, Regenbogen, Birkenhain, Lindgrün, Wiesenkamp, Am, Mühlbach
+- OFFEN (eigener Auftrag): Wörter im Klartext ohne Antwort: Kirchberg, Tannhofen, Regenbogen, Birkenhain, Lindgrün, Wiesenkamp, Mühlbach
 - OK: nachbarn-offen.txt, name: ohne Antwort jede Person ersetzt
 - OK: nachbarn-offen.txt, name: „Unsichere“ aus, „Nein“, „Ja“ → „Nein“, Liste aus: nichts im Klartext, was 2.7.0 oder 2.8.0 so ersetzt
 - OK: nachbarn-offen.txt, reversible: ohne Antwort jede Person ersetzt
