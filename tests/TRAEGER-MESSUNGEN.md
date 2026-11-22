@@ -1,32 +1,32 @@
-# Messungen Version 2.8.1 „Einrichtungen: Leck und Lücken schließen“ (Stand nach Entscheidung Easy C)
+# Messungen Version 2.8.1 „Einrichtungen: Leck und Lücken schließen“ (Stand nach Entscheidung Easy C und Guardian-Lauf 2)
 
-Anlass: Funde 1 bis 4 und 7 des Guardian-Probelaufs auf 2.8.0 (PR #20); danach Guardian-Pflichtlauf 1 mit Mini-Stopp (Teil 4 brach „Frau von Horten“) und Entscheidung Easy C. Alle Namen erfunden. Nur Chromium, Firefox prüft Easy.
+Anlass: Funde 1 bis 4 und 7 des Guardian-Probelaufs auf 2.8.0 (PR #20); danach Guardian-Pflichtlauf 1 mit Mini-Stopp (Teil 4 brach „Frau von Horten“), Entscheidung Easy C, Guardian-Lauf 2 (Lecks „Praxis Lindqvist“ nach „Nein“ und „Als Name markieren“ für einen Teil, behoben). Alle Namen erfunden. Nur Chromium, Firefox prüft Easy.
 
 ## Ziel-Test nachbarn.* (tests/nachbarn-test.mjs → tests/NACHBARN-REPORT.md): Soll / gemessen
 Offene Stellen der Soll-Wörter (Soll = 0). a) ohne Antwort: jede Person und Einrichtung; b) nach „Nein“ auf alle Einrichtungs-Fragen: jede Person; c) „Unsichere“ aus: alles, was 2.7.0 so ersetzt; c2) „Unsichere“ aus, dann alle „Nein“.
 
 | Format | Modus | a | b | c | c2 | 2.8.0: a / b / c |
 |---|---|---|---|---|---|---|
-| txt | person / name / rückbaufähig | 0 / 0 / 0 | 0 / 0 / 0 | 0 / 0 / 0 | 0 / 0 / 0 | 11 / 0 / 3 (je Modus) |
-| csv | person / name / rückbaufähig | 0 / 0 / 0 | 0 / 0 / 0 | 0 / 0 / 0 | 0 / 0 / 0 | 11 / 0 / 3 (je Modus) |
-| xlsx | person / name / rückbaufähig | 0 / 0 / 0 | 0 / 0 / 0 | 0 / 0 / 0 | 0 / 0 / 0 | 11 / 0 / 3 (je Modus) |
+| txt | person / name / rückbaufähig | 0 / 0 / 0 | 0 / 0 / 0 | 0 / 0 / 0 | 0 / 0 / 0 | 11 / 2 / 3 (je Modus) |
+| csv | person / name / rückbaufähig | 0 / 0 / 0 | 0 / 0 / 0 | 0 / 0 / 0 | 0 / 0 / 0 | 11 / 2 / 3 (je Modus) |
+| xlsx | person / name / rückbaufähig | 0 / 0 / 0 | 0 / 0 / 0 | 0 / 0 / 0 | 0 / 0 / 0 | 11 / 2 / 3 (je Modus) |
 
-Bedienwege (Oberfläche): Teil 1 (Einstellung, Schalter „Koch“), Teil 2 (Liste aus → von Hand markiert, drei Einrichtungen), Liste aus → „Als Name markieren“ (Jana Wolters; Melanie Grawert, selbst erkannt, mit „Unsichere“ an und aus), Fund 4 (Person aus: Einrichtung bleibt „Kita Sonnenblume“, an und aus), echte Namen mit Zusatz ganz („von Brandner“, „van der Lindenau“, „von Horten“, „Anja von Horten“, „von Schulenburg“). Rückbau exakt txt/csv/xlsx, auch Ausgabe + Schlüssel aus 2.8.0. **60/60.**
-Gegenproben: gegen den Stand vor Entscheidung C (acb41605…) 13/57 NICHT bestanden (Horten, Fund 2, Fund 4); gegen 2.8.0 26/57 NICHT bestanden.
+Bedienwege (Oberfläche): Teil 1 (Einstellung, Schalter „Koch“), Teil 2 (Liste aus → von Hand markiert, drei Einrichtungen), Liste aus → „Als Name markieren“ (Jana Wolters; Melanie Grawert, selbst erkannt, mit „Unsichere“ an und aus), Fund 4 (Person aus: Einrichtung bleibt „Kita Sonnenblume“, an und aus), Lauf 2: „Praxis Lindqvist“ nach „Nein“ / Liste aus ersetzt, mit „Unsichere“ aus und „Lindqvist“ als Name markiert ersetzt, nur „Grawert“ markiert ersetzt, echte Namen mit Zusatz ganz („von Brandner“, „van der Lindenau“, „von Horten“, „Anja von Horten“, „von Schulenburg“). Rückbau exakt txt/csv/xlsx, auch Ausgabe + Schlüssel aus 2.8.0. **66/66.**
+Gegenproben (alle NICHT bestanden, wie verlangt): Stand vor Lauf-2-Behebung (a3f76a0d…) 48/63; Stand vor Entscheidung C (acb41605…) 13/63 (Horten, Funde 2 und 4, Lauf 2); 2.8.0 17/63. „Herr Nikita Brandner“ und „Frau von Schulenburg“ waren auf acb41605 schon richtig (dort ging nur „von“ + Wort mit Kopfwort-Endung schief); sie bleiben als Schutzfälle.
 Nicht im Soll: „Koch“ in „Bitte wenden Sie sich an Koch.“ (mehrdeutig, in allen Versionen gleich gefragt). In Tabellen steht die Anrede links neben dem Namen (Regel a2 gilt dort nur für die linke Nachbarzelle, seit 2.6.0).
 
 ## Warum fand der Maßstab-Test (PR #19) Fund 1 nicht?
 Der Ablauf „Unsichere aus“ verglich richtig mit 2.7.0. Aber keine Testdatei enthielt einen Namen, der „unsicher, an“ ist (Regel a2) oder von Hand/per Schalter eingeschaltet wurde, IN einer gefundenen Einrichtung; den Weg über den Schalter gab es als Ablauf nicht. Jetzt: nachbarn.* und die Abläufe „Unsichere aus, dann alle Nein“ und „Liste aus, dann von Hand markiert“.
 
 ## Maßstab (tests/massstab-test.mjs → tests/MASSSTAB-REPORT.md)
-- Gegen 2.7.0: 133 Dateien (Testdateien und 15 Korpus-Abschnitte), 1899 Stellen, je sechs Abläufe. **0 fehlende Stellen.**
-- Zweiter Maßstab gegen 2.8.0 (ohne Antwort): 2032 Stellen. **0 fehlende Stellen.**
+- Gegen 2.7.0: 133 Dateien (Testdateien und 15 Korpus-Abschnitte), 1908 Stellen, je sechs Abläufe. **0 fehlende Stellen.**
+- Zweiter Maßstab gegen 2.8.0 (ohne Antwort): 2041 Stellen. **0 fehlende Stellen.**
 - Ausnahmen: 195, alle in nachbarn.txt/.csv/.xlsx, alle Teil 4: offen ist nur „vom / von der“ (Einrichtung an) bzw. „vom“ + Kopfwort in der Grundform (Einrichtung abgelehnt oder aus). In den vorhandenen Testdateien: 0. Die Ausnahme erlaubt seit Entscheidung C nur Kopfwörter in der Grundform (ein offenes „Horten“ wäre eine fehlende Stelle).
 - Gegenprobe (2.8.0 als neue Version, Stand vor C): 14 Abweichungen, NICHT bestanden.
 - Der Ablauf „Liste aus“ klickt wie ein Mensch nochmals, wenn der Schalter danach noch an steht (bekannt seit 2.8.0, siehe PR-Text).
 
 ## Testläufe vorher (main 2.8.0) / nachher (2.8.1), bestanden/gesamt
-anzeige 121 → 121 · bedienung 37 → 37 · bilder 58 → 58 · einrichtung 153 → 153 · endungen 21 → 21 · gross 44 → 44 · kennung 37 → 37 · kollision 17 → 17 · meta-proof 46 → 51 (+5 Teil 5) · pfade 40 → 40 · platzhalter 24 → 24 · roundtrip 36 → 36 · spalten 67 → 67 · traeger 98 → 98 · ui-flow 52 → 52 · wortliste 18 → 18 · korpus „alle Zahlen wie erwartet“ → gleich · run-tests grün → grün · massstab bestanden (130 Dateien, 1809 Stellen, 4 Abläufe) → bestanden (133 Dateien, 1899 Stellen, 6 Abläufe + 2032 Stellen gegen 2.8.0) · **neu: nachbarn 60/60**.
+anzeige 121 → 121 · bedienung 37 → 37 · bilder 58 → 58 · einrichtung 153 → 153 · endungen 21 → 21 · gross 44 → 44 · kennung 37 → 37 · kollision 17 → 17 · meta-proof 46 → 51 (+5 Teil 5) · pfade 40 → 40 · platzhalter 24 → 24 · roundtrip 36 → 36 · spalten 67 → 67 · traeger 98 → 98 · ui-flow 52 → 52 · wortliste 18 → 18 · korpus „alle Zahlen wie erwartet“ → gleich · run-tests grün → grün · massstab bestanden (130 Dateien, 1809 Stellen, 4 Abläufe) → bestanden (133 Dateien, 1908 Stellen, 6 Abläufe + 2041 Stellen gegen 2.8.0) · **neu: nachbarn 66/66**.
 Angepasste Erwartungen: **keine**.
 
 ## Teil 5: Schlusscheck → „Als Einrichtung übernehmen“ (tests/meta-proof.mjs)
@@ -36,14 +36,17 @@ kurse-lernwerkstatt.docx (zur Laufzeit aus kurse.docx, „Lernwerkstatt Sonnenho
 tests/regression.mjs: 126 Ausgaben, 110 byte-identisch, 16 gleich bis auf die Kennung, **0 unbegründet**. Zusätzlich alle 119 Testdateien (Modus „Person A“, ohne Antwort) und 15 Korpus-Abschnitte verglichen: geändert nur nachbarn.txt/.csv/.xlsx (neu, Grund Teil 1–4). Keine vorhandene Testdatei ändert ihre Ausgabe.
 
 ## Fragen und Fehltreffer
-- Fragen: in allen vorhandenen Testdateien und Korpus-Abschnitten unverändert. nachbarn.* je Datei: 2.8.0 10 (5 Einrichtung), 2.8.1 17 (13 Einrichtung).
-- Fehltreffer: vorhandene Dateien wie 2.8.0 (**36 richtig, 2 falsch**). Neu in nachbarn.* je Datei 13 Einrichtungen, alle richtig → **75 richtig, 2 falsch**. Warnpunkt nachbarn je Datei: 2.8.0 12 Stellen, 2.8.1 1 („Nikita Brandner“, falsch: Vorname auf -kita, Einrichtungs-Suche unverändert).
+- Fragen: in allen vorhandenen Testdateien und Korpus-Abschnitten unverändert. nachbarn.* je Datei: 2.8.0 13 (7 Einrichtung), 2.8.1 20 (15 Einrichtung).
+- Fehltreffer: vorhandene Dateien wie 2.8.0 (**36 richtig, 2 falsch**). Neu in nachbarn.* je Datei 15 Einrichtungen, alle richtig → **81 richtig, 2 falsch**. Warnpunkt nachbarn je Datei: 2.8.0 12 Stellen, 2.8.1 1 („Nikita Brandner“, falsch: Vorname auf -kita, Einrichtungs-Suche unverändert).
 
 ## Kopfwort als Wortteil (Prüfung außerhalb von Teil 4, Entscheidung Easy C)
 Namenslisten durchsucht: Vornamen anikita, kita, lukita, mikita, nikita, rakita; Nachnamen hort, kita, tschaschule, waskita passen auf ein Kopfwort-Muster der Einrichtungs-Suche. Folge (wie in 2.8.0): „Nikita Brandner“, „Rakita Weber“, „Tschaschule Meier“ … stehen als falscher Fund im Warnpunkt; der Name wird trotzdem ersetzt. „Die Horten Kessler sind da.“ → „Die Einrichtung A sind da.“ (kein Klartext, falscher Platzhalter-Typ). „Vereinbarung“, „Praxisnah“, „Firmament“, „Schulenburg“ greifen nicht. Nicht geändert, nur gemeldet.
 
+## Testbericht EINRICHTUNG-REPORT.md (Guardian-Lauf 2, Fund 5)
+In einer Zeile fehlt ein Leerzeichen („im OriginalEinrichtung“). Die Meldung selbst ist in 2.8.0 und 2.8.1 gleich (HTML verglichen); der Test liest sie mit innerText, das je nach Zeitpunkt des Aufbaus der Seite einen Zeilenumbruch liefert oder nicht. Keine Änderung am Tool.
+
 ## Prüfsumme
-Zweimal gebaut (Kopien außerhalb des Arbeitsbaums): beide a3f76a0dca3d9782a57d8449893ada21d2703905787b6e7b152ed16d8b6d0d49.
+Zweimal gebaut (Kopien außerhalb des Arbeitsbaums): beide a2c4e0120a1456d6386f45d3b17042e1cb8cfa1e5f12d4b46ca436bf17dae145.
 
 ---
 
