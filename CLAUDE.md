@@ -1,5 +1,12 @@
 # Anonymisierer – Regeln für Claude
 
+## Status-Zeile
+- Die erste Zeile **jeder** Meldung an Easy (auch Zwischenmeldungen) ist genau eine dieser drei:
+  - `ARBEITE NOCH – <was gerade läuft>. Ich melde mich von selbst.`
+  - `WARTE AUF EASY – <Mini-Stopp oder Frage in einem Satz>`
+  - `FERTIG – Bericht vollständig.`
+- Antwortet Easy nur „Status?“, gibst du nur diese Zeile zurück und arbeitest weiter.
+
 ## Guardian-Pflichtlauf
 - Vor **jeder Fertig-Meldung** und vor **jedem Merge** startest du den Guardian (`.claude/agents/anonymisierer-guardian.md`) auf dem fertigen Stand. Er bekommt den Auftragstext, den Diff gegen main, die index.html des Branches und die von main, aber nicht deine Begründungen.
 - Alle Funde des Guardians stehen **wörtlich** im Bericht an Easy. Jeden Fund behebst du oder begründest, warum nicht.
@@ -16,3 +23,4 @@
 - Änderungen an **Erkennungs-, Platzhalter- oder Schlüssel-Logik** sind **Manual-Merge**: Easy mergt selbst.
 - **GitHub-Rate-Limit:** kein Retry, sofort melden.
 - **Mini-Stopp statt Raten:** Ist etwas unklar oder widersprüchlich, hältst du an und meldest es.
+- Zu jedem neuen Schalter und jeder neuen Regel gehört ein Test mit 'Unsichere Treffer' aus.

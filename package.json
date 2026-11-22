@@ -1,6 +1,6 @@
 {
   "name": "anonymisierer",
-  "version": "2.8.0",
+  "version": "2.8.1",
   "private": true,
   "description": "Offline-Anonymisierer für Klarnamen – Build-Werkzeuge für index.html",
   "license": "UNLICENSED",
@@ -15,5 +15,5 @@
     "jszip": "3.10.1",
     "pdfjs-dist": "5.4.624"
   },
-  "releaseDate": "2026-11-21"
+  "releaseDate": "2026-11-22"
 }

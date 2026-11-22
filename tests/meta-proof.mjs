@@ -329,6 +329,33 @@ log('## Firmenname aus den Dateiangaben im sichtbaren Text (kurse.docx)');
   check('Speichern bleibt ohne Häkchen gesperrt (offene Fragen)', /blockiert/.test(status) && /Ich habe alle Punkte gesehen und speichere so/.test(box));
   await ctx.close();
 }
+// Version 2.8.1 (Teil 5): Der Weg „Schlusscheck → Knopf ‚Als Einrichtung übernehmen‘ → danach kein Fund“ wieder geprüft,
+// mit einer Datei, in der er weiter vorkommt: Firmenname OHNE Kopfwort, Rechtsform oder Anführungszeichen
+// („Lernwerkstatt Sonnenhof“, erfunden) – die Einrichtungs-Suche findet ihn nicht, nur der Schlusscheck. Erzeugt aus
+// kurse.docx (Firmenname in Dateiangaben, Kopfzeile und Bildbeschreibung ersetzt).
+log('');
+log('## Firmenname ohne Kopfwort aus den Dateiangaben im sichtbaren Text (kurse-lernwerkstatt.docx, Version 2.8.1) – Schutz, kein Nachweis der Behebung (der Weg ging auch in 2.8.0, er war nur nicht mehr geprüft)');
+{
+  const z = await JSZip.loadAsync(fs.readFileSync(path.join(fx, 'kurse.docx')));
+  for (const n of Object.keys(z.files)) if (/\.xml$/.test(n)) z.file(n, (await z.file(n).async('string')).split('Familienzentrum Sonnenblume').join('Lernwerkstatt Sonnenhof'));
+  const f = path.join(outDir, 'kurse-lernwerkstatt.docx');
+  fs.writeFileSync(f, await z.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' }));
+  const { page, ctx } = await newPage();
+  await loadFile(page, f);
+  const found = await page.evaluate(() => window.__anon.questions().filter((q) => q.kind === 'org').map((q) => q.word));
+  check('Gegenstück: die Einrichtungs-Suche findet „Lernwerkstatt Sonnenhof“ nicht (kein Kopfwort)', !found.some((w) => /Lernwerkstatt|Sonnenhof/.test(w)), found.join(', ') || 'keine gefundene Einrichtung');
+  await ackAll(page, { questions: false });
+  const { status } = await exportOnce(page, 'docx');
+  const box = await page.textContent('#scr-a3');
+  const items = await page.$$eval('#points li.bad', (els) => els.map((e) => e.textContent));
+  check('Schlusscheck blockiert wegen des Firmennamens', /blockiert/.test(status) && items.length > 0 && items.every((t) => t.includes('Lernwerkstatt Sonnenhof')), items.length + ' Fund(e)');
+  check('Meldung nennt den Ort in einfacher Sprache („Kopfzeile“, „Bildbeschreibung“)', items.every((t) => /steht noch in: (Kopfzeile|Bildbeschreibung)/.test(t)), items.join(' | '));
+  check('Meldung nennt beide Wege: als Einrichtung übernehmen oder bewusst stehen lassen (Häkchen)', /Als Einrichtung übernehmen/.test(box) && /Ich habe alle Punkte gesehen und speichere so/.test(box));
+  await page.click('#points li.bad button');
+  const after = await page.evaluate(async () => { const o = await window.__anon.buildOutput('docx'); return { leaks: (await window.__anon.finalCheck(o)).length, terms: window.__anon.app.state.orgTerms.slice() }; });
+  check('Knopf in der Meldung übernimmt den Firmennamen, danach Schlusscheck ohne Fund', after.leaks === 0 && after.terms.includes('Lernwerkstatt Sonnenhof'), `Einrichtungen: ${after.terms.join(', ')}; Funde: ${after.leaks}`);
+  await ctx.close();
+}
 for (const mode of ['person', 'name', 'reversible']) {
   const { page, ctx } = await newPage();
   await loadFile(page, path.join(fx, 'kurse.docx'), mode);

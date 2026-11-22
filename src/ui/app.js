@@ -574,6 +574,7 @@ function applyAnswer(q, val, seq, skip) {
     setHits(skip ? list.filter((x) => !skip.has(x.key)) : list, yes);
   } else if (yes && !q.taken) {
     const before = { m: [...app.state.manualTerms], o: [...app.state.orgTerms], e: [...app.state.exceptions], added: app.addedSinceLoad };
+    const ovBefore = { ...app.state.overrides }; // Version 2.8.1 (Guardian-Lauf 3, Fund 2): Umschaltungen von „Markieren gewinnt“
     const wasIn = app.inAnswer;
     app.inAnswer = true;
     if (q.org) addOrg(q.name); else addManual(q.name); // rechnet neu und zeichnet alles
@@ -582,7 +583,10 @@ function applyAnswer(q, val, seq, skip) {
     const other = q.org ? 'm' : 'o';
     const now = { m: app.state.manualTerms, o: app.state.orgTerms, e: app.state.exceptions };
     const lost = (k) => before[k].map((v, i) => ({ i, v })).filter((x) => !now[k].includes(x.v));
-    rec.meta = { org: q.org, added: now[target].filter((t) => !before[target].includes(t)), removedOther: lost(other), removedExc: lost('e'), addedSinceLoad: before.added };
+    const ovNow = app.state.overrides;
+    const ovChanged = [...new Set([...Object.keys(ovBefore), ...Object.keys(ovNow)])].filter((k) => ovBefore[k] !== ovNow[k])
+      .map((k) => ({ key: k, had: k in ovBefore, val: ovBefore[k], has: k in ovNow, set: ovNow[k] }));
+    rec.meta = { org: q.org, added: now[target].filter((t) => !before[target].includes(t)), removedOther: lost(other), removedExc: lost('e'), addedSinceLoad: before.added, ovChanged };
   } else changed();
 }
 // Wirkung einer Antwort zurücknehmen; liefert die Stellen, die inzwischen von Hand umgeschaltet waren
@@ -611,6 +615,13 @@ function undoAnswer(id) {
     for (const x of m.removedOther) if (!st[other].includes(x.v)) st[other].splice(Math.min(x.i, st[other].length), 0, x.v);
     for (const x of m.removedExc) if (!st.exceptions.includes(x.v)) st.exceptions.splice(Math.min(x.i, st.exceptions.length), 0, x.v);
     app.addedSinceLoad = m.addedSinceLoad;
+    // Version 2.8.1 (Guardian-Lauf 3, Fund 2): Umschaltungen, die das Übernehmen ausgelöst hat („Markieren gewinnt“),
+    // zurücknehmen – sofern sie seitdem nicht von Hand geändert wurden. So gilt „Ja“ → „Nein“ = direkt „Nein“.
+    for (const c of m.ovChanged || []) {
+      const cur = Object.prototype.hasOwnProperty.call(st.overrides, c.key);
+      if (cur !== c.has || (cur && st.overrides[c.key] !== c.set)) continue;
+      if (c.had) st.overrides[c.key] = c.val; else delete st.overrides[c.key];
+    }
     saveStored();
     const wasIn = app.inAnswer;
     app.inAnswer = true;
@@ -1256,6 +1267,28 @@ function addManual(term) {
   const sel = window.getSelection();
   if (sel) sel.removeAllRanges();
   runAnalysis();
+  // Version 2.8.1 (Teil 2): Von Hand markieren gewinnt immer. Stellen dieses Namens, die vorher aus waren (Schalter, Klick,
+  // Antwort), werden ersetzt.
+  const norm = (x) => ' ' + fold(x).split(/[^\p{L}\p{N}]+/u).filter(Boolean).join(' ') + ' ';
+  // auch selbst erkannte Treffer (Guardian-Fund 2) und Treffer, in denen der markierte Name als ganze Wörter steht
+  // (Guardian-Lauf 2, Fund 2/3: „Grawert“ in „Melanie Grawert“, „Lindqvist“ in „Praxis Lindqvist“)
+  const ents = new Set(app.result.hits.filter((x) => x.type === 'person' && !x.capsManual
+    && norm(app.result.fullText.slice(x.s, x.e)).includes(norm(t))).map((x) => x.entity));
+  let n = markWins((x) => x.type === 'person' && ents.has(x.entity) && !x.capsManual);
+  if (n) runAnalysis();
+  // Stellen, in denen der markierte Name steht und die trotzdem aus sind (z. B. „unsicher, aus“ bei „Unsichere“ aus):
+  // einschalten – von Hand markieren gewinnt immer (Guardian-Lauf 2, Fund 2)
+  n = 0;
+  for (const x of app.result.hits) {
+    if (x.type === 'person' && !x.on && !x.capsManual && norm(app.result.fullText.slice(x.s, x.e)).includes(norm(t))) { app.state.overrides[x.key] = true; n++; }
+  }
+  if (n) runAnalysis();
+}
+// Version 2.8.1 (Teil 2): ausgeschaltete Stellen (Umschaltung „aus“) der gerade von Hand markierten Sache wieder auf Standard
+function markWins(test) {
+  let n = 0;
+  for (const x of app.result.hits) if (test(x) && app.state.overrides[x.key] === false) { delete app.state.overrides[x.key]; n++; }
+  return n;
 }
 
 // Als Einrichtung markieren (Version 2.3): ganze Wortfolge, eigener Platzhalter „Einrichtung A“
@@ -1271,6 +1304,10 @@ function addOrg(term) {
   const sel = window.getSelection();
   if (sel) sel.removeAllRanges();
   runAnalysis();
+  // Version 2.8.1 (Teil 2): Von Hand markieren gewinnt immer – die Einrichtung ist danach sicher und ersetzt, gleich was
+  // vorher geantwortet oder geschaltet war
+  const key = orgKeyOf(t);
+  if (markWins((x) => x.type === 'org' && x.entity === key && !x.auto)) runAnalysis();
 }
 // Wie cleanTerm, aber ein Punkt am Ende bleibt (z. B. „e.V.“)
 function cleanOrgTerm(s) {

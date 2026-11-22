@@ -362,7 +362,28 @@ export function analyze(units, state, extra = {}) {
   // Gefundene Bezeichnungen werden wie von Hand markierte im ganzen Dokument gesucht, aber „unsicher, an“. Gehört ein
   // Fund zu einer von Hand markierten Einrichtung (gleiche Einrichtung, andere Schreibweise), wird er Teil von ihr (sicher).
   const isCovered = (ui, s, e) => { const base = unitStarts[ui]; return unitToks[ui].some((tk, k) => covered[ui][k] && tk.s - base < e && tk.e - base > s); };
-  const auto = extra.noAutoOrgs ? { groups: [], weak: [] } : findOrgs(units, fullText, { covered: isCovered, exceptions, manualTerms: st.orgTerms || [] });
+  // Nachbesserung 2.8.0 / Version 2.8.1: Personen, die die Erkennung OHNE gefundene Einrichtungen „sicher“ ersetzt (einmal
+  // rechnen, erst wenn es einen Kandidaten gibt)
+  let safeSpans = null;
+  const safe = () => {
+    if (!safeSpans) {
+      const plain = analyze(units, state, { ...extra, noAutoOrgs: true });
+      // Version 2.8.1 (Guardian-Fund 4, Entscheidung Easy): Schalter oder Antworten, die eine Person ausschalten, ändern die
+      // Grenze nicht. Guardian-Lauf 5, Fund 1 (Entscheidung Easy): Personen, die von Anfang an aus sind (z. B. GROSS-Form
+      // mit Endung eines eigenen Namens), zählen nicht – nur solche, die ersetzt werden oder von Hand ausgeschaltet sind.
+      safeSpans = plain.hits.filter((h) => h.type === 'person' && h.cert === 'sicher' && (h.on || (st.overrides || {})[h.key] === false)).map((h) => [h.s, h.e]);
+    }
+    return safeSpans;
+  };
+  // Version 2.8.1 (Teil 3): Beginn der ersten sicheren Person in einem Kandidaten (Koordinaten der Einheit), sonst -1
+  const cutAt = (ui, s, e) => {
+    const a = unitStarts[ui] + s;
+    const b = unitStarts[ui] + e;
+    let p = -1;
+    for (const [x, y] of safe()) if (x < b && y > a && (p < 0 || x < p)) p = x;
+    return p < 0 ? -1 : p - unitStarts[ui];
+  };
+  const auto = extra.noAutoOrgs ? { groups: [], weak: [] } : findOrgs(units, fullText, { covered: isCovered, exceptions, manualTerms: st.orgTerms || [], cutAt });
   const autoTerms = [];
   for (const g of auto.groups) {
     const manualKey = g.manualTerm ? orgTermTokens(g.manualTerm).key : null;
@@ -373,9 +394,7 @@ export function analyze(units, state, extra = {}) {
     // Nachbesserung 2.8.0 (Befund 1): Eine gefundene Einrichtung verdeckt nie eine Stelle, die die Personen-Erkennung ohne
     // sie „sicher“ ersetzt (Ausnahme: Bindestrich-Form „Erika-Brandner-Schule“). Dazu einmal ohne gefundene Einrichtungen
     // rechnen (nur wenn es Funde gibt).
-    const plain = analyze(units, state, { ...extra, noAutoOrgs: true });
-    const safe = plain.hits.filter((h) => h.type === 'person' && h.cert === 'sicher' && h.on).map((h) => [h.s, h.e]);
-    const blocked = (a, b) => safe.some(([x, y]) => x < b && y > a);
+    const blocked = (a, b) => safe().some(([x, y]) => x < b && y > a);
     const blockedHits = [];
     matchOrgTerms(autoTerms, units, unitToks, unitStarts, covered, tokHit, fullText, hits, st.settings.mode === MODE_REVERSIBLE, st.settings,
       { blocked, overrides: st.overrides || {}, blockedHits });
@@ -717,7 +736,9 @@ export function analyze(units, state, extra = {}) {
   // 8) An/Aus pro Treffer
   hits.forEach((h, idx) => {
     h.id = idx;
-    h.key = h.s + ':' + h.e;
+    // Version 2.8.1 (Guardian-Lauf 2, Fund 1): Einrichtungs-Treffer haben eigene Schlüssel („o…“). Sonst erbt eine Person,
+    // die nach „Nein“ genau dieselbe Stelle belegt („Praxis Lindqvist“), das „aus“ der Einrichtung.
+    h.key = (h.type === 'org' ? 'o' : '') + h.s + ':' + h.e;
     const ov = st.overrides[h.key];
     h.on = ov === undefined ? !h.defaultOff : ov;
     h.label = h.type === 'person' ? entities.get(h.entity).label : h.type === 'org' ? orgs.get(h.entity).label : CONTACT_LABELS[h.type];
@@ -811,8 +832,9 @@ function matchOrgTerms(orgTerms, units, unitToks, unitStarts, covered, tokHit, f
         // Nachbesserung 2.8.0: gefundene Einrichtung (auch eine Schreibweise einer markierten)
         if (autoOpt) {
           if (!ot.hyphen && autoOpt.blocked(h.s, h.e)) { autoOpt.blockedHits.push(h); continue; } // verdeckte eine „sichere“ Person: kein Treffer
-          // bewusst ausgeschaltet („Nein“, Schalter, Klick): Treffer bleibt (Frage, Liste), gibt seine Wörter aber frei
-          if (autoOpt.overrides[h.s + ':' + h.e] === false) { h.released = true; hits.push(h); k += n - 1; continue; }
+          // nicht ersetzt (Version 2.8.1, Teil 1: gleich aus welchem Grund – „Nein“, Schalter, Klick oder die Einstellung
+          // „Unsichere Treffer standardmäßig ersetzen“ aus): Treffer bleibt (Frage, Liste), gibt seine Wörter aber frei
+          if (autoOff(autoOpt, h)) { h.released = true; hits.push(h); k += n - 1; continue; }
         }
         hits.push(h);
         for (let j = 0; j < n; j++) { cov[k + j] = true; tokHit[ui][k + j] = h; }
@@ -852,7 +874,7 @@ function matchOrgTerms(orgTerms, units, unitToks, unitStarts, covered, tokHit, f
           split: unitStarts[ui] + u.text.length, eol: u.eol || '\n', suffix, entity: ot.key, term: ot.text, comps: [], ...orgAutoFields(ot, settings) };
         if (autoOpt) {
           if (!ot.hyphen && autoOpt.blocked(h.s, h.e)) { autoOpt.blockedHits.push(h); continue; }
-          if (autoOpt.overrides[h.s + ':' + h.e] === false) { h.released = true; hits.push(h); break; }
+          if (autoOff(autoOpt, h)) { h.released = true; hits.push(h); break; }
         }
         hits.push(h);
         for (let j = k; j < A.length; j++) { covered[ui][j] = true; tokHit[ui][j] = h; }
@@ -861,6 +883,11 @@ function matchOrgTerms(orgTerms, units, unitToks, unitStarts, covered, tokHit, f
       }
     });
   }
+}
+// Version 2.8.1 (Teil 1): Wird dieser Treffer einer gefundenen Einrichtung NICHT ersetzt? (dieselbe Regel wie unten in 8)
+function autoOff(autoOpt, h) {
+  const ov = autoOpt.overrides['o' + h.s + ':' + h.e];
+  return ov === undefined ? !!h.defaultOff : ov === false;
 }
 // Version 2.8.0: Felder eines Treffers einer selbst gefundenen Einrichtung (bzw. einer Schreibweise, die zu einer von Hand
 // markierten gehört: dann sicher, Gruppe = die markierte Einrichtung)

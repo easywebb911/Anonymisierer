@@ -129,10 +129,15 @@ Das Tool findet Schulnamen, Träger, Kitas, Vereine und Firmen **selbst**. Eine 
 
 **Vorrang:** Namensspalten (2.6), Webadressen, Konten, E-Mail und Adressen gehen vor; von Hand markierte Einrichtungen und Namen gehen vor. Markierst du eine gefundene Einrichtung von Hand, ist sie ab dann sicher und ihre Frage fällt weg. Die Liste „Ausnahmen“ gilt auch hier.
 
+**Von Hand markieren gewinnt immer (seit 2.8.1):** Hast du eine gefundene Einrichtung vorher ausgeschaltet (Liste, Klick) oder mit „Nein“ beantwortet und markierst sie danach von Hand als Einrichtung, wird sie ersetzt und ist sicher. Dasselbe gilt für „Als Name markieren“, auch für einen Teil eines Namens („Grawert“ in „Melanie Grawert“): Jede Stelle, in der der markierte Name steht, wird ersetzt.
+
 **Personen gehen vor:**
 - Eine gefundene Einrichtung endet **vor einer Anrede oder einem Titel** (Herr, Frau, Dr., Prof. …): Aus „Gymnasium Tannhofen Herr Kessler“ wird die Einrichtung „Gymnasium Tannhofen“ und die Person „Herr Kessler“.
-- Eine gefundene Einrichtung verdeckt **nie eine Stelle, die das Tool sonst sicher als Person ersetzt** (Ausnahme: Name mit Bindestrich wie „Erika-Brandner-Schule“). Ist das so, wird die Person ersetzt, und die Einrichtung steht im Punkt „Hier könnte eine Einrichtung stehen“ (z. B. „Verein Quarstedt“, wenn auch „Herr Anton Quarstedt“ im Text steht).
-- **„Nein“** bei einer gefundenen Einrichtung (oder Ausschalten in der Liste oder per Klick) gibt ihre Wörter frei: Das Tool sucht dort wieder nach Personen, mit eigenen Fragen. Was Version 2.7 ersetzt hat, wird so auch nach „Nein“ ersetzt.
+- Eine gefundene Einrichtung verdeckt **nie eine Stelle, die das Tool sonst sicher als Person ersetzt** (Ausnahme: Name mit Bindestrich wie „Erika-Brandner-Schule“). Ist das so, wird die Person ersetzt. Steht die Person hinter dem Kopfwort („Verein Quarstedt“, wenn auch „Herr Anton Quarstedt“ im Text steht), endet die Einrichtung vor ihr; bleibt dann nur das Kopfwort, gibt es keine Einrichtung und **keinen** Warnpunkt (seit 2.8.1; „Verein“ bleibt stehen, der Name ist ersetzt). In den übrigen Fällen (Name in Anführungszeichen wie „Haus Marlene“, Name vor einer Rechtsform wie „Quarstedt GmbH“) steht die Einrichtung im Punkt „Hier könnte eine Einrichtung stehen“.
+- Steht eine **Person direkt hinter der Einrichtung, ohne Anrede** (seit 2.8.1), endet die Einrichtung vor der Person: Aus „Kita Sonnenblume Jana Wolters“ werden die Einrichtung „Kita Sonnenblume“ und die Person „Jana Wolters“. Bleibt vor der Person nur das Kopfwort, ist es kein Fund.
+- **„von / vom / von der“ vor einer Einrichtung** („Frau Okonkwo vom Gymnasium Kirchberg Tannhofen“): unverändert wie in 2.8.0. Die Person „Okonkwo vom Gymnasium“ wird ersetzt, der Name der Einrichtung dahinter bleibt Klartext. Eine Regel dafür war in 2.8.1 geplant, wurde aber nach der Prüfung wieder herausgenommen, weil sie in anderen Fällen Namen im Klartext ließ (eigener Auftrag). Echte Namen mit Zusatz bleiben ganz („Herr von Brandner“, „Frau von Horten“).
+- **Eine gefundene Einrichtung, die nicht ersetzt wird, gibt ihre Wörter frei**, gleich warum: „Nein“, Ausschalten in der Liste, Klick oder (seit 2.8.1) die Einstellung „Unsichere Treffer standardmäßig ersetzen“ aus. Das Tool sucht dort wieder nach Personen, mit eigenen Fragen, so wie ohne die Einrichtungs-Suche. Jeder Name, den Version 2.7 ersetzt hat, bleibt so ersetzt.
+- Wo eine gefundene Einrichtung endet, richtet sich **nur nach der Erkennung**, nicht nach Schaltern oder Antworten (seit 2.8.1): Schaltest du eine Person aus, wird die Einrichtung daneben dadurch nicht länger.
 
 **Neuer Punkt auf „Speichern“:** Wird eine gefundene Einrichtung nicht ersetzt und ist ihre Frage offen (z. B. weil „Unsichere Treffer standardmäßig ersetzen“ aus ist), steht dort „Eine Einrichtung steht noch im Text: …“ mit Fundort, „Im Text zeigen“ und „Ersetzen“. Nach „Nein“ oder bewusstem Ausschalten kommt kein Punkt.
 
@@ -161,7 +166,7 @@ Zwei neue Arten wie E-Mail und Telefon. Schalter **„Webadressen und Konten“*
 Neue Punkte auf „Speichern“. Sie laufen über das **eine Häkchen** wie alle Punkte und verschwinden, sobald ihr Grund weg ist.
 - **Es wird gar nichts ersetzt:** „In dieser Datei wird nichts ersetzt. Bitte prüfe Schulname, Firma, Webadresse und Konto und markiere sie von Hand.“
 - **Webadresse oder Konto steht noch im Text** (nur wenn der Schalter „Webadressen und Konten“ aus ist): jede Stelle mit Fundort und „Im Text zeigen“; „Ersetzen“ schaltet den Schalter ein.
-- **Warnpunkt „Hier könnte eine Einrichtung stehen.“** Seit 2.8 nur noch für Namen in Anführungszeichen, die das Tool nicht sicher genug als Einrichtung erkennt (Abschnitt „Einrichtungen selbst finden“). Es sind höchstens zehn Stellen aufgeführt, dann „und n weitere“, jede mit Fundort und „Im Text zeigen“. Der Punkt **warnt nur**: Er ersetzt nichts, stellt keine Frage und ändert keine Ausgabe. Eine Stelle fällt weg, sobald sie ersetzt ist (von Hand als Einrichtung oder Name markiert).
+- **Warnpunkt „Hier könnte eine Einrichtung stehen.“** Seit 2.8 nur noch für Namen in Anführungszeichen, die das Tool nicht sicher genug als Einrichtung erkennt, und für gefundene Einrichtungen, die eine sichere Person verdecken würden und nicht vor ihr enden können („Haus Marlene“, „Quarstedt GmbH“; Abschnitt „Einrichtungen selbst finden“). Kopfwort + Name einer sicheren Person („Verein Quarstedt“) steht seit 2.8.1 nicht mehr darin. Es sind höchstens zehn Stellen aufgeführt, dann „und n weitere“, jede mit Fundort und „Im Text zeigen“. Der Punkt **warnt nur**: Er ersetzt nichts, stellt keine Frage und ändert keine Ausgabe. Eine Stelle fällt weg, sobald sie ersetzt ist (von Hand als Einrichtung oder Name markiert).
 - **Eine Einrichtung steht noch im Text** (seit 2.8): siehe „Einrichtungen selbst finden“.
 
 ### Eigene Namen und Ausnahmen (unter „Einstellungen und eigene Namen“)
@@ -324,7 +329,7 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 - **Mehrere Schulen mit gemeinsamen Namens-Wörtern** („Gymnasium Kirchberg“ und „Gymnasium Tannhofen“ und „Gymnasium Kirchberg Tannhofen“ im selben Text) werden eine Einrichtung.
 - **Merkmal 2 und Umlaute:** Ein Wort mit Umlaut zählt nur als Name, wenn es ein Vorname ist („Blätter“ ist nicht der Nachname „Blatter“).
 - **Merkmal 2 (Vor- oder Nachname in Anführungszeichen)** wirkt kaum: Ein solches Wort ist fast immer schon allein eine sichere Person („Haus Marlene“). Dann wird es als Person ersetzt, und der Name steht im Punkt „Hier könnte eine Einrichtung stehen“.
-- **Einrichtung nach einer Person benannt** („Verein Quarstedt“ neben „Herr Anton Quarstedt“): Der Name wird als Person ersetzt, „Verein“ bleibt stehen; die Einrichtung steht im Warnpunkt.
+- **Einrichtung nach einer Person benannt** („Verein Quarstedt“ neben „Herr Anton Quarstedt“): Der Name wird als Person ersetzt, „Verein“ bleibt stehen. Seit 2.8.1 steht sie **nicht** mehr im Warnpunkt (bei „Quarstedt GmbH“ weiter).
 
 **Seit Version 2.7 (Webadressen, Konten, Warnpunkt):**
 - (Seit 2.8 findet das Tool Einrichtungen selbst, siehe unten.)
@@ -457,12 +462,12 @@ Die Datei muss in einem Browser geöffnet werden (z. B. über „Teilen → in S
 
 ## Version und Prüfsumme
 
-Version **2.8.0**, Stand 2026-11-21 (steht auch im Fußbereich des Tools).
+Version **2.8.1**, Stand 2026-11-22 (steht auch im Fußbereich des Tools).
 
 SHA-256 der `index.html` dieser Version:
 
 ```
-c3ce5b2b219992ef91b85cbbe5460b4bc85d200e17428bf11696661717f2290d
+51b039c10a514d2aa82218baa4d4bc502e0763c97df3ed981eda2f37622c55cd
 ```
 
 Hinweis: Bei Version 2.6.1 stand hier versehentlich ein veralteter Wert (d411bf2f…). Die `index.html` von 2.6.1 hat die Prüfsumme f5b29a3d6cd1127b23a7226fbd44d155471d705c0dc961a6cf8853a983f18cc9.
@@ -546,6 +551,8 @@ node tests/spalten-test.mjs [--alt <index.html-2.5.0>]  # Namensspalten, Spalte 
 node tests/make-anzeige.mjs   # Testdokumente 2.6.1: Fragen auf mehreren Excel-Blättern, breite Tabelle, langer Text, Falle „Rose/Rosen“ → tests/fixtures-anzeige/
 node tests/anzeige-test.mjs   # Anzeige beim Prüfen: drei Zustände, Rollen, Vorige/Nächste Frage, Antwort ändern = wie direkt geantwortet, Einstellungen/Listen, Rückbau → tests/ANZEIGE-REPORT.md
 node tests/bedienung-test.mjs <index.html-2.4.1>  # Fragen und Speichern vorher/nachher, Beweis D.5, ohne Bedienung byte-gleich, Sperren, Eigene Namen, 1366×768 → tests/BEDIENUNG-REPORT.md
+node tests/massstab-test.mjs <index.html-2.7.0> [index.html-2.8.0]  # Maßstab: was 2.7.0 ersetzt, ersetzt auch diese Version (sechs Abläufe, auch „Unsichere“ aus und Liste); zweiter Maßstab gegen 2.8.0 → tests/MASSSTAB-REPORT.md
+node tests/nachbarn-test.mjs <index.html-2.7.0> [index.html-2.8.0]  # Ziel-Test 2.8.1 „Person neben Einrichtung“: Soll/gemessen je Format und Modus, Bedienwege, Rückbau → tests/NACHBARN-REPORT.md
 ```
 
 **Messkorpus (seit 2.4.0):** `tests/korpus/korpus-quelle.mjs` enthält rund 3000 Wörter erfundener Alltagstexte (Kursbeschreibungen, Elternbrief, Protokoll, Einladung, Tabelle, Liste …). Jeder echte Personenname ist dort mit ⟦…⟧ gekennzeichnet. `tests/korpus-test.mjs` zählt je Wort: Fehltreffer (sicher / unsicher an / unsicher aus), echte Namen (ersetzt / nur als Frage / ganz übersehen), Fragen und Schlusscheck-Meldungen. Jede Änderung an der Erkennung muss dieselben Zahlen liefern wie `tests/korpus/erwartung.json`, oder die Abweichung wird gezeigt (Erwartung nur nach bewusster Änderung mit `--update` neu schreiben).
