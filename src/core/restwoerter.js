@@ -86,7 +86,8 @@ export function candidates(text) {
 // Liefert [{key, word, count, first: {unit, s, e}, replacedElsewhere}] in der Reihenfolge des ersten Vorkommens.
 export function restWords(units, result, exceptions, known) {
   const exc = new Set();
-  for (const e of exceptions || []) for (const t of String(e).split(/[^\p{L}\p{M}\p{N}]+/u)) if (t) exc.add(fold(t));
+  // wie die Erkennung: nur ein ganzer Eintrag zählt (eine Ausnahme „Haus Wenzelhof“ blendet „Wenzelhof“ allein nicht aus)
+  for (const e of exceptions || []) exc.add(fold(String(e).trim().normalize('NFC')));
   const onBy = new Map();
   for (const x of result.hits) {
     if (!x.on) continue;

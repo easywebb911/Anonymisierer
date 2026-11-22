@@ -421,6 +421,20 @@ for (const ext of ['txt', 'docx', 'xlsx']) {
   check('mehr als 40 Wörter: die Liste rollt, kein „alle übernehmen“', st.n > 40 && st.scroll && !st.all, JSON.stringify(st));
   await ctx.close();
 }
+// Guardian-Lauf 1, Fund 1: eine Ausnahme aus mehreren Wörtern blendet ihre Einzelwörter nicht aus (wie die Erkennung)
+for (const unsureOff of [false, true]) {
+  const f = path.join(outDir, 'ausnahme.txt');
+  fs.writeFileSync(f, 'Im Haus Wenzelhof wohnen viele.\nGruß aus Wenzelhof von Frau Okonkwo.\nAnsprechpartner: Herr Szymaniak\n');
+  const { page, ctx } = await newPage();
+  await startAnon(page, 'person');
+  await page.evaluate(() => { window.__anon.app.state.exceptions.push('Haus Wenzelhof'); });
+  if (unsureOff) { if (await page.isHidden('#advanced')) await page.click('#tgl-adv'); await page.uncheck('#opt-unsureOn'); }
+  await loadIn(page, f);
+  await goTo(page, 'a2');
+  const words = ((await restQ(page)) || { words: [] }).words.map((w) => w.word);
+  check(`Ausnahme „Haus Wenzelhof“${unsureOff ? ' (Unsichere Treffer aus)' : ''}: „Wenzelhof“ steht trotzdem in der Liste`, words.includes('Wenzelhof'), words.join(', '));
+  await ctx.close();
+}
 log('');
 
 await browser.close();
