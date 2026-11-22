@@ -1,6 +1,6 @@
 # Anzeige beim Prüfen (Version 2.6.1)
 
-Chromium headless gegen index.html (SHA-256 acb4160533503914…). Alle Namen in den Testdateien sind erfunden.
+Chromium headless gegen index.html (SHA-256 a3f76a0dca3d9782…). Alle Namen in den Testdateien sind erfunden.
 
 ## a) Drei Zustände im Text und im Satz-Ausschnitt
 - OK: wird ersetzt: Fläche #FFF3C4, kein Rahmen – rgb(255, 243, 196), Rahmen 3px none rgb(23, 33, 43), Stärke 400

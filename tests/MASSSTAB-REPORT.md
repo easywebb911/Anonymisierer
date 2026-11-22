@@ -117,9 +117,9 @@ Neue Version: Anonymisierer/index.html; Vorversion: index-270.html. Nur Chromium
 | fixtures-traeger/einrichtungen-auto.docx | 4 | 11 | alle | alle | alle | alle | alle | alle | 21: alle |
 | fixtures-traeger/einrichtungen-auto.txt | 4 | 11 | alle | alle | alle | alle | alle | alle | 21: alle |
 | fixtures-traeger/einrichtungen-auto.xlsx | 4 | 11 | alle | alle | alle | alle | alle | alle | 20: alle |
-| fixtures-traeger/nachbarn.csv | 24 | 12 | alle | alle | alle | alle | alle | alle | 26: alle |
-| fixtures-traeger/nachbarn.txt | 24 | 12 | alle | alle | alle | alle | alle | alle | 26: alle |
-| fixtures-traeger/nachbarn.xlsx | 24 | 12 | alle | alle | alle | alle | alle | alle | 26: alle |
+| fixtures-traeger/nachbarn.csv | 30 | 13 | alle | alle | alle | alle | alle | alle | 32: alle |
+| fixtures-traeger/nachbarn.txt | 30 | 13 | alle | alle | alle | alle | alle | alle | 32: alle |
+| fixtures-traeger/nachbarn.xlsx | 30 | 13 | alle | alle | alle | alle | alle | alle | 32: alle |
 | fixtures-traeger/nurweb.txt | 2 | 0 | alle | alle | alle | alle | alle | alle | 2: alle |
 | fixtures-traeger/sachtext.txt | 12 | 0 | alle | alle | alle | alle | alle | alle | 12: alle |
 | out/massstab/korpus-kursbeschreibungen.txt | 21 | 1 | alle | alle | alle | alle | alle | alle | 22: alle |
@@ -138,21 +138,23 @@ Neue Version: Anonymisierer/index.html; Vorversion: index-270.html. Nur Chromium
 | out/massstab/korpus-kurse2.txt | 12 | 0 | alle | alle | alle | alle | alle | alle | 12: alle |
 | out/massstab/korpus-aushang.txt | 2 | 0 | alle | alle | alle | alle | alle | alle | 2: alle |
 
-Geprüft: 133 Dateien (Testdateien und 15 Korpus-Abschnitte), 1881 Stellen der Vorversion, je sechs Abläufe; zweiter Maßstab: 2014 Stellen von 2.8.0 (ohne Antwort).
+Geprüft: 133 Dateien (Testdateien und 15 Korpus-Abschnitte), 1899 Stellen der Vorversion, je sechs Abläufe; zweiter Maßstab: 2032 Stellen von 2.8.0 (ohne Antwort).
 
-Ausnahmen (einzeln; Grund: Version 2.8.1, Teil 4 – „von / vom / von der“ und das Kopfwort danach gehören nicht mehr zum Personennamen; der Name der Person ist ersetzt, die Einrichtung dahinter wird selbst gefunden): 174
+Ausnahmen (einzeln; Grund: Version 2.8.1, Teil 4 – „von / vom / von der“ und das Kopfwort danach gehören nicht mehr zum Personennamen; der Name der Person ist ersetzt, die Einrichtung dahinter wird selbst gefunden): 195
 - fixtures-traeger/nachbarn.csv, gegen 2.8.0: „Okonkwo vom Gymnasium“ → offen „vom“
 - fixtures-traeger/nachbarn.csv, gegen 2.8.0: „Lehmann von der Firma“ → offen „von der“
 - fixtures-traeger/nachbarn.csv, gegen 2.8.0: „Schuster vom Kindergarten“ → offen „vom“
 - fixtures-traeger/nachbarn.csv, gegen 2.8.0: „Demir vom Verein“ → offen „vom“
 - fixtures-traeger/nachbarn.csv, gegen 2.8.0: „Kowalski von der Musikschule“ → offen „von der“
 - fixtures-traeger/nachbarn.csv, gegen 2.8.0: „Albers vom Familienzentrum“ → offen „vom“
+- fixtures-traeger/nachbarn.csv, gegen 2.8.0: „Brennecke von der Grundschule“ → offen „von der“
 - fixtures-traeger/nachbarn.csv, ohne Antwort: „Okonkwo vom Gymnasium“ → offen „vom“
 - fixtures-traeger/nachbarn.csv, ohne Antwort: „Lehmann von der Firma“ → offen „von der“
 - fixtures-traeger/nachbarn.csv, ohne Antwort: „Schuster vom Kindergarten“ → offen „vom“
 - fixtures-traeger/nachbarn.csv, ohne Antwort: „Demir vom Verein“ → offen „vom“
 - fixtures-traeger/nachbarn.csv, ohne Antwort: „Kowalski von der Musikschule“ → offen „von der“
 - fixtures-traeger/nachbarn.csv, ohne Antwort: „Albers vom Familienzentrum“ → offen „vom“
+- fixtures-traeger/nachbarn.csv, ohne Antwort: „Brennecke von der Grundschule“ → offen „von der“
 - fixtures-traeger/nachbarn.csv, nach „Nein“: „Familienzentrum“ → offen „Familienzentrum“
 - fixtures-traeger/nachbarn.csv, nach „Nein“: „Musikschule“ → offen „Musikschule“
 - fixtures-traeger/nachbarn.csv, nach „Nein“: „Kindergarten“ → offen „Kindergarten“
@@ -163,6 +165,7 @@ Ausnahmen (einzeln; Grund: Version 2.8.1, Teil 4 – „von / vom / von der“ u
 - fixtures-traeger/nachbarn.csv, nach „Nein“: „Demir vom Verein“ → offen „vom Verein“
 - fixtures-traeger/nachbarn.csv, nach „Nein“: „Kowalski von der Musikschule“ → offen „von der Musikschule“
 - fixtures-traeger/nachbarn.csv, nach „Nein“: „Albers vom Familienzentrum“ → offen „vom Familienzentrum“
+- fixtures-traeger/nachbarn.csv, nach „Nein“: „Brennecke von der Grundschule“ → offen „von der Grundschule“
 - fixtures-traeger/nachbarn.csv, nach „Ja“ → „Nein“: „Familienzentrum“ → offen „Familienzentrum“
 - fixtures-traeger/nachbarn.csv, nach „Ja“ → „Nein“: „Musikschule“ → offen „Musikschule“
 - fixtures-traeger/nachbarn.csv, nach „Ja“ → „Nein“: „Kindergarten“ → offen „Kindergarten“
@@ -173,6 +176,7 @@ Ausnahmen (einzeln; Grund: Version 2.8.1, Teil 4 – „von / vom / von der“ u
 - fixtures-traeger/nachbarn.csv, nach „Ja“ → „Nein“: „Demir vom Verein“ → offen „vom Verein“
 - fixtures-traeger/nachbarn.csv, nach „Ja“ → „Nein“: „Kowalski von der Musikschule“ → offen „von der Musikschule“
 - fixtures-traeger/nachbarn.csv, nach „Ja“ → „Nein“: „Albers vom Familienzentrum“ → offen „vom Familienzentrum“
+- fixtures-traeger/nachbarn.csv, nach „Ja“ → „Nein“: „Brennecke von der Grundschule“ → offen „von der Grundschule“
 - fixtures-traeger/nachbarn.csv, „Unsichere“ aus: „Familienzentrum“ → offen „Familienzentrum“
 - fixtures-traeger/nachbarn.csv, „Unsichere“ aus: „Musikschule“ → offen „Musikschule“
 - fixtures-traeger/nachbarn.csv, „Unsichere“ aus: „Kindergarten“ → offen „Kindergarten“
@@ -183,6 +187,7 @@ Ausnahmen (einzeln; Grund: Version 2.8.1, Teil 4 – „von / vom / von der“ u
 - fixtures-traeger/nachbarn.csv, „Unsichere“ aus: „Demir vom Verein“ → offen „vom Verein“
 - fixtures-traeger/nachbarn.csv, „Unsichere“ aus: „Kowalski von der Musikschule“ → offen „von der Musikschule“
 - fixtures-traeger/nachbarn.csv, „Unsichere“ aus: „Albers vom Familienzentrum“ → offen „vom Familienzentrum“
+- fixtures-traeger/nachbarn.csv, „Unsichere“ aus: „Brennecke von der Grundschule“ → offen „von der Grundschule“
 - fixtures-traeger/nachbarn.csv, „Unsichere“ aus, dann „Nein“: „Familienzentrum“ → offen „Familienzentrum“
 - fixtures-traeger/nachbarn.csv, „Unsichere“ aus, dann „Nein“: „Musikschule“ → offen „Musikschule“
 - fixtures-traeger/nachbarn.csv, „Unsichere“ aus, dann „Nein“: „Kindergarten“ → offen „Kindergarten“
@@ -193,24 +198,28 @@ Ausnahmen (einzeln; Grund: Version 2.8.1, Teil 4 – „von / vom / von der“ u
 - fixtures-traeger/nachbarn.csv, „Unsichere“ aus, dann „Nein“: „Demir vom Verein“ → offen „vom Verein“
 - fixtures-traeger/nachbarn.csv, „Unsichere“ aus, dann „Nein“: „Kowalski von der Musikschule“ → offen „von der Musikschule“
 - fixtures-traeger/nachbarn.csv, „Unsichere“ aus, dann „Nein“: „Albers vom Familienzentrum“ → offen „vom Familienzentrum“
+- fixtures-traeger/nachbarn.csv, „Unsichere“ aus, dann „Nein“: „Brennecke von der Grundschule“ → offen „von der Grundschule“
 - fixtures-traeger/nachbarn.csv, Liste aus, dann markiert: „Okonkwo vom Gymnasium“ → offen „vom“
 - fixtures-traeger/nachbarn.csv, Liste aus, dann markiert: „Lehmann von der Firma“ → offen „von der“
 - fixtures-traeger/nachbarn.csv, Liste aus, dann markiert: „Schuster vom Kindergarten“ → offen „vom“
 - fixtures-traeger/nachbarn.csv, Liste aus, dann markiert: „Demir vom Verein“ → offen „vom“
 - fixtures-traeger/nachbarn.csv, Liste aus, dann markiert: „Kowalski von der Musikschule“ → offen „von der“
 - fixtures-traeger/nachbarn.csv, Liste aus, dann markiert: „Albers vom Familienzentrum“ → offen „vom“
+- fixtures-traeger/nachbarn.csv, Liste aus, dann markiert: „Brennecke von der Grundschule“ → offen „von der“
 - fixtures-traeger/nachbarn.txt, gegen 2.8.0: „Okonkwo vom Gymnasium“ → offen „vom“
 - fixtures-traeger/nachbarn.txt, gegen 2.8.0: „Lehmann von der Firma“ → offen „von der“
 - fixtures-traeger/nachbarn.txt, gegen 2.8.0: „Schuster vom Kindergarten“ → offen „vom“
 - fixtures-traeger/nachbarn.txt, gegen 2.8.0: „Demir vom Verein“ → offen „vom“
 - fixtures-traeger/nachbarn.txt, gegen 2.8.0: „Kowalski von der Musikschule“ → offen „von der“
 - fixtures-traeger/nachbarn.txt, gegen 2.8.0: „Albers vom Familienzentrum“ → offen „vom“
+- fixtures-traeger/nachbarn.txt, gegen 2.8.0: „Brennecke von der Grundschule“ → offen „von der“
 - fixtures-traeger/nachbarn.txt, ohne Antwort: „Okonkwo vom Gymnasium“ → offen „vom“
 - fixtures-traeger/nachbarn.txt, ohne Antwort: „Lehmann von der Firma“ → offen „von der“
 - fixtures-traeger/nachbarn.txt, ohne Antwort: „Schuster vom Kindergarten“ → offen „vom“
 - fixtures-traeger/nachbarn.txt, ohne Antwort: „Demir vom Verein“ → offen „vom“
 - fixtures-traeger/nachbarn.txt, ohne Antwort: „Kowalski von der Musikschule“ → offen „von der“
 - fixtures-traeger/nachbarn.txt, ohne Antwort: „Albers vom Familienzentrum“ → offen „vom“
+- fixtures-traeger/nachbarn.txt, ohne Antwort: „Brennecke von der Grundschule“ → offen „von der“
 - fixtures-traeger/nachbarn.txt, nach „Nein“: „Familienzentrum“ → offen „Familienzentrum“
 - fixtures-traeger/nachbarn.txt, nach „Nein“: „Musikschule“ → offen „Musikschule“
 - fixtures-traeger/nachbarn.txt, nach „Nein“: „Kindergarten“ → offen „Kindergarten“
@@ -221,6 +230,7 @@ Ausnahmen (einzeln; Grund: Version 2.8.1, Teil 4 – „von / vom / von der“ u
 - fixtures-traeger/nachbarn.txt, nach „Nein“: „Demir vom Verein“ → offen „vom Verein“
 - fixtures-traeger/nachbarn.txt, nach „Nein“: „Kowalski von der Musikschule“ → offen „von der Musikschule“
 - fixtures-traeger/nachbarn.txt, nach „Nein“: „Albers vom Familienzentrum“ → offen „vom Familienzentrum“
+- fixtures-traeger/nachbarn.txt, nach „Nein“: „Brennecke von der Grundschule“ → offen „von der Grundschule“
 - fixtures-traeger/nachbarn.txt, nach „Ja“ → „Nein“: „Familienzentrum“ → offen „Familienzentrum“
 - fixtures-traeger/nachbarn.txt, nach „Ja“ → „Nein“: „Musikschule“ → offen „Musikschule“
 - fixtures-traeger/nachbarn.txt, nach „Ja“ → „Nein“: „Kindergarten“ → offen „Kindergarten“
@@ -231,6 +241,7 @@ Ausnahmen (einzeln; Grund: Version 2.8.1, Teil 4 – „von / vom / von der“ u
 - fixtures-traeger/nachbarn.txt, nach „Ja“ → „Nein“: „Demir vom Verein“ → offen „vom Verein“
 - fixtures-traeger/nachbarn.txt, nach „Ja“ → „Nein“: „Kowalski von der Musikschule“ → offen „von der Musikschule“
 - fixtures-traeger/nachbarn.txt, nach „Ja“ → „Nein“: „Albers vom Familienzentrum“ → offen „vom Familienzentrum“
+- fixtures-traeger/nachbarn.txt, nach „Ja“ → „Nein“: „Brennecke von der Grundschule“ → offen „von der Grundschule“
 - fixtures-traeger/nachbarn.txt, „Unsichere“ aus: „Familienzentrum“ → offen „Familienzentrum“
 - fixtures-traeger/nachbarn.txt, „Unsichere“ aus: „Musikschule“ → offen „Musikschule“
 - fixtures-traeger/nachbarn.txt, „Unsichere“ aus: „Kindergarten“ → offen „Kindergarten“
@@ -241,6 +252,7 @@ Ausnahmen (einzeln; Grund: Version 2.8.1, Teil 4 – „von / vom / von der“ u
 - fixtures-traeger/nachbarn.txt, „Unsichere“ aus: „Demir vom Verein“ → offen „vom Verein“
 - fixtures-traeger/nachbarn.txt, „Unsichere“ aus: „Kowalski von der Musikschule“ → offen „von der Musikschule“
 - fixtures-traeger/nachbarn.txt, „Unsichere“ aus: „Albers vom Familienzentrum“ → offen „vom Familienzentrum“
+- fixtures-traeger/nachbarn.txt, „Unsichere“ aus: „Brennecke von der Grundschule“ → offen „von der Grundschule“
 - fixtures-traeger/nachbarn.txt, „Unsichere“ aus, dann „Nein“: „Familienzentrum“ → offen „Familienzentrum“
 - fixtures-traeger/nachbarn.txt, „Unsichere“ aus, dann „Nein“: „Musikschule“ → offen „Musikschule“
 - fixtures-traeger/nachbarn.txt, „Unsichere“ aus, dann „Nein“: „Kindergarten“ → offen „Kindergarten“
@@ -251,24 +263,28 @@ Ausnahmen (einzeln; Grund: Version 2.8.1, Teil 4 – „von / vom / von der“ u
 - fixtures-traeger/nachbarn.txt, „Unsichere“ aus, dann „Nein“: „Demir vom Verein“ → offen „vom Verein“
 - fixtures-traeger/nachbarn.txt, „Unsichere“ aus, dann „Nein“: „Kowalski von der Musikschule“ → offen „von der Musikschule“
 - fixtures-traeger/nachbarn.txt, „Unsichere“ aus, dann „Nein“: „Albers vom Familienzentrum“ → offen „vom Familienzentrum“
+- fixtures-traeger/nachbarn.txt, „Unsichere“ aus, dann „Nein“: „Brennecke von der Grundschule“ → offen „von der Grundschule“
 - fixtures-traeger/nachbarn.txt, Liste aus, dann markiert: „Okonkwo vom Gymnasium“ → offen „vom“
 - fixtures-traeger/nachbarn.txt, Liste aus, dann markiert: „Lehmann von der Firma“ → offen „von der“
 - fixtures-traeger/nachbarn.txt, Liste aus, dann markiert: „Schuster vom Kindergarten“ → offen „vom“
 - fixtures-traeger/nachbarn.txt, Liste aus, dann markiert: „Demir vom Verein“ → offen „vom“
 - fixtures-traeger/nachbarn.txt, Liste aus, dann markiert: „Kowalski von der Musikschule“ → offen „von der“
 - fixtures-traeger/nachbarn.txt, Liste aus, dann markiert: „Albers vom Familienzentrum“ → offen „vom“
+- fixtures-traeger/nachbarn.txt, Liste aus, dann markiert: „Brennecke von der Grundschule“ → offen „von der“
 - fixtures-traeger/nachbarn.xlsx, gegen 2.8.0: „Okonkwo vom Gymnasium“ → offen „vom“
 - fixtures-traeger/nachbarn.xlsx, gegen 2.8.0: „Lehmann von der Firma“ → offen „von der“
 - fixtures-traeger/nachbarn.xlsx, gegen 2.8.0: „Schuster vom Kindergarten“ → offen „vom“
 - fixtures-traeger/nachbarn.xlsx, gegen 2.8.0: „Demir vom Verein“ → offen „vom“
 - fixtures-traeger/nachbarn.xlsx, gegen 2.8.0: „Kowalski von der Musikschule“ → offen „von der“
 - fixtures-traeger/nachbarn.xlsx, gegen 2.8.0: „Albers vom Familienzentrum“ → offen „vom“
+- fixtures-traeger/nachbarn.xlsx, gegen 2.8.0: „Brennecke von der Grundschule“ → offen „von der“
 - fixtures-traeger/nachbarn.xlsx, ohne Antwort: „Okonkwo vom Gymnasium“ → offen „vom“
 - fixtures-traeger/nachbarn.xlsx, ohne Antwort: „Lehmann von der Firma“ → offen „von der“
 - fixtures-traeger/nachbarn.xlsx, ohne Antwort: „Schuster vom Kindergarten“ → offen „vom“
 - fixtures-traeger/nachbarn.xlsx, ohne Antwort: „Demir vom Verein“ → offen „vom“
 - fixtures-traeger/nachbarn.xlsx, ohne Antwort: „Kowalski von der Musikschule“ → offen „von der“
 - fixtures-traeger/nachbarn.xlsx, ohne Antwort: „Albers vom Familienzentrum“ → offen „vom“
+- fixtures-traeger/nachbarn.xlsx, ohne Antwort: „Brennecke von der Grundschule“ → offen „von der“
 - fixtures-traeger/nachbarn.xlsx, nach „Nein“: „Familienzentrum“ → offen „Familienzentrum“
 - fixtures-traeger/nachbarn.xlsx, nach „Nein“: „Musikschule“ → offen „Musikschule“
 - fixtures-traeger/nachbarn.xlsx, nach „Nein“: „Kindergarten“ → offen „Kindergarten“
@@ -279,6 +295,7 @@ Ausnahmen (einzeln; Grund: Version 2.8.1, Teil 4 – „von / vom / von der“ u
 - fixtures-traeger/nachbarn.xlsx, nach „Nein“: „Demir vom Verein“ → offen „vom Verein“
 - fixtures-traeger/nachbarn.xlsx, nach „Nein“: „Kowalski von der Musikschule“ → offen „von der Musikschule“
 - fixtures-traeger/nachbarn.xlsx, nach „Nein“: „Albers vom Familienzentrum“ → offen „vom Familienzentrum“
+- fixtures-traeger/nachbarn.xlsx, nach „Nein“: „Brennecke von der Grundschule“ → offen „von der Grundschule“
 - fixtures-traeger/nachbarn.xlsx, nach „Ja“ → „Nein“: „Familienzentrum“ → offen „Familienzentrum“
 - fixtures-traeger/nachbarn.xlsx, nach „Ja“ → „Nein“: „Musikschule“ → offen „Musikschule“
 - fixtures-traeger/nachbarn.xlsx, nach „Ja“ → „Nein“: „Kindergarten“ → offen „Kindergarten“
@@ -289,6 +306,7 @@ Ausnahmen (einzeln; Grund: Version 2.8.1, Teil 4 – „von / vom / von der“ u
 - fixtures-traeger/nachbarn.xlsx, nach „Ja“ → „Nein“: „Demir vom Verein“ → offen „vom Verein“
 - fixtures-traeger/nachbarn.xlsx, nach „Ja“ → „Nein“: „Kowalski von der Musikschule“ → offen „von der Musikschule“
 - fixtures-traeger/nachbarn.xlsx, nach „Ja“ → „Nein“: „Albers vom Familienzentrum“ → offen „vom Familienzentrum“
+- fixtures-traeger/nachbarn.xlsx, nach „Ja“ → „Nein“: „Brennecke von der Grundschule“ → offen „von der Grundschule“
 - fixtures-traeger/nachbarn.xlsx, „Unsichere“ aus: „Familienzentrum“ → offen „Familienzentrum“
 - fixtures-traeger/nachbarn.xlsx, „Unsichere“ aus: „Musikschule“ → offen „Musikschule“
 - fixtures-traeger/nachbarn.xlsx, „Unsichere“ aus: „Kindergarten“ → offen „Kindergarten“
@@ -299,6 +317,7 @@ Ausnahmen (einzeln; Grund: Version 2.8.1, Teil 4 – „von / vom / von der“ u
 - fixtures-traeger/nachbarn.xlsx, „Unsichere“ aus: „Demir vom Verein“ → offen „vom Verein“
 - fixtures-traeger/nachbarn.xlsx, „Unsichere“ aus: „Kowalski von der Musikschule“ → offen „von der Musikschule“
 - fixtures-traeger/nachbarn.xlsx, „Unsichere“ aus: „Albers vom Familienzentrum“ → offen „vom Familienzentrum“
+- fixtures-traeger/nachbarn.xlsx, „Unsichere“ aus: „Brennecke von der Grundschule“ → offen „von der Grundschule“
 - fixtures-traeger/nachbarn.xlsx, „Unsichere“ aus, dann „Nein“: „Familienzentrum“ → offen „Familienzentrum“
 - fixtures-traeger/nachbarn.xlsx, „Unsichere“ aus, dann „Nein“: „Musikschule“ → offen „Musikschule“
 - fixtures-traeger/nachbarn.xlsx, „Unsichere“ aus, dann „Nein“: „Kindergarten“ → offen „Kindergarten“
@@ -309,12 +328,14 @@ Ausnahmen (einzeln; Grund: Version 2.8.1, Teil 4 – „von / vom / von der“ u
 - fixtures-traeger/nachbarn.xlsx, „Unsichere“ aus, dann „Nein“: „Demir vom Verein“ → offen „vom Verein“
 - fixtures-traeger/nachbarn.xlsx, „Unsichere“ aus, dann „Nein“: „Kowalski von der Musikschule“ → offen „von der Musikschule“
 - fixtures-traeger/nachbarn.xlsx, „Unsichere“ aus, dann „Nein“: „Albers vom Familienzentrum“ → offen „vom Familienzentrum“
+- fixtures-traeger/nachbarn.xlsx, „Unsichere“ aus, dann „Nein“: „Brennecke von der Grundschule“ → offen „von der Grundschule“
 - fixtures-traeger/nachbarn.xlsx, Liste aus, dann markiert: „Okonkwo vom Gymnasium“ → offen „vom“
 - fixtures-traeger/nachbarn.xlsx, Liste aus, dann markiert: „Lehmann von der Firma“ → offen „von der“
 - fixtures-traeger/nachbarn.xlsx, Liste aus, dann markiert: „Schuster vom Kindergarten“ → offen „vom“
 - fixtures-traeger/nachbarn.xlsx, Liste aus, dann markiert: „Demir vom Verein“ → offen „vom“
 - fixtures-traeger/nachbarn.xlsx, Liste aus, dann markiert: „Kowalski von der Musikschule“ → offen „von der“
 - fixtures-traeger/nachbarn.xlsx, Liste aus, dann markiert: „Albers vom Familienzentrum“ → offen „vom“
+- fixtures-traeger/nachbarn.xlsx, Liste aus, dann markiert: „Brennecke von der Grundschule“ → offen „von der“
 - OK: 0 Anfragen ins Netz (0)
 - OK: 0 Fehler in der Seite (0)
 
