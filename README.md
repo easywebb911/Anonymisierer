@@ -450,12 +450,12 @@ Die Datei muss in einem Browser geöffnet werden (z. B. über „Teilen → in S
 
 ## Version und Prüfsumme
 
-Version **2.7.0**, Stand 2026-11-21 (steht auch im Fußbereich des Tools).
+Version **2.8.0**, Stand 2026-11-21 (steht auch im Fußbereich des Tools).
 
 SHA-256 der `index.html` dieser Version:
 
 ```
-631a2bcd05e3aaf859309893e57509b745c978e99932280cb89a3aedce8a934a
+d70bfc4381ef3c686819f027dbe9b6b3aa8e3a7458c5c62460c971e7d2e0a38b
 ```
 
 Hinweis: Bei Version 2.6.1 stand hier versehentlich ein veralteter Wert (d411bf2f…). Die `index.html` von 2.6.1 hat die Prüfsumme f5b29a3d6cd1127b23a7226fbd44d155471d705c0dc961a6cf8853a983f18cc9.

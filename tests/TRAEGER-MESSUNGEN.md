@@ -1,3 +1,106 @@
+# Messungen Version 2.8.0, PR B „Einrichtungen selbst finden“
+
+Ergänzt tests/TRAEGER-REPORT.md (Ziel-Test, einrichtungen-auto, sachtext, Sperre, Warnpunkt, Rückbau). Nur Chromium, Firefox prüft Easy. Vorversion = main 2.7.0 (631a2bcd…).
+
+## Listen im Code (src/core/orgauto.js)
+- **Kopfwörter:** wie hints.js (Gymnasium, Schule und -schule, Universität, Kita, Kindergarten, Krippe, Hort, Kinderhaus, Familienzentrum, Jugendzentrum, Verein, Stiftung, Praxis, Klinik, Krankenhaus, Kanzlei, Firma, Institut, Akademie), **ergänzt** um Zusammensetzungen auf -gymnasium, -kita, -kindergarten, -krippe, -verein, -stiftung, -praxis, -klinik, -institut, -akademie (z. B. Förderverein, Sportverein, Musikakademie).
+- **Ausschluss-Liste** (Wort direkt nach dem Kopfwort): Montag … Sonntag, Sonnabend, Januar … Dezember, Jänner, Schuljahr(es/e), Halbjahr(es), Jahrgang(s), Jahrgangsstufe, Klasse(n), Unterricht(s), Anmeldung(en), Leitung, Schulleitung, Eltern, Elternbeirat, Elternabend, Kinder(n), Schüler(in/innen/n), Lehrer(in/innen/n), Lehrkräfte, Lehrkraft, Mitglied(er/ern), Vorstand, Satzung, Öffnungszeiten, Betreuung, Gebühr(en), Beitrag, Beiträge, Träger, Gebäude, Hof, Ferien, Termin(e), Team, Sekretariat, Verwaltung, Kontakt, Telefon, Fax, Adresse, Anschrift, Website, Webseite, Homepage, Mittagessen, Essen, Mensa, Aula, Turnhalle, Sporthalle, Bibliothek, Kosten, Programm, Stundenplan, Speiseplan, Elternbrief, Info(s), Informationen, Hinweis(e), Formular, Antrag, Woche(n), Jahr, Tag(e), Uhr, Beginn, Ende, Neubau, Alltag.
+- **Titel-Wörter** (Regel b): Vortrag, Kurs, Projekt, Thema, Motto, Buch, Titel, Lied, Film, Workshop, Seminar, Fach, AG, Stück, Artikel.
+- **Rechtsformen:** GmbH, gGmbH, AG, KG, UG, GbR, eG, e. V., e.V., mbH (auch GROSS: GMBH, GBR …).
+- **Zusätzliche Schutzregeln** (gefunden beim Messen): Anführungszeichen in Excel-Formeln zählen nicht („"Herr Kowalczyk"“ in einer Formel war sonst Merkmal 4); ein Name in Anführungszeichen, der mit einer Anrede oder einem Titel beginnt („Herr …“, „Dr. …“), ist eine Person. Merkmal 2 zählt keine Wörter der Liste „mehrdeutig“ und Umlaut-Wörter nur als Vorname („Blätter“ ≠ „Blatter“). Rechtsform „AG“ direkt VOR Anführungszeichen ist ein Titel-Wort (AG „Junge Forscher“), kein Merkmal 1.
+
+## Fehltreffer: jede neu ersetzte Einrichtung und jede neue Frage
+127 Testdateien (tests/fixtures*, ohne fixtures-traeger-alt*; gescannt.pdf ohne Text) und 15 Korpus-Abschnitte (als Text). Fragen insgesamt vorher 336, nachher 505; in 96 Dateien unverändert.
+
+| Datei | Fragen 2.7.0 | Fragen 2.8.0 | neue Fragen | weggefallene Fragen |
+|---|---|---|---|---|
+| fixtures/einrichtung-absatz-text.docx | 0 | 1 | Einrichtung: musikschule am stadtpark | – |
+| fixtures/einrichtung-absatz-text.txt | 0 | 1 | Einrichtung: musikschule am stadtpark | – |
+| fixtures/einrichtung-umbruch-crlf.txt | 0 | 1 | Einrichtung: musikschule am stadtpark | – |
+| fixtures/einrichtung-umbruch.txt | 0 | 1 | Einrichtung: musikschule am stadtpark | – |
+| fixtures/einrichtung.csv | 0 | 2 | Einrichtung: familienzentrum sonnenblume, Einrichtung: astrid-lindgren-schule | – |
+| fixtures/einrichtung.docx | 1 | 3 | Einrichtung: familienzentrum sonnenblume, Einrichtung: astrid-lindgren-schule | – |
+| fixtures/einrichtung.txt | 0 | 2 | Einrichtung: familienzentrum sonnenblume, Einrichtung: astrid-lindgren-schule | – |
+| fixtures/einrichtung.xlsx | 1 | 3 | Einrichtung: familienzentrum sonnenblume, Einrichtung: astrid-lindgren-schule | – |
+| fixtures/kurse.docx | 11 | 12 | Einrichtung: familienzentrum sonnenblume | – |
+| fixtures/sc-briefkopf-und-text.docx | 0 | 1 | Einrichtung: musikschule am stadtpark | – |
+| fixtures/sc-briefkopf-und-text.txt | 0 | 1 | Einrichtung: musikschule am stadtpark | – |
+| fixtures/sc-freie-person.docx | 1 | 1 | Einrichtung: kita freie | p:S|kita |
+| fixtures/sc-freie-person.txt | 1 | 1 | Einrichtung: kita freie | p:S|kita |
+| fixtures/sc-kopf-fuss-bild.docx | 0 | 1 | Einrichtung: musikschule am stadtpark | – |
+| fixtures/sc-vollstaendig-ersetzt.docx | 0 | 1 | Einrichtung: musikschule am stadtpark | – |
+| fixtures/sc-vollstaendig-ersetzt.txt | 0 | 1 | Einrichtung: musikschule am stadtpark | – |
+| fixtures/verwechslung.docx | 0 | 49 | Einrichtung: 49 × „Verein …“ (Quarstedt, Wendstedt …) | – |
+| fixtures/verwechslung.txt | 0 | 49 | Einrichtung: 49 × „Verein …“ (Quarstedt, Wendstedt …) | – |
+| fixtures-traeger/anmeldung.csv | 3 | 5 | Einrichtung: gymnasium tannhofen, Einrichtung: brandner lern und spiel | – |
+| fixtures-traeger/anmeldung.docx | 3 | 5 | Einrichtung: gymnasium tannhofen, Einrichtung: brandner lern und spiel | – |
+| fixtures-traeger/anmeldung.pdf | 3 | 5 | Einrichtung: gymnasium tannhofen, Einrichtung: brandner lern und spiel | – |
+| fixtures-traeger/anmeldung.txt | 3 | 5 | Einrichtung: gymnasium tannhofen, Einrichtung: brandner lern und spiel | – |
+| fixtures-traeger/anmeldung.xlsx | 3 | 5 | Einrichtung: gymnasium tannhofen, Einrichtung: brandner lern und spiel | – |
+| fixtures-traeger/einrichtungen-auto.docx | 3 | 15 | Einrichtung: die 12 Einrichtungen der Testdatei | – |
+| fixtures-traeger/einrichtungen-auto.txt | 2 | 14 | Einrichtung: die 12 Einrichtungen der Testdatei | – |
+| fixtures-traeger/einrichtungen-auto.xlsx | 2 | 14 | Einrichtung: die 12 Einrichtungen der Testdatei | – |
+| korpus/kursbeschreibungen | 12 | 13 | Einrichtung: familienzentrum am lindenhof | – |
+| korpus/elternbrief | 10 | 11 | Einrichtung: kita sonnenblume | – |
+| korpus/schule | 12 | 13 | Einrichtung: grundschule am lindenweg | – |
+| korpus/nachbarschaft | 7 | 8 | Einrichtung: verein nachbarschaftshilfe | – |
+| korpus/kooperation | 2 | 5 | Einrichtung: lindenhof beratung gmbh, Einrichtung: kita freie spatzen, Einrichtung: kita sonnenblume, Einrichtung: sportverein tsv grunwiese | p:S|kita |
+
+Bewertung je gefundener Einrichtung (vorhandene Dateien und Korpus, ohne die neue Testdatei einrichtungen-auto):
+- **richtig:** „Musikschule am Stadtpark“ (9 Dateien, so in den Testdateien gemeint), „Familienzentrum Sonnenblume“ mit allen Schreibweisen (einrichtung.*, kurse.docx; dort auch „… Musterstadt“ als Schreibweise), „Astrid-Lindgren-Schule“ (einrichtung.*), 49 × „Verein …“ (verwechslung.*, die Datei enthält 50 Personen und 50 Vereine; „Lindenauer Bürgerverein“ steht ohne Kopfwort-Form davor und wird nicht gefunden), „Gymnasium Tannhofen“ (+ „Gymnasium Kirchberg Tannhofen“) und „Brandner lern und spiel“ (anmeldung.*), Korpus: „Familienzentrum am Lindenhof“, „Kita Sonnenblume“ (2×), „Grundschule am Lindenweg“, „Verein Nachbarschaftshilfe“, „Lindenhof Beratung GmbH“, „Kita Freie Spatzen“, „Sportverein TSV Grünwiese“.
+- **falsch (Bruchstück):** „Kita Freie“ (sc-freie-person.txt/.docx): Der Name steht über zwei Absätze („Kita Freie⏎Waldorfschule“); gefunden wird nur der Teil in der ersten Zeile. Je Datei 1 Frage; die alte falsche Personen-Frage „Kita“ fällt dafür weg. Der Schlusscheck meldet die über Absätze getrennte „Freie Waldorfschule“ wie bisher.
+- Summe (je Datei gezählt): **richtig 134 Funde in 21 Dateien und 5 Korpus-Abschnitten, falsch 2 (je 1 Frage in 2 Dateien)**. Keine Datei mit mehr als einer falschen Frage. Kein Mini-Stopp.
+- Weggefallene falsche Personen-Fragen: „Kita“ in sc-freie-person (2) und Korpus „kooperation“ (1).
+
+## Warnpunkt „Hier könnte eine Einrichtung stehen“ vorher/nachher
+- 2.7.0 (alle Funde der Hinweis-Regeln): auf denselben Dateien 93 Stellen (Stand 2.7.0 mit der alten Gegenprobe: 43 richtig, 14 falsch).
+- 2.8.0 (nur noch schwache Funde, Anführungszeichen ohne Merkmal): **5 Stellen, alle falsch** (gegenprobe-platzhalter: „Nachname C“, „Vorname D“; Korpus: „Essen aus aller Welt“, „Natur vor unserer Tür“, „Gemeinsam statt einsam“). Die 43 richtigen werden jetzt ersetzt und gefragt; die übrigen falschen (z. B. „Ganztagsschule Schuljahr“, „Gesunde Pause“, Titel hinter Titel-Wörtern) fallen weg.
+- Gegenprobe sachtext (erweitert): 0 Einrichtungen ersetzt, 0 Einrichtungs-Fragen, dieselben 9 Fragen wie 2.7.0, 0 Stellen im Warnpunkt.
+
+## Alle Testläufe vorher (main 2.7.0) / nachher (2.8.0), bestanden/gesamt
+| Lauf | vorher | nachher |
+|---|---|---|
+| anzeige-test | 99/99 | 117/117 (neu: Einrichtungs-Fragen in b und e) |
+| bedienung-test | 37/37 | 37/37 |
+| bilder-test | 58/58 | 58/58 |
+| einrichtung-test | 153/153 | 153/153 |
+| endungen-test | 21/21 | 21/21 |
+| gross-test | 44/44 | 44/44 |
+| kennung-test | 37/37 | 37/37 |
+| kollision-test | 17/17 | 17/17 |
+| meta-proof | 48/48 | 46/46 (zwei Prüfungen zur Schlusscheck-Meldung entfallen, siehe unten) |
+| pfade-test | 40/40 | 40/40 |
+| platzhalter-test | 24/24 | 24/24 |
+| roundtrip | 36/36 | 36/36 |
+| spalten-test | 67/67 | 67/67 |
+| traeger-test | 61/61 | 87/87 (neu: PR B) |
+| ui-flow | 52/52 | 52/52 |
+| wortliste-test | 18/18 | 18/18 |
+| korpus-test, run-tests, regression | grün | grün |
+
+## Angepasste Erwartungen (jede einzeln, mit Grund)
+1. **tests/korpus/erwartung.json und erwartung-zellen.json:** „Fehltreffer unsicher aus“ 58 → 55. Grund: 3 falsche Personen-Treffer „Kita“ (vor „Kita Sonnenblume“, „Kita Freie Spatzen“) entfallen, weil diese jetzt Einrichtungen sind. Alle übrigen Zahlen gleich.
+2. **tests/wortliste-test.mjs** („Freie Waldorfschule“): verglichen werden die Treffer der von Hand markierten Einrichtung (streng wie bisher); der neue Fund „Kita Freie“ (Regel a) steht eigens im Bericht.
+3. **tests/einrichtung-test.mjs** „Art-Wechsel“: Die Datei enthält jetzt weitere selbst gefundene Einrichtungen; geprüft wird, dass genau der Verein die Art wechselt (Zählung relativ statt „1 → 0“). „freie-person“: erste Zeile ist jetzt „Einrichtung A“ (gefundene „Kita Freie“) statt „Person A Freie“; die Schlusscheck-Meldung bleibt streng geprüft.
+4. **tests/meta-proof.mjs** und **tests/ui-flow.mjs** (kurse.docx): Die Firma aus den Dateiangaben („Familienzentrum Sonnenblume“) wird jetzt selbst gefunden und ersetzt; der bisherige Schlusscheck-Fund entsteht nicht mehr. Statt „Schlusscheck blockiert wegen des Firmennamens“ wird geprüft: gefunden, alle Stellen ersetzt, gefragt, 0 Funde, Speichern ohne Häkchen gesperrt. Zwei Prüfungen, die nur den Inhalt dieser Meldung betrafen (Ort in einfacher Sprache, Knopf „Als Einrichtung übernehmen“ in der Meldung), entfallen in meta-proof (48 → 46). Diese Meldung wird für von Hand markierte Einrichtungen weiter in einrichtung-test geprüft.
+5. **tests/regression.mjs** und **tests/bedienung-test.mjs:** neue Kategorie „geändert durch die Regeln von Version 2.8.0“ mit Nachweis je Ausgabe (siehe unten). Byte-gleich bleibt sonst Pflicht.
+
+## Regression gegen main (2.7.0, 631a2bcd…)
+126 Ausgaben: **89 byte-gleich, 13 gleich bis auf die Kennung, 24 durch die Regeln von 2.8.0 geändert, 0 unterschiedlich.** Nachweis je geänderter Ausgabe: Version 2.7.0 liefert genau dieselbe Ausgabe, wenn man ihr die von 2.8.0 gefundenen Einrichtungen als von Hand markiert vorgibt und ihre Schreibweisen zusammenführt (Regel c). Betroffen: kurse.docx (6), einrichtung-umbruch.txt (6), einrichtung-umbruch-crlf.txt (3), einrichtung.txt (3), einrichtung.docx (6). bedienung-test (gegen 2.4.1): 129 Ausgaben mit demselben Nachweis, 0 unbegründet.
+
+## Laufzeit
+| | 2.7.0 | 2.8.0 |
+|---|---|---|
+| 10 MB Text (protokoll.txt wiederholt), Laden + Analyse | 9,2 s / 8,9 s | 9,3 s / 9,5 s |
+| … Speichern-Punkte | 0,18 s | 0,17 s |
+| … Ausgabe | 0,95 s | 1,0 s |
+| 1 MB, jede Zeile eine Einrichtung (einrichtungen-auto wiederholt), nur Analyse (Node) | 0,6 s (findet nichts) | 1,5 s (rund 20 000 Stellen) |
+
+## Prüfsumme
+Zweimal gebaut, gleiche Datei: SHA-256 `d70bfc4381ef3c686819f027dbe9b6b3aa8e3a7458c5c62460c971e7d2e0a38b`, 3 845 500 Bytes.
+
+---
+
 # Messungen Version 2.7.0, PR A „Webadressen, Konten und Sperre“
 
 Ergänzt tests/TRAEGER-REPORT.md (Ziel-Test, Sperre, Warnpunkt, Rückbau). Nur Chromium, Firefox prüft Easy.

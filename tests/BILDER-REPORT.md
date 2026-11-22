@@ -78,7 +78,7 @@ Ausgabedatei entpackt, ALLE Teile (XML, VML, Bilder, Verweise) nach den Testname
 - OK: Eigene Textabschnitte, gekennzeichnet als „Bildbeschreibung“ – Bildbeschreibung | Bildbeschreibung | Bildbeschreibung | Bildbeschreibung
 - OK: Namen in Bildbeschreibungen werden erkannt und markiert – Wiebke Sandmann | Torben Kleinschmidt
 - OK: Von Hand markiertes Wort in einer Bildbeschreibung wird im Export ersetzt (auch im Attribut descr) – descr="Foto von Frau Person B am Empfang", descr="Person C", descr="Lageplan"
-- OK: Treffer nur in der Bildbeschreibung ausgeschaltet (Name sonst im Text ersetzt): Schlusscheck meldet ihn mit Fundstelle – „Familienzentrum Sonnenblume“ steht noch in: KopfzeileEinrichtung aus den Dateiangaben · „… Familienzentrum Sonnenblume…“Als Einrichtung übernehmen | „Kowalski“ steht noch in: Bildbeschreibungbestätigter Name · „…Foto: Kursleiterin Marta Kowalski mit Gruppe…“Ersetzen
+- OK: Treffer nur in der Bildbeschreibung ausgeschaltet (Name sonst im Text ersetzt): Schlusscheck meldet ihn mit Fundstelle – „Kowalski“ steht noch in: Bildbeschreibungbestätigter Name · „…Foto: Kursleiterin Marta Kowalski mit Gruppe…“Ersetzen | „Kowalski“ steht noch in: Textbestätigter Name · „…to 1 Foto: Kursleiterin Marta Kowalski mit Gruppe Titel Lehrkraft Be…“Als Namen übernehmen
 
 ## Kreislauf (rückbaufähig) mit Namen in Bildbeschreibungen
 - OK: bilder-word.docx: Kreislauf exakt (alle Texte und alle Bildbeschreibungen wie im Original) – 9 Textstücke, 7 Beschreibungs-Attribute geprüft

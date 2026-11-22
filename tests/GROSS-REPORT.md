@@ -1030,47 +1030,39 @@ Gezählt wird nur bei bestätigten Namen (mindestens ein eingeschalteter Treffer
 - OK: Ersetzer außerhalb der Prüfansicht (reversible): „MÜLLERS“ ersetzt oder gemeldet
 
 ## Schlusscheck-Vergleich über alle Testdokumente (Modus „Person A“ und „rückbaufähig“; Ausgabe im eigenen Format)
-- 87 Dokumente, je zwei Modi: Meldungen vorher 298, nachher 50; neu 50, entfallen 298
-  - neu: einrichtung.csv (person): „Astrid-Lindgren-Schule“ in Zeile 7, Spalte 1 – „Auch die Astrid-Lindgren-Schule macht mit. Frau Person B lies“
-  - neu: einrichtung.csv (reversible): „Astrid-Lindgren-Schule“ in Zeile 7, Spalte 1 – „Auch die Astrid-Lindgren-Schule macht mit. Frau Vorname B Nac“
-  - neu: einrichtung.docx (person): „Familienzentrum Sonnenblume“ in Text – „Bericht aus dem Familienzentrum Sonnenblume“
-  - neu: einrichtung.docx (person): „FAMILIENZENTRUM SONNENBLUME“ in Text – „AUSHANG: FAMILIENZENTRUM SONNENBLUME LÄDT EIN“
-  - neu: einrichtung.docx (person): „Astrid-Lindgren-Schule“ in Text – „Auch die Astrid-Lindgren-Schule macht mit. Frau Person B lies“
-  - neu: einrichtung.docx (person): „Familienzentrum
-Sonnenblume“ in Text – „Treffpunkt im Familienzentrum Sonnenblume, Saal 2.“
-  - neu: einrichtung.docx (person): „Familienzentrum Sonnenblume“ in Kopfzeile – „Familienzentrum Sonnenblume · Jahresbericht“
-  - neu: einrichtung.docx (reversible): „Familienzentrum Sonnenblume“ in Text – „Bericht aus dem Familienzentrum Sonnenblume“
-  - neu: einrichtung.docx (reversible): „FAMILIENZENTRUM SONNENBLUME“ in Text – „AUSHANG: FAMILIENZENTRUM SONNENBLUME LÄDT EIN“
-  - neu: einrichtung.docx (reversible): „Astrid-Lindgren-Schule“ in Text – „Auch die Astrid-Lindgren-Schule macht mit. Frau Vorname B Nac“
+- 87 Dokumente, je zwei Modi: Meldungen vorher 298, nachher 36; neu 36, entfallen 298
+  - neu: einrichtung-absatz-text.docx (person): „Musikschule am
+Stadtpark“ in Text – im Original – „Musikschule am Stadtpark Rundbrief an alle Eltern. Die“
+  - neu: einrichtung-absatz-text.docx (reversible): „Musikschule am
+Stadtpark“ in Text – im Original – „Musikschule am Stadtpark Rundbrief an alle Eltern. Die“
+  - neu: einrichtung-absatz-text.txt (person): „Musikschule
+
+am Stadtpark“ in Zeile 1 und Zeile 3 – im Original – „Musikschule am Stadtpark Rundbrief an alle Eltern. Die“
+  - neu: einrichtung-absatz-text.txt (reversible): „Musikschule
+
+am Stadtpark“ in Zeile 1 und Zeile 3 – im Original – „Musikschule am Stadtpark Rundbrief an alle Eltern. Die“
+  - neu: einrichtung-umbruch-crlf.txt (person): „Musikschule
+am
+Stadtpark“ in Zeile 7 und Zeile 9 – im Original – „rgervereins tagt. Gruß an die Musikschule am Stadtpark (zwei Umbrüche). Ein Satz ohn“
+  - neu: einrichtung-umbruch-crlf.txt (reversible): „Musikschule
+am
+Stadtpark“ in Zeile 7 und Zeile 9 – im Original – „rgervereins tagt. Gruß an die Musikschule am Stadtpark (zwei Umbrüche). Ein Satz ohn“
+  - neu: einrichtung-umbruch.txt (person): „Musikschule
+am
+Stadtpark“ in Zeile 7 und Zeile 9 – im Original – „rgervereins tagt. Gruß an die Musikschule am Stadtpark (zwei Umbrüche). Ein Satz ohn“
+  - neu: einrichtung-umbruch.txt (reversible): „Musikschule
+am
+Stadtpark“ in Zeile 7 und Zeile 9 – im Original – „rgervereins tagt. Gruß an die Musikschule am Stadtpark (zwei Umbrüche). Ein Satz ohn“
+  - neu: einrichtung.docx (reversible): „Familienzentrum
+Sonnenblume“ in Text – im Original – „gren liest vor. Treffpunkt im Familienzentrum Sonnenblume, Saal 2. Logo: Familienzentr“
   - neu: einrichtung.docx (reversible): „Familienzentrum
 Sonnenblume“ in Text – „Treffpunkt im Familienzentrum Sonnenblume, Saal 2.“
-  - neu: einrichtung.docx (reversible): „Familienzentrum Sonnenblume“ in Kopfzeile – „Familienzentrum Sonnenblume · Jahresbericht“
-  - neu: einrichtung.txt (person): „Astrid-Lindgren-Schule“ in Zeile 6 – „Auch die Astrid-Lindgren-Schule macht mit. Frau Person B lies“
-  - neu: einrichtung.txt (reversible): „Astrid-Lindgren-Schule“ in Zeile 6 – „Auch die Astrid-Lindgren-Schule macht mit. Frau Vorname B Nac“
-  - neu: einrichtung.xlsx (person): „Familienzentrum Sonnenblume“ in Name eines Blatts – „Familienzentrum Sonnenblume“
-  - neu: einrichtung.xlsx (person): „Familienzentrum Sonnenblume“ in Blatt Familienzentrum Sonnenblume, Zelle A1 – „Bericht aus dem Familienzentrum Sonnenblume“
-  - neu: einrichtung.xlsx (person): „FAMILIENZENTRUM SONNENBLUME“ in Blatt Familienzentrum Sonnenblume, Zelle A5 – „AUSHANG: FAMILIENZENTRUM SONNENBLUME LÄDT EIN“
-  - neu: einrichtung.xlsx (person): „Astrid-Lindgren-Schule“ in Blatt Familienzentrum Sonnenblume, Zelle A6 – „Auch die Astrid-Lindgren-Schule macht mit. Frau Person B lies“
-  - neu: einrichtung.xlsx (person): „Familienzentrum
-Sonnenblume“ in Blatt Familienzentrum Sonnenblume, Zelle A7 – „Treffpunkt im Familienzentrum Sonnenblume, Saal 2.“
-  - neu: einrichtung.xlsx (reversible): „Familienzentrum Sonnenblume“ in Name eines Blatts – „Familienzentrum Sonnenblume“
-  - neu: einrichtung.xlsx (reversible): „Familienzentrum Sonnenblume“ in Blatt Familienzentrum Sonnenblume, Zelle A1 – „Bericht aus dem Familienzentrum Sonnenblume“
-  - neu: einrichtung.xlsx (reversible): „FAMILIENZENTRUM SONNENBLUME“ in Blatt Familienzentrum Sonnenblume, Zelle A5 – „AUSHANG: FAMILIENZENTRUM SONNENBLUME LÄDT EIN“
-  - neu: einrichtung.xlsx (reversible): „Astrid-Lindgren-Schule“ in Blatt Familienzentrum Sonnenblume, Zelle A6 – „Auch die Astrid-Lindgren-Schule macht mit. Frau Vorname B Nac“
-  - neu: einrichtung.xlsx (reversible): „Familienzentrum
-Sonnenblume“ in Blatt Familienzentrum Sonnenblume, Zelle A7 – „Treffpunkt im Familienzentrum Sonnenblume, Saal 2.“
   - neu: kollision.csv (person): „NAME“ in Zeile 6, Spalte 2 – „Vorlage: [NAME] schreibt an [E-MAIL-1].“
   - neu: kollision.csv (reversible): „NAME“ in Zeile 6, Spalte 2 – „Vorlage: [NAME] schreibt an [E-MAIL-1].“
   - neu: kollision.docx (person): „NAME“ in Text – „Vorlage: [NAME] schreibt an [E-MAIL-1].“
   - neu: kollision.docx (reversible): „NAME“ in Text – „Vorlage: [NAME] schreibt an [E-MAIL-1].“
   - neu: kollision.txt (person): „NAME“ in Zeile 5 – „Vorlage: [NAME] schreibt an [E-MAIL-1].“
   - neu: kollision.txt (reversible): „NAME“ in Zeile 5 – „Vorlage: [NAME] schreibt an [E-MAIL-1].“
-  - neu: kurse.docx (person): „Familienzentrum Sonnenblume“ in Kopfzeile – „Familienzentrum Sonnenblume“
-  - neu: kurse.docx (person): „Familienzentrum Sonnenblume“ in Bildbeschreibung – „Logo Familienzentrum Sonnenblume Musterstadt“
-  - neu: kurse.docx (person): „Familienzentrum Sonnenblume“ in Kopfzeile – „Familienzentrum Sonnenblume“
-  - neu: kurse.docx (reversible): „Familienzentrum Sonnenblume“ in Kopfzeile – „Familienzentrum Sonnenblume“
-  - neu: kurse.docx (reversible): „Familienzentrum Sonnenblume“ in Bildbeschreibung – „Logo Familienzentrum Sonnenblume Musterstadt“
-  - neu: kurse.docx (reversible): „Familienzentrum Sonnenblume“ in Kopfzeile – „Familienzentrum Sonnenblume“
   - neu: meta-falle.docx (person): „Rüdiger“ in Bild (versteckte Bildangaben) – „      ;    �          Rüdiger Spähmann  �   �   ����“
   - neu: meta-falle.docx (person): „Spähmann“ in Bild (versteckte Bildangaben) – „;    �          Rüdiger Spähmann  �   �   ����“
   - neu: meta-falle.docx (reversible): „Rüdiger“ in Bild (versteckte Bildangaben) – „      ;    �          Rüdiger Spähmann  �   �   ����“
@@ -1085,6 +1077,20 @@ Sonnenblume“ in Blatt Familienzentrum Sonnenblume, Zelle A7 – „Treffpunkt 
   - neu: protokoll.pdf (reversible): „Mai“ in Seite 1 – „rname U Nachname U) bietet ab Mai wieder Suppe an. Auf dem Tisc“
   - neu: protokoll.txt (person): „Mai“ in Zeile 10 – „(Leitung: Person U) bietet ab Mai wieder Suppe an. Auf dem Tisc“
   - neu: protokoll.txt (reversible): „Mai“ in Zeile 10 – „rname U Nachname U) bietet ab Mai wieder Suppe an. Auf dem Tisc“
+  - neu: sc-briefkopf-und-text.docx (person): „Musikschule am
+Stadtpark“ in Text – im Original – „Musikschule am Stadtpark Die Musikschule am Stadtpark“
+  - neu: sc-briefkopf-und-text.docx (reversible): „Musikschule am
+Stadtpark“ in Text – im Original – „Musikschule am Stadtpark Die Musikschule am Stadtpark“
+  - neu: sc-briefkopf-und-text.txt (person): „Musikschule am
+
+Stadtpark“ in Zeile 1 und Zeile 3 – im Original – „Musikschule am Stadtpark Die Musikschule am Stadtpark“
+  - neu: sc-briefkopf-und-text.txt (reversible): „Musikschule am
+
+Stadtpark“ in Zeile 1 und Zeile 3 – im Original – „Musikschule am Stadtpark Die Musikschule am Stadtpark“
+  - neu: sc-kopf-fuss-bild.docx (person): „Musikschule am
+Stadtpark“ in Kopfzeile – im Original – „in. Rundbrief an alle Eltern. Musikschule am Stadtpark Lindenauer Bürgerverein Logo“
+  - neu: sc-kopf-fuss-bild.docx (reversible): „Musikschule am
+Stadtpark“ in Kopfzeile – im Original – „in. Rundbrief an alle Eltern. Musikschule am Stadtpark Lindenauer Bürgerverein Logo“
   - entfallen: einrichtung.csv (person): „Astrid-Lindgren-Schule“ in Text
   - entfallen: einrichtung.csv (reversible): „Astrid-Lindgren-Schule“ in Text
   - entfallen: einrichtung.docx (person): „Familienzentrum Sonnenblume“ in Text – word/document.xml

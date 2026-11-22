@@ -8,7 +8,7 @@ Chromium headless, Start per file://. Alle Namen in den Testdateien sind erfunde
 - OK: … mit Antwort und Datei aktiv
 - OK: Alle 12 Fragen mit Taste J beantwortet – Keine Frage offen
 - OK: „2 Datei speichern“ ist vor dem Schlüssel gesperrt
-- OK: Datei gespeichert – Gespeichert: anonymisiert_N43L.docx – Schlusscheck ohne Fund.
+- OK: Datei gespeichert – Gespeichert: anonymisiert_5A7Y.docx – Schlusscheck ohne Fund.
 - Details nach dem Speichern:  ·  ·  ·  ·  · ; offene Punkte: 1
 - OK: In jedem Schritt genau ein Bildschirm und genau ein Hauptknopf – Start: Bildschirm start, Hauptknopf „Dokument anonymisieren
         Namen durch Platzhalter ersetzen, bevor die Datei an eine KI geht.“ → Datei (leer): Bildschirm a1, Hauptknopf „Weiter zum Prüfen“ → Datei (geladen): Bildschirm a1, Hauptknopf „Weiter zum Prüfen“ → Prüfen: Bildschirm a2, Hauptknopf „Weiter zum Speichern“ → Speichern (vor dem Schlüssel): Bildschirm a3, Hauptknopf „1 Schlüssel speichern“ → Speichern (nach dem Schlüssel): Bildschirm a3, Hauptknopf „2 Datei speichern“ → Gespeichert: Bildschirm a3, Hauptknopf „Nächstes Dokument“
@@ -34,15 +34,15 @@ Chromium headless, Start per file://. Alle Namen in den Testdateien sind erfunde
 - OK: Keine JavaScript-Fehler
 
 ## Sperren halten das Speichern weiter auf
-- Offene Punkte: 11 Fragen sind noch offen. Ohne Antwort bleibt jede Stelle so, wie sie im Moment ist. Beantworten | Hier könnte eine Einrichtung stehen. Das Tool ersetzt Einrichtungen noch nicht selbst. Bitte prüfen und bei Bedarf als Einrichtung markieren. „Familienzentrum Sonnenblume“ – Kopfzeile Im Text zeigen „Familienzentrum Sonnenblume Musterstadt“ – Bildbeschreibung Im Text zeigen | 2 Bilder im Dokument. Das Tool ändert Bilder nicht. Steht auf einem Bild ein Name oder ein Logo, entferne es vorher in Word. Ansehen | „Familienzentrum Sonnenblume“ steht noch in: Kopfzeile Einrichtung aus den Dateiangaben · „… Familienzentrum Sonnenblume…“ Als Einrichtung übernehmen | „Familienzentrum Sonnenblume“ steht noch in: Bildbeschreibung Einrichtung aus den Dateiangaben · „…Logo Familienzentrum Sonnenblume Musterstadt…“ | „Familienzentrum Sonnenblume“ steht noch in: Kopfzeile Einrichtung aus den Dateiangaben · „… Familienzentrum Sonnenblume…“
-- OK: Offene Punkte ohne Häkchen: Speichern blockiert – Schlusscheck: 3 Klarname(n) noch im Ergebnis. Speichern blockiert – bitte die Punkte oben ansehen und „Ich habe alle Punkte gesehen und speichere so.“ abhaken.
+- Offene Punkte: 12 Fragen sind noch offen. Ohne Antwort bleibt jede Stelle so, wie sie im Moment ist. Beantworten | 2 Bilder im Dokument. Das Tool ändert Bilder nicht. Steht auf einem Bild ein Name oder ein Logo, entferne es vorher in Word. Ansehen
+- OK: Offene Punkte ohne Häkchen: Speichern blockiert – Speichern blockiert – bitte zuerst die Punkte oben ansehen und „Ich habe alle Punkte gesehen und speichere so.“ abhaken.
 - OK: Häkchen ist gesperrt, solange die Bilderliste nicht geöffnet wurde
 - OK: Nach dem Öffnen der Bilderliste ist das Häkchen wählbar
-- OK: Offene Fragen und Schlusscheck-Fund blockieren weiter ohne Häkchen – Schlusscheck: 3 Klarname(n) noch im Ergebnis. Speichern blockiert – bitte die Punkte oben ansehen und „Ich habe alle Punkte gesehen und speichere so.“ abhaken.
-- OK: Offene Punkte blockieren auch „Als .txt speichern“ – Schlusscheck: 2 Klarname(n) noch im Ergebnis. Speichern blockiert – bitte die Punkte oben ansehen und „Ich habe alle Punkte gesehen und speichere so.“ abhaken.
+- OK: Offene Fragen blockieren weiter ohne Häkchen (Firmenname seit 2.8.0 ersetzt, kein Schlusscheck-Fund mehr) – Speichern blockiert – bitte zuerst die Punkte oben ansehen und „Ich habe alle Punkte gesehen und speichere so.“ abhaken.
+- OK: Offene Punkte blockieren auch „Als .txt speichern“ – Speichern blockiert – bitte zuerst die Punkte oben ansehen und „Ich habe alle Punkte gesehen und speichere so.“ abhaken.
 - OK: Nach einer Änderung der Treffer fällt das Häkchen zurück
-- OK: … und Speichern ist wieder blockiert – Schlusscheck: 3 Klarname(n) noch im Ergebnis. Speichern blockiert – bitte die Punkte oben ansehen und „Ich habe alle Punkte gesehen und speichere so.“ abhaken.
-- OK: Mit Häkchen wird gespeichert – Gespeichert: anonymisiert_dokument.docx – mit bestätigten Restfunden.
+- OK: … und Speichern ist wieder blockiert – Speichern blockiert – bitte zuerst die Punkte oben ansehen und „Ich habe alle Punkte gesehen und speichere so.“ abhaken.
+- OK: Mit Häkchen wird gespeichert – Gespeichert: anonymisiert_dokument.docx – Schlusscheck ohne Fund.
 - OK: Fehlende Schlüsseldatei blockiert auch „Als .docx speichern“ – Bitte zuerst „1 Schlüssel speichern“. Ohne Schlüsseldatei ist kein Rückbau möglich.
 - OK: „2 Datei speichern“ gesperrt, solange der Schlüssel fehlt
 - OK: Nach dem Schlüssel ist „2 Datei speichern“ frei
@@ -53,7 +53,7 @@ Chromium headless, Start per file://. Alle Namen in den Testdateien sind erfunde
 
 ## Fragekarte, Tasten J/N, Markieren
 - OK: Taste J wirkt nicht auf dem Bildschirm „Datei“
-- OK: Keine Frage zu „Montag“ (Regel b2), alle Vorkommen bleiben stehen – Fragen zu: Lieder, Kirchbichler, Yoga, Tesfamariam, Ton, Brzęczek, Sonnleitner, Fuchs, Gisela Musterfrau, Bernd Beispielmann, Familienzentrum Sonnenblume
+- OK: Keine Frage zu „Montag“ (Regel b2), alle Vorkommen bleiben stehen – Fragen zu: Familienzentrum Sonnenblume, Lieder, Kirchbichler, Yoga, Tesfamariam, Ton, Brzęczek, Sonnleitner, Fuchs, Gisela Musterfrau, Bernd Beispielmann, Familienzentrum Sonnenblume
 - OK: Taste J (Ja) schaltet alle Stellen der Frage an – true,true
 - OK: Taste N schaltet die Stellen wieder aus – false,false
 - OK: Taste J wirkt nicht, wenn ein Eingabefeld (Auswahlliste) den Fokus hat
