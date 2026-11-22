@@ -42,8 +42,20 @@ export const EXCLUDE_AFTER = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'F
   'Beitrag', 'Beiträge', 'Träger', 'Gebäude', 'Hof', 'Ferien', 'Termin', 'Termine', 'Team', 'Sekretariat', 'Verwaltung', 'Kontakt',
   'Telefon', 'Fax', 'Adresse', 'Anschrift', 'Website', 'Webseite', 'Homepage', 'Mittagessen', 'Essen', 'Mensa', 'Aula', 'Turnhalle',
   'Sporthalle', 'Bibliothek', 'Kosten', 'Programm', 'Stundenplan', 'Speiseplan', 'Elternbrief', 'Info', 'Infos', 'Informationen',
-  'Hinweis', 'Hinweise', 'Formular', 'Antrag', 'Woche', 'Wochen', 'Jahr', 'Tag', 'Tage', 'Uhr', 'Beginn', 'Ende', 'Neubau', 'Alltag'];
-const EXCL = new Set(EXCLUDE_AFTER.map((w) => fold(w)));
+  'Hinweis', 'Hinweise', 'Formular', 'Antrag', 'Woche', 'Wochen', 'Jahr', 'Tag', 'Tage', 'Uhr', 'Beginn', 'Ende', 'Neubau', 'Alltag',
+  // Nachbesserung 2.8.0 (Befund 2): Schulfächer, Raum-Wörter, Funktions-Wörter
+  'Deutsch', 'Mathe', 'Mathematik', 'Englisch', 'Französisch', 'Latein', 'Spanisch', 'Italienisch', 'Sport', 'Musik', 'Kunst', 'Religion',
+  'Ethik', 'Biologie', 'Bio', 'Chemie', 'Physik', 'Geschichte', 'Erdkunde', 'Geografie', 'Geographie', 'Sachkunde', 'Sachunterricht',
+  'Informatik', 'Werken', 'Textil', 'Wirtschaft', 'Politik', 'Sozialkunde', 'Hauswirtschaft',
+  'Raum', 'Räume', 'Zimmer', 'Saal', 'Halle', 'Küche', 'Garten', 'Pausenhof', 'Flur', 'Eingang',
+  'Rektor', 'Rektorin', 'Konrektor', 'Konrektorin', 'Direktor', 'Direktorin', 'Vorsitzender', 'Vorsitzende', 'Vorsitz', 'Aufnahme',
+  'Gruppe', 'Gruppen', 'Hausmeister', 'Hausmeisterin', 'Personal', 'Elternvertreter', 'Elternvertreterin'];
+// … und Wörter auf -fest, -feier, -tag, -woche (auch Mehrzahl) sowie -raum, -zimmer, -saal, -halle
+export const EXCLUDE_ENDINGS = ['fest', 'feste', 'feier', 'feiern', 'tag', 'tage', 'woche', 'wochen', 'raum', 'zimmer', 'saal', 'halle'];
+const EXCL_WORDS = new Set(EXCLUDE_AFTER.map((w) => fold(w)));
+const EXCL = { has: (k) => EXCL_WORDS.has(k) || (k.length > 5 && EXCLUDE_ENDINGS.some((e) => k.endsWith(e))) };
+// Nachbesserung 2.8.0 (Befund 1): Anrede oder Titel (wie die Personen-Erkennung) beendet einen Namen
+const isTitleTok = (tk) => tk && tk.word && lex.isTitle(fold(tk.t));
 const PREP = new Set(['am', 'im', 'in', 'bei', 'beim']);
 const PREP2 = new Set(['an der', 'an dem', 'in der', 'auf der', 'auf dem']);
 // Titel-Wörter (Regel b): direkt vor Anführungszeichen, ohne Merkmal 1–3 -> kein Fund, kein Warnpunkt
@@ -108,7 +120,7 @@ function unitCandidates(text, covered) {
       while (names.length < 3 && toks[j] && gapOk(text, toks[j - 1], toks[j]) && isCapWord(toks[j]) && !cov(j)) {
         const w = toks[j];
         const k = fold(w.t);
-        if (EXCL.has(k) || headOf(w.allcaps ? w.t.charAt(0) + w.t.slice(1).toLowerCase() : w.t) || isFunctionWord(w) || w.t.includes('-') && headOf(w.t.split('-').pop())) break;
+        if (isTitleTok(w) || EXCL.has(k) || headOf(w.allcaps ? w.t.charAt(0) + w.t.slice(1).toLowerCase() : w.t) || isFunctionWord(w) || w.t.includes('-') && headOf(w.t.split('-').pop())) break;
         names.push(k);
         nameEnds.push(w.e);
         last = j;
@@ -130,7 +142,7 @@ function unitCandidates(text, covered) {
       for (let k = i - 1; k >= 0 && names.length < 3; k--) {
         if (!gapOk(text, toks[k], toks[k + 1]) && !(toks[k + 1].t === '&')) break;
         if (toks[k].t === '&') { st = k; continue; }
-        if (!isCapWord(toks[k]) || isFunctionWord(toks[k]) || cov(k) || toks[k].s <= usedEnd.v) break;
+        if (!isCapWord(toks[k]) || isFunctionWord(toks[k]) || isTitleTok(toks[k]) || cov(k) || toks[k].s <= usedEnd.v) break;
         names.unshift(fold(toks[k].t));
         st = k;
       }
@@ -172,7 +184,8 @@ function quoteCandidates(text, fullText, webJoined, covered) {
       const ok = inner.trim() === inner && words.length >= 2 && words.length <= 6 && /^\p{Lu}/u.test(words[0])
         && words.every((w) => /[\p{L}\p{N}]/u.test(w)) && !/[.!?;:,]/.test(inner) && !(covered && covered(i + 1, j))
         // beginnt mit einer Anrede oder einem Titel („Herr Kowalczyk“): eine Person, keine Einrichtung
-        && !lex.isTitle(fold(words[0].replace(/\.$/, '')));
+        // Nachbesserung 2.8.0: auch keine Anrede/kein Titel mittendrin („Praxis Dr Müller“)
+        && !words.some((w) => lex.isTitle(fold(w.replace(/\.$/, ''))));
       if (ok) {
         const before = text.slice(0, i).match(/([\p{L}\p{N}.]+)[  ]*:?[  ]*$/u);
         const after = text.slice(j + 1).match(/^[  ]+([\p{L}][\p{L}.]*(?:[  ]V\.)?)/u);
@@ -268,6 +281,7 @@ export function findOrgs(units, fullText, { covered, exceptions, manualTerms }) 
     if (it.manual) { if (!g.manualTerm) g.manualTerm = it.term; return; }
     if (!g.terms.some((t) => t === it.term)) g.terms.push(it.term);
     if (it.quoted) g.quoted = true;
+    if (it.form === 2) (g.hyphen = g.hyphen || new Set()).add(it.term);
   });
   const res = [];
   for (const g of groups.values()) if (g.terms.length) res.push(g);

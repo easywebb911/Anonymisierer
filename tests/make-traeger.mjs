@@ -67,7 +67,7 @@ export const EINR_AUTO = [
   'Die Kita Sonnenblume feiert ihr Sommerfest.',
   'Das Kinderhaus Regenbogen sucht Helfer.',
   'Das Gymnasium Wendorf lädt zum Tag der offenen Tür.',
-  'Die Mittelschule Sankt Georg Wendorf bietet Praktika an.',
+  'Die Mittelschule Birkenhain Nord Ost bietet Praktika an.',
   'Die Grundschule an der Lindenau beginnt um acht Uhr.',
   'Das Wendorf-Gymnasium bietet Latein an.',
   'Die Erika-Brandner-Schule hat einen neuen Schulgarten.',
@@ -80,8 +80,30 @@ export const EINR_AUTO = [
   'Die Initiative „Bunte Welt Wendorf“ lädt ein, Instagram: @bunte_welt_wendorf',
   'Im „Grüne Insel“ gibt es Kaffee. Das Grüne Insel ist montags zu.',
 ];
-export const EINR_AUTO_COUNT = 12; // verschiedene Einrichtungen (= Zahl der Fragen)
-export const EINR_AUTO_NAMES = ['Sonnenblume', 'Regenbogen', 'Wendorf', 'Sankt Georg', 'Lindenau', 'Erika', 'Brandner', 'Sonnenschein', 'Kleine Strolche', 'Marlene', 'Bunte Welt', 'Grüne Insel'];
+// Nachbesserung 2.8.0: „Haus Marlene“ (Merkmal 2) ist keine gefundene Einrichtung mehr: „Marlene“ ist für die
+// Personen-Erkennung allein schon eine sichere Person (Regel 2); „Marlene“ wird als Person ersetzt, „Haus Marlene“ steht im
+// Warnpunkt. Dreiwort-Fall ohne Personennamen („Birkenhain Nord Ost“ statt „Sankt Georg Wendorf“).
+export const EINR_AUTO_COUNT = 11; // verschiedene Einrichtungen (= Zahl der Einrichtungs-Fragen)
+export const EINR_AUTO_NAMES = ['Sonnenblume', 'Regenbogen', 'Wendorf', 'Birkenhain', 'Lindenau', 'Erika', 'Brandner', 'Sonnenschein', 'Kleine Strolche', 'Marlene', 'Bunte Welt', 'Grüne Insel'];
+export const EINR_AUTO_WARN = ['Haus Marlene'];
+// Nachbesserung 2.8.0: Einrichtung und Person dicht beieinander (Befund 1) und Sachwörter nach einem Kopfwort (Befund 2)
+export const EINR_PERSON = [
+  'Der Verein Vorsitzender Herr Kessler lädt ein.',
+  'Kita Leitung Frau Sommerfeld Telefon folgt',
+  'Gymnasium Tannhofen Herr Kessler Klasse 5a',
+  'In der Schule Deutsch und Mathe lernen alle Kinder.',
+  'Wir treffen uns im Hort Raum 3.',
+  'Die Kita Gruppe Igel geht in den Wald.',
+  'Die Klinik Aufnahme ist besetzt.',
+  'Im Kindergarten Sommerfest gibt es Kuchen.',
+  'Termin in der Praxis Dr. Erika Brandner am Montag.',
+  'Auftrag an die Firma Holzbau Lehmann GmbH, Herr Lehmann kommt.',
+  'Die Erika-Brandner-Schule feiert ihr Jubiläum.',
+  'Das Angebot von „Brandner lern und spiel“ steht auch auf Instagram: brandner_lern_und_spiel',
+];
+export const EINR_PERSON_BEFUND2 = [3, 4, 5, 6, 7]; // Zeilen ohne Einrichtung
+export const EINR_PERSON_TABLE = [['Einrichtung', 'Ansprechpartner'], ['Kita Sonnenblume', 'Frau Sommerfeld'], ['Gymnasium Tannhofen', 'Herr Kessler']];
+export const EINR_PERSON_PERSONS = ['Kessler', 'Sommerfeld', 'Erika Brandner', 'Lehmann'];
 export const EINR_KOPF = 'Kita Sonnenblume – Elternbrief';
 export const EINR_FUSS = 'Gemeint ist das Kinderhaus Regenbogen.';
 export const EINR_KOMMENTAR = 'Rückfrage an die Kita Sonnenblume';
@@ -158,6 +180,19 @@ async function einrXlsx() {
     'xl/sharedStrings.xml': X + `<sst xmlns="${S}" count="${ss.length}" uniqueCount="${ss.length}">${ss.map((s) => `<si><t xml:space="preserve">${esc(s)}</t></si>`).join('')}</sst>`,
   });
 }
+async function personXlsx() {
+  const ss = [];
+  const si = (s) => { let i = ss.indexOf(s); if (i < 0) { ss.push(s); i = ss.length - 1; } return i; };
+  const rows = EINR_PERSON_TABLE.map((r, i) => `<row r="${i + 1}">${r.map((v, c) => `<c r="${String.fromCharCode(65 + c)}${i + 1}" t="s"><v>${si(v)}</v></c>`).join('')}</row>`).join('');
+  await save('einrichtung-person.xlsx', {
+    '[Content_Types].xml': X + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/></Types>',
+    '_rels/.rels': X + `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${R}/officeDocument" Target="xl/workbook.xml"/></Relationships>`,
+    'xl/workbook.xml': X + `<workbook xmlns="${S}" xmlns:r="${R}"><sheets><sheet name="Kontakte" sheetId="1" r:id="rId1"/></sheets></workbook>`,
+    'xl/_rels/workbook.xml.rels': X + `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${R}/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rIdS" Type="${R}/sharedStrings" Target="sharedStrings.xml"/></Relationships>`,
+    'xl/worksheets/sheet1.xml': X + `<worksheet xmlns="${S}"><sheetData>${rows}</sheetData></worksheet>`,
+    'xl/sharedStrings.xml': X + `<sst xmlns="${S}" count="${ss.length}" uniqueCount="${ss.length}">${ss.map((s) => `<si><t xml:space="preserve">${esc(s)}</t></si>`).join('')}</sst>`,
+  });
+}
 async function xlsx() {
   const ss = [];
   const si = (s) => { let i = ss.indexOf(s); if (i < 0) { ss.push(s); i = ss.length - 1; } return i; };
@@ -185,6 +220,9 @@ export async function makeAll() {
   await xlsx();
   await einrDocx();
   await einrXlsx();
+  fs.writeFileSync(path.join(FXT, 'einrichtung-person.txt'), EINR_PERSON.join('\r\n') + '\r\n');
+  fs.writeFileSync(path.join(FXT, 'einrichtung-person.csv'), EINR_PERSON_TABLE.map((r) => r.join(';')).join('\r\n') + '\r\n');
+  await personXlsx();
   // PDF über LibreOffice aus der Word-Fassung
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'traeger-'));
   try {

@@ -173,7 +173,14 @@ for (const [dir, f] of FILES_B) {
   const p0 = await pos();
   const mk = await page.$('#docview mark.cur') || await page.$('#docview mark.hit');
   let clickOk = true;
-  if (mk) { await mk.click(); await page.waitForTimeout(80); clickOk = (await pos()) === p0; await mk.click(); await page.waitForTimeout(40); }
+  if (mk) {
+    const txt = await mk.textContent();
+    await mk.click(); await page.waitForTimeout(80); clickOk = (await pos()) === p0;
+    // Version 2.8.0 (Nachbesserung): ein Klick auf eine gefundene Einrichtung rechnet neu und zeichnet die Ansicht neu ->
+    // Markierung für den zweiten Klick neu suchen (gleicher Text)
+    const mk2 = await page.evaluateHandle((t) => [...document.querySelectorAll('#docview mark')].find((m) => m.textContent === t) || null, txt);
+    if (mk2.asElement()) { await mk2.asElement().click(); await page.waitForTimeout(40); }
+  }
   tableB.push([f, nQ, bOk, noneOk, cN, cOk, clickOk, focusOk, steps.length]);
   check('b', `${f}: ${nQ} Fragen, kräftig markiert = Stellen der Frage`, bOk === nQ && noneOk, bad.filter((x) => /kräftig/.test(x)).join('; '));
   check('c', `${f}: nach jedem Fragenwechsel erste Stelle sichtbar (${cOk}/${cN})${dir === FXA && f.endsWith('xlsx') ? ', Reiter = Blatt der Stelle' : ''}`, cOk === cN, bad.filter((x) => /sichtbar/.test(x)).join('; '));
@@ -380,6 +387,12 @@ await pathCase('e', 'Einrichtungs-Frage: Ja, Einstellung geändert, Nein → wie
   [A('org', 'Brandner lern und spiel', true), { a: 'setting', id: 'unsureOn', v: false }, A('org', 'Brandner lern und spiel', false)], [{ a: 'setting', id: 'unsureOn', v: false }, A('org', 'Brandner lern und spiel', false)]);
 await pathCase('e', 'Einrichtungs-Frage: Nein, Liste geändert (Name hinzu), Ja → wie Liste + direkt Ja', ANM,
   [A('org', 'Brandner lern und spiel', false), { a: 'add', t: 'Quarstedt' }, A('org', 'Brandner lern und spiel', true)], [{ a: 'add', t: 'Quarstedt' }, A('org', 'Brandner lern und spiel', true)]);
+// Nachbesserung 2.8.0: „Nein“ gibt die Wörter frei, die Personen-Erkennung gilt dort wieder (mit eigenen Fragen)
+const EPERS = path.join(FXT, 'einrichtung-person.txt');
+await pathCase('e', 'Einrichtung mit Personen-Frage darin: Ja → Nein → Ja = direkt Ja („Kita Sonnenblume“, nach Nein wieder Frage „Kita“)', EAUTO, [A('org', 'Kita Sonnenblume', true), A('org', 'Kita Sonnenblume', false), A('org', 'Kita Sonnenblume', true)], [A('org', 'Kita Sonnenblume', true)]);
+await pathCase('e', 'Einrichtung mit Personen-Frage darin: Ja → Nein = direkt Nein („Kita Sonnenblume“)', EAUTO, [A('org', 'Kita Sonnenblume', true), A('org', 'Kita Sonnenblume', false)], [A('org', 'Kita Sonnenblume', false)]);
+await pathCase('e', 'Bindestrich-Form: Nein → Ja = direkt Ja („Erika-Brandner-Schule“)', EPERS, [A('org', 'Erika-Brandner-Schule', false), A('org', 'Erika-Brandner-Schule', true)], [A('org', 'Erika-Brandner-Schule', true)]);
+await pathCase('e', 'Bindestrich-Form: Ja → Nein = direkt Nein („Erika-Brandner-Schule“)', EPERS, [A('org', 'Erika-Brandner-Schule', true), A('org', 'Erika-Brandner-Schule', false)], [A('org', 'Erika-Brandner-Schule', false)]);
 await pathCase('e', 'Mehrfach geändert (Ja → Nein → Ja → Nein)', BRIEF, [A('word', 'Lieder', true), A('word', 'Lieder', false), A('word', 'Lieder', true), A('word', 'Lieder', false)], [A('word', 'Lieder', false)]);
 
 if (part('s')) {

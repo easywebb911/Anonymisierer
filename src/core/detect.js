@@ -362,14 +362,26 @@ export function analyze(units, state, extra = {}) {
   // Gefundene Bezeichnungen werden wie von Hand markierte im ganzen Dokument gesucht, aber „unsicher, an“. Gehört ein
   // Fund zu einer von Hand markierten Einrichtung (gleiche Einrichtung, andere Schreibweise), wird er Teil von ihr (sicher).
   const isCovered = (ui, s, e) => { const base = unitStarts[ui]; return unitToks[ui].some((tk, k) => covered[ui][k] && tk.s - base < e && tk.e - base > s); };
-  const auto = findOrgs(units, fullText, { covered: isCovered, exceptions, manualTerms: st.orgTerms || [] });
+  const auto = extra.noAutoOrgs ? { groups: [], weak: [] } : findOrgs(units, fullText, { covered: isCovered, exceptions, manualTerms: st.orgTerms || [] });
   const autoTerms = [];
   for (const g of auto.groups) {
     const manualKey = g.manualTerm ? orgTermTokens(g.manualTerm).key : null;
     const entity = manualKey || 'A|' + orgTermTokens(g.terms[0]).key.slice(2);
-    for (const t of g.terms) autoTerms.push({ text: t, entity, auto: !manualKey, display: g.terms[0] });
+    for (const t of g.terms) autoTerms.push({ text: t, entity, auto: !manualKey, display: g.terms[0], hyphen: !!(g.hyphen && g.hyphen.has(t)) });
   }
-  if (autoTerms.length) matchOrgTerms(autoTerms, units, unitToks, unitStarts, covered, tokHit, fullText, hits, st.settings.mode === MODE_REVERSIBLE, st.settings);
+  if (autoTerms.length) {
+    // Nachbesserung 2.8.0 (Befund 1): Eine gefundene Einrichtung verdeckt nie eine Stelle, die die Personen-Erkennung ohne
+    // sie „sicher“ ersetzt (Ausnahme: Bindestrich-Form „Erika-Brandner-Schule“). Dazu einmal ohne gefundene Einrichtungen
+    // rechnen (nur wenn es Funde gibt).
+    const plain = analyze(units, state, { ...extra, noAutoOrgs: true });
+    const safe = plain.hits.filter((h) => h.type === 'person' && h.cert === 'sicher' && h.on).map((h) => [h.s, h.e]);
+    const blocked = (a, b) => safe.some(([x, y]) => x < b && y > a);
+    const blockedHits = [];
+    matchOrgTerms(autoTerms, units, unitToks, unitStarts, covered, tokHit, fullText, hits, st.settings.mode === MODE_REVERSIBLE, st.settings,
+      { blocked, overrides: st.overrides || {}, blockedHits });
+    // Eine so verdrängte Stelle geht in den Warnpunkt „Hier könnte eine Einrichtung stehen“ (nicht still verlieren)
+    for (const b of blockedHits) auto.weak.push({ unit: b.unit, s: b.s - unitStarts[b.unit], e: b.e - unitStarts[b.unit], text: fullText.slice(b.s, b.e), blocked: true });
+  }
   units.forEach((u, ui) => {
     const base = unitStarts[ui];
     const toks = unitToks[ui];
@@ -762,13 +774,13 @@ function orgTokMatch(textTok, termTok) {
 // Zwischen zwei Wörtern darf beliebiger Leerraum stehen (auch ein Zeilenumbruch innerhalb eines Abschnitts).
 // Modus rückbaufähig: NICHT über ein festes Zeichen der Vorlage hinweg (u. fixed, z. B. Zeilenumbruch <w:br/> in Word),
 // weil es beim Ersetzen stehen bliebe und der Rückbau dann nicht exakt wäre. Dort meldet der Schlusscheck den Namen.
-function matchOrgTerms(orgTerms, units, unitToks, unitStarts, covered, tokHit, fullText, hits, reversible, settings) {
+function matchOrgTerms(orgTerms, units, unitToks, unitStarts, covered, tokHit, fullText, hits, reversible, settings, autoOpt = null) {
   const terms = [];
   const seen = new Set();
   for (const raw of orgTerms) {
     // Version 2.8.0: auch {text, entity, auto, display} (selbst gefundene Einrichtung, entity = ihre Gruppe)
     const ot = orgTermTokens(typeof raw === 'string' ? raw : raw.text);
-    if (typeof raw !== 'string') { ot.entity = raw.entity; ot.auto = raw.auto; ot.display = raw.display; }
+    if (typeof raw !== 'string') { ot.entity = raw.entity; ot.auto = raw.auto; ot.display = raw.display; ot.hyphen = raw.hyphen; }
     if (!ot.toks.some((x) => x.word) || seen.has(ot.key)) continue;
     seen.add(ot.key);
     terms.push(ot);
@@ -796,6 +808,12 @@ function matchOrgTerms(orgTerms, units, unitToks, unitStarts, covered, tokHit, f
         }
         if (!ok) continue;
         const h = { s: toks[k].s, e: toks[k + n - 1].e, type: 'org', cert: 'sicher', origin: 'org', unit: ui, suffix, entity: ot.key, term: ot.text, comps: [], ...orgAutoFields(ot, settings) };
+        // Nachbesserung 2.8.0: gefundene Einrichtung (auch eine Schreibweise einer markierten)
+        if (autoOpt) {
+          if (!ot.hyphen && autoOpt.blocked(h.s, h.e)) { autoOpt.blockedHits.push(h); continue; } // verdeckte eine „sichere“ Person: kein Treffer
+          // bewusst ausgeschaltet („Nein“, Schalter, Klick): Treffer bleibt (Frage, Liste), gibt seine Wörter aber frei
+          if (autoOpt.overrides[h.s + ':' + h.e] === false) { h.released = true; hits.push(h); k += n - 1; continue; }
+        }
         hits.push(h);
         for (let j = 0; j < n; j++) { cov[k + j] = true; tokHit[ui][k + j] = h; }
         k += n - 1;
@@ -832,6 +850,10 @@ function matchOrgTerms(orgTerms, units, unitToks, unitStarts, covered, tokHit, f
         if (!ok || fullText.slice(seq[cut - 1].e, unitStarts[ui] + u.text.length).trim()) continue;
         const h = { s: seq[0].s, e: seq[n - 1].e, type: 'org', cert: 'sicher', origin: 'org', unit: ui, unit2: ui + 1,
           split: unitStarts[ui] + u.text.length, eol: u.eol || '\n', suffix, entity: ot.key, term: ot.text, comps: [], ...orgAutoFields(ot, settings) };
+        if (autoOpt) {
+          if (!ot.hyphen && autoOpt.blocked(h.s, h.e)) { autoOpt.blockedHits.push(h); continue; }
+          if (autoOpt.overrides[h.s + ':' + h.e] === false) { h.released = true; hits.push(h); break; }
+        }
         hits.push(h);
         for (let j = k; j < A.length; j++) { covered[ui][j] = true; tokHit[ui][j] = h; }
         for (let j = 0; j < n - cut; j++) { covered[ui + 1][j] = true; tokHit[ui + 1][j] = h; }

@@ -352,6 +352,9 @@ function withoutDecided(unitLeaks) {
   const rest = [...unitLeaks];
   const r = app.result;
   for (const x of decidedOffHits()) {
+    // Nachbesserung 2.8.0: eine abgelehnte gefundene Einrichtung gibt ihre Wörter frei (Personen-Erkennung gilt wieder);
+    // sie entschuldigt keinen Fund dort
+    if (x.released) continue;
     for (const w of r.fullText.slice(x.s, x.e).split(/[^\p{L}\p{M}\p{N}'’-]+/u).filter(Boolean)) {
       const i = rest.findIndex((l) => l.unit === x.unit && !l.org && (fold(l.word) === fold(w) || l.word.split('-').some((p) => fold(p) === fold(w))));
       if (i >= 0) rest.splice(i, 1);
@@ -567,6 +570,7 @@ function applyAnswer(q, val, seq, skip) {
   if (q.kind === 'word' || q.kind === 'place' || q.kind === 'org') {
     const list = q.kind === 'place' ? [q.hit] : yes ? q.hits : q.neinHits;
     rec.hits = hitRecord(list, yes, skip);
+    if (q.kind === 'org') rec.org = true;
     setHits(skip ? list.filter((x) => !skip.has(x.key)) : list, yes);
   } else if (yes && !q.taken) {
     const before = { m: [...app.state.manualTerms], o: [...app.state.orgTerms], e: [...app.state.exceptions], added: app.addedSinceLoad };
@@ -591,6 +595,12 @@ function undoAnswer(id) {
   const ov = app.state.overrides;
   for (const e of rec.hits) {
     if (e.set !== MANUELL && ov[e.key] === e.set) { if (e.had) ov[e.key] = e.val; else delete ov[e.key]; } else skipped.add(e.key);
+  }
+  if (rec.org && !rec.meta) {
+    const wasIn = app.inAnswer;
+    app.inAnswer = true;
+    runAnalysis();
+    app.inAnswer = wasIn;
   }
   if (rec.meta) {
     const m = rec.meta;
@@ -860,6 +870,24 @@ function setHits(list, on) {
     x.on = on;
     app.state.overrides[x.key] = on;
   }
+  // Nachbesserung 2.8.0: Ein- oder Ausschalten einer gefundenen Einrichtung ändert, welche Wörter frei sind (ausgeschaltet
+  // gilt dort wieder die Personen-Erkennung) -> neu rechnen (Antworten und Listen bleiben)
+  if (list.some((x) => x.type === 'org' && (x.auto || x.released))) {
+    const wasIn = app.inAnswer;
+    const qBefore = new Set(questions().map((q) => q.id));
+    app.inAnswer = true;
+    runAnalysis();
+    app.inAnswer = wasIn;
+    // Antworten zu Fragen, die dadurch wegfallen (Personen in einer wieder eingeschalteten Einrichtung), werden verworfen –
+    // wie bei Listen (2.6.1). In „Antwort ändern“ (inAnswer) übernimmt das die Wiederholung der Antworten.
+    if (!wasIn) {
+      const ids = new Set(questions().map((q) => q.id));
+      const gone = [...app.answers.keys()].filter((id) => qBefore.has(id) && !ids.has(id)).sort((a, b) => seqOf(b) - seqOf(a));
+      for (const id of gone) undoAnswer(id);
+      if (gone.length) { refreshOn(); changed(); render(); }
+    }
+    return;
+  }
   changed();
   refreshMarks();
   renderSummary();
@@ -897,6 +925,9 @@ function docContext() {
   const r = app.result;
   const byUnit = new Map();
   for (const x of r.hits) {
+    // Nachbesserung 2.8.0: freigegebene Einrichtung nicht zeichnen, wenn darin andere Stellen liegen (die Personen dort
+    // sollen sichtbar und anklickbar sein); wieder einschalten über Frage oder Liste
+    if (x.released && r.hits.some((y) => y !== x && y.s < x.e && y.e > x.s)) continue;
     if (!byUnit.has(x.unit)) byUnit.set(x.unit, []);
     byUnit.get(x.unit).push(x);
   }
@@ -1342,7 +1373,14 @@ function webPlaces() {
   return cachedSpans('web', (t) => findContacts(t, { web: true }).filter((c) => c.type === 'web' || c.type === 'account'));
 }
 // Version 2.8.0: nur noch die schwachen Funde (Anführungszeichen ohne Merkmal, orgauto.js)
-function orgHintPlaces() { return cachedSpans('einr', (t, ui) => (app.result.orgWeak || []).filter((w) => w.unit === ui)); }
+function orgHintPlaces() {
+  const r = app.result;
+  const weak = cachedSpans('einr', (t, ui) => (r.orgWeak || []).filter((w) => w.unit === ui && !w.blocked));
+  // Nachbesserung 2.8.0: wegen einer Person nicht ersetzte Einrichtung – darin liegt die Person; sie fällt weg, sobald eine
+  // Einrichtung die Stelle ersetzt (von Hand markiert)
+  const blocked = (r.orgWeak || []).filter((w) => w.blocked && !r.hits.some((x) => x.on && x.type === 'org' && x.s < r.unitStarts[w.unit] + w.e && x.e > r.unitStarts[w.unit] + w.s));
+  return [...weak, ...blocked].sort((a, b) => a.unit - b.unit || a.s - b.s);
+}
 // Version 2.8.0, Sperre Punkt 3: gefundene Einrichtung, deren Stellen nicht ersetzt werden, Frage unbeantwortet, nicht
 // bewusst ausgeschaltet (z. B. „Unsichere Treffer ersetzen“ aus)
 function orgOpenPoints() {

@@ -10,7 +10,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import JSZip from 'jszip';
-import { makeAll, FXT, MUST_STAY, ACCOUNT, NURWEB, EINR_AUTO_COUNT, EINR_AUTO_NAMES } from './make-traeger.mjs';
+import { makeAll, FXT, MUST_STAY, ACCOUNT, NURWEB, EINR_AUTO_COUNT, EINR_AUTO_NAMES, EINR_AUTO_WARN, EINR_PERSON, EINR_PERSON_BEFUND2 } from './make-traeger.mjs';
 import { startAnon, loadIn, goTo, waitCheck, exportOnce, exportWithAck, saveKey, rbConfirm, savePoints, ackPoints } from './ui-helpers.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -286,7 +286,7 @@ log('');
 // ---------- 3b. einrichtungen-auto ----------
 log('## 3b. Testdatei „einrichtungen-auto“ (je Fall eine Zeile; Word mit Kopfzeile, Fußnote, Kommentar; Excel auf zwei Blättern)');
 log('');
-log(`Soll: alle Einrichtungen ersetzt (0 Vorkommen von ${EINR_AUTO_NAMES.map((w) => '„' + w + '“').join(', ')}), Einrichtungs-Fragen = ${EINR_AUTO_COUNT} (verschiedene Einrichtungen).`);
+log(`Soll: alle Namen ersetzt (0 Vorkommen von ${EINR_AUTO_NAMES.map((w) => '„' + w + '“').join(', ')}), Einrichtungs-Fragen = ${EINR_AUTO_COUNT} (verschiedene Einrichtungen). Seit der Nachbesserung: „Haus Marlene“ ist wegen der sicheren Person „Marlene“ keine Einrichtung (Regel 2); „Marlene“ wird als Person ersetzt, „Haus Marlene“ steht im Warnpunkt.`);
 log('');
 log('| Format | Modus | Ausgabe | Namen noch im Text | Einrichtungs-Fragen | Einrichtungen |');
 log('|---|---|---|---|---|---|');
@@ -297,7 +297,9 @@ async function measureAuto(html, ext, mode) {
     A.app.state.settings.mode = md;
     await A.openBytes(new Uint8Array(arr), nm);
     const x = await A.buildOutput(nm.split('.').pop());
-    return { o: x.zip ? Array.from(x.bytes) : x.text, orgQ: A.questions().filter((q) => q.kind === 'org').map((q) => q.word), orgs: [...A.app.result.orgs.values()].map((og) => og.label + ': ' + [...og.forms.keys()].join(' / ')) };
+    const w = (A.savePoints ? A.savePoints() : []).find((p) => /^einr:/.test(p.id));
+    return { o: x.zip ? Array.from(x.bytes) : x.text, orgQ: A.questions().filter((q) => q.kind === 'org').map((q) => q.word), orgs: [...A.app.result.orgs.values()].map((og) => og.label + ': ' + [...og.forms.keys()].join(' / ')),
+      warn: w ? w.items.map((i) => i.text) : [] };
   }, [[...fs.readFileSync(path.join(FXT, 'einrichtungen-auto.' + ext))], 'einrichtungen-auto.' + ext, mode]);
   await ctx.close();
   const t = await allText(res.o);
@@ -307,7 +309,46 @@ for (const ext of ['txt', 'docx', 'xlsx']) for (const mode of MODES) {
   const r = await measureAuto(HTML, ext, mode);
   const o = OLD ? await measureAuto(OLD, ext, mode) : null;
   log(`| ${ext} | ${mode} | .${ext} | ${r.left.length ? r.left.join(', ') : '0'}${o ? ` (Vorversion ${o.left.length})` : ''} | ${r.orgQ.length}${o ? ` (${o.orgQ.length})` : ''} | ${mode === 'person' ? r.orgs.join('; ') : ''} |`);
-  check(`einrichtungen-auto.${ext}/${mode}: alle ersetzt, ${EINR_AUTO_COUNT} Einrichtungs-Fragen`, !r.left.length && r.orgQ.length === EINR_AUTO_COUNT, r.left.join(', ') + ' / ' + r.orgQ.length);
+  check(`einrichtungen-auto.${ext}/${mode}: alle Namen ersetzt, ${EINR_AUTO_COUNT} Einrichtungs-Fragen, „Haus Marlene“ (Person darin) im Warnpunkt`, !r.left.length && r.orgQ.length === EINR_AUTO_COUNT && EINR_AUTO_WARN.every((x) => r.warn.some((w) => w.includes(x))), r.left.join(', ') + ' / ' + r.orgQ.length + ' / ' + r.warn.join(' | '));
+}
+log('');
+
+// ---------- 3c. einrichtung-person (Nachbesserung 2.8.0, Befund 1 und 2) ----------
+log('## 3c. Einrichtung und Person dicht beieinander, Sachwörter nach Kopfwort (einrichtung-person.txt, .csv, .xlsx)');
+log('');
+const TITLES = /\b(Herr|Herrn|Frau|Fräulein|Hr|Fr|Dr|Prof)\b/;
+const PERSONS = ['Kessler', 'Sommerfeld', 'Erika', 'Brandner', 'Lehmann'];
+async function personRun(ext, how, html = HTML) {
+  const { page, ctx } = await newPage(html);
+  const r = await page.evaluate(async ([arr, nm, how]) => {
+    const A = window.__anon;
+    A.app.state.settings.mode = 'person';
+    await A.openBytes(new Uint8Array(arr), nm);
+    if (how === 'nein') for (const id of A.questions().filter((q) => q.kind === 'org').map((q) => q.id)) { const q = A.questions().find((x) => x.id === id); if (q) A.answer(q, false); }
+    const res = A.app.result;
+    const orgs = [...(res.orgs || new Map()).values()].map((o) => ({ forms: [...o.forms.keys()], units: [...new Set(o.hits.map((h) => h.unit))], released: o.hits.every((h) => h.released) }));
+    const x = await A.buildOutput(nm.split('.').pop());
+    return { orgs, o: x.zip ? Array.from(x.bytes) : x.text, warn: ((A.savePoints ? A.savePoints() : []).find((p) => /^einr:/.test(p.id)) || { items: [] }).items.map((i) => i.text) };
+  }, [[...fs.readFileSync(path.join(FXT, 'einrichtung-person.' + ext))], 'einrichtung-person.' + ext, how]);
+  await ctx.close();
+  return { ...r, text: await allText(r.o) };
+}
+for (const ext of ['txt', 'csv', 'xlsx']) {
+  const a = await personRun(ext, 'keine');
+  const b = await personRun(ext, 'nein');
+  log(`einrichtung-person.${ext}: Einrichtungen ${a.orgs.map((o) => o.forms.join(' / ')).join('; ') || '–'}${a.warn.length ? '; Warnpunkt: ' + a.warn.join(' | ') : ''}`);
+  check(`einrichtung-person.${ext}: keine Einrichtung enthält eine Anrede oder einen Titel`, a.orgs.every((o) => o.forms.every((f) => !TITLES.test(f))), a.orgs.map((o) => o.forms.join('/')).join('; '));
+  const leftA = PERSONS.filter((w) => a.text.includes(w));
+  check(`einrichtung-person.${ext}: ohne Antwort ist jede Person ersetzt`, !leftA.length, leftA.join(', '));
+  // Maßstab (Auftrag Punkt 6): nach „Nein“ ist jede Person ersetzt, die die Vorversion (2.7.0) ersetzt
+  const c = OLD ? await personRun(ext, 'keine', OLD) : null;
+  const leftB = PERSONS.filter((w) => b.text.includes(w) && (!c || !c.text.includes(w)));
+  check(`einrichtung-person.${ext}: nach „Nein“ auf alle Einrichtungs-Fragen ist jede Person ersetzt, die 2.7.0 ersetzt${c ? '' : ' (ohne Vorversion: alle)'}`, !leftB.length && b.orgs.every((o) => o.released), leftB.join(', ') + (c ? ` (2.7.0 lässt stehen: ${PERSONS.filter((w) => c.text.includes(w)).join(', ') || '–'})` : ''));
+  if (ext === 'txt') {
+    const inB2 = a.orgs.filter((o) => o.units.some((u) => EINR_PERSON_BEFUND2.includes(u)));
+    check('einrichtung-person.txt: die Sätze aus Befund 2 ergeben 0 Einrichtungen', !inB2.length, inB2.map((o) => o.forms.join('/')).join('; '));
+    check('einrichtung-person.txt: „Brandner lern und spiel“ (wegen der Person „Erika Brandner“ nicht ersetzt) steht im Warnpunkt', a.warn.some((w) => w.includes('Brandner lern und spiel')));
+  }
 }
 log('');
 
