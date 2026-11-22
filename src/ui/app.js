@@ -21,6 +21,8 @@ import { describePart, readKennungProperty } from '../formats/meta.js';
 import { listImages, getImageBytes } from '../formats/images.js';
 import { newKennung, isKennung, kennungFromFileName } from './kennung.js';
 import { readPdf } from '../formats/pdf.js';
+import pako from 'pako';
+import { makeDict, isKnown, restWords } from '../core/restwoerter.js';
 
 const MAX_BYTES = 20 * 1024 * 1024;
 const WARN_BYTES = 5 * 1024 * 1024;
@@ -101,6 +103,7 @@ const app = {
   answerSeq: 0,
   qCurrent: null, // Kennung der gezeigten Frage; null = erste offene; '' = „Alle Fragen beantwortet“
   qShown: undefined, // zuletzt gezeigte Frage (zum Rollen nur bei einem Wechsel)
+  restSel: null, // Version 2.9.0: gewähltes Wort der Sammelfrage (Schlüssel)
   qNote: false, // Hinweis „Du hast eine Einstellung geändert …“ (bis zur nächsten Antwort)
   inAnswer: false, // während eine Antwort angewendet oder zurückgenommen wird (keine Listen-Regel)
   listSig: undefined, // Stand der Listen bei der letzten Berechnung (Listen-Regel)
@@ -526,7 +529,99 @@ function questions() {
     const taken = (org ? app.state.orgTerms : app.state.manualTerms).some((t) => fold(t) === fold(m.name));
     qs.push({ id: 'm:' + fold(m.name), kind: 'meta', org, name: m.name, where: m.where, taken });
   }
+  // Version 2.9.0: Sammelfrage „Diese Wörter bleiben stehen“ – immer die letzte Frage. Die Kennung enthält die Wörter:
+  // ändert sich die Liste, ist die Frage wieder offen.
+  const rest = restList();
+  if (rest.length) qs.push({ id: 'r:' + rest.map((w) => w.key).join('|'), kind: 'rest', words: rest });
   return qs;
+}
+// ---------- Version 2.9.0: Wörter, die stehen bleiben (Wortliste all-the-german-words 1.1.0, MIT) ----------
+// Die Wortliste liegt gepackt im Datenblock #woerter-daten und wird erst gebraucht, wenn ein Dokument geprüft wird.
+let wordDict = null;
+function getDict() {
+  if (wordDict) return wordDict;
+  const el = document.getElementById('woerter-daten');
+  const b64 = el ? el.textContent.trim() : '';
+  let text = '';
+  if (/^[A-Za-z0-9+/=]+$/.test(b64)) {
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    text = new TextDecoder().decode(pako.inflateRaw(bytes));
+  }
+  wordDict = makeDict(text);
+  return wordDict;
+}
+const restCache = { doc: null, known: new Map(), sig: null, list: [] };
+function restList() {
+  const r = app.result;
+  if (!r || !app.doc) return [];
+  if (restCache.doc !== app.doc) { restCache.doc = app.doc; restCache.known = new Map(); restCache.sig = null; }
+  let bits = '';
+  for (const x of r.hits) bits += x.on ? '1' : '0';
+  const sig = JSON.stringify(app.state.exceptions) + '#' + bits;
+  if (restCache.sig === sig && restCache.result === r) return restCache.list;
+  const known = (w, frag) => {
+    const k = (frag ? '-' : '') + w;
+    let v = restCache.known.get(k);
+    if (v === undefined) { v = isKnown(getDict(), w, frag); restCache.known.set(k, v); }
+    return v;
+  };
+  restCache.list = restWords(app.doc.units, r, app.state.exceptions, known);
+  restCache.sig = sig;
+  restCache.result = r;
+  return restCache.list;
+}
+// gezeigte Sammelfrage (oder null)
+function shownRest() {
+  const { qs, idx } = shownQuestion();
+  const q = qs[idx];
+  return q && q.kind === 'rest' ? q : null;
+}
+// gewähltes Wort der Sammelfrage: erste Stelle {unit, s, e} (nur solange die Sammelfrage gezeigt wird)
+function restPlace() {
+  const q = shownRest();
+  const w = q && app.restSel ? q.words.find((x) => x.key === app.restSel) : null;
+  return w ? w.first : null;
+}
+// Treffer (z. B. „unsicher, aus“), in dem die gewählte Stelle liegt – wird dann kräftig markiert
+function restHit(p) {
+  if (!p) return null;
+  const base = app.result.unitStarts[p.unit];
+  return app.result.hits.find((x) => (x.unit === p.unit || x.unit2 === p.unit) && x.s < base + p.e && x.e > base + p.s) || null;
+}
+// Klick auf ein Wort: erste Stelle zeigen (Rollen und kräftige Markierung wie bei den anderen Fragen)
+function showRest(w) {
+  app.restSel = w.key;
+  const sheets = app.doc.kind === 'xlsx' && app.doc.raw.view ? app.doc.raw.view : null;
+  if (sheets) {
+    const si = sheets.findIndex((sh) => sh.cells.some((c) => c.u === w.first.unit));
+    if (si >= 0) app.sheetTab = si;
+  }
+  renderDoc();
+  renderQuestions();
+  requestAnimationFrame(() => {
+    const x = restHit(w.first);
+    const el = x ? document.querySelector(`#docview mark[data-h="${x.id}"]`) : document.querySelector('#docview mark.restmark');
+    if (el) scrollToEl(el);
+    else showUnit(w.first.unit);
+  });
+}
+// „Name“ und „Einrichtung“ wirken genau wie Markieren von Hand (derselbe Weg); „bleibt immer stehen“ trägt das Wort in
+// „Ausnahmen“ ein (wie das Feld unter „Einstellungen und eigene Namen“)
+function restTake(w, act) {
+  app.restSel = null;
+  if (act === 'name') addManual(w.word);
+  else if (act === 'einr') addOrg(w.word);
+  else {
+    app.addedSinceLoad = true;
+    if (!app.state.exceptions.some((m) => fold(m) === fold(w.word))) app.state.exceptions.push(w.word);
+    saveStored();
+    runAnalysis();
+  }
+  refreshMarks();
+  renderQuestions();
+  renderA2Info();
 }
 function answerOf(q) { return app.answers.get(q.id) || (q.kind === 'meta' && q.taken ? 'ja' : null); }
 function openQuestions() { return questions().filter((q) => !answerOf(q)); }
@@ -670,6 +765,8 @@ function advanceAfter(id) {
 function shownQuestion() {
   const qs = questions();
   let idx = app.qCurrent ? qs.findIndex((q) => q.id === app.qCurrent) : -1;
+  // Version 2.9.0: Hat sich die Liste der Sammelfrage geändert (neue Kennung), bleibt die Sammelfrage gezeigt
+  if (idx < 0 && app.qCurrent && app.qCurrent.startsWith('r:')) idx = qs.findIndex((q) => q.kind === 'rest');
   if (idx < 0) idx = qs.findIndex((q) => !answerOf(q));
   return { qs, idx };
 }
@@ -678,6 +775,7 @@ function currentHits() {
   const { qs, idx } = shownQuestion();
   const q = qs[idx];
   if (!q || q.kind === 'meta') return [];
+  if (q.kind === 'rest') { const x = restHit(restPlace()); return x ? [x] : []; }
   if (q.kind === 'place') return [q.hit];
   return q.hits.length ? q.hits : q.neinHits;
 }
@@ -745,6 +843,23 @@ function renderQuestions() {
     kids.push(contextOf(q.hit), h('p', { class: 'qask' }, `Ist hier die Person ${q.en.display} gemeint?`),
       h('p', { class: 'qstate', id: 'q-state' }, q.hit.on ? 'Wird im Moment ersetzt.' : 'Bleibt im Moment stehen.'));
     yes = 'Ja, ersetzen';
+  } else if (q.kind === 'rest') {
+    kids.push(h('p', { class: 'qask' }, 'Diese Wörter bleiben stehen. Ist ein Name dabei?'),
+      h('p', { class: 'hint' }, 'Sie stehen in keiner Liste gewöhnlicher deutscher Wörter. Klick auf ein Wort zeigt seine erste Stelle.'),
+      h('ul', { class: 'restlist' + (q.words.length > 40 ? ' scroll' : ''), id: 'rest-list' }, ...q.words.map((w) => h('li', { class: 'restrow' + (app.restSel === w.key ? ' sel' : ''), 'data-key': w.key },
+        h('span', { class: 'restw' }, h('button', { type: 'button', class: 'restword', title: 'Erste Stelle zeigen', onclick: () => showRest(w) }, w.word),
+          h('small', { class: 'restn' }, w.count === 1 ? '1 Stelle' : w.count + ' Stellen')),
+        h('span', { class: 'restbtns' },
+          h('button', { type: 'button', class: 'secondary small', 'data-act': 'name', onclick: () => restTake(w, 'name') }, 'Name'),
+          h('button', { type: 'button', class: 'secondary small', 'data-act': 'einr', onclick: () => restTake(w, 'einr') }, 'Einrichtung'),
+          // nicht anbieten, wenn das Wort an anderer Stelle ersetzt wird (eine Ausnahme würde dort die Ersetzung aufheben)
+          w.replacedElsewhere ? null : h('button', { type: 'button', class: 'restkeep', 'data-act': 'immer', onclick: () => restTake(w, 'immer') }, 'bleibt immer stehen'))))));
+    if (prev) kids.push(h('p', { class: 'hint' }, 'Bisherige Antwort: Kein Name dabei'));
+    kids.push(h('div', { class: 'qbtns' }, h('button', { type: 'button', class: 'secondary', id: 'q-no', onclick: () => answer(q, false) }, 'Kein Name dabei')),
+      h('p', { class: 'qkeys' }, 'Tasten: N = Kein Name dabei, ← vorige, → nächste Frage'));
+    fill(box, ...kids);
+    noteShown(q);
+    return;
   } else {
     kids.push(h('p', { class: 'qask' }, `In den Dateiangaben steht „${q.name}“. ${q.org ? 'Als Einrichtung übernehmen?' : 'Als Namen übernehmen?'}`),
       h('p', { class: 'hint' }, `${q.where}. Bei „Ja“ wird ${q.org ? 'die Einrichtung' : 'der Name'} überall im Text ersetzt. Aus den Dateiangaben wird ${q.org ? 'sie' : 'er'} so oder so entfernt.`));
@@ -764,7 +879,7 @@ function noteShown(q) {
   const id = q ? q.id : null;
   if (id === app.qShown) return;
   app.qShown = id;
-  if (!q || q.kind === 'meta') return;
+  if (!q || q.kind === 'meta' || q.kind === 'rest') return;
   const first = q.kind === 'place' ? q.hit : q.first;
   const sheets = app.doc.kind === 'xlsx' && app.doc.raw.view ? app.doc.raw.view : null;
   if (sheets) {
@@ -776,7 +891,10 @@ function noteShown(q) {
 function scrollToHit(x) {
   if (app.screen !== 'a2') return;
   const el = document.querySelector(`#docview mark[data-h="${x.id}"]`);
-  if (!el) return;
+  if (el) scrollToEl(el);
+}
+function scrollToEl(el) {
+  if (app.screen !== 'a2') return;
   const r = el.getBoundingClientRect();
   const top = $('.top') ? $('.top').getBoundingClientRect().bottom : 0;
   let visible = r.top >= top && r.bottom <= window.innerHeight && r.left >= 0 && r.right <= document.documentElement.clientWidth;
@@ -873,6 +991,8 @@ function refreshMarks() {
     m.className = markClass(x, ask, cur);
     m.title = hitTitle(x, cur);
   }
+  const rp = restPlace();
+  for (const m of document.querySelectorAll('#docview mark.restmark')) m.classList.toggle('cur', !!rp && !restHit(rp));
 }
 
 // Schnelles Umschalten ohne Neuberechnung (Treffer bleiben gleich, nur an/aus ändert sich)
@@ -925,12 +1045,20 @@ function unitText(ui, ctx) {
     const s = x.s - base;
     const e = Math.min(x.e - base, u.text.length);
     if (s < pos) continue;
-    if (s > pos) tx.append(document.createTextNode(u.text.slice(pos, s)));
+    if (s > pos) plainText(tx, ui, u.text, pos, s, ctx);
     tx.append(h('mark', { class: markClass(x, ctx.ask, ctx.cur), 'data-h': x.id, title: hitTitle(x, ctx.cur) }, u.text.slice(s, e)));
     pos = e;
   }
-  if (pos < u.text.length) tx.append(document.createTextNode(u.text.slice(pos)));
+  if (pos < u.text.length) plainText(tx, ui, u.text, pos, u.text.length, ctx);
   return tx;
+}
+// Text ohne Treffer; Version 2.9.0: darin die gewählte Stelle der Sammelfrage als Markierung
+function plainText(tx, ui, t, a, b, ctx) {
+  const r = ctx.rest;
+  if (!r || r.unit !== ui || r.s < a || r.e > b) { tx.append(document.createTextNode(t.slice(a, b))); return; }
+  if (r.s > a) tx.append(document.createTextNode(t.slice(a, r.s)));
+  tx.append(h('mark', { class: 'restmark cur', title: 'gewähltes Wort der Frage „Diese Wörter bleiben stehen“' }, t.slice(r.s, r.e)));
+  if (b > r.e) tx.append(document.createTextNode(t.slice(r.e, b)));
 }
 function docContext() {
   const r = app.result;
@@ -942,7 +1070,8 @@ function docContext() {
     if (!byUnit.has(x.unit)) byUnit.set(x.unit, []);
     byUnit.get(x.unit).push(x);
   }
-  return { byUnit, contOf: new Map(r.hits.filter((x) => x.unit2 !== undefined).map((x) => [x.unit2, x])), ask: askHits(), cur: new Set(currentHits()) };
+  const rp = restPlace();
+  return { byUnit, contOf: new Map(r.hits.filter((x) => x.unit2 !== undefined).map((x) => [x.unit2, x])), ask: askHits(), cur: new Set(currentHits()), rest: rp && !restHit(rp) ? rp : null };
 }
 const placeLine = (label, content) => h('div', { class: 'placeline' }, h('span', { class: 'where' }, label), h('span', {}, content));
 const colNum = (c) => { let n = 0; for (const ch of c) n = n * 26 + (ch.charCodeAt(0) - 64); return n; };
@@ -1347,8 +1476,17 @@ function savePoints() {
     pts.push({ id: 'web:' + web.map((x) => x.unit + ':' + x.text).join('|'), text: `${web.length === 1 ? 'Eine Webadresse oder ein Konto steht' : web.length + ' Webadressen oder Konten stehen'} noch im Text.`,
       small: 'Der Schalter „Webadressen und Konten“ ist aus.', items: placeItems(web), acts: [['Ersetzen', () => setWebSwitch(true)]] });
   }
-  const open = openQuestions().length;
+  const openQs = openQuestions();
+  // Version 2.9.0: die Sammelfrage hat einen eigenen Punkt (unten), sie zählt hier nicht mit
+  const open = openQs.filter((q) => q.kind !== 'rest').length;
   if (open) pts.push({ id: 'fragen:' + open, text: `${open === 1 ? 'Eine Frage ist' : open + ' Fragen sind'} noch offen.`, small: 'Ohne Antwort bleibt jede Stelle so, wie sie im Moment ist.', acts: [['Beantworten', () => { app.qCurrent = null; show('a2'); }]] });
+  // Version 2.9.0: Sammelfrage offen -> kein stilles Speichern (läuft über das eine Häkchen)
+  const rq = openQs.find((q) => q.kind === 'rest');
+  if (rq) {
+    const n = rq.words.length;
+    pts.push({ id: 'rest:' + rq.id, text: `${n === 1 ? 'Ein Wort ist' : n + ' Wörter sind'} noch nicht geprüft. Ist ein Name dabei?`,
+      acts: [['Ansehen', () => { app.qCurrent = rq.id; show('a2'); }, 'btn-rest']] });
+  }
   for (const w of allWarnings()) if (!isInfoWarning(w)) pts.push({ id: 'w:' + w, text: plainWarning(w) });
   // Version 2.7.0 (PR A): Warnpunkt „Hier könnte eine Einrichtung stehen“ (nur Hinweis, ändert keine Ausgabe)
   const oh = orgHintPlaces();
@@ -1751,6 +1889,7 @@ function resetDoc() {
   app.qCurrent = null;
   app.qShown = undefined;
   app.qNote = false;
+  app.restSel = null;
   app.listSig = undefined;
   app.ackSig = null;
   app.sheetTab = 0;

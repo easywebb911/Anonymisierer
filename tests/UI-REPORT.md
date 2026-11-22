@@ -8,7 +8,7 @@ Chromium headless, Start per file://. Alle Namen in den Testdateien sind erfunde
 - OK: … mit Antwort und Datei aktiv
 - OK: Alle 12 Fragen mit Taste J beantwortet – Keine Frage offen
 - OK: „2 Datei speichern“ ist vor dem Schlüssel gesperrt
-- OK: Datei gespeichert – Gespeichert: anonymisiert_2Q3G.docx – Schlusscheck ohne Fund.
+- OK: Datei gespeichert – Gespeichert: anonymisiert_Z5X3.docx – Schlusscheck ohne Fund.
 - Details nach dem Speichern:  ·  ·  ·  ·  · ; offene Punkte: 1
 - OK: In jedem Schritt genau ein Bildschirm und genau ein Hauptknopf – Start: Bildschirm start, Hauptknopf „Dokument anonymisieren
         Namen durch Platzhalter ersetzen, bevor die Datei an eine KI geht.“ → Datei (leer): Bildschirm a1, Hauptknopf „Weiter zum Prüfen“ → Datei (geladen): Bildschirm a1, Hauptknopf „Weiter zum Prüfen“ → Prüfen: Bildschirm a2, Hauptknopf „Weiter zum Speichern“ → Speichern (vor dem Schlüssel): Bildschirm a3, Hauptknopf „1 Schlüssel speichern“ → Speichern (nach dem Schlüssel): Bildschirm a3, Hauptknopf „2 Datei speichern“ → Gespeichert: Bildschirm a3, Hauptknopf „Nächstes Dokument“

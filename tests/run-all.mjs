@@ -35,6 +35,7 @@ const OLD = {
   '2.5.0': ['ae8aec6f5a47062f61a8e3f6e3d6def7a1668198', '3d1acf7ceaf96b21'],
   '2.7.0': ['3ecfe3245b60e892fb764db6a1c07d44d9fb5838', '631a2bcd05e3aaf8'],
   '2.8.0': ['81b863b2786b1a8a62d310dc7310c33fcadf69c9', 'c3ce5b2b219992ef'],
+  '2.8.1': ['cccf13c16473a6c1999e45427d4649bf12a009ed', '51b039c10a514d2a'],
 };
 const SRC_234 = '479aa0af98ff3d82723c6cc7e9715a4cafa5f349'; // src/ von Version 2.3.4 (wortliste-test)
 const alt = (v) => path.join(ALT, `index-${v}.html`);
@@ -58,13 +59,14 @@ const TESTS = [
   ['pfade', 'pfade-test.mjs', [alt('2.4.0')]],
   ['bedienung', 'bedienung-test.mjs', [alt('2.4.1')]],
   ['anzeige', 'anzeige-test.mjs', []],
-  ['regression', 'regression.mjs', [alt('2.8.0')]],
+  ['regression', 'regression.mjs', [alt('2.8.1')]], // Version 2.9.0: Regression gegen main (2.8.1)
   ['traeger', 'traeger-test.mjs', [alt('2.7.0')]],
   ['massstab', 'massstab-test.mjs', [alt('2.7.0'), alt('2.8.0')]],
   ['nachbarn', 'nachbarn-test.mjs', [alt('2.7.0'), alt('2.8.0')]],
+  ['restwoerter', 'restwoerter-test.mjs', []],
 ];
 // Längste zuerst (aus der Messung), damit die Gesamtzeit nicht vom Letzten abhängt
-const ORDER = ['nachbarn', 'massstab', 'bedienung', 'gross', 'run-tests', 'anzeige', 'regression', 'einrichtung', 'pfade', 'traeger', 'roundtrip', 'kollision', 'platzhalter', 'kennung', 'ui-flow', 'bilder', 'endungen', 'meta-proof', 'spalten', 'wortliste', 'korpus'];
+const ORDER = ['nachbarn', 'massstab', 'bedienung', 'restwoerter', 'gross', 'run-tests', 'anzeige', 'regression', 'einrichtung', 'pfade', 'traeger', 'roundtrip', 'kollision', 'platzhalter', 'kennung', 'ui-flow', 'bilder', 'endungen', 'meta-proof', 'spalten', 'wortliste', 'korpus'];
 
 const sha = (p) => crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex');
 function prepareOld() {

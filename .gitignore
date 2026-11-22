@@ -1,6 +1,7 @@
 node_modules/
 tests/out/
 src/generated/cmaps.js
+src/generated/woerter.b64
 tests/out-roundtrip/
 tests/out-meta/
 tests/out-ui/

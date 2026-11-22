@@ -14,6 +14,11 @@ fs.mkdirSync(gen, { recursive: true });
 // 1) Namenslisten
 execFileSync(process.execPath, [path.join(root, 'build/build-names.mjs')], { stdio: 'inherit' });
 
+// 1b) Wortliste (Version 2.9.0): exakte, gepackte Nachschlage-Struktur, als Datenblock in index.html (kein Code)
+execFileSync(process.execPath, [path.join(root, 'build/build-woerter.mjs')], { stdio: 'inherit' });
+const woerter = fs.readFileSync(path.join(gen, 'woerter.b64'), 'utf8');
+if (!/^[A-Za-z0-9+/=]+$/.test(woerter)) throw new Error('Wortliste: unerwartete Zeichen');
+
 // 2) CMaps von pdf.js (für PDFs mit asiatischen Schriften), base64-eingebettet
 const cmapDir = path.join(root, 'node_modules/pdfjs-dist/cmaps');
 const cmaps = {};
@@ -53,7 +58,7 @@ const csp = [
 ].join('; ');
 
 const tpl = fs.readFileSync(path.join(root, 'src/ui/template.html'), 'utf8');
-const html = tpl.replace('__VERSION__', pkg.version).replace('__DATE__', pkg.releaseDate).replace('__CSP__', csp).replace('__STYLE__', () => css).replace('__SCRIPT__', () => js);
+const html = tpl.replace('__VERSION__', pkg.version).replace('__DATE__', pkg.releaseDate).replace('__CSP__', csp).replace('__STYLE__', () => css).replace('__WOERTER__', () => woerter).replace('__SCRIPT__', () => js);
 fs.writeFileSync(path.join(root, 'index.html'), html);
 const hash = crypto.createHash('sha256').update(html).digest('hex');
 console.log(`index.html: ${(html.length / 1024 / 1024).toFixed(2)} MB, SHA-256 ${hash}`);
