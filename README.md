@@ -467,7 +467,7 @@ Version **2.8.1**, Stand 2026-11-22 (steht auch im Fußbereich des Tools).
 SHA-256 der `index.html` dieser Version:
 
 ```
-6a11b0de78bfdf17661889ff30ebbe48fa972cb224d3823f9a3591d2067b9abf
+51b039c10a514d2aa82218baa4d4bc502e0763c97df3ed981eda2f37622c55cd
 ```
 
 Hinweis: Bei Version 2.6.1 stand hier versehentlich ein veralteter Wert (d411bf2f…). Die `index.html` von 2.6.1 hat die Prüfsumme f5b29a3d6cd1127b23a7226fbd44d155471d705c0dc961a6cf8853a983f18cc9.

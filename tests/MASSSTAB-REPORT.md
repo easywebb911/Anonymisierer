@@ -120,9 +120,9 @@ Neue Version: Anonymisierer/index.html; Vorversion: index-270.html. Nur Chromium
 | fixtures-traeger/nachbarn-offen.csv | 12 | 0 | alle | alle | alle | alle | alle | alle | 12: alle |
 | fixtures-traeger/nachbarn-offen.txt | 12 | 0 | alle | alle | alle | alle | alle | alle | 12: alle |
 | fixtures-traeger/nachbarn-offen.xlsx | 12 | 0 | alle | alle | alle | alle | alle | alle | 12: alle |
-| fixtures-traeger/nachbarn.csv | 25 | 10 | alle | alle | alle | alle | alle | alle | 31: alle |
-| fixtures-traeger/nachbarn.txt | 25 | 10 | alle | alle | alle | alle | alle | alle | 31: alle |
-| fixtures-traeger/nachbarn.xlsx | 25 | 10 | alle | alle | alle | alle | alle | alle | 31: alle |
+| fixtures-traeger/nachbarn.csv | 23 | 10 | alle | alle | alle | alle | alle | alle | 27: alle |
+| fixtures-traeger/nachbarn.txt | 23 | 10 | alle | alle | alle | alle | alle | alle | 27: alle |
+| fixtures-traeger/nachbarn.xlsx | 23 | 10 | alle | alle | alle | alle | alle | alle | 27: alle |
 | fixtures-traeger/nurweb.txt | 2 | 0 | alle | alle | alle | alle | alle | alle | 2: alle |
 | fixtures-traeger/sachtext.txt | 12 | 0 | alle | alle | alle | alle | alle | alle | 12: alle |
 | out/massstab/korpus-kursbeschreibungen.txt | 21 | 1 | alle | alle | alle | alle | alle | alle | 22: alle |
@@ -141,7 +141,7 @@ Neue Version: Anonymisierer/index.html; Vorversion: index-270.html. Nur Chromium
 | out/massstab/korpus-kurse2.txt | 12 | 0 | alle | alle | alle | alle | alle | alle | 12: alle |
 | out/massstab/korpus-aushang.txt | 2 | 0 | alle | alle | alle | alle | alle | alle | 2: alle |
 
-Geprüft: 136 Dateien (Testdateien und 15 Korpus-Abschnitte), 1920 Stellen der Vorversion, je sechs Abläufe; zweiter Maßstab: 2065 Stellen von 2.8.0 (ohne Antwort).
+Geprüft: 136 Dateien (Testdateien und 15 Korpus-Abschnitte), 1914 Stellen der Vorversion, je sechs Abläufe; zweiter Maßstab: 2053 Stellen von 2.8.0 (ohne Antwort).
 
 Ausnahmen: 0 (seit Guardian-Lauf 5 keine Ausnahme mehr erlaubt)
 - OK: 0 Anfragen ins Netz (0)

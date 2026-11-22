@@ -1,6 +1,6 @@
 # Ziel-Test „nachbarn“ (Version 2.8.1): Person neben Einrichtung
 
-Geprüft: Anonymisierer/index.html; Vorversion 2.7.0: index-270.html; Vergleich 2.8.0: index-6a11b0de.html. Nur Chromium, Firefox prüft Easy.
+Geprüft: Anonymisierer/index.html; Vorversion 2.7.0: index-270.html; Vergleich 2.8.0: index-main-280.html. Nur Chromium, Firefox prüft Easy.
 
 Soll-Wörter (müssen ersetzt sein): Personen Quarbeck, Broszat, Tewesmeier, Jana, Wolters, Tobias, Hellwig, Anja, Petersen, Brandner, Lindenau, Horten, Nikita, Schulenburg, Melanie, Grawert, Lindqvist, Halvorsen, Fuchs; Einrichtungen Sonnenblume, Wiesenkamp, Lindgrün, Regenbogen, Lindenhof.
 Nicht im Soll: „Koch“ in „Bitte wenden Sie sich an Koch.“ – mehrdeutiges Wort nach Präposition, in 2.7.0, 2.8.0 und 2.8.1 gleich „unsicher, aus“ und gefragt (Wortliste „mehrdeutig“, nicht Teil dieses Auftrags).
@@ -18,7 +18,7 @@ Nicht im Soll: „Koch“ in „Bitte wenden Sie sich an Koch.“ – mehrdeutig
 - OK: txt, person: Weg-Gleichheit „Ja“ → „Nein“ = „Nein“
 - OK: txt, person: Weg-Gleichheit „Nein“ → „Ja“ → „Nein“ = „Nein“
 - OK: txt, person: Weg-Gleichheit „Ja“ → „Nein“ → „Ja“ = „Ja“
-| txt | person | 0 | 0 | 0 | 0 | 0 / 0 / 0 |
+| txt | person | 0 | 0 | 0 | 0 | 2 / 2 / 3 |
 - OK: txt, person: a) ohne Antwort jede Person und Einrichtung ersetzt
 - OK: txt, person: b) nach „Nein“ auf alle Einrichtungs-Fragen jede Person ersetzt
 - OK: txt, person: c) „Unsichere“ aus: alles ersetzt, was 2.7.0 so ersetzt
@@ -32,7 +32,7 @@ Nicht im Soll: „Koch“ in „Bitte wenden Sie sich an Koch.“ – mehrdeutig
 - OK: txt, name: Weg-Gleichheit „Ja“ → „Nein“ = „Nein“
 - OK: txt, name: Weg-Gleichheit „Nein“ → „Ja“ → „Nein“ = „Nein“
 - OK: txt, name: Weg-Gleichheit „Ja“ → „Nein“ → „Ja“ = „Ja“
-| txt | name | 0 | 0 | 0 | 0 | 0 / 0 / 0 |
+| txt | name | 0 | 0 | 0 | 0 | 2 / 2 / 3 |
 - OK: txt, name: a) ohne Antwort jede Person und Einrichtung ersetzt
 - OK: txt, name: b) nach „Nein“ auf alle Einrichtungs-Fragen jede Person ersetzt
 - OK: txt, name: c) „Unsichere“ aus: alles ersetzt, was 2.7.0 so ersetzt
@@ -46,7 +46,7 @@ Nicht im Soll: „Koch“ in „Bitte wenden Sie sich an Koch.“ – mehrdeutig
 - OK: txt, reversible: Weg-Gleichheit „Ja“ → „Nein“ = „Nein“
 - OK: txt, reversible: Weg-Gleichheit „Nein“ → „Ja“ → „Nein“ = „Nein“
 - OK: txt, reversible: Weg-Gleichheit „Ja“ → „Nein“ → „Ja“ = „Ja“
-| txt | reversible | 0 | 0 | 0 | 0 | 0 / 0 / 0 |
+| txt | reversible | 0 | 0 | 0 | 0 | 2 / 2 / 3 |
 - OK: txt, reversible: a) ohne Antwort jede Person und Einrichtung ersetzt
 - OK: txt, reversible: b) nach „Nein“ auf alle Einrichtungs-Fragen jede Person ersetzt
 - OK: txt, reversible: c) „Unsichere“ aus: alles ersetzt, was 2.7.0 so ersetzt
@@ -60,7 +60,7 @@ Nicht im Soll: „Koch“ in „Bitte wenden Sie sich an Koch.“ – mehrdeutig
 - OK: csv, person: Weg-Gleichheit „Ja“ → „Nein“ = „Nein“
 - OK: csv, person: Weg-Gleichheit „Nein“ → „Ja“ → „Nein“ = „Nein“
 - OK: csv, person: Weg-Gleichheit „Ja“ → „Nein“ → „Ja“ = „Ja“
-| csv | person | 0 | 0 | 0 | 0 | 0 / 0 / 0 |
+| csv | person | 0 | 0 | 0 | 0 | 2 / 2 / 3 |
 - OK: csv, person: a) ohne Antwort jede Person und Einrichtung ersetzt
 - OK: csv, person: b) nach „Nein“ auf alle Einrichtungs-Fragen jede Person ersetzt
 - OK: csv, person: c) „Unsichere“ aus: alles ersetzt, was 2.7.0 so ersetzt
@@ -74,7 +74,7 @@ Nicht im Soll: „Koch“ in „Bitte wenden Sie sich an Koch.“ – mehrdeutig
 - OK: csv, name: Weg-Gleichheit „Ja“ → „Nein“ = „Nein“
 - OK: csv, name: Weg-Gleichheit „Nein“ → „Ja“ → „Nein“ = „Nein“
 - OK: csv, name: Weg-Gleichheit „Ja“ → „Nein“ → „Ja“ = „Ja“
-| csv | name | 0 | 0 | 0 | 0 | 0 / 0 / 0 |
+| csv | name | 0 | 0 | 0 | 0 | 2 / 2 / 3 |
 - OK: csv, name: a) ohne Antwort jede Person und Einrichtung ersetzt
 - OK: csv, name: b) nach „Nein“ auf alle Einrichtungs-Fragen jede Person ersetzt
 - OK: csv, name: c) „Unsichere“ aus: alles ersetzt, was 2.7.0 so ersetzt
@@ -88,7 +88,7 @@ Nicht im Soll: „Koch“ in „Bitte wenden Sie sich an Koch.“ – mehrdeutig
 - OK: csv, reversible: Weg-Gleichheit „Ja“ → „Nein“ = „Nein“
 - OK: csv, reversible: Weg-Gleichheit „Nein“ → „Ja“ → „Nein“ = „Nein“
 - OK: csv, reversible: Weg-Gleichheit „Ja“ → „Nein“ → „Ja“ = „Ja“
-| csv | reversible | 0 | 0 | 0 | 0 | 0 / 0 / 0 |
+| csv | reversible | 0 | 0 | 0 | 0 | 2 / 2 / 3 |
 - OK: csv, reversible: a) ohne Antwort jede Person und Einrichtung ersetzt
 - OK: csv, reversible: b) nach „Nein“ auf alle Einrichtungs-Fragen jede Person ersetzt
 - OK: csv, reversible: c) „Unsichere“ aus: alles ersetzt, was 2.7.0 so ersetzt
@@ -102,7 +102,7 @@ Nicht im Soll: „Koch“ in „Bitte wenden Sie sich an Koch.“ – mehrdeutig
 - OK: xlsx, person: Weg-Gleichheit „Ja“ → „Nein“ = „Nein“
 - OK: xlsx, person: Weg-Gleichheit „Nein“ → „Ja“ → „Nein“ = „Nein“
 - OK: xlsx, person: Weg-Gleichheit „Ja“ → „Nein“ → „Ja“ = „Ja“
-| xlsx | person | 0 | 0 | 0 | 0 | 0 / 0 / 0 |
+| xlsx | person | 0 | 0 | 0 | 0 | 2 / 2 / 3 |
 - OK: xlsx, person: a) ohne Antwort jede Person und Einrichtung ersetzt
 - OK: xlsx, person: b) nach „Nein“ auf alle Einrichtungs-Fragen jede Person ersetzt
 - OK: xlsx, person: c) „Unsichere“ aus: alles ersetzt, was 2.7.0 so ersetzt
@@ -116,7 +116,7 @@ Nicht im Soll: „Koch“ in „Bitte wenden Sie sich an Koch.“ – mehrdeutig
 - OK: xlsx, name: Weg-Gleichheit „Ja“ → „Nein“ = „Nein“
 - OK: xlsx, name: Weg-Gleichheit „Nein“ → „Ja“ → „Nein“ = „Nein“
 - OK: xlsx, name: Weg-Gleichheit „Ja“ → „Nein“ → „Ja“ = „Ja“
-| xlsx | name | 0 | 0 | 0 | 0 | 0 / 0 / 0 |
+| xlsx | name | 0 | 0 | 0 | 0 | 2 / 2 / 3 |
 - OK: xlsx, name: a) ohne Antwort jede Person und Einrichtung ersetzt
 - OK: xlsx, name: b) nach „Nein“ auf alle Einrichtungs-Fragen jede Person ersetzt
 - OK: xlsx, name: c) „Unsichere“ aus: alles ersetzt, was 2.7.0 so ersetzt
@@ -130,7 +130,7 @@ Nicht im Soll: „Koch“ in „Bitte wenden Sie sich an Koch.“ – mehrdeutig
 - OK: xlsx, reversible: Weg-Gleichheit „Ja“ → „Nein“ = „Nein“
 - OK: xlsx, reversible: Weg-Gleichheit „Nein“ → „Ja“ → „Nein“ = „Nein“
 - OK: xlsx, reversible: Weg-Gleichheit „Ja“ → „Nein“ → „Ja“ = „Ja“
-| xlsx | reversible | 0 | 0 | 0 | 0 | 0 / 0 / 0 |
+| xlsx | reversible | 0 | 0 | 0 | 0 | 2 / 2 / 3 |
 - OK: xlsx, reversible: a) ohne Antwort jede Person und Einrichtung ersetzt
 - OK: xlsx, reversible: b) nach „Nein“ auf alle Einrichtungs-Fragen jede Person ersetzt
 - OK: xlsx, reversible: c) „Unsichere“ aus: alles ersetzt, was 2.7.0 so ersetzt
@@ -181,7 +181,7 @@ Soll hier nur: jede Person ersetzt (wie 2.8.0). Der Name der Einrichtung hinter 
 - OK: Lauf 3, Fund 2: Dateiangaben-Frage „Ja“ → „Nein“ = direkt „Nein“ (Person vorher in der Liste aus)
 - OK: Lauf 3, Fund 2: Dateiangaben-Frage „Nein“ → „Ja“ → „Nein“ = direkt „Nein“
 - OK: Lauf 3, Fund 2: Dateiangaben-Frage „Ja“ → „Nein“ → „Ja“ = direkt „Ja“
-- FEHLER: Lauf 5, Fund 1: „Quarbeck“ als eigener Name – „PRAXIS QUARBECKS hat zu.“ ohne Antwort ohne Namen im Klartext
+- OK: Lauf 5, Fund 1: „Quarbeck“ als eigener Name – „PRAXIS QUARBECKS hat zu.“ ohne Antwort ohne Namen im Klartext – Einrichtung A hat zu.
 - OK: Fund 4: Person „Jana Wolters“ aus – Einrichtung bleibt „Kita Sonnenblume“; danach als Name markiert: Person ersetzt – vorher Kita Sonnenblume; nach Ausschalten Kita Sonnenblume; Person an: 1; Einrichtung D Person G
 - OK: Fund 4: Person „Jana Wolters“ aus – Einrichtung bleibt „Kita Sonnenblume“; danach als Name markiert: Person ersetzt („Unsichere“ aus) – vorher Kita Sonnenblume; nach Ausschalten Kita Sonnenblume; Person an: 1; 
 
@@ -199,4 +199,4 @@ Soll hier nur: jede Person ersetzt (wie 2.8.0). Der Name der Einrichtung hinter 
 - OK: 0 Anfragen ins Netz – 0
 - OK: 0 Fehler in der Seite
 
-**Ergebnis: NICHT bestanden** (167/168).
+**Ergebnis: bestanden** (168/168).

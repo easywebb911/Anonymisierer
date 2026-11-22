@@ -1,6 +1,6 @@
-# Messungen Version 2.8.1 „Einrichtungen: Leck und Lücken schließen“ (Endstand: Teil 4 herausgenommen)
+# Messungen Version 2.8.1 „Einrichtungen: Leck und Lücken schließen“ (Endstand: Teil 4 herausgenommen, Guardian-Lauf 5 Fund 1 behoben)
 
-Verlauf: Auftrag (Teil 1–6) → Guardian-Lauf 1 → Mini-Stopp, Entscheidung C → Lauf 2 (behoben: „Praxis Lindqvist“ nach „Nein“, „Als Name markieren“ für einen Teil) → Lauf 3 → Mini-Stopp, Entscheidung D (behoben: Weg-Gleichheit bei Dateiangaben-Fragen) → Lauf 4: LECK durch Teil 4 („dein Fuchs von der Praxis Lindholm“) → **Rückfalllinie: Teil 4 vollständig herausgenommen** („Person vom Einrichtung“ wie 2.8.0). Alle Namen erfunden. Nur Chromium, Firefox prüft Easy.
+Verlauf: Auftrag (Teil 1–6) → Guardian-Lauf 1 → Mini-Stopp, Entscheidung C → Lauf 2 (behoben: „Praxis Lindqvist“ nach „Nein“, „Als Name markieren“ für einen Teil) → Lauf 3 → Mini-Stopp, Entscheidung D (behoben: Weg-Gleichheit bei Dateiangaben-Fragen) → Lauf 4: LECK durch Teil 4 („dein Fuchs von der Praxis Lindholm“) → **Rückfalllinie: Teil 4 vollständig herausgenommen** („Person vom Einrichtung“ wie 2.8.0) → Lauf 5 (letzter): LECK durch diesen PR („PRAXIS QUARBECKS“ bei eigenem Namen) → Entscheidung Easy: behoben (beim Abschneiden einer Einrichtung zählen Personen, die von Anfang an aus sind, nicht); kein weiterer Guardian-Lauf. Alle Namen erfunden. Nur Chromium, Firefox prüft Easy.
 
 ## Ziel-Test nachbarn.* (tests/nachbarn-test.mjs → tests/NACHBARN-REPORT.md): Soll / gemessen
 Offene Stellen der Soll-Wörter (Soll = 0). a) ohne Antwort: jede Person und Einrichtung; b) nach „Nein“ auf alle Einrichtungs-Fragen: jede Person; c) „Unsichere“ aus: alles, was 2.7.0 so ersetzt; c2) „Unsichere“ aus, dann alle „Nein“.
@@ -11,9 +11,9 @@ Offene Stellen der Soll-Wörter (Soll = 0). a) ohne Antwort: jede Person und Ein
 | csv | person / name / rückbaufähig | 0 / 0 / 0 | 0 / 0 / 0 | 0 / 0 / 0 | 0 / 0 / 0 | 2 / 2 / 3 (je Modus) |
 | xlsx | person / name / rückbaufähig | 0 / 0 / 0 | 0 / 0 / 0 | 0 / 0 / 0 | 0 / 0 / 0 | 2 / 2 / 3 (je Modus) |
 
-Dazu je Format und Modus: „Nein“, „Ja“ → „Nein“, „Nein“ → „Ja“ → „Nein“, Liste aus, „Unsichere“ aus (+ „Nein“): kein Name im Klartext, den 2.7.0 oder 2.8.0 im selben Ablauf ersetzt; Weg-Gleichheit. Bedienwege (Oberfläche): Teil 1, Teil 2, „Als Name markieren“ (ganz, Teil, nach „Nein“), Fund 4, Dateiangaben „Ja“ → „Nein“, echte Namen mit Zusatz. Rückbau exakt txt/csv/xlsx, auch mit Ausgabe + Schlüssel aus 2.8.0. **167/167.**
+Dazu je Format und Modus: „Nein“, „Ja“ → „Nein“, „Nein“ → „Ja“ → „Nein“, Liste aus, „Unsichere“ aus (+ „Nein“): kein Name im Klartext, den 2.7.0 oder 2.8.0 im selben Ablauf ersetzt; Weg-Gleichheit. Bedienwege (Oberfläche): Teil 1, Teil 2, „Als Name markieren“ (ganz, Teil, nach „Nein“), Fund 4, Dateiangaben „Ja“ → „Nein“, echte Namen mit Zusatz. Rückbau exakt txt/csv/xlsx, auch mit Ausgabe + Schlüssel aus 2.8.0. Dazu Lauf 5, Fund 1 (eigener Name „Quarbeck“, „PRAXIS QUARBECKS hat zu.“ in eigener kleiner Datei) und Lauf 4 („dein Fuchs von der Praxis Lindholm“: „Fuchs“ ersetzt). **168/168.**
 **nachbarn-offen.*** (Teil 4 herausgenommen – offen, eigener Auftrag): jede Person ersetzt, in allen Abläufen nichts im Klartext, was 2.7.0/2.8.0 so ersetzt; Ausgabe wie 2.8.0. Offen (Klartext wie in 2.8.0): Kirchberg, Tannhofen, Regenbogen, Birkenhain, Lindgrün, Wiesenkamp, Mühlbach.
-Gegenproben: Stand a2c4e012… 153/164 NICHT bestanden; 2.8.0 74/164 NICHT bestanden. **Grenze:** Stand fca6775f… (mit dem Leck aus Lauf 4) besteht 164/164 – der Lauf-4-Fall („dein Fuchs von der …“ ohne Anrede) steht in keiner Testdatei; im Endstand gibt es Teil 4 nicht mehr.
+Gegenproben (alle NICHT bestanden, wie verlangt): Stand 6a11b0de… 164/165 (Quarbeck-Test); a2c4e012… 60/165; 2.8.0 76/165.
 Nicht im Soll: „Koch“ in „Bitte wenden Sie sich an Koch.“ (mehrdeutig, in allen Versionen gleich gefragt).
 
 ## Warum die Maßstäbe die Lecks aus Lauf 1 und Lauf 3 nicht fanden
@@ -21,12 +21,12 @@ Nicht im Soll: „Koch“ in „Bitte wenden Sie sich an Koch.“ (mehrdeutig, i
 - Lauf 3 („Krüger“, „Schulze“): nicht wegen der Ausnahmen (die ließen nur „vom / von der“ und das Kopfwort offen, nie ein Wort wie „Krüger“), sondern weil keine Testdatei diesen Fall hatte. Jetzt in nachbarn-offen.*, und die Ausnahme ist strenger (nur der Zusatz darf offen sein).
 
 ## Maßstab (tests/massstab-test.mjs → tests/MASSSTAB-REPORT.md)
-- Gegen 2.7.0: 136 Dateien (Testdateien und 15 Korpus-Abschnitte), 1908 Stellen, je sechs Abläufe. **0 fehlende Stellen.**
-- Zweiter Maßstab gegen 2.8.0 (ohne Antwort): 2047 Stellen. **0 fehlende Stellen.**
+- Gegen 2.7.0: 136 Dateien (Testdateien und 15 Korpus-Abschnitte), 1914 Stellen, je sechs Abläufe. **0 fehlende Stellen.** Prüfung jetzt wieder Zeichen für Zeichen (auch Satzzeichen), ohne jede Ausnahme.
+- Zweiter Maßstab gegen 2.8.0 (ohne Antwort): 2053 Stellen. **0 fehlende Stellen.** Gezielt gegen den Stand 6a11b0de… (vor der letzten Änderung): 0 fehlende Stellen, 0 Ausnahmen (massstab und nachbarn mit 6a11b0de als Vergleich).
 - **Ausnahmen: 0.**
 
 ## Testläufe vorher (main 2.8.0) / nachher (2.8.1, Endstand, einmal gelaufen), bestanden/gesamt
-anzeige 121 → 121 · bedienung 37 → 37 · bilder 58 → 58 · einrichtung 153 → 153 · endungen 21 → 21 · gross 44 → 44 · kennung 37 → 37 · kollision 17 → 17 · meta-proof 46 → 51 (+5 Teil 5: Schutz, kein Nachweis der Behebung) · pfade 40 → 40 · platzhalter 24 → 24 · roundtrip 36 → 36 · spalten 67 → 67 · traeger 98 → 98 · ui-flow 52 → 52 · wortliste 18 → 18 · korpus „alle Zahlen wie erwartet“ → gleich · run-tests grün → grün · massstab bestanden (130 Dateien, 1809 Stellen, 4 Abläufe) → bestanden (136 Dateien, 1908 Stellen, 6 Abläufe + 2047 Stellen gegen 2.8.0) · **neu: nachbarn 167/167**.
+anzeige 121 → 121 · bedienung 37 → 37 · bilder 58 → 58 · einrichtung 153 → 153 · endungen 21 → 21 · gross 44 → 44 · kennung 37 → 37 · kollision 17 → 17 · meta-proof 46 → 51 (+5 Teil 5: Schutz, kein Nachweis der Behebung) · pfade 40 → 40 · platzhalter 24 → 24 · roundtrip 36 → 36 · spalten 67 → 67 · traeger 98 → 98 · ui-flow 52 → 52 · wortliste 18 → 18 · korpus „alle Zahlen wie erwartet“ → gleich · run-tests grün → grün · massstab bestanden (130 Dateien, 1809 Stellen, 4 Abläufe) → bestanden (136 Dateien, 1914 Stellen, 6 Abläufe + 2053 Stellen gegen 2.8.0) · **neu: nachbarn 168/168**.
 Angepasste Erwartungen: **keine**.
 
 ## Teil 5: Schlusscheck → „Als Einrichtung übernehmen“ (tests/meta-proof.mjs)
@@ -36,10 +36,12 @@ kurse-lernwerkstatt.docx („Lernwerkstatt Sonnenhof“ ohne Kopfwort): Schlussc
 tests/regression.mjs: 126 Ausgaben, 110 byte-identisch, 16 gleich bis auf die Kennung, **0 unbegründet**. Alle 122 Testdateien (Modus „Person A“, ohne Antwort) und 15 Korpus-Abschnitte verglichen: geändert nur nachbarn.txt/.csv/.xlsx (neu); nachbarn-offen.* gleich wie 2.8.0.
 
 ## Fragen und Fehltreffer
-- Fragen: in allen vorhandenen Testdateien, nachbarn-offen.* und Korpus-Abschnitten wie 2.8.0. nachbarn.* je Datei: 2.8.0 14 (9 Einrichtung), 2.8.1 16 (11 Einrichtung).
-- Fehltreffer: vorhandene Dateien wie 2.8.0 (**36 richtig, 2 falsch**). Neu in nachbarn.* je Datei 11 Einrichtungen, alle richtig → **69 richtig, 2 falsch**. Warnpunkt nachbarn je Datei: 1 („Nikita Brandner“, falsch, wie 2.8.0-Regel).
+- Fragen: in allen vorhandenen Testdateien, nachbarn-offen.* und Korpus-Abschnitten wie 2.8.0. nachbarn.* je Datei: 2.8.0 13 (8 Einrichtung), 2.8.1 15 (10 Einrichtung).
+- Fehltreffer: vorhandene Dateien wie 2.8.0 (**36 richtig, 2 falsch**). Neu in nachbarn.* je Datei 10 Einrichtungen, alle richtig → **66 richtig, 2 falsch**. Warnpunkt nachbarn je Datei: 1 („Nikita Brandner“, falsch, wie 2.8.0-Regel).
 
 ## Bekannt, nicht behoben (wie 2.8.0)
+- GROSS-Form mit Endung eines eigenen Namens („QUARBECKS“) bleibt standardmäßig aus und wird gefragt (Regel seit 2.5.0). Gilt in einer Datei ein Kopfwort durch andere Zeilen als Namensteil („Praxis“), wird „PRAXIS QUARBECKS“ keine Einrichtung, und „QUARBECKS“ bleibt ohne Antwort Klartext – in 2.7.0, 2.8.0 und 2.8.1 gleich.
+- Warnpunkt: „Verein Quarstedt“ neben „Herr Anton Quarstedt“ steht seit 2.8.1 nicht mehr im Warnpunkt (verwechslung.*: 49 Stellen); der Name ist ersetzt, „Verein“ bleibt stehen. README angepasst.
 - Steht in einer Datei „X vom Familienzentrum …“ (Person mit Kopfwort im Namen), gilt das Kopfwort in der ganzen Datei als Namensteil; dann bleibt z. B. „Regenbogen“ in „Kindergarten Regenbogen Tobias Hellwig“ Klartext (Einrichtungsname, kein Personenname). Deshalb stehen diese Fälle in nachbarn-offen.*.
 - Liste: längere Schreibweise ausschalten → kürzere darin wieder an (zweiter Klick nötig; mehr ersetzt, kein Klartext, Rückbau exakt).
 - Kopfwort als Wortteil: Vornamen auf -kita (Nikita, Rakita, Lukita, Mikita, Anikita, Waskita), „Tschaschule“ → falscher Warnpunkt; „Horten Kessler“ → als Einrichtung ersetzt (kein Klartext). „Vereinbarung“, „Praxisnah“, „Firmament“, „Schulenburg“ greifen nicht.
@@ -48,7 +50,7 @@ tests/regression.mjs: 126 Ausgaben, 110 byte-identisch, 16 gleich bis auf die Ke
 Fehlendes Leerzeichen („im OriginalEinrichtung“): Meldung in 2.8.0 und 2.8.1 gleich (HTML verglichen); der Test liest mit innerText je nach Zeitpunkt des Seitenaufbaus. Keine Änderung am Tool.
 
 ## Prüfsumme
-Zweimal gebaut (Kopien außerhalb des Arbeitsbaums): beide 6a11b0de78bfdf17661889ff30ebbe48fa972cb224d3823f9a3591d2067b9abf.
+Zweimal gebaut (Kopien außerhalb des Arbeitsbaums): beide 51b039c10a514d2aa82218baa4d4bc502e0763c97df3ed981eda2f37622c55cd.
 
 ---
 
