@@ -106,7 +106,7 @@ const fails = [];
 const ausnahmen = [];
 let nPrev = 0;
 const HOW = { keine: 'ohne Antwort', nein: 'nach „Nein“', janein: 'nach „Ja“ → „Nein“', aus: '„Unsichere“ aus', ausnein: '„Unsichere“ aus, dann „Nein“', listemark: 'Liste aus, dann markiert' };
-const HEAD_RE = /^(?:\p{L}*schul(?:e|en)|\p{L}*gymnasi(?:um|ums|en)|universität(?:en)?|\p{L}*kitas?|\p{L}*kinderg(?:arten|artens|ärten)|\p{L}*krippen?|hort(?:s|es|e|en)?|kinderh(?:aus|auses|äuser|äusern)|familienzentr(?:um|ums|en)|jugendzentr(?:um|ums|en)|\p{L}*verein(?:s|es|e|en)?|\p{L}*stiftung(?:en)?|\p{L}*prax(?:is|en)|\p{L}*klinik(?:en)?|krankenh(?:aus|auses|äuser|äusern)|kanzlei(?:en)?|firm(?:a|en)|\p{L}*institut(?:s|es|e|en)?|\p{L}*akademi(?:e|en))$/iu;
+const HEAD_RE = /^(?:Gymnasium|Schule|\p{Lu}\p{Ll}+schule|Universität|Kita|Kindergarten|Krippe|Hort|Kinderhaus|Familienzentrum|Jugendzentrum|Verein|Stiftung|Praxis|Klinik|Krankenhaus|Kanzlei|Firma|Institut|Akademie)$/u; // Version 2.8.1 (Entscheidung Easy C): Kopfwort nur in der Grundform, ganzes Wort (wie detect.js, Teil 4)
 // offene Wörter einer Stelle der Vorversion; Ausnahme Teil 4 nur, wenn alle offenen Wörter Zusatz/Kopfwort sind
 function openToks(text, s, e, cov) {
   return [...text.slice(s, e).matchAll(/[\p{L}\p{N}][\p{L}\p{N}'’.-]*/gu)].map((m) => ({ s: s + m.index, t: m[0] })).filter((t) => [...t.t].some((_, i) => !cov[t.s + i]));

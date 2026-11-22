@@ -134,12 +134,17 @@ export const NACHBARN_ROWS = [
   'Frau Albers vom Familienzentrum Wiesenkamp',
   // echte Namen mit Zusatz bleiben Namen
   'Herr von Brandner und Frau van der Lindenau kommen auch.',
+  // Entscheidung Easy C (nach dem Guardian-Lauf): Kopfwort hinter dem Zusatz nur in der Grundform und nur mit Namens-Wort
+  'Sehr geehrte Frau von Horten,', 'Frau Anja von Horten kommt morgen.', 'Herr Nikita Brandner', 'Frau von Schulenburg',
+  'Herr Brennecke von der Grundschule Am Mühlbach',
+  // Guardian-Fund 2: selbst erkannte Person aus, dann „Als Name markieren“
+  'Melanie Grawert kommt morgen.',
 ].map((r) => (Array.isArray(r) ? r : [r]));
 export const NACHBARN = NACHBARN_ROWS.flat();
 // Was ohne Antwort ersetzt sein muss (ganze Wörter, alle Modi)
 export const NACHBARN_PERSONS = ['Quarbeck', 'Broszat', 'Tewesmeier', 'Jana', 'Wolters', 'Tobias', 'Hellwig', 'Anja', 'Petersen', 'Okonkwo',
-  'Lehmann', 'Schuster', 'Demir', 'Kowalski', 'Albers', 'Brandner', 'Lindenau'];
-export const NACHBARN_ORGS = ['Sonnenblume', 'Wiesenkamp', 'Lindgrün', 'Regenbogen', 'Lindenhof', 'Kirchberg', 'Tannhofen', 'Holzbau', 'Birkenhain'];
+  'Lehmann', 'Schuster', 'Demir', 'Kowalski', 'Albers', 'Brandner', 'Lindenau', 'Horten', 'Nikita', 'Schulenburg', 'Brennecke', 'Melanie', 'Grawert'];
+export const NACHBARN_ORGS = ['Sonnenblume', 'Wiesenkamp', 'Lindgrün', 'Regenbogen', 'Lindenhof', 'Kirchberg', 'Tannhofen', 'Holzbau', 'Birkenhain', 'Mühlbach'];
 // Sperre-Test: nur Webadresse und Konto, sonst nichts zu ersetzen
 export const NURWEB = ['Mehr dazu unter www.beispiel-kinderhaus.de/termine.', 'Folgen Sie uns auf Instagram: @sonnenhof_kids'];
 // Zeilen; {link} = Webadresse (in Word/Excel als Verknüpfung, in Text-Formaten wie in Easys Text als [www…](https://…))

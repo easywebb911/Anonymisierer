@@ -135,8 +135,9 @@ Das Tool findet Schulnamen, Träger, Kitas, Vereine und Firmen **selbst**. Eine 
 - Eine gefundene Einrichtung endet **vor einer Anrede oder einem Titel** (Herr, Frau, Dr., Prof. …): Aus „Gymnasium Tannhofen Herr Kessler“ wird die Einrichtung „Gymnasium Tannhofen“ und die Person „Herr Kessler“.
 - Eine gefundene Einrichtung verdeckt **nie eine Stelle, die das Tool sonst sicher als Person ersetzt** (Ausnahme: Name mit Bindestrich wie „Erika-Brandner-Schule“). Ist das so, wird die Person ersetzt, und die Einrichtung steht im Punkt „Hier könnte eine Einrichtung stehen“ (z. B. „Verein Quarstedt“, wenn auch „Herr Anton Quarstedt“ im Text steht).
 - Steht eine **Person direkt hinter der Einrichtung, ohne Anrede** (seit 2.8.1), endet die Einrichtung vor der Person: Aus „Kita Sonnenblume Jana Wolters“ werden die Einrichtung „Kita Sonnenblume“ und die Person „Jana Wolters“. Bleibt vor der Person nur das Kopfwort, ist es kein Fund.
-- **„von / vom / von der“ vor einer Einrichtung** (seit 2.8.1): Ein Kopfwort gehört nie zu einem Personennamen. Aus „Frau Okonkwo vom Gymnasium Kirchberg Tannhofen“ werden die Person „Okonkwo“ und die Einrichtung „Gymnasium Kirchberg Tannhofen“. Echte Namen mit Zusatz bleiben ganz („Herr von Brandner“, „Frau van der Lindenau“).
-- **Eine gefundene Einrichtung, die nicht ersetzt wird, gibt ihre Wörter frei**, gleich warum: „Nein“, Ausschalten in der Liste, Klick oder (seit 2.8.1) die Einstellung „Unsichere Treffer standardmäßig ersetzen“ aus. Das Tool sucht dort wieder nach Personen, mit eigenen Fragen. Was Version 2.7 ersetzt hat, wird so auch dann ersetzt.
+- **„von / vom / von der“ vor einer Einrichtung** (seit 2.8.1): Beginnt direkt hinter dem Zusatz eine Einrichtung (Kopfwort in der Grundform, also „Gymnasium“, „Firma“, „Grundschule“, nicht „Horten“ oder „Nikita“, und dahinter ein Namens-Wort), endet die Person vor dem Zusatz. Aus „Frau Okonkwo vom Gymnasium Kirchberg Tannhofen“ werden die Person „Okonkwo“ und die Einrichtung „Gymnasium Kirchberg Tannhofen“. Im Zweifel bleibt es eine Person: Echte Namen mit Zusatz bleiben ganz („Herr von Brandner“, „Frau van der Lindenau“, „Frau von Horten“, „Frau von Schulenburg“).
+- **Eine gefundene Einrichtung, die nicht ersetzt wird, gibt ihre Wörter frei**, gleich warum: „Nein“, Ausschalten in der Liste, Klick oder (seit 2.8.1) die Einstellung „Unsichere Treffer standardmäßig ersetzen“ aus. Das Tool sucht dort wieder nach Personen, mit eigenen Fragen. Jeder Name, den Version 2.7 ersetzt hat, bleibt so ersetzt. Nur ein Gattungswort allein kann stehen bleiben: Hatte 2.7 „Okonkwo vom Gymnasium“ als einen Namen ersetzt, bleibt nach „Nein“ jetzt „vom Gymnasium“ stehen, der Name „Okonkwo“ ist ersetzt.
+- Wo eine gefundene Einrichtung endet, richtet sich **nur nach der Erkennung**, nicht nach Schaltern oder Antworten (seit 2.8.1): Schaltest du eine Person aus, wird die Einrichtung daneben dadurch nicht länger.
 
 **Neuer Punkt auf „Speichern“:** Wird eine gefundene Einrichtung nicht ersetzt und ist ihre Frage offen (z. B. weil „Unsichere Treffer standardmäßig ersetzen“ aus ist), steht dort „Eine Einrichtung steht noch im Text: …“ mit Fundort, „Im Text zeigen“ und „Ersetzen“. Nach „Nein“ oder bewusstem Ausschalten kommt kein Punkt.
 
@@ -466,7 +467,7 @@ Version **2.8.1**, Stand 2026-11-22 (steht auch im Fußbereich des Tools).
 SHA-256 der `index.html` dieser Version:
 
 ```
-acb4160533503914c0681b5d4e56fa1e2e9804f89aa3fa15856d2ed411ccaa5d
+a3f76a0dca3d9782a57d8449893ada21d2703905787b6e7b152ed16d8b6d0d49
 ```
 
 Hinweis: Bei Version 2.6.1 stand hier versehentlich ein veralteter Wert (d411bf2f…). Die `index.html` von 2.6.1 hat die Prüfsumme f5b29a3d6cd1127b23a7226fbd44d155471d705c0dc961a6cf8853a983f18cc9.

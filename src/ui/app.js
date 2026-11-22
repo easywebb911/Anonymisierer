@@ -1259,7 +1259,8 @@ function addManual(term) {
   // Version 2.8.1 (Teil 2): Von Hand markieren gewinnt immer. Stellen dieses Namens, die vorher aus waren (Schalter, Klick,
   // Antwort), werden ersetzt.
   const norm = (x) => fold(x.replace(/\s+/g, ' ').trim());
-  const ents = new Set(app.result.hits.filter((x) => x.type === 'person' && x.origin === 'manual' && !x.capsManual
+  // auch selbst erkannte Treffer mit gleichem Text (Guardian-Fund 2): „Melanie Grawert“ aus, dann als Name markiert
+  const ents = new Set(app.result.hits.filter((x) => x.type === 'person' && !x.capsManual
     && norm(app.result.fullText.slice(x.s, x.e)) === norm(t)).map((x) => x.entity));
   if (markWins((x) => x.type === 'person' && ents.has(x.entity) && !x.capsManual)) runAnalysis();
 }

@@ -50,7 +50,7 @@ const FORMATS = ['txt', 'csv', 'xlsx'];
 const MODES = ['person', 'name', 'reversible'];
 const fx = (ext) => path.join(FXT, 'nachbarn.' + ext);
 // Kopfwörter der Einrichtungs-Suche (für die Ausnahme in c); wie orgauto.js
-const HEAD_RE = /^(?:\p{L}*schul(?:e|en)|\p{L}*gymnasi(?:um|ums|en)|universität(?:en)?|\p{L}*kitas?|\p{L}*kinderg(?:arten|artens|ärten)|\p{L}*krippen?|hort(?:s|es|e|en)?|kinderh(?:aus|auses|äuser|äusern)|familienzentr(?:um|ums|en)|jugendzentr(?:um|ums|en)|\p{L}*verein(?:s|es|e|en)?|\p{L}*stiftung(?:en)?|\p{L}*prax(?:is|en)|\p{L}*klinik(?:en)?|krankenh(?:aus|auses|äuser|äusern)|kanzlei(?:en)?|firm(?:a|en)|\p{L}*institut(?:s|es|e|en)?|\p{L}*akademi(?:e|en))$/iu;
+const HEAD_RE = /^(?:Gymnasium|Schule|\p{Lu}\p{Ll}+schule|Universität|Kita|Kindergarten|Krippe|Hort|Kinderhaus|Familienzentrum|Jugendzentrum|Verein|Stiftung|Praxis|Klinik|Krankenhaus|Kanzlei|Firma|Institut|Akademie)$/u; // Version 2.8.1 (Entscheidung Easy C): Kopfwort nur in der Grundform, ganzes Wort (wie detect.js, Teil 4)
 
 // ---------- Messung über die Erkennung (Ablauf wie ein Mensch, Stand über window.__anon gelesen) ----------
 // how: 'keine' | 'nein' (alle Einrichtungs-Fragen „Nein“) | 'aus' („Unsichere“ aus) | 'ausnein' (aus, dann alle „Nein“)
@@ -234,14 +234,40 @@ const wordIn = (t, w) => new RegExp('(?<![\\p{L}\\p{N}])' + w + '(?![\\p{L}\\p{N
   check('Teil 2: „Jana Wolters“ in der Liste aus, dann „Als Name markieren“ – ersetzt', sw && wordIn(tOff, 'Wolters') && !wordIn(t, 'Wolters'), `aus: ${wordIn(tOff, 'Wolters') ? 'Klartext' : 'ersetzt'}; danach ${wordIn(t, 'Wolters') ? 'Klartext' : 'ersetzt'}`);
   // Echte Namen mit Zusatz bleiben ganze Namen
   const spans = await page.evaluate(() => { const r = window.__anon.app.result; return r.hits.filter((h) => h.type === 'person').map((h) => r.fullText.slice(h.s, h.e)); });
-  check('Teil 4: echte Namen mit Zusatz bleiben ganz („von Brandner“, „van der Lindenau“)', spans.includes('von Brandner') && spans.includes('van der Lindenau'), spans.filter((x) => /Brandner|Lindenau/.test(x)).join(', '));
-  check('Teil 4: Person endet vor „vom / von der“ + Kopfwort', ['Okonkwo', 'Lehmann', 'Schuster', 'Demir', 'Kowalski', 'Albers'].every((n) => spans.includes(n)) && !spans.some((x) => /\bvo[nm]\b/.test(x) && !/Brandner/.test(x)), spans.filter((x) => /Okonkwo|Schuster|Demir|Kowalski|Albers|Lehmann/.test(x)).join(', '));
+  check('Teil 4: echte Namen mit Zusatz bleiben ganz („von Brandner“, „van der Lindenau“, „von Horten“, „Anja von Horten“, „von Schulenburg“)', ['von Brandner', 'van der Lindenau', 'von Horten', 'Anja von Horten', 'von Schulenburg'].every((x) => spans.includes(x)), spans.filter((x) => /Brandner|Lindenau|Horten|Schulenburg/.test(x)).join(', '));
+  check('Teil 4: Person endet vor „vom / von der“ + Kopfwort', ['Okonkwo', 'Lehmann', 'Schuster', 'Demir', 'Kowalski', 'Albers', 'Brennecke'].every((n) => spans.includes(n)) && !spans.some((x) => /\bvo[nm]\b/.test(x) && !/Brandner|Horten|Schulenburg/.test(x)), spans.filter((x) => /Okonkwo|Schuster|Demir|Kowalski|Albers|Lehmann/.test(x)).join(', '));
   // Oberfläche: kein „null“/„undefined“
   await goTo(page, 'a3');
   await ackPoints(page);
   const body = await page.evaluate(() => document.body.innerText);
   check('Oberfläche: kein Text „null“ oder „undefined“', !/\bnull\b|\bundefined\b/.test(body));
   await ctx.close();
+}
+{
+  // Guardian-Fund 2: selbst erkannte Person in der Liste aus, dann „Als Name markieren“ – ersetzt (auch mit „Unsichere“ aus)
+  for (const unsureOff of [false, true]) {
+    const { page, ctx } = await openUI(fx('txt'), { unsureOff });
+    const sw = await listSwitch(page, 'Melanie Grawert', false);
+    const tOff = await outText(page);
+    await selectAndMark(page, 'Melanie Grawert', '#btn-mark');
+    const t = await outText(page);
+    check(`Fund 2: „Melanie Grawert“ (selbst erkannt) in der Liste aus, dann „Als Name markieren“ – ersetzt${unsureOff ? ' („Unsichere“ aus)' : ''}`, sw && wordIn(tOff, 'Grawert') && !wordIn(t, 'Grawert'), `aus: ${wordIn(tOff, 'Grawert') ? 'Klartext' : 'ersetzt'}; danach ${wordIn(t, 'Grawert') ? 'Klartext' : 'ersetzt'}`);
+    await ctx.close();
+  }
+  // Guardian-Fund 4: Wo eine Einrichtung endet, richtet sich nur nach der Erkennung: Person aus -> Einrichtung bleibt
+  // „Kita Sonnenblume“ (wird nicht länger); danach „Als Name markieren“ ersetzt die Person als Person
+  for (const unsureOff of [false, true]) {
+    const { page, ctx } = await openUI(fx('txt'), { unsureOff });
+    const spanOf = () => page.evaluate(() => { const r = window.__anon.app.result; return r.hits.filter((h) => h.type === 'org' && r.fullText.slice(h.s).startsWith('Kita Sonnenblume Jana')).map((h) => r.fullText.slice(h.s, h.e)); });
+    const before = await spanOf();
+    await listSwitch(page, 'Jana Wolters', false);
+    const after = await spanOf();
+    await selectAndMark(page, 'Jana Wolters', '#btn-mark');
+    const line = (await outText(page)).split('\n').find((l) => /^Einrichtung \S+ /.test(l) || /Wolters/.test(l)) || '';
+    const pers = await page.evaluate(() => { const r = window.__anon.app.result; return r.hits.filter((h) => h.type === 'person' && h.on && r.fullText.slice(h.s, h.e) === 'Jana Wolters').length; });
+    check(`Fund 4: Person „Jana Wolters“ aus – Einrichtung bleibt „Kita Sonnenblume“; danach als Name markiert: Person ersetzt${unsureOff ? ' („Unsichere“ aus)' : ''}`, JSON.stringify(before) === JSON.stringify(after) && after.every((x) => x === 'Kita Sonnenblume') && pers > 0, `vorher ${before.join(', ')}; nach Ausschalten ${after.join(', ')}; Person an: ${pers}; ${line}`);
+    await ctx.close();
+  }
 }
 log('');
 

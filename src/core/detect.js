@@ -5,7 +5,7 @@
 import { fold, umlautVariant } from './fold.js';
 import * as lex from './lexicon.js';
 import { findContacts } from './patterns.js';
-import { findOrgs, isHeadWord } from './orgauto.js';
+import { findOrgs, isHeadBase, isOrgNameTok, ORG_PREP, ORG_PREP2 } from './orgauto.js';
 import { assignReversible, MODE_REVERSIBLE, reservedPlaceholders } from './reversible.js';
 
 const TOKEN_RE = /[\p{L}\p{M}]+(?:['’][\p{L}\p{M}]+)*(?:-[\p{L}\p{M}]+(?:['’][\p{L}\p{M}]+)*)*|\p{N}+|\S/gu;
@@ -104,6 +104,21 @@ function isInitial(toks, k) {
   return tk.word && [...tk.t].length === 1 && tk.cap && toks[k + 1] && toks[k + 1].t === '.' && toks[k + 1].s === tk.e;
 }
 
+// Version 2.8.1 (Teil 4): Beginnt bei Token m eine Einrichtung? Kopfwort (Grundform) + optional „am / im / in / bei / beim“
+// oder „an der / in der …“ + ein Namens-Wort, alles auf derselben Zeile nur mit Leerzeichen getrennt.
+function orgStartsAt(toks, m, text, base) {
+  const h = toks[m];
+  if (!h || !h.word || !isHeadBase(h.t)) return false;
+  const sp = (a, b) => /^[ \u00a0]+$/.test(text.slice(a.e - base, b.s - base));
+  let j = m + 1;
+  if (toks[j] && toks[j].word && sp(h, toks[j])) {
+    const w1 = fold(toks[j].t);
+    if (toks[j + 1] && sp(toks[j], toks[j + 1]) && ORG_PREP2.has(w1 + ' ' + fold(toks[j + 1].t))) j += 2;
+    else if (ORG_PREP.has(w1)) j += 1;
+  }
+  return !!(toks[j] && sp(toks[j - 1], toks[j]) && isOrgNameTok(toks[j]));
+}
+
 // Liest eine mögliche Namensfolge ab Token j.
 function parseSeq(toks, j, ctx, text, base, covered, exceptions) {
   const comps = [];
@@ -126,9 +141,10 @@ function parseSeq(toks, j, ctx, text, base, covered, exceptions) {
       let m = k;
       while (m < toks.length && toks[m].word && lex.PARTICLES.has(fold(toks[m].t)) && !gapHasBreak(text, base, toks[m - 1 >= 0 ? m - 1 : m].e, toks[m].s)) m++;
       const nx = toks[m];
-      // Version 2.8.1 (Teil 4): Folgt auf den Zusatz ein Kopfwort der Einrichtungs-Suche („vom Gymnasium“, „von der Firma“),
-      // endet die Person vor dem Zusatz (die Einrichtung dahinter findet die Einrichtungs-Suche)
-      if (nx && nx.word && isHeadWord(nx.t)) break;
+      // Version 2.8.1 (Teil 4, Entscheidung Easy C): Beginnt direkt hinter dem Zusatz eine Einrichtung (Kopfwort in der
+      // Grundform + mindestens ein Namens-Wort, wie die Einrichtungs-Suche), endet die Person vor dem Zusatz. Im Zweifel
+      // bleibt es eine Person („Frau von Horten“, „Frau von Schulenburg“).
+      if (nx && orgStartsAt(toks, m, text, base)) break;
       // Am Anfang nur mit Anrede ("Frau von Bodelschwingh") oder großgeschrieben ("Van Gogh", "Al Hassan");
       // sonst ist "von"/"de" meist eine Präposition ("Bericht von Anna Müller")
       const leadOk = comps.length > 0 || ctx.strong || ctx.weak || (tk.cap && lex.LEADING_PARTICLES.has(inf.key));
@@ -371,7 +387,8 @@ export function analyze(units, state, extra = {}) {
   const safe = () => {
     if (!safeSpans) {
       const plain = analyze(units, state, { ...extra, noAutoOrgs: true });
-      safeSpans = plain.hits.filter((h) => h.type === 'person' && h.cert === 'sicher' && h.on).map((h) => [h.s, h.e]);
+      // Version 2.8.1 (Guardian-Fund 4, Entscheidung Easy): nur die Erkennung zählt, nicht Schalter oder Antworten
+      safeSpans = plain.hits.filter((h) => h.type === 'person' && h.cert === 'sicher').map((h) => [h.s, h.e]);
     }
     return safeSpans;
   };
