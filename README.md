@@ -515,6 +515,8 @@ Absichtlich keine ganz frischen Releases (jszip 3.10.2 und pdfjs-dist 6.x waren 
 
 ## Für Entwickler
 
+Vor jeder Fertig-Meldung prüft ein unabhängiger Zweitblick, der **Guardian** (`.claude/agents/anonymisierer-guardian.md`, Regeln in `CLAUDE.md`), ob ein Bau Namen durchrutschen lässt oder den Rückbau bricht.
+
 ```
 npm ci                       # feste Versionen aus package-lock.json
 npm run build                # erzeugt index.html (Namenslisten, CMaps, Bündel, CSP-Hashes)
