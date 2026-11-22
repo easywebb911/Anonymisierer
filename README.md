@@ -524,6 +524,8 @@ Vor jeder Fertig-Meldung prüft ein unabhängiger Zweitblick, der **Guardian** (
 
 ```
 npm ci                       # feste Versionen aus package-lock.json
+npm run test:all             # alle Testläufe gleichzeitig (so viele wie Rechenkerne; --jobs N), Ergebnis → tests/STAND.md
+npm run test:quick -- nachbarn massstab   # nur die genannten Testläufe (Namen siehe tests/run-all.mjs)
 npm run build                # erzeugt index.html (Namenslisten, CMaps, Bündel, CSP-Hashes)
 node tests/make-fixtures.mjs # erfundene Testdokumente (braucht LibreOffice für PDF/DOC/XLS)
 node tests/make-kurse.mjs    # Kurs-Tabelle und Risiko-Test für „Anrede allein“ (erfunden)
