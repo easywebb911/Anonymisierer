@@ -127,8 +127,8 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 - OK: „Astrid-Lindgren-Schule“ = ein Platzhalter; „Astrid Lindgren“ an anderer Stelle bleibt Person – Auch die Einrichtung C macht mit. Frau Vorname B Nachname B liest vor.
 
 ## Art-Wechsel: Einrichtung → Person → Einrichtung (rückbaufähig)
-- OK: „ist eine Person“: Platzhalter, Zählung und Kennung folgen; Schlüssel muss neu gespeichert werden – vorher: 2 Personen/3 Einrichtung, „Das FZS plant gemeinsam mit dem Einrichtung B ein Fest.“; nachher: 3/2, „Das FZS plant gemeinsam mit dem Vorname B Nachname B ein Fest.“, Kennung 6G8W → S34C
-- OK: „ist eine Einrichtung“ zurück: wieder „Einrichtung A“, Zählung und Kennung folgen – „Das FZS plant gemeinsam mit dem Einrichtung B ein Fest.“, Kennung S34C → 2W4Z
+- OK: „ist eine Person“: Platzhalter, Zählung und Kennung folgen; Schlüssel muss neu gespeichert werden – vorher: 2 Personen/3 Einrichtung, „Das FZS plant gemeinsam mit dem Einrichtung B ein Fest.“; nachher: 3/2, „Das FZS plant gemeinsam mit dem Vorname B Nachname B ein Fest.“, Kennung 6D3H → 7H4X
+- OK: „ist eine Einrichtung“ zurück: wieder „Einrichtung A“, Zählung und Kennung folgen – „Das FZS plant gemeinsam mit dem Einrichtung B ein Fest.“, Kennung 7H4X → B86R
 
 ## Merkliste mit Art
 - OK: Neue Merkliste mit Art wird richtig gelesen (Person und Einrichtung, Art an jedem Eintrag sichtbar) – Hollmann · Person | Familienzentrum Sonnenblume · Einrichtung
@@ -334,7 +334,7 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 - OK: endung-ueber-absaetze, txt, person: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt – Vorstand des Lindenauer
 | mit Endung über zwei Absätze („Lindenauer⏎Bürgervereins“) | txt | reversible | 1 (1) | Zeile 1 und Zeile 3 – im Original Einrichtung aus deiner Liste, nicht vollständig ersetzt · „…Vorstand des Lindenauer Bürgervereins tagt. …“ Der Name steht über zwei Absä | ja |
 - OK: endung-ueber-absaetze, txt, reversible: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt – Vorstand des Lindenauer
-| Kopfzeile und Fußzeile über zwei Absätze, Bildbeschreibung vollständig ersetzt | docx | person | 2 (2) | Kopfzeile – im Original Einrichtung aus deiner Liste, nicht  / Fußzeile – im Original Einrichtung aus deiner Liste, nicht v | ja |
+| Kopfzeile und Fußzeile über zwei Absätze, Bildbeschreibung vollständig ersetzt | docx | person | 2 (2) | Kopfzeile – im OriginalEinrichtung aus deiner Liste, nicht v / Fußzeile – im OriginalEinrichtung aus deiner Liste, nicht vo | ja |
 - OK: Kopf-/Fußzeile/Bildbeschreibung, person: Kopfzeile und Fußzeile gemeldet, Bildbeschreibung (ersetzt) nicht
 | … Treffer in der Bildbeschreibung ausgeschaltet | docx | person | 3 (3) | Kopfzeile – im OriginalEinrichtung aus deiner Liste, nicht v / Fußzeile – im OriginalEinrichtung aus deiner Liste, nicht vo / Bildbeschreibung – im OriginalEinrichtung aus deiner Liste,  | ja |
 - OK: Bildbeschreibung, person: ausgeschalteter Treffer wird mit Fundort „Bildbeschreibung“ gemeldet
