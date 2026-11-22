@@ -73,14 +73,18 @@ async function covered(html, file, how) {
       if (how === 'listemark') {
         const orgs = () => [...A.app.result.orgs.values()].filter((o) => o.hits.some((x) => x.auto));
         const names = orgs().map((o) => o.display);
+        // Wie ein Mensch: Schalter aus; steht er danach noch auf an, nochmals (bekannt seit 2.8.0: schaltet man eine längere
+        // Schreibweise aus, passt danach eine kürzere derselben Einrichtung darin und ist an, z. B. kurse.docx)
         let clicked = 0;
-        for (const d of names) {
-          const i = [...document.querySelectorAll('input[aria-label]')].find((x) => x.getAttribute('aria-label') === d + ' an/aus');
-          if (i && i.checked) { i.click(); clicked++; }
+        for (let round = 0; round < 3; round++) {
+          for (const d of names) {
+            const i = [...document.querySelectorAll('input[aria-label]')].find((x) => x.getAttribute('aria-label') === d + ' an/aus');
+            if (i && i.checked) { i.click(); clicked++; }
+          }
         }
         // Beleg, dass der Ablauf wirkt: jede gefundene Einrichtung ist danach aus
         const stillOn = orgs().filter((o) => o.hits.some((x) => x.auto && x.on)).length;
-        if (names.length && (clicked !== names.length || stillOn)) throw new Error(`Liste: ${clicked}/${names.length} ausgeschaltet, noch an: ${stillOn}`);
+        if (names.length && (clicked < names.length || stillOn)) throw new Error(`Liste: ${clicked}/${names.length} ausgeschaltet, noch an: ${stillOn}`);
         for (const d of names) { A.addOrg(d); marked++; }
         nOrg = marked;
       }
