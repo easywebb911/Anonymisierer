@@ -132,6 +132,8 @@ Geprüfte Datei: index.html. Nur Chromium, Firefox prüft Easy. Alle Namen erfun
 - OK: xlsx: Klick auf „Sonnleitner“ zeigt die erste Stelle (kräftig markiert, im Bild) – {"found":true,"text":"Sonnleitner","vis":true,"bold":"700"}
 - OK: xlsx: Taste N = „Kein Name dabei“ – nein
 - OK: mehr als 40 Wörter: die Liste rollt, kein „alle übernehmen“ – {"n":45,"scroll":true,"all":false}
+- OK: Ausnahme „Haus Wenzelhof“: „Wenzelhof“ steht trotzdem in der Liste – Wenzelhof
+- OK: Ausnahme „Haus Wenzelhof“ (Unsichere Treffer aus): „Wenzelhof“ steht trotzdem in der Liste – Wenzelhof
 
 - OK: 0 Anfragen nach außen
 - OK: keine Fehler auf der Seite
@@ -181,4 +183,4 @@ Geprüfte Datei: index.html. Nur Chromium, Firefox prüft Easy. Alle Namen erfun
 | 5 Weg-Gleichheit | xlsx | name | übernommen+aus = nie (Name, Einrichtung); „bleibt immer stehen“+zurück = nie | gleich / gleich / gleich |
 | 5 Weg-Gleichheit | xlsx | reversible | übernommen+aus = nie (Name, Einrichtung); „bleibt immer stehen“+zurück = nie | gleich / gleich / gleich |
 
-**Ergebnis: bestanden** (115/115)
+**Ergebnis: bestanden** (117/117)
