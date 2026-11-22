@@ -254,6 +254,31 @@ const wordIn = (t, w) => new RegExp('(?<![\\p{L}\\p{N}])' + w + '(?![\\p{L}\\p{N
     check(`Fund 2: „Melanie Grawert“ (selbst erkannt) in der Liste aus, dann „Als Name markieren“ – ersetzt${unsureOff ? ' („Unsichere“ aus)' : ''}`, sw && wordIn(tOff, 'Grawert') && !wordIn(t, 'Grawert'), `aus: ${wordIn(tOff, 'Grawert') ? 'Klartext' : 'ersetzt'}; danach ${wordIn(t, 'Grawert') ? 'Klartext' : 'ersetzt'}`);
     await ctx.close();
   }
+  // Guardian-Lauf 2, Fund 3: nur einen Teil des ausgeschalteten Namens markieren („Grawert“) – ersetzt
+  for (const unsureOff of [false, true]) {
+    const { page, ctx } = await openUI(fx('txt'), { unsureOff });
+    await listSwitch(page, 'Melanie Grawert', false);
+    await selectAndMark(page, 'Grawert', '#btn-mark');
+    const t = await outText(page);
+    check(`Lauf 2, Fund 3: „Melanie Grawert“ aus, dann nur „Grawert“ als Name markiert – „Grawert“ ersetzt${unsureOff ? ' („Unsichere“ aus)' : ''}`, !wordIn(t, 'Grawert'), t.split('\n').find((l) => /kommt morgen\.$/.test(l) && !/Horten/.test(l)) || '');
+    await ctx.close();
+  }
+  // Guardian-Lauf 2, Fund 1 und 2: „Nein“ (bzw. Liste aus) bei „Praxis Lindqvist“ – die Person an derselben Stelle ist
+  // nicht aus; mit „Unsichere“ aus und danach „Lindqvist“ als Name markiert: ersetzt
+  for (const how of ['nein', 'liste']) {
+    for (const unsureOff of [false, true]) {
+      const { page, ctx } = await openUI(fx('txt'), { unsureOff });
+      if (how === 'nein') await page.evaluate(() => { const A = window.__anon; const q = A.questions().find((x) => x.kind === 'org' && x.word === 'Praxis Lindqvist'); if (q) A.answer(q, false); });
+      else await listSwitch(page, 'Praxis Lindqvist', false);
+      const t1 = await outText(page);
+      if (unsureOff) await selectAndMark(page, 'Lindqvist', '#btn-mark');
+      const t = await outText(page);
+      const line = t.split('\n').find((l) => /ist am Montag zu/.test(l)) || '';
+      const ok = unsureOff ? !wordIn(t, 'Lindqvist') : !wordIn(t1, 'Lindqvist');
+      check(`Lauf 2, Fund ${unsureOff ? 2 : 1}: „Praxis Lindqvist“ ${how === 'nein' ? '„Nein“' : 'in der Liste aus'}${unsureOff ? ', „Unsichere“ aus, dann „Lindqvist“ als Name markiert' : ''} – Name ersetzt`, ok, line);
+      await ctx.close();
+    }
+  }
   // Guardian-Fund 4: Wo eine Einrichtung endet, richtet sich nur nach der Erkennung: Person aus -> Einrichtung bleibt
   // „Kita Sonnenblume“ (wird nicht länger); danach „Als Name markieren“ ersetzt die Person als Person
   for (const unsureOff of [false, true]) {

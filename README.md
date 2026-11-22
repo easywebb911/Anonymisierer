@@ -129,7 +129,7 @@ Das Tool findet Schulnamen, Träger, Kitas, Vereine und Firmen **selbst**. Eine 
 
 **Vorrang:** Namensspalten (2.6), Webadressen, Konten, E-Mail und Adressen gehen vor; von Hand markierte Einrichtungen und Namen gehen vor. Markierst du eine gefundene Einrichtung von Hand, ist sie ab dann sicher und ihre Frage fällt weg. Die Liste „Ausnahmen“ gilt auch hier.
 
-**Von Hand markieren gewinnt immer (seit 2.8.1):** Hast du eine gefundene Einrichtung vorher ausgeschaltet (Liste, Klick) oder mit „Nein“ beantwortet und markierst sie danach von Hand als Einrichtung, wird sie ersetzt und ist sicher. Dasselbe gilt für „Als Name markieren“.
+**Von Hand markieren gewinnt immer (seit 2.8.1):** Hast du eine gefundene Einrichtung vorher ausgeschaltet (Liste, Klick) oder mit „Nein“ beantwortet und markierst sie danach von Hand als Einrichtung, wird sie ersetzt und ist sicher. Dasselbe gilt für „Als Name markieren“, auch für einen Teil eines Namens („Grawert“ in „Melanie Grawert“): Jede Stelle, in der der markierte Name steht, wird ersetzt.
 
 **Personen gehen vor:**
 - Eine gefundene Einrichtung endet **vor einer Anrede oder einem Titel** (Herr, Frau, Dr., Prof. …): Aus „Gymnasium Tannhofen Herr Kessler“ wird die Einrichtung „Gymnasium Tannhofen“ und die Person „Herr Kessler“.
@@ -467,7 +467,7 @@ Version **2.8.1**, Stand 2026-11-22 (steht auch im Fußbereich des Tools).
 SHA-256 der `index.html` dieser Version:
 
 ```
-a3f76a0dca3d9782a57d8449893ada21d2703905787b6e7b152ed16d8b6d0d49
+a2c4e0120a1456d6386f45d3b17042e1cb8cfa1e5f12d4b46ca436bf17dae145
 ```
 
 Hinweis: Bei Version 2.6.1 stand hier versehentlich ein veralteter Wert (d411bf2f…). Die `index.html` von 2.6.1 hat die Prüfsumme f5b29a3d6cd1127b23a7226fbd44d155471d705c0dc961a6cf8853a983f18cc9.

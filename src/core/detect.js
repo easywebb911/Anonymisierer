@@ -753,7 +753,9 @@ export function analyze(units, state, extra = {}) {
   // 8) An/Aus pro Treffer
   hits.forEach((h, idx) => {
     h.id = idx;
-    h.key = h.s + ':' + h.e;
+    // Version 2.8.1 (Guardian-Lauf 2, Fund 1): Einrichtungs-Treffer haben eigene Schlüssel („o…“). Sonst erbt eine Person,
+    // die nach „Nein“ genau dieselbe Stelle belegt („Praxis Lindqvist“), das „aus“ der Einrichtung.
+    h.key = (h.type === 'org' ? 'o' : '') + h.s + ':' + h.e;
     const ov = st.overrides[h.key];
     h.on = ov === undefined ? !h.defaultOff : ov;
     h.label = h.type === 'person' ? entities.get(h.entity).label : h.type === 'org' ? orgs.get(h.entity).label : CONTACT_LABELS[h.type];
@@ -901,7 +903,7 @@ function matchOrgTerms(orgTerms, units, unitToks, unitStarts, covered, tokHit, f
 }
 // Version 2.8.1 (Teil 1): Wird dieser Treffer einer gefundenen Einrichtung NICHT ersetzt? (dieselbe Regel wie unten in 8)
 function autoOff(autoOpt, h) {
-  const ov = autoOpt.overrides[h.s + ':' + h.e];
+  const ov = autoOpt.overrides['o' + h.s + ':' + h.e];
   return ov === undefined ? !!h.defaultOff : ov === false;
 }
 // Version 2.8.0: Felder eines Treffers einer selbst gefundenen Einrichtung (bzw. einer Schreibweise, die zu einer von Hand

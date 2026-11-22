@@ -139,11 +139,13 @@ export const NACHBARN_ROWS = [
   'Herr Brennecke von der Grundschule Am Mühlbach',
   // Guardian-Fund 2: selbst erkannte Person aus, dann „Als Name markieren“
   'Melanie Grawert kommt morgen.',
+  // Guardian-Lauf 2, Fund 1: nach „Nein“ belegt die Person genau dieselbe Stelle wie die Einrichtung
+  'Liebe Eltern,', 'die Praxis Lindqvist ist am Montag zu.', 'Die Krippe Halvorsen bleibt heute zu.',
 ].map((r) => (Array.isArray(r) ? r : [r]));
 export const NACHBARN = NACHBARN_ROWS.flat();
 // Was ohne Antwort ersetzt sein muss (ganze Wörter, alle Modi)
 export const NACHBARN_PERSONS = ['Quarbeck', 'Broszat', 'Tewesmeier', 'Jana', 'Wolters', 'Tobias', 'Hellwig', 'Anja', 'Petersen', 'Okonkwo',
-  'Lehmann', 'Schuster', 'Demir', 'Kowalski', 'Albers', 'Brandner', 'Lindenau', 'Horten', 'Nikita', 'Schulenburg', 'Brennecke', 'Melanie', 'Grawert'];
+  'Lehmann', 'Schuster', 'Demir', 'Kowalski', 'Albers', 'Brandner', 'Lindenau', 'Horten', 'Nikita', 'Schulenburg', 'Brennecke', 'Melanie', 'Grawert', 'Lindqvist', 'Halvorsen'];
 export const NACHBARN_ORGS = ['Sonnenblume', 'Wiesenkamp', 'Lindgrün', 'Regenbogen', 'Lindenhof', 'Kirchberg', 'Tannhofen', 'Holzbau', 'Birkenhain', 'Mühlbach'];
 // Sperre-Test: nur Webadresse und Konto, sonst nichts zu ersetzen
 export const NURWEB = ['Mehr dazu unter www.beispiel-kinderhaus.de/termine.', 'Folgen Sie uns auf Instagram: @sonnenhof_kids'];

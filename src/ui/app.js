@@ -1258,11 +1258,20 @@ function addManual(term) {
   runAnalysis();
   // Version 2.8.1 (Teil 2): Von Hand markieren gewinnt immer. Stellen dieses Namens, die vorher aus waren (Schalter, Klick,
   // Antwort), werden ersetzt.
-  const norm = (x) => fold(x.replace(/\s+/g, ' ').trim());
-  // auch selbst erkannte Treffer mit gleichem Text (Guardian-Fund 2): „Melanie Grawert“ aus, dann als Name markiert
+  const norm = (x) => ' ' + fold(x).split(/[^\p{L}\p{N}]+/u).filter(Boolean).join(' ') + ' ';
+  // auch selbst erkannte Treffer (Guardian-Fund 2) und Treffer, in denen der markierte Name als ganze Wörter steht
+  // (Guardian-Lauf 2, Fund 2/3: „Grawert“ in „Melanie Grawert“, „Lindqvist“ in „Praxis Lindqvist“)
   const ents = new Set(app.result.hits.filter((x) => x.type === 'person' && !x.capsManual
-    && norm(app.result.fullText.slice(x.s, x.e)) === norm(t)).map((x) => x.entity));
-  if (markWins((x) => x.type === 'person' && ents.has(x.entity) && !x.capsManual)) runAnalysis();
+    && norm(app.result.fullText.slice(x.s, x.e)).includes(norm(t))).map((x) => x.entity));
+  let n = markWins((x) => x.type === 'person' && ents.has(x.entity) && !x.capsManual);
+  if (n) runAnalysis();
+  // Stellen, in denen der markierte Name steht und die trotzdem aus sind (z. B. „unsicher, aus“ bei „Unsichere“ aus):
+  // einschalten – von Hand markieren gewinnt immer (Guardian-Lauf 2, Fund 2)
+  n = 0;
+  for (const x of app.result.hits) {
+    if (x.type === 'person' && !x.on && !x.capsManual && norm(app.result.fullText.slice(x.s, x.e)).includes(norm(t))) { app.state.overrides[x.key] = true; n++; }
+  }
+  if (n) runAnalysis();
 }
 // Version 2.8.1 (Teil 2): ausgeschaltete Stellen (Umschaltung „aus“) der gerade von Hand markierten Sache wieder auf Standard
 function markWins(test) {

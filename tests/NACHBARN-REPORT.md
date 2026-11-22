@@ -2,54 +2,54 @@
 
 Geprüft: Anonymisierer/index.html; Vorversion 2.7.0: index-270.html; Vergleich 2.8.0: index-main-280.html. Nur Chromium, Firefox prüft Easy.
 
-Soll-Wörter (müssen ersetzt sein): Personen Quarbeck, Broszat, Tewesmeier, Jana, Wolters, Tobias, Hellwig, Anja, Petersen, Okonkwo, Lehmann, Schuster, Demir, Kowalski, Albers, Brandner, Lindenau, Horten, Nikita, Schulenburg, Brennecke, Melanie, Grawert; Einrichtungen Sonnenblume, Wiesenkamp, Lindgrün, Regenbogen, Lindenhof, Kirchberg, Tannhofen, Holzbau, Birkenhain, Mühlbach.
+Soll-Wörter (müssen ersetzt sein): Personen Quarbeck, Broszat, Tewesmeier, Jana, Wolters, Tobias, Hellwig, Anja, Petersen, Okonkwo, Lehmann, Schuster, Demir, Kowalski, Albers, Brandner, Lindenau, Horten, Nikita, Schulenburg, Brennecke, Melanie, Grawert, Lindqvist, Halvorsen; Einrichtungen Sonnenblume, Wiesenkamp, Lindgrün, Regenbogen, Lindenhof, Kirchberg, Tannhofen, Holzbau, Birkenhain, Mühlbach.
 Nicht im Soll: „Koch“ in „Bitte wenden Sie sich an Koch.“ – mehrdeutiges Wort nach Präposition, in 2.7.0, 2.8.0 und 2.8.1 gleich „unsicher, aus“ und gefragt (Wortliste „mehrdeutig“, nicht Teil dieses Auftrags).
 
 ## 1. Soll / gemessen (offene Stellen; Soll = 0)
 
 | Format | Modus | a) ohne Antwort | b) nach „Nein“ | c) „Unsichere“ aus | c2) „Unsichere“ aus, dann „Nein“ | 2.8.0: a / b / c |
 |---|---|---|---|---|---|---|
-| txt | person | 0 | 0 | 0 | 0 | 11 / 0 / 3 |
+| txt | person | 0 | 0 | 0 | 0 | 11 / 2 / 3 |
 - OK: txt, person: a) ohne Antwort jede Person und Einrichtung ersetzt
 - OK: txt, person: b) nach „Nein“ auf alle Einrichtungs-Fragen jede Person ersetzt
 - OK: txt, person: c) „Unsichere“ aus: alles ersetzt, was 2.7.0 so ersetzt
 - OK: txt, person: c2) „Unsichere“ aus, dann alle „Nein“: alles ersetzt, was 2.7.0 so ersetzt
-| txt | name | 0 | 0 | 0 | 0 | 11 / 0 / 3 |
+| txt | name | 0 | 0 | 0 | 0 | 11 / 2 / 3 |
 - OK: txt, name: a) ohne Antwort jede Person und Einrichtung ersetzt
 - OK: txt, name: b) nach „Nein“ auf alle Einrichtungs-Fragen jede Person ersetzt
 - OK: txt, name: c) „Unsichere“ aus: alles ersetzt, was 2.7.0 so ersetzt
 - OK: txt, name: c2) „Unsichere“ aus, dann alle „Nein“: alles ersetzt, was 2.7.0 so ersetzt
-| txt | reversible | 0 | 0 | 0 | 0 | 11 / 0 / 3 |
+| txt | reversible | 0 | 0 | 0 | 0 | 11 / 2 / 3 |
 - OK: txt, reversible: a) ohne Antwort jede Person und Einrichtung ersetzt
 - OK: txt, reversible: b) nach „Nein“ auf alle Einrichtungs-Fragen jede Person ersetzt
 - OK: txt, reversible: c) „Unsichere“ aus: alles ersetzt, was 2.7.0 so ersetzt
 - OK: txt, reversible: c2) „Unsichere“ aus, dann alle „Nein“: alles ersetzt, was 2.7.0 so ersetzt
-| csv | person | 0 | 0 | 0 | 0 | 11 / 0 / 3 |
+| csv | person | 0 | 0 | 0 | 0 | 11 / 2 / 3 |
 - OK: csv, person: a) ohne Antwort jede Person und Einrichtung ersetzt
 - OK: csv, person: b) nach „Nein“ auf alle Einrichtungs-Fragen jede Person ersetzt
 - OK: csv, person: c) „Unsichere“ aus: alles ersetzt, was 2.7.0 so ersetzt
 - OK: csv, person: c2) „Unsichere“ aus, dann alle „Nein“: alles ersetzt, was 2.7.0 so ersetzt
-| csv | name | 0 | 0 | 0 | 0 | 11 / 0 / 3 |
+| csv | name | 0 | 0 | 0 | 0 | 11 / 2 / 3 |
 - OK: csv, name: a) ohne Antwort jede Person und Einrichtung ersetzt
 - OK: csv, name: b) nach „Nein“ auf alle Einrichtungs-Fragen jede Person ersetzt
 - OK: csv, name: c) „Unsichere“ aus: alles ersetzt, was 2.7.0 so ersetzt
 - OK: csv, name: c2) „Unsichere“ aus, dann alle „Nein“: alles ersetzt, was 2.7.0 so ersetzt
-| csv | reversible | 0 | 0 | 0 | 0 | 11 / 0 / 3 |
+| csv | reversible | 0 | 0 | 0 | 0 | 11 / 2 / 3 |
 - OK: csv, reversible: a) ohne Antwort jede Person und Einrichtung ersetzt
 - OK: csv, reversible: b) nach „Nein“ auf alle Einrichtungs-Fragen jede Person ersetzt
 - OK: csv, reversible: c) „Unsichere“ aus: alles ersetzt, was 2.7.0 so ersetzt
 - OK: csv, reversible: c2) „Unsichere“ aus, dann alle „Nein“: alles ersetzt, was 2.7.0 so ersetzt
-| xlsx | person | 0 | 0 | 0 | 0 | 11 / 0 / 3 |
+| xlsx | person | 0 | 0 | 0 | 0 | 11 / 2 / 3 |
 - OK: xlsx, person: a) ohne Antwort jede Person und Einrichtung ersetzt
 - OK: xlsx, person: b) nach „Nein“ auf alle Einrichtungs-Fragen jede Person ersetzt
 - OK: xlsx, person: c) „Unsichere“ aus: alles ersetzt, was 2.7.0 so ersetzt
 - OK: xlsx, person: c2) „Unsichere“ aus, dann alle „Nein“: alles ersetzt, was 2.7.0 so ersetzt
-| xlsx | name | 0 | 0 | 0 | 0 | 11 / 0 / 3 |
+| xlsx | name | 0 | 0 | 0 | 0 | 11 / 2 / 3 |
 - OK: xlsx, name: a) ohne Antwort jede Person und Einrichtung ersetzt
 - OK: xlsx, name: b) nach „Nein“ auf alle Einrichtungs-Fragen jede Person ersetzt
 - OK: xlsx, name: c) „Unsichere“ aus: alles ersetzt, was 2.7.0 so ersetzt
 - OK: xlsx, name: c2) „Unsichere“ aus, dann alle „Nein“: alles ersetzt, was 2.7.0 so ersetzt
-| xlsx | reversible | 0 | 0 | 0 | 0 | 11 / 0 / 3 |
+| xlsx | reversible | 0 | 0 | 0 | 0 | 11 / 2 / 3 |
 - OK: xlsx, reversible: a) ohne Antwort jede Person und Einrichtung ersetzt
 - OK: xlsx, reversible: b) nach „Nein“ auf alle Einrichtungs-Fragen jede Person ersetzt
 - OK: xlsx, reversible: c) „Unsichere“ aus: alles ersetzt, was 2.7.0 so ersetzt
@@ -89,7 +89,7 @@ Ausnahmen in c (einzeln, Grund: Teil 4 – ein Kopfwort der Einrichtungs-Suche g
 
 ## 2. Bedienwege über die Oberfläche (TXT, Modus „Person A“)
 - OK: Teil 1: „Unsichere“ aus – „Der Verein Quarbeck“, „Die Kanzlei Broszat“, „Das Institut Tewesmeier“: Name ersetzt – Der Verein Person A lädt ein. | Die Kanzlei Person D berät Sie gern. | Das Institut Person E schreibt aus. | Herr Person M vom Verein Birkenhain e. V.
-- OK: Teil 1: „Unsichere“ aus, Schalter „Koch“ an – „Die Praxis Koch“: Name ersetzt – Die Praxis Person B ist am Montag zu.
+- OK: Teil 1: „Unsichere“ aus, Schalter „Koch“ an – „Die Praxis Koch“: Name ersetzt – Die Praxis Person B ist am Montag zu. | die Praxis Lindqvist ist am Montag zu.
 - OK: Teil 2: „Kita Sonnenblume“ in der Liste aus, dann von Hand markiert – ersetzt und sicher – aus: Klartext; danach 3 Stellen, an: true, sicher
 - OK: Teil 2: „Familienzentrum Wiesenkamp“ in der Liste aus, dann von Hand markiert – ersetzt und sicher – aus: Klartext; danach 2 Stellen, an: true, sicher
 - OK: Teil 2: „Musikschule Lindgrün“ in der Liste aus, dann von Hand markiert – ersetzt und sicher – aus: Klartext; danach 2 Stellen, an: true, sicher
@@ -99,6 +99,12 @@ Ausnahmen in c (einzeln, Grund: Teil 4 – ein Kopfwort der Einrichtungs-Suche g
 - OK: Oberfläche: kein Text „null“ oder „undefined“
 - OK: Fund 2: „Melanie Grawert“ (selbst erkannt) in der Liste aus, dann „Als Name markieren“ – ersetzt – aus: Klartext; danach ersetzt
 - OK: Fund 2: „Melanie Grawert“ (selbst erkannt) in der Liste aus, dann „Als Name markieren“ – ersetzt („Unsichere“ aus) – aus: Klartext; danach ersetzt
+- OK: Lauf 2, Fund 3: „Melanie Grawert“ aus, dann nur „Grawert“ als Name markiert – „Grawert“ ersetzt
+- OK: Lauf 2, Fund 3: „Melanie Grawert“ aus, dann nur „Grawert“ als Name markiert – „Grawert“ ersetzt („Unsichere“ aus)
+- OK: Lauf 2, Fund 1: „Praxis Lindqvist“ „Nein“ – Name ersetzt – Die Einrichtung B ist am Montag zu.
+- OK: Lauf 2, Fund 2: „Praxis Lindqvist“ „Nein“, „Unsichere“ aus, dann „Lindqvist“ als Name markiert – Name ersetzt – Die Praxis Koch ist am Montag zu.
+- OK: Lauf 2, Fund 1: „Praxis Lindqvist“ in der Liste aus – Name ersetzt – Die Einrichtung B ist am Montag zu.
+- OK: Lauf 2, Fund 2: „Praxis Lindqvist“ in der Liste aus, „Unsichere“ aus, dann „Lindqvist“ als Name markiert – Name ersetzt – Die Praxis Koch ist am Montag zu.
 - OK: Fund 4: Person „Jana Wolters“ aus – Einrichtung bleibt „Kita Sonnenblume“; danach als Name markiert: Person ersetzt – vorher Kita Sonnenblume; nach Ausschalten Kita Sonnenblume; Person an: 1; Einrichtung E Person F
 - OK: Fund 4: Person „Jana Wolters“ aus – Einrichtung bleibt „Kita Sonnenblume“; danach als Name markiert: Person ersetzt („Unsichere“ aus) – vorher Kita Sonnenblume; nach Ausschalten Kita Sonnenblume; Person an: 1; 
 
@@ -116,4 +122,4 @@ Ausnahmen in c (einzeln, Grund: Teil 4 – ein Kopfwort der Einrichtungs-Suche g
 - OK: 0 Anfragen ins Netz – 0
 - OK: 0 Fehler in der Seite
 
-**Ergebnis: bestanden** (60/60).
+**Ergebnis: bestanden** (66/66).
