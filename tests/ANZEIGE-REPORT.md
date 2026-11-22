@@ -1,6 +1,6 @@
 # Anzeige beim Prüfen (Version 2.6.1)
 
-Chromium headless gegen index.html (SHA-256 d70bfc4381ef3c68…). Alle Namen in den Testdateien sind erfunden.
+Chromium headless gegen index.html (SHA-256 c3ce5b2b219992ef…). Alle Namen in den Testdateien sind erfunden.
 
 ## a) Drei Zustände im Text und im Satz-Ausschnitt
 - OK: wird ersetzt: Fläche #FFF3C4, kein Rahmen – rgb(255, 243, 196), Rahmen 3px none rgb(23, 33, 43), Stärke 400
@@ -48,14 +48,14 @@ Chromium headless gegen index.html (SHA-256 d70bfc4381ef3c68…). Alle Namen in 
 - OK: anmeldung.txt: nach jedem Fragenwechsel erste Stelle sichtbar (5/5)
 - OK: anmeldung.txt: Klick auf eine Markierung rollt nicht
 - OK: anmeldung.txt: Fokus bleibt (Tasten J/N), 5/5
-- OK: einrichtungen-auto.docx: 15 Fragen, kräftig markiert = Stellen der Frage
-- OK: einrichtungen-auto.docx: nach jedem Fragenwechsel erste Stelle sichtbar (16/16)
+- OK: einrichtungen-auto.docx: 14 Fragen, kräftig markiert = Stellen der Frage
+- OK: einrichtungen-auto.docx: nach jedem Fragenwechsel erste Stelle sichtbar (14/14)
 - OK: einrichtungen-auto.docx: Klick auf eine Markierung rollt nicht
-- OK: einrichtungen-auto.docx: Fokus bleibt (Tasten J/N), 17/17
-- OK: einrichtungen-auto.xlsx: 14 Fragen, kräftig markiert = Stellen der Frage
-- OK: einrichtungen-auto.xlsx: nach jedem Fragenwechsel erste Stelle sichtbar (16/16)
+- OK: einrichtungen-auto.docx: Fokus bleibt (Tasten J/N), 15/15
+- OK: einrichtungen-auto.xlsx: 13 Fragen, kräftig markiert = Stellen der Frage
+- OK: einrichtungen-auto.xlsx: nach jedem Fragenwechsel erste Stelle sichtbar (14/14)
 - OK: einrichtungen-auto.xlsx: Klick auf eine Markierung rollt nicht
-- OK: einrichtungen-auto.xlsx: Fokus bleibt (Tasten J/N), 16/16
+- OK: einrichtungen-auto.xlsx: Fokus bleibt (Tasten J/N), 14/14
 
 | Datei | Fragen | kräftig = Stellen | ohne Frage nichts kräftig | Fragenwechsel | Stelle sichtbar | Klick rollt nicht | Fokus unverändert |
 |---|---|---|---|---|---|---|---|
@@ -68,8 +68,8 @@ Chromium headless gegen index.html (SHA-256 d70bfc4381ef3c68…). Alle Namen in 
 | mehrblatt.xlsx | 3 | 3/3 | ja | 4 | 4/4 | ja | 4/4 |
 | lang.txt | 3 | 3/3 | ja | 3 | 3/3 | ja | 3/3 |
 | anmeldung.txt | 5 | 5/5 | ja | 5 | 5/5 | ja | 5/5 |
-| einrichtungen-auto.docx | 15 | 15/15 | ja | 16 | 16/16 | ja | 17/17 |
-| einrichtungen-auto.xlsx | 14 | 14/14 | ja | 16 | 16/16 | ja | 16/16 |
+| einrichtungen-auto.docx | 14 | 14/14 | ja | 14 | 14/14 | ja | 15/15 |
+| einrichtungen-auto.xlsx | 13 | 13/13 | ja | 14 | 14/14 | ja | 14/14 |
 - OK: mit Gleit-Bewegung: Stelle nach dem Rollen sichtbar (lang.txt) – Frage 2 von 3
 - OK: Excel: eigener Reiterwechsel bleibt (Blatt 0 → 1); nächste Frage wechselt zum Blatt ihrer Stelle
 
@@ -113,6 +113,10 @@ Fallen:
 - OK: Einrichtungs-Frage (vier Schreibweisen) Nein → Ja (einrichtungen-auto.docx, drei Modi)
 - OK: Einrichtungs-Frage: Ja, Einstellung geändert, Nein → wie Einstellung + direkt Nein (anmeldung.txt, drei Modi)
 - OK: Einrichtungs-Frage: Nein, Liste geändert (Name hinzu), Ja → wie Liste + direkt Ja (anmeldung.txt, drei Modi)
+- OK: Einrichtung mit Personen-Frage darin: Ja → Nein → Ja = direkt Ja („Kita Sonnenblume“, nach Nein wieder Frage „Kita“) (einrichtungen-auto.docx, drei Modi)
+- OK: Einrichtung mit Personen-Frage darin: Ja → Nein = direkt Nein („Kita Sonnenblume“) (einrichtungen-auto.docx, drei Modi)
+- OK: Bindestrich-Form: Nein → Ja = direkt Ja („Erika-Brandner-Schule“) (einrichtung-person.txt, drei Modi)
+- OK: Bindestrich-Form: Ja → Nein = direkt Nein („Erika-Brandner-Schule“) (einrichtung-person.txt, drei Modi)
 - OK: Mehrfach geändert (Ja → Nein → Ja → Nein) (brief.docx, drei Modi)
 
 ## Einstellungen und Listen nach Antworten (Entscheidung Easy)
@@ -158,13 +162,13 @@ Fallen:
 | b) kräftig markiert = Stellen der gezeigten Frage, für jede Frage jeder Datei; 0 bei Dateiangaben und ohne Frage | alle | 11 von 11 bestanden |
 | c) erste Stelle nach jedem Fragenwechsel sichtbar, Excel-Reiter, kein Rollen bei Klick, Fokus bleibt | alle | 35 von 35 bestanden |
 | d) Zähler lückenlos, ← k−1, Knöpfe, Pfeiltasten, keine Wirkung in Eingabefeldern | alle | 10 von 10 bestanden |
-| e) Weg-Gleichheit je Fragen-Art und Richtung + Fallen, drei Modi und Schlüsseldatei | alle | 25 von 25 bestanden |
+| e) Weg-Gleichheit je Fragen-Art und Richtung + Fallen, drei Modi und Schlüsseldatei | alle | 29 von 29 bestanden |
 | s) Einstellung nach Antworten: wie frisch, Fragen offen, Hinweis | alle | 9 von 9 bestanden |
 | l) Liste: entfernt → Nein, hinzugefügt → unverändert | alle | 3 von 3 bestanden |
 | f) Rückbau nach geänderten Antworten exakt (docx, xlsx, txt) | alle | 3 von 3 bestanden |
 | z) kein „null“/„undefined“ in Fragekarte und Bildschirmen | alle | 12 von 12 bestanden |
 | n) 0 Anfragen nach außen, keine JS-Fehler | alle | 2 von 2 bestanden |
 
-Geprüfte Fragen (b): 75 in 11 Dateien. Weg-Gleichheit (e): 25 Fälle × 3 Modi. Rückbau (f): 3 Dateien.
+Geprüfte Fragen (b): 73 in 11 Dateien. Weg-Gleichheit (e): 29 Fälle × 3 Modi. Rückbau (f): 3 Dateien.
 
-**Ergebnis: 117 von 117 Prüfungen bestanden.** Nur Chromium; Firefox prüft Easy.
+**Ergebnis: 121 von 121 Prüfungen bestanden.** Nur Chromium; Firefox prüft Easy.

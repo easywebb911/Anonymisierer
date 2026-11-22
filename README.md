@@ -121,13 +121,18 @@ Das Tool findet Schulnamen, Träger, Kitas, Vereine und Firmen **selbst**. Eine 
 
 **Was das Tool bewusst nicht findet:**
 - Ein Kopfwort allein („an der Schule“, „die Kita öffnet“).
-- Ein Kopfwort mit einem Wort, das dort üblich und kein Name ist (Ausschluss-Liste): Wochentage, Monate und Schuljahr, Halbjahr, Jahrgang, Jahrgangsstufe, Klasse(n), Unterricht, Anmeldung, Leitung, Schulleitung, Eltern, Elternbeirat, Elternabend, Kinder, Schüler(in/innen), Lehrer(in/innen), Lehrkraft, Lehrkräfte, Mitglied(er), Vorstand, Satzung, Öffnungszeiten, Betreuung, Gebühr(en), Beitrag, Beiträge, Träger, Gebäude, Hof, Ferien, Termin(e), Team, Sekretariat, Verwaltung, Kontakt, Telefon, Fax, Adresse, Anschrift, Website, Webseite, Homepage, Mittagessen, Essen, Mensa, Aula, Turnhalle, Sporthalle, Bibliothek, Kosten, Programm, Stundenplan, Speiseplan, Elternbrief, Info(s), Informationen, Hinweis(e), Formular, Antrag, Woche(n), Jahr, Tag(e), Uhr, Beginn, Ende, Neubau, Alltag („Ganztagsschule Schuljahr“ ist kein Fund).
+- Ein Kopfwort mit einem Wort, das dort üblich und kein Name ist (Ausschluss-Liste): Schulfächer (Deutsch, Mathe, Mathematik, Englisch, Französisch, Latein, Spanisch, Italienisch, Sport, Musik, Kunst, Religion, Ethik, Biologie, Bio, Chemie, Physik, Geschichte, Erdkunde, Geografie, Sachkunde, Sachunterricht, Informatik, Werken, Textil, Wirtschaft, Politik, Sozialkunde, Hauswirtschaft), Räume (Raum, Räume, Zimmer, Saal, Halle, Küche, Garten, Pausenhof, Flur, Eingang), Funktionen (Rektor/in, Konrektor/in, Direktor/in, Vorsitzende/r, Vorsitz, Aufnahme, Gruppe(n), Hausmeister/in, Personal, Elternvertreter/in), Wörter auf -fest, -feier, -tag, -woche, -raum, -zimmer, -saal, -halle (Sommerfest, Projektwoche), Wochentage, Monate und Schuljahr, Halbjahr, Jahrgang, Jahrgangsstufe, Klasse(n), Unterricht, Anmeldung, Leitung, Schulleitung, Eltern, Elternbeirat, Elternabend, Kinder, Schüler(in/innen), Lehrer(in/innen), Lehrkraft, Lehrkräfte, Mitglied(er), Vorstand, Satzung, Öffnungszeiten, Betreuung, Gebühr(en), Beitrag, Beiträge, Träger, Gebäude, Hof, Ferien, Termin(e), Team, Sekretariat, Verwaltung, Kontakt, Telefon, Fax, Adresse, Anschrift, Website, Webseite, Homepage, Mittagessen, Essen, Mensa, Aula, Turnhalle, Sporthalle, Bibliothek, Kosten, Programm, Stundenplan, Speiseplan, Elternbrief, Info(s), Informationen, Hinweis(e), Formular, Antrag, Woche(n), Jahr, Tag(e), Uhr, Beginn, Ende, Neubau, Alltag („Ganztagsschule Schuljahr“ ist kein Fund).
 - Titel in Anführungszeichen hinter Vortrag, Kurs, Projekt, Thema, Motto, Buch, Titel, Lied, Film, Workshop, Seminar, Fach, AG, Stück, Artikel (außer Merkmal 1 bis 3 gilt).
 - Orte allein („Stadt Kirchberg“, „Freistaat Bayern“). Ein Ort wird nur als Teil eines Einrichtungsnamens ersetzt.
 
 **Was nur gewarnt wird:** Ein Name in Anführungszeichen ohne eins der Merkmale 1 bis 4 wird nicht ersetzt und nicht gefragt. Er steht im Punkt „Hier könnte eine Einrichtung stehen“ auf „Speichern“.
 
 **Vorrang:** Namensspalten (2.6), Webadressen, Konten, E-Mail und Adressen gehen vor; von Hand markierte Einrichtungen und Namen gehen vor. Markierst du eine gefundene Einrichtung von Hand, ist sie ab dann sicher und ihre Frage fällt weg. Die Liste „Ausnahmen“ gilt auch hier.
+
+**Personen gehen vor:**
+- Eine gefundene Einrichtung endet **vor einer Anrede oder einem Titel** (Herr, Frau, Dr., Prof. …): Aus „Gymnasium Tannhofen Herr Kessler“ wird die Einrichtung „Gymnasium Tannhofen“ und die Person „Herr Kessler“.
+- Eine gefundene Einrichtung verdeckt **nie eine Stelle, die das Tool sonst sicher als Person ersetzt** (Ausnahme: Name mit Bindestrich wie „Erika-Brandner-Schule“). Ist das so, wird die Person ersetzt, und die Einrichtung steht im Punkt „Hier könnte eine Einrichtung stehen“ (z. B. „Verein Quarstedt“, wenn auch „Herr Anton Quarstedt“ im Text steht).
+- **„Nein“** bei einer gefundenen Einrichtung (oder Ausschalten in der Liste oder per Klick) gibt ihre Wörter frei: Das Tool sucht dort wieder nach Personen, mit eigenen Fragen. Was Version 2.7 ersetzt hat, wird so auch nach „Nein“ ersetzt.
 
 **Neuer Punkt auf „Speichern“:** Wird eine gefundene Einrichtung nicht ersetzt und ist ihre Frage offen (z. B. weil „Unsichere Treffer standardmäßig ersetzen“ aus ist), steht dort „Eine Einrichtung steht noch im Text: …“ mit Fundort, „Im Text zeigen“ und „Ersetzen“. Nach „Nein“ oder bewusstem Ausschalten kommt kein Punkt.
 
@@ -318,6 +323,8 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 - **Sachwörter nach einem Kopfwort**, die nicht auf der Ausschluss-Liste stehen („Grundschule Deutsch“, „Theater AG“), werden als Einrichtung ersetzt und gefragt. Dann mit „Nein“ antworten.
 - **Mehrere Schulen mit gemeinsamen Namens-Wörtern** („Gymnasium Kirchberg“ und „Gymnasium Tannhofen“ und „Gymnasium Kirchberg Tannhofen“ im selben Text) werden eine Einrichtung.
 - **Merkmal 2 und Umlaute:** Ein Wort mit Umlaut zählt nur als Name, wenn es ein Vorname ist („Blätter“ ist nicht der Nachname „Blatter“).
+- **Merkmal 2 (Vor- oder Nachname in Anführungszeichen)** wirkt kaum: Ein solches Wort ist fast immer schon allein eine sichere Person („Haus Marlene“). Dann wird es als Person ersetzt, und der Name steht im Punkt „Hier könnte eine Einrichtung stehen“.
+- **Einrichtung nach einer Person benannt** („Verein Quarstedt“ neben „Herr Anton Quarstedt“): Der Name wird als Person ersetzt, „Verein“ bleibt stehen; die Einrichtung steht im Warnpunkt.
 
 **Seit Version 2.7 (Webadressen, Konten, Warnpunkt):**
 - (Seit 2.8 findet das Tool Einrichtungen selbst, siehe unten.)
@@ -455,7 +462,7 @@ Version **2.8.0**, Stand 2026-11-21 (steht auch im Fußbereich des Tools).
 SHA-256 der `index.html` dieser Version:
 
 ```
-d70bfc4381ef3c686819f027dbe9b6b3aa8e3a7458c5c62460c971e7d2e0a38b
+c3ce5b2b219992ef91b85cbbe5460b4bc85d200e17428bf11696661717f2290d
 ```
 
 Hinweis: Bei Version 2.6.1 stand hier versehentlich ein veralteter Wert (d411bf2f…). Die `index.html` von 2.6.1 hat die Prüfsumme f5b29a3d6cd1127b23a7226fbd44d155471d705c0dc961a6cf8853a983f18cc9.

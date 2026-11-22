@@ -1,4 +1,101 @@
-# Messungen Version 2.8.0, PR B „Einrichtungen selbst finden“
+# Messungen Version 2.8.0, PR B „Einrichtungen selbst finden“ – Stand nach der Nachbesserung (gilt)
+
+Nur Chromium, Firefox prüft Easy. Vorversion = main 2.7.0 (631a2bcd…). Bisheriger PR-Stand = d70bfc43….
+
+## Nachbesserung: was sich geändert hat
+- **Befund 1 (Leck):** Eine gefundene Einrichtung endet vor einer Anrede oder einem Titel (alle, die die Personen-Erkennung kennt: Herr, Herrn, Frau, Fräulein, Hr., Fr., Dr., Prof. …). Eine gefundene Einrichtung verdeckt nie eine Stelle, die die Personen-Erkennung ohne sie „sicher“ ersetzt (Ausnahme Bindestrich-Form „Erika-Brandner-Schule“); dafür rechnet das Tool einmal ohne gefundene Einrichtungen (nur wenn es Funde gibt). Eine so verdrängte Einrichtung steht im Warnpunkt. „Nein“, Schalter oder Klick auf eine gefundene Einrichtung gibt ihre Wörter frei: Das Tool rechnet neu, die Personen-Erkennung gilt dort wieder, mit ihren eigenen Fragen (auch Bindestrich-Form und Anführungszeichen). Antworten zu Fragen, die beim Wieder-Einschalten wegfallen, werden verworfen (wie bei Listen, 2.6.1).
+- **Befund 2 (Fehltreffer):** Ausschluss-Liste erweitert (vollständige Liste in src/core/orgauto.js, EXCLUDE_AFTER und EXCLUDE_ENDINGS):
+  - bisher: Wochentage, Monate, Schuljahr(es/e), Halbjahr(es), Jahrgang(s), Jahrgangsstufe, Klasse(n), Unterricht(s), Anmeldung(en), Leitung, Schulleitung, Eltern, Elternbeirat, Elternabend, Kinder(n), Schüler(in/innen/n), Lehrer(in/innen/n), Lehrkräfte, Lehrkraft, Mitglied(er/ern), Vorstand, Satzung, Öffnungszeiten, Betreuung, Gebühr(en), Beitrag, Beiträge, Träger, Gebäude, Hof, Ferien, Termin(e), Team, Sekretariat, Verwaltung, Kontakt, Telefon, Fax, Adresse, Anschrift, Website, Webseite, Homepage, Mittagessen, Essen, Mensa, Aula, Turnhalle, Sporthalle, Bibliothek, Kosten, Programm, Stundenplan, Speiseplan, Elternbrief, Info(s), Informationen, Hinweis(e), Formular, Antrag, Woche(n), Jahr, Tag(e), Uhr, Beginn, Ende, Neubau, Alltag;
+  - **neu, Schulfächer:** Deutsch, Mathe, Mathematik, Englisch, Französisch, Latein, Spanisch, Italienisch, Sport, Musik, Kunst, Religion, Ethik, Biologie, Bio, Chemie, Physik, Geschichte, Erdkunde, Geografie, Geographie, Sachkunde, Sachunterricht, Informatik, Werken, Textil, Wirtschaft, Politik, Sozialkunde, Hauswirtschaft;
+  - **neu, Raum-Wörter:** Raum, Räume, Zimmer, Saal, Halle, Küche, Garten, Pausenhof, Flur, Eingang (Aula, Turnhalle, Mensa schon bisher);
+  - **neu, Funktions-Wörter:** Rektor, Rektorin, Konrektor, Konrektorin, Direktor, Direktorin, Vorsitzender, Vorsitzende, Vorsitz, Aufnahme, Gruppe, Gruppen, Hausmeister, Hausmeisterin, Personal, Elternvertreter, Elternvertreterin (Leitung, Sekretariat, Verwaltung, Team schon bisher);
+  - **neu, Endungen:** Wörter auf -fest, -feste, -feier, -feiern, -tag, -tage, -woche, -wochen, -raum, -zimmer, -saal, -halle (z. B. Sommerfest, Weihnachtsfeier, Wandertag, Projektwoche, Klassenzimmer).
+  - „Kita Sonnenblume“ und „Kinderhaus Regenbogen“ bleiben Funde.
+
+## Maßstab (Punkt 4/7, tests/massstab-test.mjs → tests/MASSSTAB-REPORT.md)
+130 Dateien (alle Testdateien und 15 Korpus-Abschnitte), **1809 Stellen**, die 2.7.0 ohne Antwort ersetzt. Vier Abläufe in 2.8.0: ohne Antwort, nach „Nein“ auf alle Einrichtungs-Fragen, nach „Ja“ → „Nein“, mit „Unsichere Treffer ersetzen“ aus (verglichen mit 2.7.0 mit derselben Einstellung). **0 Stellen fehlen.**
+Gegenprobe gegen den bisherigen PR-Stand (d70bfc43…): schlägt fehl. Dort standen nach „Nein“ im Klartext: „Kessler“, „Holzbau Lehmann“, „Brandner“ (einrichtung-person.txt), 49 Nachnamen („Quarstedt“, „Wendstedt“ …) in verwechslung.txt/.docx, „Wendorf“, „Georg Wendorf“, „WENDORF“, „Haus“, „Marlene“, „Kita“ (einrichtungen-auto.*), „Kita“ (sc-freie-person.*, einrichtung-person.csv/.xlsx).
+
+**Weitere Wege (Punkt 4), die ich gefunden habe:** Alle betreffen denselben Mechanismus wie Befund 1. Eine gefundene Einrichtung hatte Wörter belegt, die 2.7.0 als Person ersetzt (auch „unsicher, an“ und Personen-Treffer, die über den Namen im ganzen Dokument verbreitet werden, z. B. „Quarstedt“ aus „Herr Anton Quarstedt“ in „Verein Quarstedt“). Nach „Nein“, Schalter oder Klick blieben sie stehen. Behoben durch die Freigabe (s. o.); geprüft in allen vier Abläufen. Einen Weg mit unklarer Lösung habe ich nicht gefunden.
+
+## Fehltreffer neu (vorher: 134 richtig, 2 falsch)
+130 Dateien und Korpus-Abschnitte; Fragen insgesamt 2.7.0: 341, 2.8.0: 413 (bisheriger PR-Stand: 505); in 98 Dateien unverändert.
+
+| Datei | Fragen 2.7.0 | Fragen 2.8.0 | neue Fragen | weggefallene Fragen |
+|---|---|---|---|---|
+| fixtures/einrichtung-absatz-text.docx | 0 | 1 | Einrichtung: musikschule am stadtpark | – |
+| fixtures/einrichtung-absatz-text.txt | 0 | 1 | Einrichtung: musikschule am stadtpark | – |
+| fixtures/einrichtung-umbruch-crlf.txt | 0 | 1 | Einrichtung: musikschule am stadtpark | – |
+| fixtures/einrichtung-umbruch.txt | 0 | 1 | Einrichtung: musikschule am stadtpark | – |
+| fixtures/einrichtung.csv | 0 | 2 | Einrichtung: familienzentrum sonnenblume, Einrichtung: astrid-lindgren-schule | – |
+| fixtures/einrichtung.docx | 1 | 3 | Einrichtung: familienzentrum sonnenblume, Einrichtung: astrid-lindgren-schule | – |
+| fixtures/einrichtung.txt | 0 | 2 | Einrichtung: familienzentrum sonnenblume, Einrichtung: astrid-lindgren-schule | – |
+| fixtures/einrichtung.xlsx | 1 | 3 | Einrichtung: familienzentrum sonnenblume, Einrichtung: astrid-lindgren-schule | – |
+| fixtures/kurse.docx | 11 | 12 | Einrichtung: familienzentrum sonnenblume | – |
+| fixtures/sc-briefkopf-und-text.docx | 0 | 1 | Einrichtung: musikschule am stadtpark | – |
+| fixtures/sc-briefkopf-und-text.txt | 0 | 1 | Einrichtung: musikschule am stadtpark | – |
+| fixtures/sc-freie-person.docx | 1 | 1 | Einrichtung: kita freie | p:S|kita |
+| fixtures/sc-freie-person.txt | 1 | 1 | Einrichtung: kita freie | p:S|kita |
+| fixtures/sc-kopf-fuss-bild.docx | 0 | 1 | Einrichtung: musikschule am stadtpark | – |
+| fixtures/sc-vollstaendig-ersetzt.docx | 0 | 1 | Einrichtung: musikschule am stadtpark | – |
+| fixtures/sc-vollstaendig-ersetzt.txt | 0 | 1 | Einrichtung: musikschule am stadtpark | – |
+| fixtures-traeger/anmeldung.csv | 3 | 5 | Einrichtung: gymnasium tannhofen, Einrichtung: brandner lern und spiel | – |
+| fixtures-traeger/anmeldung.docx | 3 | 5 | Einrichtung: gymnasium tannhofen, Einrichtung: brandner lern und spiel | – |
+| fixtures-traeger/anmeldung.pdf | 3 | 5 | Einrichtung: gymnasium tannhofen, Einrichtung: brandner lern und spiel | – |
+| fixtures-traeger/anmeldung.txt | 3 | 5 | Einrichtung: gymnasium tannhofen, Einrichtung: brandner lern und spiel | – |
+| fixtures-traeger/anmeldung.xlsx | 3 | 5 | Einrichtung: gymnasium tannhofen, Einrichtung: brandner lern und spiel | – |
+| fixtures-traeger/einrichtung-person.csv | 1 | 2 | Einrichtung: kita sonnenblume, Einrichtung: gymnasium tannhofen | p:S|kita |
+| fixtures-traeger/einrichtung-person.txt | 3 | 5 | Einrichtung: gymnasium tannhofen, Einrichtung: firma holzbau lehmann gmbh, Einrichtung: erika-brandner-schule | p:N|holzbau|lehmann |
+| fixtures-traeger/einrichtung-person.xlsx | 1 | 2 | Einrichtung: kita sonnenblume, Einrichtung: gymnasium tannhofen | p:S|kita |
+| fixtures-traeger/einrichtungen-auto.docx | 3 | 14 | Einrichtung: kita sonnenblume, Einrichtung: kinderhaus regenbogen, Einrichtung: gymnasium wendorf … (11) | – |
+| fixtures-traeger/einrichtungen-auto.txt | 2 | 13 | Einrichtung: kita sonnenblume, Einrichtung: kinderhaus regenbogen, Einrichtung: gymnasium wendorf … (11) | – |
+| fixtures-traeger/einrichtungen-auto.xlsx | 2 | 13 | Einrichtung: kita sonnenblume, Einrichtung: kinderhaus regenbogen, Einrichtung: gymnasium wendorf … (11) | – |
+| korpus/kursbeschreibungen | 12 | 13 | Einrichtung: familienzentrum am lindenhof | – |
+| korpus/elternbrief | 10 | 11 | Einrichtung: kita sonnenblume | – |
+| korpus/schule | 12 | 13 | Einrichtung: grundschule am lindenweg | – |
+| korpus/nachbarschaft | 7 | 8 | Einrichtung: verein nachbarschaftshilfe | – |
+| korpus/kooperation | 2 | 5 | Einrichtung: lindenhof beratung gmbh, Einrichtung: kita freie spatzen, Einrichtung: kita sonnenblume, Einrichtung: sportverein tsv grunwiese | p:S|kita |
+
+Bewertung je gefundener Einrichtung (vorhandene Dateien und Korpus, ohne die neuen Testdateien einrichtungen-auto und einrichtung-person):
+- **richtig:** „Musikschule am Stadtpark“ (9 Dateien), „Familienzentrum Sonnenblume“ mit Schreibweisen und „Astrid-Lindgren-Schule“ (einrichtung.* je 2), „Familienzentrum Sonnenblume“ (kurse.docx), „Gymnasium Tannhofen“ und „Brandner lern und spiel“ (anmeldung.*, je 2), Korpus: „Familienzentrum am Lindenhof“, „Kita Sonnenblume“ (2×), „Grundschule am Lindenweg“, „Verein Nachbarschaftshilfe“, „Lindenhof Beratung GmbH“, „Kita Freie Spatzen“, „Sportverein TSV Grünwiese“.
+- **falsch (Bruchstück):** „Kita Freie“ (sc-freie-person.txt/.docx), je 1 Frage, unverändert.
+- Summe (je Datei gezählt): **richtig 36 in 19 Dateien und 5 Korpus-Abschnitten, falsch 2.** Weniger als vorher (134), weil die 49 „Verein …“ in verwechslung.txt/.docx jetzt keine Einrichtung mehr sind: Ihr Name ist zugleich eine sichere Person („Herr Anton Quarstedt“), die Person geht vor (Regel 2). Der Name wird als Person ersetzt; die Vereine stehen im Warnpunkt.
+
+## Warnpunkt vorher/nachher
+- 2.7.0: 93 Stellen auf denselben Dateien (früher gemessen 43 richtig / 14 falsch).
+- Bisheriger PR-Stand: 5, alle falsch.
+- **Jetzt: 5 falsch wie bisher** (gegenprobe-platzhalter: „Nachname C“, „Vorname D“; Korpus: „Essen aus aller Welt“, „Natur vor unserer Tür“, „Gemeinsam statt einsam“) **und 98 richtige verdrängte Einrichtungen** (verwechslung.txt/.docx je 49 „Verein …“, angezeigt zehn und „und 39 weitere“). Neu in den neuen Testdateien: „Brandner lern und spiel“ (einrichtung-person.txt, wegen der Person „Erika Brandner“), „Haus Marlene“ (einrichtungen-auto, wegen der Person „Marlene“).
+
+## Widerspruch im Auftrag (gemeldet)
+Merkmal 2 (Vor- oder Nachname im Namen in Anführungszeichen) und Regel 2 (Person geht vor) passen kaum zusammen: Ein Name mit Wort aus den Namenslisten ist für die Personen-Erkennung fast immer schon allein eine sichere Person („Haus Marlene“, „Haus Kessler“). Solche Namen werden deshalb als Person ersetzt und stehen im Warnpunkt, nicht als Einrichtung. Klartext entsteht nicht. Testdatei angepasst: „Haus Marlene“ ist jetzt der Warnpunkt-Fall, der Dreiwort-Fall heißt „Mittelschule Birkenhain Nord Ost“ (vorher „Sankt Georg Wendorf“: „Georg Wendorf“ ist eine Person, dadurch wurde „Wendorf“ überall Person).
+
+## Testläufe nach der Nachbesserung (bestanden/gesamt; vorher = main 2.7.0)
+anzeige 99 → 121 · bedienung 37 → 37 · bilder 58 → 58 · einrichtung 153 → 153 · endungen 21 → 21 · gross 44 → 44 · kennung 37 → 37 · kollision 17 → 17 · meta-proof 48 → 46 · pfade 40 → 40 · platzhalter 24 → 24 · roundtrip 36 → 36 · spalten 67 → 67 · traeger 61 → 98 · ui-flow 52 → 52 · wortliste 18 → 18 · korpus, run-tests, regression grün · **neu: massstab bestanden (130 Dateien, 1809 Stellen, 4 Abläufe)**.
+
+Zusätzlich angepasste Erwartungen in der Nachbesserung: (6) tests/make-traeger.mjs: „einrichtungen-auto“ 11 statt 12 Einrichtungen, „Haus Marlene“ im Warnpunkt (Grund: Widerspruch oben); (7) tests/anzeige-test.mjs: Teil c sucht die Markierung nach einem Klick neu (ein Klick auf eine gefundene Einrichtung rechnet jetzt neu und zeichnet die Ansicht neu; geprüft bleibt, dass nichts rollt).
+
+## Regression gegen main (2.7.0)
+| | bisheriger PR-Stand | jetzt |
+|---|---|---|
+| byte-gleich | 89 | 89 |
+| gleich bis auf die Kennung | 13 | 13 |
+| durch 2.8.0 geändert, einzeln nachgewiesen | 24 | 24 |
+| unbegründet | 0 | 0 |
+bedienung-test (gegen 2.4.1): 115 Ausgaben durch gefundene Einrichtungen geändert, alle nachgewiesen (bisher 129; weniger, weil verwechslung.* keine Einrichtungen mehr hat), 0 unbegründet.
+
+## Prüfsumme
+Zweimal gebaut, gleiche Datei: SHA-256 `c3ce5b2b219992ef91b85cbbe5460b4bc85d200e17428bf11696661717f2290d`, 3 847 778 Bytes (bisheriger PR-Stand d70bfc43…).
+
+## Laufzeit
+| | 2.7.0 | 2.8.0 jetzt |
+|---|---|---|
+| 10 MB Text (protokoll.txt wiederholt), Laden + Analyse | 10,5 s / 9,5 s | 8,9 s / 9,4 s |
+| … Speichern-Punkte / Ausgabe | 0,2 s / 1,0 s | 0,2 s / 1,0 s |
+| 1 MB, jede Zeile eine Einrichtung, nur Analyse (Node) | 0,6 s (findet nichts) | 2,3 s (bisheriger PR-Stand 1,5 s; mit Funden rechnet das Tool einmal zusätzlich ohne gefundene Einrichtungen) |
+
+---
+
+# Messungen Version 2.8.0, PR B – erster Stand (vor der Nachbesserung, d70bfc43…; teils überholt, siehe oben)
 
 Ergänzt tests/TRAEGER-REPORT.md (Ziel-Test, einrichtungen-auto, sachtext, Sperre, Warnpunkt, Rückbau). Nur Chromium, Firefox prüft Easy. Vorversion = main 2.7.0 (631a2bcd…).
 

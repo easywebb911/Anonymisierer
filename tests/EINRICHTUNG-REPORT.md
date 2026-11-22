@@ -127,8 +127,8 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 - OK: „Astrid-Lindgren-Schule“ = ein Platzhalter; „Astrid Lindgren“ an anderer Stelle bleibt Person – Auch die Einrichtung C macht mit. Frau Vorname B Nachname B liest vor.
 
 ## Art-Wechsel: Einrichtung → Person → Einrichtung (rückbaufähig)
-- OK: „ist eine Person“: Platzhalter, Zählung und Kennung folgen; Schlüssel muss neu gespeichert werden – vorher: 2 Personen/3 Einrichtung, „Das FZS plant gemeinsam mit dem Einrichtung B ein Fest.“; nachher: 3/2, „Das FZS plant gemeinsam mit dem Vorname B Nachname B ein Fest.“, Kennung 49U4 → 7L79
-- OK: „ist eine Einrichtung“ zurück: wieder „Einrichtung A“, Zählung und Kennung folgen – „Das FZS plant gemeinsam mit dem Einrichtung B ein Fest.“, Kennung 7L79 → D4C4
+- OK: „ist eine Person“: Platzhalter, Zählung und Kennung folgen; Schlüssel muss neu gespeichert werden – vorher: 2 Personen/3 Einrichtung, „Das FZS plant gemeinsam mit dem Einrichtung B ein Fest.“; nachher: 3/2, „Das FZS plant gemeinsam mit dem Vorname B Nachname B ein Fest.“, Kennung Q26W → 6X69
+- OK: „ist eine Einrichtung“ zurück: wieder „Einrichtung A“, Zählung und Kennung folgen – „Das FZS plant gemeinsam mit dem Einrichtung B ein Fest.“, Kennung 6X69 → E4Y4
 
 ## Merkliste mit Art
 - OK: Neue Merkliste mit Art wird richtig gelesen (Person und Einrichtung, Art an jedem Eintrag sichtbar) – Hollmann · Person | Familienzentrum Sonnenblume · Einrichtung

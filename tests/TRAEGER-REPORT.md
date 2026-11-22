@@ -93,28 +93,45 @@ Gegenprobe sachtext.txt: 0 Webadressen, 0 Konten, 0 Einrichtungs-Stellen ersetzt
 
 ## 3b. Testdatei „einrichtungen-auto“ (je Fall eine Zeile; Word mit Kopfzeile, Fußnote, Kommentar; Excel auf zwei Blättern)
 
-Soll: alle Einrichtungen ersetzt (0 Vorkommen von „Sonnenblume“, „Regenbogen“, „Wendorf“, „Sankt Georg“, „Lindenau“, „Erika“, „Brandner“, „Sonnenschein“, „Kleine Strolche“, „Marlene“, „Bunte Welt“, „Grüne Insel“), Einrichtungs-Fragen = 12 (verschiedene Einrichtungen).
+Soll: alle Namen ersetzt (0 Vorkommen von „Sonnenblume“, „Regenbogen“, „Wendorf“, „Birkenhain“, „Lindenau“, „Erika“, „Brandner“, „Sonnenschein“, „Kleine Strolche“, „Marlene“, „Bunte Welt“, „Grüne Insel“), Einrichtungs-Fragen = 11 (verschiedene Einrichtungen). Seit der Nachbesserung: „Haus Marlene“ ist wegen der sicheren Person „Marlene“ keine Einrichtung (Regel 2); „Marlene“ wird als Person ersetzt, „Haus Marlene“ steht im Warnpunkt.
 
 | Format | Modus | Ausgabe | Namen noch im Text | Einrichtungs-Fragen | Einrichtungen |
 |---|---|---|---|---|---|
-| txt | person | .txt | 0 (Vorversion 10) | 12 (0) | Einrichtung A: Kita Sonnenblume; Einrichtung B: Kinderhaus Regenbogen; Einrichtung C: Gymnasium Wendorf / Wendorf-Gymnasium / Gymnasiums Wendorf / GYMNASIUM WENDORF; Einrichtung D: Mittelschule Sankt Georg Wendorf; Einrichtung E: Grundschule an der Lindenau; Einrichtung F: Erika-Brandner-Schule; Einrichtung G: Sonnenschein Küchen GmbH; Einrichtung H: Förderverein Wendorf e. V.; Einrichtung I: Kleine Strolche; Einrichtung J: Haus Marlene; Einrichtung K: Bunte Welt Wendorf; Einrichtung L: Grüne Insel |
-- OK: einrichtungen-auto.txt/person: alle ersetzt, 12 Einrichtungs-Fragen –  / 12
-| txt | name | .txt | 0 (Vorversion 10) | 12 (0) |  |
-- OK: einrichtungen-auto.txt/name: alle ersetzt, 12 Einrichtungs-Fragen –  / 12
-| txt | reversible | .txt | 0 (Vorversion 10) | 12 (0) |  |
-- OK: einrichtungen-auto.txt/reversible: alle ersetzt, 12 Einrichtungs-Fragen –  / 12
-| docx | person | .docx | 0 (Vorversion 10) | 12 (0) | Einrichtung A: Kita Sonnenblume; Einrichtung B: Kinderhaus Regenbogen; Einrichtung C: Gymnasium Wendorf / Wendorf-Gymnasium / Gymnasiums Wendorf / GYMNASIUM WENDORF; Einrichtung D: Mittelschule Sankt Georg Wendorf; Einrichtung E: Grundschule an der Lindenau; Einrichtung F: Erika-Brandner-Schule; Einrichtung G: Sonnenschein Küchen GmbH; Einrichtung H: Förderverein Wendorf e. V.; Einrichtung I: Kleine Strolche; Einrichtung J: Haus Marlene; Einrichtung K: Bunte Welt Wendorf; Einrichtung L: Grüne Insel |
-- OK: einrichtungen-auto.docx/person: alle ersetzt, 12 Einrichtungs-Fragen –  / 12
-| docx | name | .docx | 0 (Vorversion 10) | 12 (0) |  |
-- OK: einrichtungen-auto.docx/name: alle ersetzt, 12 Einrichtungs-Fragen –  / 12
-| docx | reversible | .docx | 0 (Vorversion 10) | 12 (0) |  |
-- OK: einrichtungen-auto.docx/reversible: alle ersetzt, 12 Einrichtungs-Fragen –  / 12
-| xlsx | person | .xlsx | 0 (Vorversion 10) | 12 (0) | Einrichtung A: Kita Sonnenblume; Einrichtung B: Kinderhaus Regenbogen; Einrichtung C: Gymnasium Wendorf / Wendorf-Gymnasium / Gymnasiums Wendorf / GYMNASIUM WENDORF; Einrichtung D: Mittelschule Sankt Georg Wendorf; Einrichtung E: Grundschule an der Lindenau; Einrichtung F: Erika-Brandner-Schule; Einrichtung G: Sonnenschein Küchen GmbH; Einrichtung H: Förderverein Wendorf e. V.; Einrichtung I: Kleine Strolche; Einrichtung J: Haus Marlene; Einrichtung K: Bunte Welt Wendorf; Einrichtung L: Grüne Insel |
-- OK: einrichtungen-auto.xlsx/person: alle ersetzt, 12 Einrichtungs-Fragen –  / 12
-| xlsx | name | .xlsx | 0 (Vorversion 10) | 12 (0) |  |
-- OK: einrichtungen-auto.xlsx/name: alle ersetzt, 12 Einrichtungs-Fragen –  / 12
-| xlsx | reversible | .xlsx | 0 (Vorversion 10) | 12 (0) |  |
-- OK: einrichtungen-auto.xlsx/reversible: alle ersetzt, 12 Einrichtungs-Fragen –  / 12
+| txt | person | .txt | 0 (Vorversion 11) | 11 (0) | Einrichtung A: Kita Sonnenblume; Einrichtung B: Kinderhaus Regenbogen; Einrichtung C: Gymnasium Wendorf / Wendorf-Gymnasium / Gymnasiums Wendorf / GYMNASIUM WENDORF; Einrichtung D: Mittelschule Birkenhain Nord Ost; Einrichtung E: Grundschule an der Lindenau; Einrichtung F: Erika-Brandner-Schule; Einrichtung G: Sonnenschein Küchen GmbH; Einrichtung H: Förderverein Wendorf e. V.; Einrichtung I: Kleine Strolche; Einrichtung J: Bunte Welt Wendorf; Einrichtung K: Grüne Insel |
+- OK: einrichtungen-auto.txt/person: alle Namen ersetzt, 11 Einrichtungs-Fragen, „Haus Marlene“ (Person darin) im Warnpunkt –  / 11 / „Haus Marlene“ – Zeile 14
+| txt | name | .txt | 0 (Vorversion 11) | 11 (0) |  |
+- OK: einrichtungen-auto.txt/name: alle Namen ersetzt, 11 Einrichtungs-Fragen, „Haus Marlene“ (Person darin) im Warnpunkt –  / 11 / „Haus Marlene“ – Zeile 14
+| txt | reversible | .txt | 0 (Vorversion 11) | 11 (0) |  |
+- OK: einrichtungen-auto.txt/reversible: alle Namen ersetzt, 11 Einrichtungs-Fragen, „Haus Marlene“ (Person darin) im Warnpunkt –  / 11 / „Haus Marlene“ – Zeile 14
+| docx | person | .docx | 0 (Vorversion 11) | 11 (0) | Einrichtung A: Kita Sonnenblume; Einrichtung B: Kinderhaus Regenbogen; Einrichtung C: Gymnasium Wendorf / Wendorf-Gymnasium / Gymnasiums Wendorf / GYMNASIUM WENDORF; Einrichtung D: Mittelschule Birkenhain Nord Ost; Einrichtung E: Grundschule an der Lindenau; Einrichtung F: Erika-Brandner-Schule; Einrichtung G: Sonnenschein Küchen GmbH; Einrichtung H: Förderverein Wendorf e. V.; Einrichtung I: Kleine Strolche; Einrichtung J: Bunte Welt Wendorf; Einrichtung K: Grüne Insel |
+- OK: einrichtungen-auto.docx/person: alle Namen ersetzt, 11 Einrichtungs-Fragen, „Haus Marlene“ (Person darin) im Warnpunkt –  / 11 / „Haus Marlene“ – Text
+| docx | name | .docx | 0 (Vorversion 11) | 11 (0) |  |
+- OK: einrichtungen-auto.docx/name: alle Namen ersetzt, 11 Einrichtungs-Fragen, „Haus Marlene“ (Person darin) im Warnpunkt –  / 11 / „Haus Marlene“ – Text
+| docx | reversible | .docx | 0 (Vorversion 11) | 11 (0) |  |
+- OK: einrichtungen-auto.docx/reversible: alle Namen ersetzt, 11 Einrichtungs-Fragen, „Haus Marlene“ (Person darin) im Warnpunkt –  / 11 / „Haus Marlene“ – Text
+| xlsx | person | .xlsx | 0 (Vorversion 11) | 11 (0) | Einrichtung A: Kita Sonnenblume; Einrichtung B: Kinderhaus Regenbogen; Einrichtung C: Gymnasium Wendorf / Wendorf-Gymnasium / Gymnasiums Wendorf / GYMNASIUM WENDORF; Einrichtung D: Mittelschule Birkenhain Nord Ost; Einrichtung E: Grundschule an der Lindenau; Einrichtung F: Erika-Brandner-Schule; Einrichtung G: Sonnenschein Küchen GmbH; Einrichtung H: Förderverein Wendorf e. V.; Einrichtung I: Kleine Strolche; Einrichtung J: Bunte Welt Wendorf; Einrichtung K: Grüne Insel |
+- OK: einrichtungen-auto.xlsx/person: alle Namen ersetzt, 11 Einrichtungs-Fragen, „Haus Marlene“ (Person darin) im Warnpunkt –  / 11 / „Haus Marlene“ – Blatt Teil 2, Zelle A5
+| xlsx | name | .xlsx | 0 (Vorversion 11) | 11 (0) |  |
+- OK: einrichtungen-auto.xlsx/name: alle Namen ersetzt, 11 Einrichtungs-Fragen, „Haus Marlene“ (Person darin) im Warnpunkt –  / 11 / „Haus Marlene“ – Blatt Teil 2, Zelle A5
+| xlsx | reversible | .xlsx | 0 (Vorversion 11) | 11 (0) |  |
+- OK: einrichtungen-auto.xlsx/reversible: alle Namen ersetzt, 11 Einrichtungs-Fragen, „Haus Marlene“ (Person darin) im Warnpunkt –  / 11 / „Haus Marlene“ – Blatt Teil 2, Zelle A5
+
+## 3c. Einrichtung und Person dicht beieinander, Sachwörter nach Kopfwort (einrichtung-person.txt, .csv, .xlsx)
+
+einrichtung-person.txt: Einrichtungen Gymnasium Tannhofen; Firma Holzbau Lehmann GmbH; Erika-Brandner-Schule; Warnpunkt: „Brandner lern und spiel“ – Zeile 12
+- OK: einrichtung-person.txt: keine Einrichtung enthält eine Anrede oder einen Titel – Gymnasium Tannhofen; Firma Holzbau Lehmann GmbH; Erika-Brandner-Schule
+- OK: einrichtung-person.txt: ohne Antwort ist jede Person ersetzt
+- OK: einrichtung-person.txt: nach „Nein“ auf alle Einrichtungs-Fragen ist jede Person ersetzt, die 2.7.0 ersetzt –  (2.7.0 lässt stehen: Erika, Brandner)
+- OK: einrichtung-person.txt: die Sätze aus Befund 2 ergeben 0 Einrichtungen
+- OK: einrichtung-person.txt: „Brandner lern und spiel“ (wegen der Person „Erika Brandner“ nicht ersetzt) steht im Warnpunkt
+einrichtung-person.csv: Einrichtungen Kita Sonnenblume; Gymnasium Tannhofen
+- OK: einrichtung-person.csv: keine Einrichtung enthält eine Anrede oder einen Titel – Kita Sonnenblume; Gymnasium Tannhofen
+- OK: einrichtung-person.csv: ohne Antwort ist jede Person ersetzt
+- OK: einrichtung-person.csv: nach „Nein“ auf alle Einrichtungs-Fragen ist jede Person ersetzt, die 2.7.0 ersetzt –  (2.7.0 lässt stehen: –)
+einrichtung-person.xlsx: Einrichtungen Kita Sonnenblume; Gymnasium Tannhofen
+- OK: einrichtung-person.xlsx: keine Einrichtung enthält eine Anrede oder einen Titel – Kita Sonnenblume; Gymnasium Tannhofen
+- OK: einrichtung-person.xlsx: ohne Antwort ist jede Person ersetzt
+- OK: einrichtung-person.xlsx: nach „Nein“ auf alle Einrichtungs-Fragen ist jede Person ersetzt, die 2.7.0 ersetzt –  (2.7.0 lässt stehen: –)
 
 ## 4. Rückbau (Modus rückbaufähig)
 
@@ -142,13 +159,13 @@ xlsx: Schlüssel mit 10 Platzhaltern, davon Webadresse/Konto: [WEBADRESSE-1] = w
 - OK: xlsx: lockere Formen erkannt und gemeldet ([Webadresse 1], [Webadresse 2], Konto-1) – [Webadresse 1] → [WEBADRESSE-1]; [Webadresse 2] → [WEBADRESSE-2]; Konto-1 → [KONTO-1]
 - OK: xlsx: lockere Formen nicht geraten (bleiben im Ergebnis stehen, alles andere zurück)
 - OK: xlsx: nach Korrektur wie vorgeschlagen Rückbau exakt – passend
-einrichtungen-auto.txt: Schlüssel mit 16 Platzhaltern, 12 Einrichtungen; Gymnasium Wendorf: Einrichtung C = Gymnasium Wendorf; Einrichtung C2 = Wendorf-Gymnasium; Einrichtung C3 = Gymnasiums Wendorf; Einrichtung C4 = GYMNASIUM WENDORF
+einrichtungen-auto.txt: Schlüssel mit 17 Platzhaltern, 11 Einrichtungen; Gymnasium Wendorf: Einrichtung C = Gymnasium Wendorf; Einrichtung C2 = Wendorf-Gymnasium; Einrichtung C3 = Gymnasiums Wendorf; Einrichtung C4 = GYMNASIUM WENDORF
 - OK: einrichtungen-auto.txt: Schreibweisen einer gefundenen Einrichtung mit eigenen Nummern (mindestens 3)
 - OK: einrichtungen-auto.txt: Rückbau exakt – passend
-einrichtungen-auto.docx: Schlüssel mit 16 Platzhaltern, 12 Einrichtungen; Gymnasium Wendorf: Einrichtung C = Gymnasium Wendorf; Einrichtung C2 = Wendorf-Gymnasium; Einrichtung C3 = Gymnasiums Wendorf; Einrichtung C4 = GYMNASIUM WENDORF
+einrichtungen-auto.docx: Schlüssel mit 17 Platzhaltern, 11 Einrichtungen; Gymnasium Wendorf: Einrichtung C = Gymnasium Wendorf; Einrichtung C2 = Wendorf-Gymnasium; Einrichtung C3 = Gymnasiums Wendorf; Einrichtung C4 = GYMNASIUM WENDORF
 - OK: einrichtungen-auto.docx: Schreibweisen einer gefundenen Einrichtung mit eigenen Nummern (mindestens 3)
 - OK: einrichtungen-auto.docx: Rückbau exakt – passend
-einrichtungen-auto.xlsx: Schlüssel mit 16 Platzhaltern, 12 Einrichtungen; Gymnasium Wendorf: Einrichtung C = Gymnasium Wendorf; Einrichtung C2 = Wendorf-Gymnasium; Einrichtung C3 = Gymnasiums Wendorf; Einrichtung C4 = GYMNASIUM WENDORF
+einrichtungen-auto.xlsx: Schlüssel mit 17 Platzhaltern, 11 Einrichtungen; Gymnasium Wendorf: Einrichtung C = Gymnasium Wendorf; Einrichtung C2 = Wendorf-Gymnasium; Einrichtung C3 = Gymnasiums Wendorf; Einrichtung C4 = GYMNASIUM WENDORF
 - OK: einrichtungen-auto.xlsx: Schreibweisen einer gefundenen Einrichtung mit eigenen Nummern (mindestens 3)
 - OK: einrichtungen-auto.xlsx: Rückbau exakt – passend
 Kollision: Vorlage: [WEBADRESSE-1] und [KONTO] bleiben so stehen. ⏎ Seite: [WEBADRESSE-2], Instagram: [KONTO-1]
@@ -162,6 +179,6 @@ Kollision: Vorlage: [WEBADRESSE-1] und [KONTO] bleiben so stehen. ⏎ Seite: [WE
 - OK: 0 Anfragen ins Netz
 - OK: 0 Fehler in der Seite
 
-**Ergebnis: 87/87 bestanden.** Nur Chromium, Firefox prüft Easy.
+**Ergebnis: 98/98 bestanden.** Nur Chromium, Firefox prüft Easy.
 
 Weitere Messungen (Fehltreffer im ganzen Korpus, Aufzählungsstellen, Laufzeit, Prüfsumme, Link-Ziele vorher): tests/TRAEGER-MESSUNGEN.md
