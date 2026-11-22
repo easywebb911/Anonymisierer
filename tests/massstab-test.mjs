@@ -93,7 +93,7 @@ async function covered(html, file, how) {
     }, [[...fs.readFileSync(file)], path.basename(file), how]);
   } catch (e) { return { err: e.message.slice(0, 100) }; } finally { await ctx.close(); }
 }
-log('# Maßstab: Was 2.7.0 ersetzt, ersetzt auch 2.8.0 (ohne Antwort, nach „Nein“ auf alle Einrichtungs-Fragen, nach „Ja“ → „Nein“, mit „Unsichere“ aus)');
+log('# Maßstab: Was 2.7.0 ersetzt, ersetzt auch diese Version (2.8.1) (ohne Antwort, nach „Nein“ auf alle Einrichtungs-Fragen, nach „Ja“ → „Nein“, mit „Unsichere“ aus)');
 log('');
 log(`Neue Version: ${path.basename(path.dirname(NEW))}/${path.basename(NEW)}; Vorversion: ${path.basename(OLD)}. Nur Chromium, Firefox prüft Easy.`);
 log('');
@@ -168,7 +168,7 @@ log('');
 log(`Geprüft: ${nFiles} Dateien (Testdateien und ${Object.keys(SECTIONS).length} Korpus-Abschnitte), ${nSpans} Stellen der Vorversion, je sechs Abläufe${PREV ? `; zweiter Maßstab: ${nPrev} Stellen von 2.8.0 (ohne Antwort)` : ''}.`);
 if (fails.length) { log(''); log('Fehlende Stellen:'); for (const x of fails) log('- ' + x); }
 log('');
-log(`Ausnahmen (einzeln; Grund: Version 2.8.1, Teil 4 – „von / vom / von der“ und das Kopfwort danach gehören nicht mehr zum Personennamen; der Name der Person ist ersetzt, die Einrichtung dahinter wird selbst gefunden): ${ausnahmen.length}`);
+log(`Ausnahmen (einzeln; erlaubt nur, wenn offen allein der Zusatz „vom / von der“ ist und jedes Namens-Zeichen ersetzt ist; Teil 4 ist herausgenommen, erwartet: 0): ${ausnahmen.length}`);
 for (const x of ausnahmen) log('- ' + x);
 log(`- ${requests.length ? 'FEHLER' : 'OK'}: 0 Anfragen ins Netz (${requests.length})`);
 log(`- ${errors.length ? 'FEHLER' : 'OK'}: 0 Fehler in der Seite (${errors.length})`);

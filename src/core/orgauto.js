@@ -26,24 +26,6 @@ export const HEAD_LIST = ['Gymnasium', 'Schule und Wörter auf -schule', 'Univer
   'Krippe (auch auf -krippe)', 'Hort', 'Kinderhaus', 'Familienzentrum', 'Jugendzentrum', 'Verein (auch auf -verein, z. B. Förderverein)',
   'Stiftung (auch auf -stiftung)', 'Praxis (auch auf -praxis)', 'Klinik (auch auf -klinik)', 'Krankenhaus', 'Kanzlei', 'Firma',
   'Institut (auch auf -institut)', 'Akademie (auch auf -akademie)', 'Gymnasium auch auf -gymnasium'];
-// Version 2.8.1 (Teil 4, Entscheidung Easy C): Kopfwort hinter einem Namenszusatz nur als GANZES Wort in der Grundform
-// (Einzahl, ohne Endung; Wörter auf -schule als ganzes Wort). „Horten“, „Nikita“ sind dort keine Kopfwörter. Gilt nur für
-// Teil 4; die Einrichtungs-Suche selbst nimmt Endungen wie bisher.
-const HEAD_BASE = new Set(['gymnasium', 'schule', 'universitat', 'kita', 'kindergarten', 'krippe', 'hort', 'kinderhaus', 'familienzentrum',
-  'jugendzentrum', 'verein', 'stiftung', 'praxis', 'klinik', 'krankenhaus', 'kanzlei', 'firma', 'institut', 'akademie']);
-export function isHeadBase(t) {
-  if (!t || !/^\p{Lu}\p{Ll}+$/u.test(t)) return false;
-  const k = fold(t);
-  return HEAD_BASE.has(k) || (/schule$/.test(t) && t.length > 6);
-}
-// Namens-Wort einer Einrichtung (wie Regel a): großgeschrieben, kein Titel, nicht Ausschluss-Liste, kein Kopfwort, kein
-// Funktionswort
-export function isOrgNameTok(tk) {
-  if (!tk || !isCapWord(tk)) return false;
-  const k = fold(tk.t);
-  return !isTitleTok(tk) && !EXCL.has(k) && !headOf(tk.allcaps ? tk.t.charAt(0) + tk.t.slice(1).toLowerCase() : tk.t) && !isFunctionWord(tk)
-    && !(tk.t.includes('-') && headOf(tk.t.split('-').pop()));
-}
 // Wörter auf -schule usw. müssen mit einem Großbuchstaben beginnen (Nomen)
 function headOf(t) {
   if (!/^\p{Lu}/u.test(t) || t.includes('-')) return null;
@@ -76,8 +58,6 @@ const EXCL = { has: (k) => EXCL_WORDS.has(k) || (k.length > 5 && EXCLUDE_ENDINGS
 const isTitleTok = (tk) => tk && tk.word && lex.isTitle(fold(tk.t));
 const PREP = new Set(['am', 'im', 'in', 'bei', 'beim']);
 const PREP2 = new Set(['an der', 'an dem', 'in der', 'auf der', 'auf dem']);
-export const ORG_PREP = PREP; // Version 2.8.1 (Teil 4)
-export const ORG_PREP2 = PREP2;
 // Titel-Wörter (Regel b): direkt vor Anführungszeichen, ohne Merkmal 1–3 -> kein Fund, kein Warnpunkt
 export const TITLE_WORDS = ['Vortrag', 'Kurs', 'Projekt', 'Thema', 'Motto', 'Buch', 'Titel', 'Lied', 'Film', 'Workshop', 'Seminar', 'Fach', 'AG', 'Stück', 'Artikel'];
 const TITLE = new Set(TITLE_WORDS.map((w) => fold(w)));

@@ -125,31 +125,34 @@ export const NACHBARN_ROWS = [
   'Kita Sonnenblume Jana Wolters',
   'Kindergarten Regenbogen Tobias Hellwig',
   'Familienzentrum Lindenhof Anja Petersen',
-  // Teil 4: Person mit „von / vom / von der“ vor einer Einrichtung
-  'Mit Grüßen, Frau Okonkwo vom Gymnasium Kirchberg Tannhofen',
-  'Herr Lehmann von der Firma Holzbau Lehmann GmbH',
-  'Frau Schuster vom Kindergarten Regenbogen',
-  'Herr Demir vom Verein Birkenhain e. V.',
-  'Herr Kowalski von der Musikschule Lindgrün',
-  'Frau Albers vom Familienzentrum Wiesenkamp',
+  // Teil 4 („Person vom Einrichtung“): nach Guardian-Lauf 4 herausgenommen; die Fälle stehen in nachbarn-offen.*
   // echte Namen mit Zusatz bleiben Namen
   'Herr von Brandner und Frau van der Lindenau kommen auch.',
   // Entscheidung Easy C (nach dem Guardian-Lauf): Kopfwort hinter dem Zusatz nur in der Grundform und nur mit Namens-Wort
   'Sehr geehrte Frau von Horten,', 'Frau Anja von Horten kommt morgen.', 'Herr Nikita Brandner', 'Frau von Schulenburg',
-  'Herr Brennecke von der Grundschule Am Mühlbach',
   // Guardian-Fund 2: selbst erkannte Person aus, dann „Als Name markieren“
   'Melanie Grawert kommt morgen.',
   // Guardian-Lauf 2, Fund 1: nach „Nein“ belegt die Person genau dieselbe Stelle wie die Einrichtung
   'Liebe Eltern,', 'die Praxis Lindqvist ist am Montag zu.', 'Die Krippe Halvorsen bleibt heute zu.',
-  // Guardian-Lauf 3, Fund 1 (Entscheidung D): 2.7.0 nahm das Wort hinter dem Kopfwort zum Namen
-  'Frau Ida vom Kindergarten Krüger hat angerufen.', 'Herr Paul Lenz von der Praxis Schulze schreibt.',
-  'Herr Jonas vom Gymnasium Becker kommt später.', 'Frau Lea von der Kanzlei Wagner ruft an.',
+
 ].map((r) => (Array.isArray(r) ? r : [r]));
 export const NACHBARN = NACHBARN_ROWS.flat();
+// Teil 4 („Person vom Einrichtung“): nach Guardian-Lauf 4 herausgenommen (Rückfalllinie, Entscheidung Easy D Punkt 10).
+// Diese Zeilen verhalten sich wie 2.8.0: Die Person ist ersetzt, der Name der Einrichtung dahinter bleibt Klartext –
+// offen, eigener Auftrag.
+// Eigene Datei nachbarn-offen.*, weil der Personenname dort das Kopfwort enthält („Albers vom Familienzentrum“) und es so
+// auch an anderen Stellen derselben Datei als Name gilt (wie 2.8.0); das würde die übrigen Fälle verfälschen.
+export const NACHBARN_TEIL4_OFFEN = ['Mit Grüßen, Frau Okonkwo vom Gymnasium Kirchberg Tannhofen', 'Herr Lehmann von der Firma Holzbau Lehmann GmbH',
+  'Frau Schuster vom Kindergarten Regenbogen', 'Herr Demir vom Verein Birkenhain e. V.', 'Herr Kowalski von der Musikschule Lindgrün',
+  'Frau Albers vom Familienzentrum Wiesenkamp', 'Herr Brennecke von der Grundschule Am Mühlbach',
+  // Guardian-Lauf 3, Fund 1: 2.7.0 nahm das Wort hinter dem Kopfwort zum Namen (ohne Teil 4 wieder ganz eine Person)
+  'Frau Ida vom Kindergarten Krüger hat angerufen.', 'Herr Paul Lenz von der Praxis Schulze schreibt.',
+  'Herr Jonas vom Gymnasium Becker kommt später.', 'Frau Lea von der Kanzlei Wagner ruft an.'];
 // Was ohne Antwort ersetzt sein muss (ganze Wörter, alle Modi)
-export const NACHBARN_PERSONS = ['Quarbeck', 'Broszat', 'Tewesmeier', 'Jana', 'Wolters', 'Tobias', 'Hellwig', 'Anja', 'Petersen', 'Okonkwo',
-  'Lehmann', 'Schuster', 'Demir', 'Kowalski', 'Albers', 'Brandner', 'Lindenau', 'Horten', 'Nikita', 'Schulenburg', 'Brennecke', 'Melanie', 'Grawert', 'Lindqvist', 'Halvorsen', 'Ida', 'Krüger', 'Paul', 'Lenz', 'Schulze', 'Jonas', 'Becker', 'Lea', 'Wagner'];
-export const NACHBARN_ORGS = ['Sonnenblume', 'Wiesenkamp', 'Lindgrün', 'Regenbogen', 'Lindenhof', 'Kirchberg', 'Tannhofen', 'Holzbau', 'Birkenhain', 'Mühlbach'];
+export const NACHBARN_PERSONS = ['Quarbeck', 'Broszat', 'Tewesmeier', 'Jana', 'Wolters', 'Tobias', 'Hellwig', 'Anja', 'Petersen',
+  'Brandner', 'Lindenau', 'Horten', 'Nikita', 'Schulenburg', 'Melanie', 'Grawert', 'Lindqvist', 'Halvorsen'];
+export const NACHBARN_ORGS = ['Sonnenblume', 'Wiesenkamp', 'Lindgrün', 'Regenbogen', 'Lindenhof'];
+export const NACHBARN_OFFEN_PERSONS = ['Okonkwo', 'Lehmann', 'Schuster', 'Demir', 'Kowalski', 'Albers', 'Brennecke', 'Ida', 'Krüger', 'Paul', 'Lenz', 'Schulze', 'Jonas', 'Becker', 'Lea', 'Wagner'];
 // Sperre-Test: nur Webadresse und Konto, sonst nichts zu ersetzen
 export const NURWEB = ['Mehr dazu unter www.beispiel-kinderhaus.de/termine.', 'Folgen Sie uns auf Instagram: @sonnenhof_kids'];
 // Zeilen; {link} = Webadresse (in Word/Excel als Verknüpfung, in Text-Formaten wie in Easys Text als [www…](https://…))
@@ -270,6 +273,9 @@ export async function makeAll() {
   fs.writeFileSync(path.join(FXT, 'nachbarn.txt'), NACHBARN.join('\r\n') + '\r\n');
   fs.writeFileSync(path.join(FXT, 'nachbarn.csv'), NACHBARN_ROWS.map((r) => r.map((t) => (/[;"]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t)).join(';')).join('\r\n') + '\r\n');
   await personXlsx('nachbarn.xlsx', NACHBARN_ROWS);
+  fs.writeFileSync(path.join(FXT, 'nachbarn-offen.txt'), NACHBARN_TEIL4_OFFEN.join('\r\n') + '\r\n');
+  fs.writeFileSync(path.join(FXT, 'nachbarn-offen.csv'), NACHBARN_TEIL4_OFFEN.join('\r\n') + '\r\n');
+  await personXlsx('nachbarn-offen.xlsx', NACHBARN_TEIL4_OFFEN.map((t) => [t]));
   // PDF über LibreOffice aus der Word-Fassung
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'traeger-'));
   try {

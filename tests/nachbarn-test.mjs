@@ -13,7 +13,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import JSZip from 'jszip';
-import { makeAll, FXT, NACHBARN_PERSONS, NACHBARN_ORGS } from './make-traeger.mjs';
+import { makeAll, FXT, NACHBARN_PERSONS, NACHBARN_ORGS, NACHBARN_TEIL4_OFFEN, NACHBARN_OFFEN_PERSONS } from './make-traeger.mjs';
 import { startAnon, loadIn, goTo, exportWithAck, saveKey, rbConfirm, ackPoints } from './ui-helpers.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -84,12 +84,20 @@ function coverArr(res) {
   return cov;
 }
 // Vorkommen (ganze Wörter), die nicht vollständig ersetzt sind
+// Stellen in den Teil-4-Zeilen (offen, eigener Auftrag) zählen nicht
+function teil4Ranges(text) {
+  const out = [];
+  for (const l of NACHBARN_TEIL4_OFFEN) { let i = text.indexOf(l); while (i >= 0) { out.push([i, i + l.length]); i = text.indexOf(l, i + 1); } }
+  return out;
+}
 function openWords(res, words) {
   const cov = coverArr(res);
   const miss = [];
+  const skip = teil4Ranges(res.text);
   for (const w of words) {
     const re = new RegExp('(?<![\\p{L}\\p{N}])' + w + '(?![\\p{L}\\p{N}])', 'gu');
     for (const m of res.text.matchAll(re)) {
+      if (skip.some(([a, b]) => m.index >= a && m.index < b)) continue;
       for (let i = m.index; i < m.index + w.length; i++) if (!cov[i]) { miss.push(w); break; }
     }
   }
@@ -172,6 +180,39 @@ log('');
 log('Ausnahmen (einzeln; erlaubt nur, wenn offen allein der Zusatz „vom / von der“ ist – jedes Namens-Zeichen ist ersetzt):');
 if (!AUSNAHMEN.size) log('- keine');
 for (const x of AUSNAHMEN) log('- ' + x);
+log('');
+
+// ---------- 1b. Teil 4 herausgenommen (Rückfalllinie): nachbarn-offen.* – offen, eigener Auftrag ----------
+log('## 1b. nachbarn-offen.* (Teil 4 herausgenommen – offen, eigener Auftrag)');
+log('Soll hier nur: jede Person ersetzt (wie 2.8.0). Der Name der Einrichtung hinter „vom / von der“ bleibt wie in 2.8.0 Klartext (gelistet, kein Fehler).');
+for (const ext of FORMATS) {
+  for (const mode of MODES) {
+    const f = path.join(FXT, 'nachbarn-offen.' + ext);
+    const a = await covered(HTML, f, 'keine', mode);
+    const c = await covered(HTML, f, 'aus', mode);
+    const mp = openWords(a, NACHBARN_OFFEN_PERSONS);
+    const mpc = openWords(c, NACHBARN_OFFEN_PERSONS);
+    const words = [...new Set(a.text.match(/\p{Lu}[\p{L}]+/gu))].filter((w) => !NACHBARN_OFFEN_PERSONS.includes(w) && !['Mit', 'Grüßen', 'Frau', 'Herr', 'GmbH', 'Am'].includes(w));
+    // openWords überspringt die Teil-4-Zeilen; hier direkt messen
+    const cov = coverArr(a);
+    const offen = words.filter((w) => [...a.text.matchAll(new RegExp('(?<![\\p{L}\\p{N}])' + w + '(?![\\p{L}\\p{N}])', 'gu'))].some((m) => !cov[m.index]));
+    const pm = [];
+    const cv = coverArr(a);
+    for (const n of NACHBARN_OFFEN_PERSONS) for (const m of a.text.matchAll(new RegExp('(?<![\\p{L}\\p{N}])' + n + '(?![\\p{L}\\p{N}])', 'gu'))) if (!cv[m.index]) pm.push(n);
+    // „Unsichere“ aus und alle Abläufe: nichts im Klartext, was 2.7.0 bzw. 2.8.0 im selben Ablauf ersetzt
+    const o0 = await covered(OLD, f, 'keine', mode);
+    const oA = await covered(OLD, f, 'aus', mode);
+    const mm = [];
+    for (const [how, oref] of [['aus', oA], ['nein', o0], ['janein', o0], ['liste', o0], ['ausnein', oA]]) {
+      const res = how === 'aus' ? c : await covered(HTML, f, how, mode);
+      for (const r of [oref, PREV ? await covered(PREV, f, how, mode) : null].filter(Boolean)) mm.push(...missingVs(r, res).miss.map((x) => how + ': ' + x));
+    }
+    check(`nachbarn-offen.${ext}, ${mode}: ohne Antwort jede Person ersetzt`, !pm.length, pm.join(', '));
+    check(`nachbarn-offen.${ext}, ${mode}: „Unsichere“ aus, „Nein“, „Ja“ → „Nein“, Liste aus: nichts im Klartext, was 2.7.0 oder 2.8.0 so ersetzt`, !mm.length, [...new Set(mm)].join(', '));
+    if (ext === 'txt' && mode === 'person') log(`- OFFEN (eigener Auftrag): Wörter im Klartext ohne Antwort: ${offen.join(', ')}`);
+    void mp; void mpc;
+  }
+}
 log('');
 
 // ---------- 2. Bedienwege über die Oberfläche ----------
@@ -260,11 +301,7 @@ const wordIn = (t, w) => new RegExp('(?<![\\p{L}\\p{N}])' + w + '(?![\\p{L}\\p{N
   check('Teil 2: „Jana Wolters“ in der Liste aus, dann „Als Name markieren“ – ersetzt', sw && wordIn(tOff, 'Wolters') && !wordIn(t, 'Wolters'), `aus: ${wordIn(tOff, 'Wolters') ? 'Klartext' : 'ersetzt'}; danach ${wordIn(t, 'Wolters') ? 'Klartext' : 'ersetzt'}`);
   // Echte Namen mit Zusatz bleiben ganze Namen
   const spans = await page.evaluate(() => { const r = window.__anon.app.result; return r.hits.filter((h) => h.type === 'person').map((h) => r.fullText.slice(h.s, h.e)); });
-  check('Teil 4: echte Namen mit Zusatz bleiben ganz („von Brandner“, „van der Lindenau“, „von Horten“, „Anja von Horten“, „von Schulenburg“)', ['von Brandner', 'van der Lindenau', 'von Horten', 'Anja von Horten', 'von Schulenburg'].every((x) => spans.includes(x)), spans.filter((x) => /Brandner|Lindenau|Horten|Schulenburg/.test(x)).join(', '));
-  check('Teil 4: Person endet vor „vom / von der“ + Kopfwort', ['Okonkwo', 'Lehmann', 'Schuster', 'Demir', 'Kowalski', 'Albers', 'Brennecke', 'Ida', 'Paul Lenz'].every((n) => spans.includes(n))
-    // „Gymnasium Becker“ / „Kanzlei Wagner“: „Becker“/„Wagner“ sind allein schon sichere Personen -> keine Einrichtung
-    // (Person geht vor, Teil 3); dann bleibt es wie 2.7.0 ein Name „Jonas vom Gymnasium Becker“ (ganz ersetzt)
-    && !spans.some((x) => /\bvo[nm]\b/.test(x) && !/Brandner|Horten|Schulenburg|Becker|Wagner/.test(x)), spans.filter((x) => /Okonkwo|Schuster|Demir|Kowalski|Albers|Lehmann/.test(x)).join(', '));
+  check('Echte Namen mit Zusatz bleiben ganz („von Brandner“, „van der Lindenau“, „von Horten“, „Anja von Horten“, „von Schulenburg“)', ['von Brandner', 'van der Lindenau', 'von Horten', 'Anja von Horten', 'von Schulenburg'].every((x) => spans.includes(x)), spans.filter((x) => /Brandner|Lindenau|Horten|Schulenburg/.test(x)).join(', '));
   // Oberfläche: kein „null“/„undefined“
   await goTo(page, 'a3');
   await ackPoints(page);
@@ -412,7 +449,9 @@ for (const ext of FORMATS) {
   const orig = await content(fs.readFileSync(fx(ext)), ext);
   const a = await anonymize(ext);
   const anon = await content(fs.readFileSync(a.outPath), ext);
-  const left = [...NACHBARN_PERSONS, ...NACHBARN_ORGS].filter((w) => wordIn(anon, w));
+  // Einrichtungs-Wörter, die auch in den Teil-4-Zeilen stehen (offen, eigener Auftrag), prüft hier nur Abschnitt 1 genau
+  const t4 = NACHBARN_TEIL4_OFFEN.join(' ');
+  const left = [...NACHBARN_PERSONS, ...NACHBARN_ORGS.filter((w) => !wordIn(t4, w))].filter((w) => wordIn(anon, w));
   check(`${ext}: Ausgabe ohne Soll-Wörter`, left.length === 0, left.join(', '));
   const r = await restore(a.outPath, a.keyPath);
   check(`${ext}: Rückbau exakt`, !!r.bytes && (await content(r.bytes, ext)) === orig, r.verdict);

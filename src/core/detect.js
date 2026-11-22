@@ -5,7 +5,7 @@
 import { fold, umlautVariant } from './fold.js';
 import * as lex from './lexicon.js';
 import { findContacts } from './patterns.js';
-import { findOrgs, isHeadBase, isOrgNameTok, ORG_PREP, ORG_PREP2 } from './orgauto.js';
+import { findOrgs } from './orgauto.js';
 import { assignReversible, MODE_REVERSIBLE, reservedPlaceholders } from './reversible.js';
 
 const TOKEN_RE = /[\p{L}\p{M}]+(?:['’][\p{L}\p{M}]+)*(?:-[\p{L}\p{M}]+(?:['’][\p{L}\p{M}]+)*)*|\p{N}+|\S/gu;
@@ -104,21 +104,6 @@ function isInitial(toks, k) {
   return tk.word && [...tk.t].length === 1 && tk.cap && toks[k + 1] && toks[k + 1].t === '.' && toks[k + 1].s === tk.e;
 }
 
-// Version 2.8.1 (Teil 4): Beginnt bei Token m eine Einrichtung? Kopfwort (Grundform) + optional „am / im / in / bei / beim“
-// oder „an der / in der …“ + ein Namens-Wort, alles auf derselben Zeile nur mit Leerzeichen getrennt.
-function orgStartsAt(toks, m, text, base) {
-  const h = toks[m];
-  if (!h || !h.word || !isHeadBase(h.t)) return false;
-  const sp = (a, b) => /^[ \u00a0]+$/.test(text.slice(a.e - base, b.s - base));
-  let j = m + 1;
-  if (toks[j] && toks[j].word && sp(h, toks[j])) {
-    const w1 = fold(toks[j].t);
-    if (toks[j + 1] && sp(toks[j], toks[j + 1]) && ORG_PREP2.has(w1 + ' ' + fold(toks[j + 1].t))) j += 2;
-    else if (ORG_PREP.has(w1)) j += 1;
-  }
-  return !!(toks[j] && sp(toks[j - 1], toks[j]) && isOrgNameTok(toks[j]));
-}
-
 // Liest eine mögliche Namensfolge ab Token j.
 function parseSeq(toks, j, ctx, text, base, covered, exceptions) {
   const comps = [];
@@ -141,13 +126,6 @@ function parseSeq(toks, j, ctx, text, base, covered, exceptions) {
       let m = k;
       while (m < toks.length && toks[m].word && lex.PARTICLES.has(fold(toks[m].t)) && !gapHasBreak(text, base, toks[m - 1 >= 0 ? m - 1 : m].e, toks[m].s)) m++;
       const nx = toks[m];
-      // Version 2.8.1 (Teil 4, Entscheidung Easy C und D): Beginnt direkt hinter dem Zusatz eine Einrichtung (Kopfwort in
-      // der Grundform + mindestens ein Namens-Wort, wie die Einrichtungs-Suche), endet die Person vor dem Zusatz. Im Zweifel
-      // bleibt es eine Person („Frau von Horten“, „Frau von Schulenburg“). Nach D gilt das nur im Lauf ohne gefundene
-      // Einrichtungen (ctx.teil4: entscheidet, ob die Einrichtung eine Person verdeckt). Im eigentlichen Lauf ist eine
-      // ersetzte Einrichtung schon belegt (die Person endet dort ohnehin vor dem Zusatz); wird sie NICHT ersetzt („Nein“,
-      // Schalter, „Unsichere“ aus, Ausnahmen), gilt die Personen-Erkennung wie ohne Teil 4 („Ida vom Kindergarten Krüger“).
-      if (ctx.teil4 && nx && orgStartsAt(toks, m, text, base)) break;
       // Am Anfang nur mit Anrede ("Frau von Bodelschwingh") oder großgeschrieben ("Van Gogh", "Al Hassan");
       // sonst ist "von"/"de" meist eine Präposition ("Bericht von Anna Müller")
       const leadOk = comps.length > 0 || ctx.strong || ctx.weak || (tk.cap && lex.LEADING_PARTICLES.has(inf.key));
@@ -383,7 +361,6 @@ export function analyze(units, state, extra = {}) {
   // Namensspalten (die haben Vorrang), vor der Personen-Erkennung (ein Personenname in einer Einrichtung gehört zu ihr).
   // Gefundene Bezeichnungen werden wie von Hand markierte im ganzen Dokument gesucht, aber „unsicher, an“. Gehört ein
   // Fund zu einer von Hand markierten Einrichtung (gleiche Einrichtung, andere Schreibweise), wird er Teil von ihr (sicher).
-  const teil4 = !!extra.noAutoOrgs; // Version 2.8.1 (Entscheidung D): Teil 4 nur im Lauf ohne gefundene Einrichtungen
   const isCovered = (ui, s, e) => { const base = unitStarts[ui]; return unitToks[ui].some((tk, k) => covered[ui][k] && tk.s - base < e && tk.e - base > s); };
   // Nachbesserung 2.8.0 / Version 2.8.1: Personen, die die Erkennung OHNE gefundene Einrichtungen „sicher“ ersetzt (einmal
   // rechnen, erst wenn es einen Kandidaten gibt)
@@ -450,7 +427,7 @@ export function analyze(units, state, extra = {}) {
     // Artikel davor) -> der Anfang dieser Zeile ist ein Name. Variante „eng“: wie Regel a2 (Entscheidung E).
     if (ui > 0 && units[ui - 1].joinNext && !isAnredeOnly(units[ui - 1].text) && endsWithAnrede(units[ui - 1].text)
       && toks[0] && toks[0].word && toks[0].cap && !cov[0]) {
-      const { comps } = parseSeq(toks, 0, { strong: true, weak: false, post: false, teil4 }, u.text, base, cov, exceptions);
+      const { comps } = parseSeq(toks, 0, { strong: true, weak: false, post: false }, u.text, base, cov, exceptions);
       const Wl = comps.filter((c) => c.type === 'W');
       const skip = !Wl.length || Wl.every((c) => c.A) || (Wl.length === 1 && isCalendarWord(toks, Wl[0].tokIdx));
       if (!skip) {
@@ -494,7 +471,7 @@ export function analyze(units, state, extra = {}) {
           if (lex.CLOSINGS.test(prevLine || '')) ctx.weak = true;
         }
       }
-      const { comps, next } = parseSeq(toks, j, { ...ctx, teil4 }, u.text, base, cov, exceptions);
+      const { comps, next } = parseSeq(toks, j, ctx, u.text, base, cov, exceptions);
       if (!comps.length) { i = j > i ? j : i + 1; continue; }
       // Nachgestellte Anrede ("Ahmet Bey")
       const lastC = comps[comps.length - 1];
@@ -508,7 +485,7 @@ export function analyze(units, state, extra = {}) {
       if (!ctx.strong && !ctx.weak && W.length === 1 && comps.length === 1 && ((W[0].L && !W[0].A) || W[0].shaped)) {
         const comma = toks[next];
         if (comma && comma.t === ',' && comma.s === lastC.e) {
-          const r2 = parseSeq(toks, next + 1, { strong: false, weak: false, teil4 }, u.text, base, cov, exceptions);
+          const r2 = parseSeq(toks, next + 1, { strong: false, weak: false }, u.text, base, cov, exceptions);
           const W2 = r2.comps.filter((c) => c.type === 'W');
           if (W2.length >= 1 && W2.length <= 2 && W2[0].F && !W2[0].A && r2.comps.every((c) => c.type === 'W')) {
             swapped = { given: W2.map((c) => c.key).join(' '), sur: W[0].key };
