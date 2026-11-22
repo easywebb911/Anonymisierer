@@ -48,7 +48,65 @@ export const SACHTEXT = [
   'Hinweis: Fotos werden nur mit Einwilligung veröffentlicht, vgl. Nr. 4 der Schulordnung.',
   'Die Noten werden im 1. Halbjahr bis zum 13.02. und im 2. Halbjahr bis zum 24.07. bekanntgegeben.',
   'Für Fragen stehen wir Ihnen gern zur Verfügung. Mit freundlichen Grüßen, die Schulleitung',
+  // Version 2.8.0: Kopfwörter allein und mit Wörtern der Ausschluss-Liste
+  'An der Schule gibt es eine Mensa. Die Kita öffnet früh. Im Hort wird gebastelt. Das Gymnasium ist groß.',
+  'Die Grundschule Schuljahr 2026/2027 startet, die Kita Montag bis Freitag, der Kindergarten Januar bis Juli.',
+  'Gymnasium Klasse 5, Schule Unterricht, Kita Anmeldung, Verein Mitglieder, Verein Vorstand, Verein Satzung, Kita Öffnungszeiten.',
+  'Hort Betreuung, Kita Gebühren, Verein Beitrag, Kita Träger, Schule Gebäude, Schule Hof, Schule Eltern, Kita Kinder, Schule Lehrkräfte.',
+  'Praxis Leitung, Klinik Termine, Stiftung Satzung, Institut Mitglieder, Akademie Programm, Firma Kontakt, Kanzlei Telefon.',
+  // Titel in Anführungszeichen hinter jedem Titel-Wort
+  'Vortrag „Gesunde Ernährung im Alltag“, Kurs „Erste Hilfe am Kind“, Projekt „Natur vor unserer Tür“, Thema „Lernen mit Freude“.',
+  'Motto „Gemeinsam statt einsam“, Buch „Die kleine Raupe“, Titel „Unser Jahr“, Lied „Bunte Blätter fallen“, Film „Der weite Weg“.',
+  'Workshop „Sicher im Netz“, Seminar „Gute Gespräche führen“, Fach „Natur und Technik“, AG „Junge Forscher“, Stück „Der Zauberwald“, Artikel „Neue Wege gehen“.',
+  // einzelne Sachwörter in Anführungszeichen und Orte allein
+  'Wir sprechen über „Pausen“, „Hausaufgaben“ und „Medien“. Ausflüge gehen nach Kirchberg, München, Bayern und in die Stadt Tannfeld.',
 ];
+// Version 2.8.0: Testdatei „einrichtungen-auto“ (alle Namen erfunden). Je Fall eine Zeile; in Word zusätzlich Kopfzeile,
+// Fußnote und Kommentar, in Excel zwei Blätter.
+export const EINR_AUTO = [
+  'Die Kita Sonnenblume feiert ihr Sommerfest.',
+  'Das Kinderhaus Regenbogen sucht Helfer.',
+  'Das Gymnasium Wendorf lädt zum Tag der offenen Tür.',
+  'Die Mittelschule Birkenhain Nord Ost bietet Praktika an.',
+  'Die Grundschule an der Lindenau beginnt um acht Uhr.',
+  'Das Wendorf-Gymnasium bietet Latein an.',
+  'Die Erika-Brandner-Schule hat einen neuen Schulgarten.',
+  'Das Essen liefert die Sonnenschein Küchen GmbH.',
+  'Der Förderverein Wendorf e. V. sammelt Spenden.',
+  'Die Schüler des Gymnasiums Wendorf fahren nach Rom.',
+  'GYMNASIUM WENDORF – ELTERNINFORMATION',
+  'Die Kita „Kleine Strolche“ hat geöffnet.',
+  'Treffpunkt ist das „Haus Marlene“ am Markt.',
+  'Die Initiative „Bunte Welt Wendorf“ lädt ein, Instagram: @bunte_welt_wendorf',
+  'Im „Grüne Insel“ gibt es Kaffee. Das Grüne Insel ist montags zu.',
+];
+// Nachbesserung 2.8.0: „Haus Marlene“ (Merkmal 2) ist keine gefundene Einrichtung mehr: „Marlene“ ist für die
+// Personen-Erkennung allein schon eine sichere Person (Regel 2); „Marlene“ wird als Person ersetzt, „Haus Marlene“ steht im
+// Warnpunkt. Dreiwort-Fall ohne Personennamen („Birkenhain Nord Ost“ statt „Sankt Georg Wendorf“).
+export const EINR_AUTO_COUNT = 11; // verschiedene Einrichtungen (= Zahl der Einrichtungs-Fragen)
+export const EINR_AUTO_NAMES = ['Sonnenblume', 'Regenbogen', 'Wendorf', 'Birkenhain', 'Lindenau', 'Erika', 'Brandner', 'Sonnenschein', 'Kleine Strolche', 'Marlene', 'Bunte Welt', 'Grüne Insel'];
+export const EINR_AUTO_WARN = ['Haus Marlene'];
+// Nachbesserung 2.8.0: Einrichtung und Person dicht beieinander (Befund 1) und Sachwörter nach einem Kopfwort (Befund 2)
+export const EINR_PERSON = [
+  'Der Verein Vorsitzender Herr Kessler lädt ein.',
+  'Kita Leitung Frau Sommerfeld Telefon folgt',
+  'Gymnasium Tannhofen Herr Kessler Klasse 5a',
+  'In der Schule Deutsch und Mathe lernen alle Kinder.',
+  'Wir treffen uns im Hort Raum 3.',
+  'Die Kita Gruppe Igel geht in den Wald.',
+  'Die Klinik Aufnahme ist besetzt.',
+  'Im Kindergarten Sommerfest gibt es Kuchen.',
+  'Termin in der Praxis Dr. Erika Brandner am Montag.',
+  'Auftrag an die Firma Holzbau Lehmann GmbH, Herr Lehmann kommt.',
+  'Die Erika-Brandner-Schule feiert ihr Jubiläum.',
+  'Das Angebot von „Brandner lern und spiel“ steht auch auf Instagram: brandner_lern_und_spiel',
+];
+export const EINR_PERSON_BEFUND2 = [3, 4, 5, 6, 7]; // Zeilen ohne Einrichtung
+export const EINR_PERSON_TABLE = [['Einrichtung', 'Ansprechpartner'], ['Kita Sonnenblume', 'Frau Sommerfeld'], ['Gymnasium Tannhofen', 'Herr Kessler']];
+export const EINR_PERSON_PERSONS = ['Kessler', 'Sommerfeld', 'Erika Brandner', 'Lehmann'];
+export const EINR_KOPF = 'Kita Sonnenblume – Elternbrief';
+export const EINR_FUSS = 'Gemeint ist das Kinderhaus Regenbogen.';
+export const EINR_KOMMENTAR = 'Rückfrage an die Kita Sonnenblume';
 // Sperre-Test: nur Webadresse und Konto, sonst nichts zu ersetzen
 export const NURWEB = ['Mehr dazu unter www.beispiel-kinderhaus.de/termine.', 'Folgen Sie uns auf Instagram: @sonnenhof_kids'];
 // Zeilen; {link} = Webadresse (in Word/Excel als Verknüpfung, in Text-Formaten wie in Easys Text als [www…](https://…))
@@ -93,6 +151,48 @@ async function docx() {
     'word/document.xml': X + `<w:document xmlns:w="${W}" xmlns:r="${R}"><w:body>${body}<w:sectPr/></w:body></w:document>`,
   });
 }
+async function einrDocx() {
+  const run = (t) => `<w:r><w:t xml:space="preserve">${esc(t)}</w:t></w:r>`;
+  const body = EINR_AUTO.map((l, i) => `<w:p>${i === 0 ? '<w:commentRangeStart w:id="0"/>' : ''}${run(l)}${i === 0 ? '<w:commentRangeEnd w:id="0"/><w:r><w:commentReference w:id="0"/></w:r>' : ''}${i === 1 ? '<w:r><w:footnoteReference w:id="1"/></w:r>' : ''}</w:p>`).join('');
+  await save('einrichtungen-auto.docx', {
+    '[Content_Types].xml': X + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/header1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"/><Override PartName="/word/footnotes.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml"/><Override PartName="/word/comments.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml"/></Types>',
+    '_rels/.rels': X + `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${R}/officeDocument" Target="word/document.xml"/></Relationships>`,
+    'word/_rels/document.xml.rels': X + `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rIdH" Type="${R}/header" Target="header1.xml"/><Relationship Id="rIdF" Type="${R}/footnotes" Target="footnotes.xml"/><Relationship Id="rIdC" Type="${R}/comments" Target="comments.xml"/></Relationships>`,
+    'word/document.xml': X + `<w:document xmlns:w="${W}" xmlns:r="${R}"><w:body>${body}<w:sectPr><w:headerReference w:type="default" r:id="rIdH"/></w:sectPr></w:body></w:document>`,
+    'word/header1.xml': X + `<w:hdr xmlns:w="${W}"><w:p>${run(EINR_KOPF)}</w:p></w:hdr>`,
+    'word/footnotes.xml': X + `<w:footnotes xmlns:w="${W}"><w:footnote w:id="1"><w:p>${run(EINR_FUSS)}</w:p></w:footnote></w:footnotes>`,
+    'word/comments.xml': X + `<w:comments xmlns:w="${W}"><w:comment w:id="0" w:author="Test" w:initials="T"><w:p>${run(EINR_KOMMENTAR)}</w:p></w:comment></w:comments>`,
+  });
+}
+async function einrXlsx() {
+  const ss = [];
+  const si = (s) => { let i = ss.indexOf(s); if (i < 0) { ss.push(s); i = ss.length - 1; } return i; };
+  const half = Math.ceil(EINR_AUTO.length / 2);
+  const sheets = [EINR_AUTO.slice(0, half), [...EINR_AUTO.slice(half), EINR_KOPF, EINR_FUSS]];
+  const rowsOf = (ls) => ls.map((l, i) => `<row r="${i + 1}"><c r="A${i + 1}" t="s"><v>${si(l)}</v></c></row>`).join('');
+  await save('einrichtungen-auto.xlsx', {
+    '[Content_Types].xml': X + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/></Types>',
+    '_rels/.rels': X + `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${R}/officeDocument" Target="xl/workbook.xml"/></Relationships>`,
+    'xl/workbook.xml': X + `<workbook xmlns="${S}" xmlns:r="${R}"><sheets><sheet name="Teil 1" sheetId="1" r:id="rId1"/><sheet name="Teil 2" sheetId="2" r:id="rId2"/></sheets></workbook>`,
+    'xl/_rels/workbook.xml.rels': X + `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${R}/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="${R}/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rIdS" Type="${R}/sharedStrings" Target="sharedStrings.xml"/></Relationships>`,
+    'xl/worksheets/sheet1.xml': X + `<worksheet xmlns="${S}"><sheetData>${rowsOf(sheets[0])}</sheetData></worksheet>`,
+    'xl/worksheets/sheet2.xml': X + `<worksheet xmlns="${S}"><sheetData>${rowsOf(sheets[1])}</sheetData></worksheet>`,
+    'xl/sharedStrings.xml': X + `<sst xmlns="${S}" count="${ss.length}" uniqueCount="${ss.length}">${ss.map((s) => `<si><t xml:space="preserve">${esc(s)}</t></si>`).join('')}</sst>`,
+  });
+}
+async function personXlsx() {
+  const ss = [];
+  const si = (s) => { let i = ss.indexOf(s); if (i < 0) { ss.push(s); i = ss.length - 1; } return i; };
+  const rows = EINR_PERSON_TABLE.map((r, i) => `<row r="${i + 1}">${r.map((v, c) => `<c r="${String.fromCharCode(65 + c)}${i + 1}" t="s"><v>${si(v)}</v></c>`).join('')}</row>`).join('');
+  await save('einrichtung-person.xlsx', {
+    '[Content_Types].xml': X + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/></Types>',
+    '_rels/.rels': X + `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${R}/officeDocument" Target="xl/workbook.xml"/></Relationships>`,
+    'xl/workbook.xml': X + `<workbook xmlns="${S}" xmlns:r="${R}"><sheets><sheet name="Kontakte" sheetId="1" r:id="rId1"/></sheets></workbook>`,
+    'xl/_rels/workbook.xml.rels': X + `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${R}/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rIdS" Type="${R}/sharedStrings" Target="sharedStrings.xml"/></Relationships>`,
+    'xl/worksheets/sheet1.xml': X + `<worksheet xmlns="${S}"><sheetData>${rows}</sheetData></worksheet>`,
+    'xl/sharedStrings.xml': X + `<sst xmlns="${S}" count="${ss.length}" uniqueCount="${ss.length}">${ss.map((s) => `<si><t xml:space="preserve">${esc(s)}</t></si>`).join('')}</sst>`,
+  });
+}
 async function xlsx() {
   const ss = [];
   const si = (s) => { let i = ss.indexOf(s); if (i < 0) { ss.push(s); i = ss.length - 1; } return i; };
@@ -115,8 +215,14 @@ export async function makeAll() {
   fs.writeFileSync(path.join(FXT, 'anmeldung.csv'), LINES.map((l) => { const t = textLine(l); return /[;"]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; }).join('\r\n') + '\r\n');
   fs.writeFileSync(path.join(FXT, 'sachtext.txt'), SACHTEXT.join('\r\n') + '\r\n');
   fs.writeFileSync(path.join(FXT, 'nurweb.txt'), NURWEB.join('\n') + '\n');
+  fs.writeFileSync(path.join(FXT, 'einrichtungen-auto.txt'), [EINR_KOPF, ...EINR_AUTO, EINR_FUSS, EINR_KOMMENTAR].join('\r\n') + '\r\n');
   await docx();
   await xlsx();
+  await einrDocx();
+  await einrXlsx();
+  fs.writeFileSync(path.join(FXT, 'einrichtung-person.txt'), EINR_PERSON.join('\r\n') + '\r\n');
+  fs.writeFileSync(path.join(FXT, 'einrichtung-person.csv'), EINR_PERSON_TABLE.map((r) => r.join(';')).join('\r\n') + '\r\n');
+  await personXlsx();
   // PDF über LibreOffice aus der Word-Fassung
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'traeger-'));
   try {

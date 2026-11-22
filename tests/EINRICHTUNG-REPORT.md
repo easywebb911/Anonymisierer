@@ -127,8 +127,8 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 - OK: „Astrid-Lindgren-Schule“ = ein Platzhalter; „Astrid Lindgren“ an anderer Stelle bleibt Person – Auch die Einrichtung C macht mit. Frau Vorname B Nachname B liest vor.
 
 ## Art-Wechsel: Einrichtung → Person → Einrichtung (rückbaufähig)
-- OK: „ist eine Person“: Platzhalter, Zählung und Kennung folgen; Schlüssel muss neu gespeichert werden – vorher: 2 Personen/1 Einrichtung, „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“; nachher: 3/0, „Das FZS plant gemeinsam mit dem Vorname B Nachname B ein Fest.“, Kennung H2N7 → 3A9P
-- OK: „ist eine Einrichtung“ zurück: wieder „Einrichtung A“, Zählung und Kennung folgen – „Das FZS plant gemeinsam mit dem Einrichtung A ein Fest.“, Kennung 3A9P → R635
+- OK: „ist eine Person“: Platzhalter, Zählung und Kennung folgen; Schlüssel muss neu gespeichert werden – vorher: 2 Personen/3 Einrichtung, „Das FZS plant gemeinsam mit dem Einrichtung B ein Fest.“; nachher: 3/2, „Das FZS plant gemeinsam mit dem Vorname B Nachname B ein Fest.“, Kennung Q26W → 6X69
+- OK: „ist eine Einrichtung“ zurück: wieder „Einrichtung A“, Zählung und Kennung folgen – „Das FZS plant gemeinsam mit dem Einrichtung B ein Fest.“, Kennung 6X69 → E4Y4
 
 ## Merkliste mit Art
 - OK: Neue Merkliste mit Art wird richtig gelesen (Person und Einrichtung, Art an jedem Eintrag sichtbar) – Hollmann · Person | Familienzentrum Sonnenblume · Einrichtung
@@ -303,13 +303,13 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 | im Briefkopf (über zwei Absätze) und im Text | txt | reversible | 1 (1) | Zeile 1 und Zeile 3 – im Original Einrichtung aus deiner Liste, nicht vollständig ersetzt · „…Musikschule am Stadtpark Die Musikschule am Stadtpark…“ Der Name steht über  | ja |
 - OK: briefkopf-und-text, txt, reversible: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt – Musikschule am
 | „Freie Waldorfschule“ über zwei Absätze, davor „Kita“ als Person ersetzt | docx | person | 1 (1) | Text – im Original Einrichtung aus deiner Liste, nicht vollständig ersetzt · „…Kita Freie Waldorfschule Rundbrief an alle Eltern.…“ Der Name steht über zwei Absätze. Entf | ja |
-- OK: freie-person, docx, person: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt („Kita“ als Person ersetzt, „Freie“ bleibt) – Person A Freie
+- OK: freie-person, docx, person: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt (seit 2.8.0: „Kita Freie“ als gefundene Einrichtung ersetzt) – Einrichtung A
 | „Freie Waldorfschule“ über zwei Absätze, davor „Kita“ als Person ersetzt | docx | reversible | 1 (1) | Text – im Original Einrichtung aus deiner Liste, nicht vollständig ersetzt · „…Kita Freie Waldorfschule Rundbrief an alle Eltern.…“ Der Name steht über zwei Absätze. Entf | ja |
-- OK: freie-person, docx, reversible: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt („Kita“ als Person ersetzt, „Freie“ bleibt) – Nachname A Freie
+- OK: freie-person, docx, reversible: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt (seit 2.8.0: „Kita Freie“ als gefundene Einrichtung ersetzt) – Einrichtung A
 | „Freie Waldorfschule“ über zwei Absätze, davor „Kita“ als Person ersetzt | txt | person | 1 (1) | Zeile 1 und Zeile 3 – im Original Einrichtung aus deiner Liste, nicht vollständig ersetzt · „…Kita Freie Waldorfschule Rundbrief an alle Eltern. …“ Der Name steht über zw | ja |
-- OK: freie-person, txt, person: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt („Kita“ als Person ersetzt, „Freie“ bleibt) – Person A Freie
+- OK: freie-person, txt, person: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt (seit 2.8.0: „Kita Freie“ als gefundene Einrichtung ersetzt) – Einrichtung A
 | „Freie Waldorfschule“ über zwei Absätze, davor „Kita“ als Person ersetzt | txt | reversible | 1 (1) | Zeile 1 und Zeile 3 – im Original Einrichtung aus deiner Liste, nicht vollständig ersetzt · „…Kita Freie Waldorfschule Rundbrief an alle Eltern. …“ Der Name steht über zw | ja |
-- OK: freie-person, txt, reversible: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt („Kita“ als Person ersetzt, „Freie“ bleibt) – Nachname A Freie
+- OK: freie-person, txt, reversible: 1 Meldung(en), mit Fundort und Anleitung, Speichern gesperrt (seit 2.8.0: „Kita Freie“ als gefundene Einrichtung ersetzt) – Einrichtung A
 | in der Liste, aber nicht im Dokument (keine Meldung erwartet) | docx | person | 0 (0) | – | – |
 - OK: nicht-im-dokument, docx, person: 0 Meldung(en) – Rundbrief an alle Eltern.
 | in der Liste, aber nicht im Dokument (keine Meldung erwartet) | docx | reversible | 0 (0) | – | – |

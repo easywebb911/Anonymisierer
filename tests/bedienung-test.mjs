@@ -11,6 +11,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import { orgTermTokens } from '../src/core/detect.js';
 import { startAnon, loadIn, goTo, saveKey, waitCheck, ackImages, exportOnce, rbConfirm } from './ui-helpers.mjs';
 import { FXB, META_NAME } from './make-bedienung.mjs';
 import { FX as FXP } from './make-pfade.mjs';
@@ -215,18 +216,25 @@ log('');
 // ---------- 3. Ohne Bedienung byte-gleich ----------
 log('## 3. Ohne Bedienung byte-gleich zu Version 2.4.1 (alle Testdokumente, alle Modi, alle Formate, Schlüsseldatei)');
 const FORMATS = { txt: ['txt', 'docx'], csv: ['csv', 'txt', 'docx'], docx: ['docx', 'txt'], xlsx: ['xlsx', 'txt'], pdf: ['txt', 'docx'] };
-async function outputs(html, file, mode, manual) {
+async function outputs(html, file, mode, manual, groups = null) {
   const { page, ctx } = await newPage(html);
-  const res = await page.evaluate(async ([b, n, m, man, F]) => {
+  // Version 2.8.0 (Nachweis): gefundene Einrichtungen der neuen Version als von Hand markiert vorgeben, ihre Schreibweisen
+  // zusammenführen (Regel c)
+  const merges = {};
+  for (const g of groups || []) for (const t of g.slice(1)) merges[orgTermTokens(t).key] = orgTermTokens(g[0]).key;
+  const res = await page.evaluate(async ([b, n, m, man, F, terms, mg]) => {
     const A = window.__anon;
     A.app.state.settings.mode = m;
     A.app.state.manualTerms = man;
+    if (terms.length) A.app.state.orgTerms = terms;
     try { await A.openBytes(new Uint8Array(b), n); } catch (e) { return { err: e.message }; }
+    if (Object.keys(mg).length) { Object.assign(A.app.state.merges, mg); A.runAnalysis(); }
+    const groups = A.app.result.orgs ? [...A.app.result.orgs.values()].filter((o) => o.auto).map((o) => [...o.forms.keys()]) : [];
     A.app.kennung = 'TST1'; // feste Kennung (sonst Zufall)
     const o = {};
     for (const f of F[A.app.doc.kind]) { const x = await A.buildOutput(f); o[f] = x.zip ? Array.from(x.bytes) : x.text; }
-    return { o, kind: A.app.doc.kind };
-  }, [[...fs.readFileSync(file)], path.basename(file), mode, manual, FORMATS]);
+    return { o, kind: A.app.doc.kind, groups };
+  }, [[...fs.readFileSync(file)], path.basename(file), mode, manual, FORMATS, (groups || []).flat(), merges]);
   let key = null;
   if (mode === 'reversible' && !res.err) {
     await page.evaluate(() => window.__anon.show('a3'));
@@ -244,17 +252,27 @@ async function outputs(html, file, mode, manual) {
 }
 let nOut = 0;
 const diffs = [];
+const v28 = []; // Version 2.8.0: Änderung allein durch selbst gefundene Einrichtungen (nachgewiesen)
 for (const [file, manual] of allFiles) {
   for (const mode of ['person', 'name', 'reversible']) {
     const a = await outputs(oldHtml, file, mode, manual);
     const b = await outputs(newHtml, file, mode, manual);
     if (a.err || b.err) { if (a.err !== b.err) diffs.push(`${path.basename(file)} ${mode}: Fehler ${a.err} / ${b.err}`); continue; }
+    // Nachweis 2.8.0: die alte Version mit den gefundenen Einrichtungen als von Hand markiert (zusammengeführt)
+    let c = null;
+    const ref = async () => { if (!c) c = await outputs(oldHtml, file, mode, manual, b.groups); return c; };
+    const label = `${path.basename(file)}${manual.length ? ' (mit eigenen Namen)' : ''}`;
     for (const f of Object.keys(a.o)) {
       nOut++;
       const same = JSON.stringify(a.o[f]) === JSON.stringify(b.o[f]);
-      if (!same) diffs.push(`${path.basename(file)}${manual.length ? ' (mit eigenen Namen)' : ''}, ${mode}, .${f}`);
+      if (same) continue;
+      if (b.groups.length && JSON.stringify((await ref()).o[f]) === JSON.stringify(b.o[f])) { v28.push(`${label}, ${mode}, .${f}`); continue; }
+      diffs.push(`${label}, ${mode}, .${f}`);
     }
-    if (mode === 'reversible') { nOut++; if (a.key !== b.key) diffs.push(`${path.basename(file)}${manual.length ? ' (mit eigenen Namen)' : ''}, Schlüsseldatei`); }
+    if (mode === 'reversible') {
+      nOut++;
+      if (a.key !== b.key) { if (b.groups.length && (await ref()).key === b.key) v28.push(`${label}, Schlüsseldatei`); else diffs.push(`${label}, Schlüsseldatei`); }
+    }
   }
 }
 // Version 2.6.0: Diese Dokumente ändern sich ohne Bedienung gewollt durch die neuen Regeln (Grund je Dokument; Einzelheiten
@@ -277,7 +295,8 @@ for (const [doc, why] of Object.entries(CHANGED_260)) {
   const n = diffs.filter((d) => docOf(d) === doc).length;
   log(`  - ${doc}: ${n} Ausgabe(n) geändert – Grund (Version 2.6.0): ${why}`);
 }
-check('Ohne Bedienung byte-gleich zu 2.4.1 (Kennung fest), außer den Dokumenten mit Grund aus Version 2.6.0', unexplained.length === 0, unexplained.join('; '));
+log(`- Version 2.8.0: ${v28.length} Ausgabe(n) geändert allein durch selbst gefundene Einrichtungen (nachgewiesen: gleich der Vorversion mit diesen Einrichtungen als von Hand markiert, Schreibweisen zusammengeführt)${v28.length ? ': ' + v28.join('; ') : ''}`);
+check('Ohne Bedienung byte-gleich zur Vorversion (Kennung fest), außer den Dokumenten mit Grund aus Version 2.6.0 und den nachgewiesenen Änderungen durch gefundene Einrichtungen (2.8.0)', unexplained.length === 0, unexplained.join('; '));
 log('');
 
 // ---------- 4. Sperren, Eigene Namen, 1366×768 ----------

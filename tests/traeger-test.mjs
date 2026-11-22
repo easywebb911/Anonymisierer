@@ -1,21 +1,24 @@
-// Version 2.7.0 (PR A „Webadressen, Konten und Sperre“): Ziel-Test mit dem Anmeldeformular „anmeldung“ (txt, csv, docx,
-// xlsx, pdf), Gegenprobe „sachtext“, Sperre Punkt 1 und 2, Warnpunkt „Hier könnte eine Einrichtung stehen“, Rückbau
-// (streng, locker umgeschrieben, Schlüsseldatei aus 2.6.1). Gestuft: Schulname, Träger und GYMTH bleiben nach PR A noch im
-// Klartext; sie stehen als erwartete offene Punkte („kommt mit PR B/C“) im Bericht, nicht als bestanden.
-// Aufruf: node tests/traeger-test.mjs [index.html der Version 2.6.1]   (Ergebnis: tests/TRAEGER-REPORT.md)
+// Ziel-Test „Träger“: Version 2.7.0 (PR A „Webadressen, Konten und Sperre“) und Version 2.8.0 (PR B „Einrichtungen
+// selbst finden“). Anmeldeformular „anmeldung“ (txt, csv, docx, xlsx, pdf), „einrichtungen-auto“ (txt, docx, xlsx),
+// Gegenprobe „sachtext“, Sperre Punkt 1 bis 3, Warnpunkt „Hier könnte eine Einrichtung stehen“ (nur noch schwache Funde),
+// Rückbau (streng, locker umgeschrieben, Schlüsseldateien aus 2.6.1 und 2.7.0). Gestuft: GYMTH bleibt nach PR B im
+// Klartext; es steht als erwarteter offener Punkt („kommt mit PR C“) im Bericht, nicht als bestanden.
+// Aufruf: node tests/traeger-test.mjs [index.html der Vorversion (2.7.0)]   (Ergebnis: tests/TRAEGER-REPORT.md)
+// Gegenprobe: TRAEGER_HTML=<index.html> prüft eine andere Version (z. B. 2.7.0: muss scheitern)
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import JSZip from 'jszip';
-import { makeAll, FXT, MUST_STAY, ACCOUNT, NURWEB } from './make-traeger.mjs';
+import { makeAll, FXT, MUST_STAY, ACCOUNT, NURWEB, EINR_AUTO_COUNT, EINR_AUTO_NAMES, EINR_AUTO_WARN, EINR_PERSON, EINR_PERSON_BEFUND2 } from './make-traeger.mjs';
 import { startAnon, loadIn, goTo, waitCheck, exportOnce, exportWithAck, saveKey, rbConfirm, savePoints, ackPoints } from './ui-helpers.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..');
-const HTML = path.join(root, 'index.html');
+const HTML = process.env.TRAEGER_HTML ? path.resolve(process.env.TRAEGER_HTML) : path.join(root, 'index.html');
 const OLD = process.argv[2] ? path.resolve(process.argv[2]) : null;
-const FXALT = path.join(here, 'fixtures-traeger-alt'); // Ausgabe + Schlüsseldatei aus Version 2.6.1 (fest im Repo)
+// Ausgabe + Schlüsseldatei aus Version 2.6.1 bzw. 2.7.0 (fest im Repo)
+const FXALT = [['2.6.1', path.join(here, 'fixtures-traeger-alt')], ['2.7.0', path.join(here, 'fixtures-traeger-alt-270')]];
 const outDir = path.join(here, 'out', 'traeger'); // tests/out/ ist von git ausgenommen
 fs.rmSync(outDir, { recursive: true, force: true });
 fs.mkdirSync(outDir, { recursive: true });
@@ -44,8 +47,8 @@ const FORMATS = ['txt', 'csv', 'docx', 'xlsx', 'pdf'];
 const MODES = ['person', 'name', 'reversible'];
 const OUTF = { txt: ['txt'], csv: ['csv'], docx: ['docx'], xlsx: ['xlsx'], pdf: ['txt', 'docx'] };
 const HOST = 'lern-und-spiel-tannhofen';
-const OPEN = ['Tannhofen', 'Brandner', 'lern und spiel', 'GYMTH']; // kommt mit PR B/C
-const WARN_MUST = ['Gymnasium Tannhofen', 'Gymnasium Kirchberg Tannhofen', '„Brandner lern und spiel“'];
+const GONE = ['Tannhofen', 'Brandner', 'lern und spiel']; // seit 2.8.0 ersetzt
+const OPEN = ['GYMTH']; // kommt mit PR C
 const unxml = (s) => s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, '&');
 const count = (t, w) => t.split(w).length - 1;
 async function allText(v) {
@@ -65,9 +68,11 @@ async function measure(html, ext, mode) {
     await A.openBytes(new Uint8Array(arr), nm);
     const o = {};
     for (const f of F) { const x = await A.buildOutput(f); o[f] = x.zip ? Array.from(x.bytes) : x.text; }
-    const pts = A.savePoints ? A.savePoints() : [];
-    const warn = pts.find((p) => /^einr:/.test(p.id));
-    return { o, warn: warn ? warn.items.map((i) => i.text) : null, q: A.questions().length };
+    const r = A.app.result;
+    // beide Schreibweisen der Schule in derselben Einrichtung (ein Buchstabe)?
+    const og = [...(r.orgs || new Map()).values()].find((x) => [...x.forms.keys()].some((f) => /^Gymnasium Tannhofen$/i.test(f)));
+    const same = !!og && [...og.forms.keys()].some((f) => /^Gymnasium Kirchberg Tannhofen$/i.test(f));
+    return { o, same, letter: og ? og.label : '', orgQ: A.questions().filter((q) => q.kind === 'org').length, q: A.questions().length };
   }, [[...fs.readFileSync(path.join(FXT, 'anmeldung.' + ext))], 'anmeldung.' + ext, mode, OUTF[ext]]);
   await ctx.close();
   const rows = [];
@@ -75,35 +80,36 @@ async function measure(html, ext, mode) {
     const t = await allText(v);
     // auch über einen Zeilenumbruch getrennt („www.lern-⏎und-spiel…“, PDF) zählen
     const tj = t.replace(/-\r?\n/g, '-');
-    rows.push({ f, web: count(tj.toLowerCase(), HOST) + count(tj.toLowerCase(), 'www.lern-'), acc: count(t, ACCOUNT), open: OPEN.map((w) => count(t, w)), stay: MUST_STAY.filter((w) => t.includes(w)).length, warn: res.warn, q: res.q });
+    rows.push({ f, web: count(tj.toLowerCase(), HOST) + count(tj.toLowerCase(), 'www.lern-'), acc: count(t, ACCOUNT), gone: GONE.map((w) => count(tj, w)), open: OPEN.map((w) => count(t, w)),
+      stay: MUST_STAY.filter((w) => t.includes(w)).length, same: res.same, letter: res.letter, orgQ: res.orgQ, q: res.q });
   }
   return rows;
 }
-log('# Ziel-Test Version 2.7.0, PR A „Webadressen, Konten und Sperre“');
+log('# Ziel-Test „Träger“ (Version 2.8.0, PR B „Einrichtungen selbst finden“; enthält PR A)');
 log('');
 log('Testdatei „anmeldung“ (tests/make-traeger.mjs), alle Namen erfunden. Word: Verknüpfung als Feldfunktion HYPERLINK (Ziel mit Pfad) und als Verknüpfung mit Link-Hinweis; Excel: Verknüpfung mit Link-Hinweis in B5. PDF über LibreOffice aus der Word-Fassung.');
 log('');
 log('## 1. Soll / gemessen je Format und Modus (ohne jede Antwort)');
 log('');
-log('Soll: 0 Webadresse (auch Link-Ziel, Feldfunktion, Link-Hinweis), 0 Kontoname, alle 10 Wörter „bleiben stehen“, Warnpunkt nennt die drei Stellen. Offen (kommt mit PR B/C): Vorkommen von ' + OPEN.map((w) => '„' + w + '“').join(', ') + '.');
+log('Soll: 0 Webadresse (auch Link-Ziel, Feldfunktion, Link-Hinweis), 0 Kontoname, 0 Vorkommen von ' + GONE.map((w) => '„' + w + '“').join(', ') + ', beide Schreibweisen der Schule mit demselben Buchstaben, alle 10 Wörter „bleiben stehen“. Offen (kommt mit PR C): GYMTH. In Klammern: Vorversion' + (OLD ? '' : ' (nicht gemessen)') + '.');
 log('');
-log(`| Format | Modus | Ausgabe | Webadresse 2.7.0${OLD ? ' (2.6.1)' : ''} | Konto 2.7.0${OLD ? ' (2.6.1)' : ''} | bleiben stehen | Warnpunkt nennt die drei | offen, kommt mit PR B/C${OLD ? ' (2.6.1)' : ''} |`);
-log('|---|---|---|---|---|---|---|---|');
+log('| Format | Modus | Ausgabe | Webadresse | Konto | Tannhofen, Brandner, lern und spiel | gleicher Buchstabe | bleiben stehen | Einrichtungs-Fragen | offen: GYMTH (kommt mit PR C) |');
+log('|---|---|---|---|---|---|---|---|---|---|');
 const openTotals = {};
 for (const ext of FORMATS) for (const mode of MODES) {
   const now = await measure(HTML, ext, mode);
   const old = OLD ? await measure(OLD, ext, mode) : null;
   now.forEach((r, i) => {
     const o = old ? old[i] : null;
-    const warnOk = r.warn && WARN_MUST.every((w) => r.warn.some((x) => x.includes(w)));
-    const openN = r.open.reduce((a, b) => a + b, 0);
-    openTotals[ext + '/' + r.f] = openN;
-    log(`| ${ext} | ${mode} | .${r.f} | ${r.web}${o ? ` (${o.web})` : ''} | ${r.acc}${o ? ` (${o.acc})` : ''} | ${r.stay}/${MUST_STAY.length} | ${warnOk ? 'ja' : 'NEIN'} | ${openN} (${OPEN.map((w, k) => w + ' ' + r.open[k]).join(', ')})${o ? ` (${o.open.reduce((a, b) => a + b, 0)})` : ''} |`);
-    check(`${ext}/${mode}/.${r.f}: 0 Webadresse, 0 Konto, alles Stehende da, Warnpunkt vollständig`, r.web === 0 && r.acc === 0 && r.stay === MUST_STAY.length && warnOk);
+    const goneN = r.gone.reduce((a, b) => a + b, 0);
+    openTotals[ext + '/' + r.f] = r.open[0];
+    const v = (x, y) => `${x}${o ? ` (${y})` : ''}`;
+    log(`| ${ext} | ${mode} | .${r.f} | ${v(r.web, o && o.web)} | ${v(r.acc, o && o.acc)} | ${v(goneN, o && o.gone.reduce((a, b) => a + b, 0))} | ${r.same ? 'ja (' + r.letter + ')' : 'NEIN'} | ${r.stay}/${MUST_STAY.length} | ${v(r.orgQ, o && o.orgQ)} | ${v(r.open[0], o && o.open[0])} |`);
+    check(`${ext}/${mode}/.${r.f}: 0 Webadresse, 0 Konto, 0 Schule/Träger, ein Buchstabe, alles Stehende da, 2 Einrichtungs-Fragen`, r.web === 0 && r.acc === 0 && goneN === 0 && r.same && r.stay === MUST_STAY.length && r.orgQ === 2);
   });
 }
 log('');
-log('Erwartete offene Punkte nach PR A (NICHT bestanden, kommt mit PR B/C), Zahl der Vorkommen in der Ausgabe je Format: ' + Object.entries(openTotals).filter(([k]) => /\/(txt|csv|docx|xlsx)$/.test(k)).map(([k, v]) => `${k} ${v}`).join(', ') + '.');
+log('Erwarteter offener Punkt nach PR B (NICHT bestanden, kommt mit PR C): GYMTH, Vorkommen in der Ausgabe je Format: ' + Object.entries(openTotals).map(([k, v]) => `${k} ${v}`).join(', ') + '. Sonst bleibt nichts offen.');
 log('');
 
 // ---------- 2. Sperre ----------
@@ -167,36 +173,84 @@ const P1 = 'In dieser Datei wird nichts ersetzt. Bitte prüfe Schulname, Firma, 
 }
 log('');
 
-// ---------- 3. Warnpunkt ----------
-log('## 3. Warnpunkt „Hier könnte eine Einrichtung stehen“');
-log('');
 {
+  // Version 2.8.0: Schule „Ja“, Träger „Nein“ -> Träger steht im Text, kein Punkt dazu; Schule vollständig ersetzt
   const { page, ctx } = await openUI(path.join(FXT, 'anmeldung.txt'), 'person');
+  const asked = [];
+  for (let i = 0; i < 2; i++) {
+    const q = await page.$eval('#qcard .qask', (e) => e.textContent);
+    asked.push(q);
+    if (/Gymnasium Tannhofen/.test(q)) await page.click('#q-yes'); else if (/Brandner lern und spiel/.test(q)) await page.click('#q-no'); else break;
+  }
+  log('Fragen: ' + asked.join(' | '));
+  await goTo(page, 'a3');
+  await waitCheck(page);
+  const pts = await savePoints(page);
+  const out = await page.evaluate(async () => (await window.__anon.buildOutput('txt')).text);
+  check('Einrichtungs-Fragen lauten „Ist „…“ eine Einrichtung?“', asked.length === 2 && asked.every((q) => /^Ist „.+“ eine Einrichtung\?$/.test(q)), asked.join(' | '));
+  check('Schule „Ja“, Träger „Nein“: Träger steht im Text (3×), Schule vollständig ersetzt', count(out, 'Brandner lern und spiel') === 3 && !out.includes('Tannhofen'), `Brandner ${count(out, 'Brandner')}, Tannhofen ${count(out, 'Tannhofen')}`);
+  check('… und kein Punkt zum Träger', !pts.some((p) => /Brandner/.test(p)), pts.join(' | '));
+  await ctx.close();
+}
+{
+  // Version 2.8.0: „Unsichere Treffer ersetzen“ aus -> Punkt 3 für beide Einrichtungen, Speichern erst nach dem Häkchen
+  const pg = await newPage();
+  await startAnon(pg.page, 'person');
+  if (await pg.page.isHidden('#opt-unsureOn')) await pg.page.click('#tgl-adv');
+  await pg.page.uncheck('#opt-unsureOn');
+  await loadIn(pg.page, path.join(FXT, 'anmeldung.txt'));
+  await goTo(pg.page, 'a3');
+  await waitCheck(pg.page);
+  const pts = await savePoints(pg.page);
+  const p3 = pts.filter((p) => /^Eine Einrichtung steht noch im Text/.test(p));
+  for (const p of p3) log('  - ' + p);
+  check('„Unsichere Treffer ersetzen“ aus: Punkt 3 für beide Einrichtungen (mit Fundort, „Im Text zeigen“, „Ersetzen“)', p3.length === 2 && p3.some((p) => /Gymnasium Tannhofen/.test(p)) && p3.some((p) => /Brandner lern und spiel/.test(p)) && p3.every((p) => /Zeile \d+ Im Text zeigen/.test(p) && /Ersetzen$/.test(p)));
+  const first = await exportOnce(pg.page, 'txt');
+  check('… Speichern ohne Häkchen gesperrt', !first.dl, first.status);
+  const second = await exportWithAck(pg.page, 'txt');
+  check('… Speichern nach dem einen Häkchen möglich', !!second.dl, second.status);
+  // „Ersetzen“ beim Punkt 3: Einrichtung ersetzt, Punkt weg
+  await pg.page.click('#points li:has-text("Eine Einrichtung steht noch im Text") .pact button');
+  await waitCheck(pg.page);
+  const pts2 = await savePoints(pg.page);
+  check('„Ersetzen“ beim Punkt 3: dieser Punkt verschwindet', pts2.filter((p) => /^Eine Einrichtung steht noch im Text/.test(p)).length === 1, pts2.join(' | '));
+  await pg.ctx.close();
+}
+log('');
+
+// ---------- 3. Warnpunkt ----------
+log('## 3. Warnpunkt „Hier könnte eine Einrichtung stehen“ (seit 2.8.0 nur schwache Funde: Anführungszeichen ohne Merkmal)');
+log('');
+const WEAK = ['Blaue Stunde', 'Stille Ecke', 'Bunte Kiste', 'Ruhige Insel', 'Große Runde', 'Leise Wolke', 'Warme Decke', 'Sanfte Musik', 'Frische Luft', 'Gute Laune', 'Weiche Kissen', 'Klare Sicht'];
+{
+  const f = path.join(outDir, 'schwach.txt');
+  fs.writeFileSync(f, WEAK.slice(0, 3).map((w, i) => `Zeile ${i + 1}: Wir treffen uns in der Runde „${w}“ am Nachmittag.`).join('\n') + '\n');
+  const { page, ctx } = await openUI(f, 'person');
   const before = await page.evaluate(async () => (await window.__anon.buildOutput('txt')).text);
+  const nOrg = await page.evaluate(() => [...window.__anon.app.result.orgs.values()].length);
   await goTo(page, 'a3');
   await waitCheck(page);
   const pts = await savePoints(page);
   const warn = pts.find((p) => p.startsWith('Hier könnte eine Einrichtung stehen.'));
-  log('anmeldung.txt: ' + (warn || '(kein Warnpunkt)'));
-  check('Warnpunkt erscheint mit dem Text aus dem Auftrag', !!warn && warn.includes('Das Tool ersetzt Einrichtungen noch nicht selbst. Bitte prüfen und bei Bedarf als Einrichtung markieren.'));
-  check('Warnpunkt nennt „Gymnasium Tannhofen“, „Gymnasium Kirchberg Tannhofen“, „Brandner lern und spiel“', !!warn && WARN_MUST.every((w) => warn.includes(w)));
+  log('schwach.txt: ' + (warn || '(kein Warnpunkt)'));
+  check('Schwache Funde: nicht ersetzt, nicht gefragt', nOrg === 0 && !before.includes('Einrichtung'));
+  check('Warnpunkt-Text ohne „Das Tool ersetzt Einrichtungen noch nicht selbst“', !!warn && warn.startsWith('Hier könnte eine Einrichtung stehen. Bitte prüfen und bei Bedarf als Einrichtung markieren.') && !warn.includes('noch nicht selbst'));
+  check('Warnpunkt nennt die drei Stellen', !!warn && WEAK.slice(0, 3).every((w) => warn.includes(w)));
   check('Warnpunkt ohne Frage, ohne Ersetzen-Knopf (nur „Im Text zeigen“)', await page.$$eval('#points > li', (l) => { const li = l.find((x) => x.innerText.startsWith('Hier könnte')); return !!li && [...li.querySelectorAll('button')].every((b) => b.textContent === 'Im Text zeigen'); }));
   const after = await page.evaluate(async () => (await window.__anon.buildOutput('txt')).text);
   check('Warnpunkt ändert die Ausgabe nicht (vor und nach dem Speichern-Schritt gleich)', before === after);
-  // Stelle von Hand als Einrichtung markiert -> sie fällt weg
-  await page.evaluate(() => window.__anon.addOrg('Gymnasium Tannhofen'));
+  await page.evaluate(() => window.__anon.addOrg('Blaue Stunde'));
   await goTo(page, 'a3');
   await waitCheck(page);
   const warn2 = (await savePoints(page)).find((p) => p.startsWith('Hier könnte'));
-  check('Nach „als Einrichtung markiert“ fällt „Gymnasium Tannhofen“ weg, die übrigen bleiben', !!warn2 && !/„Gymnasium Tannhofen“/.test(warn2) && warn2.includes('Gymnasium Kirchberg Tannhofen'), warn2);
-  // Ein Häkchen: Speichern erst danach
+  check('Nach „als Einrichtung markiert“ fällt die Stelle weg, die übrigen bleiben', !!warn2 && !warn2.includes('Blaue Stunde') && warn2.includes('Stille Ecke'), warn2);
   const first = await exportOnce(page, 'txt');
   check('Warnpunkt läuft über das eine Häkchen (ohne Häkchen gesperrt)', !first.dl, first.status);
   await ctx.close();
 }
 {
   // höchstens zehn Stellen, dann „und n weitere“
-  const lines = Array.from({ length: 12 }, (_, i) => `Zeile ${i + 1}: Wir besuchen die Grundschule ${['Am', 'Bei', 'Nord', 'Süd', 'Ost', 'Weiher', 'Mitte', 'Lindenau', 'Rosenhof', 'Eichwald', 'Birkach', 'Ahornweg'][i]}.`);
+  const lines = WEAK.map((w, i) => `Zeile ${i + 1}: Wir treffen uns in der Runde „${w}“ am Nachmittag.`);
   fs.writeFileSync(path.join(outDir, 'zwoelf.txt'), lines.join('\n') + '\n');
   const { page, ctx } = await openUI(path.join(outDir, 'zwoelf.txt'), 'person');
   await goTo(page, 'a3');
@@ -205,16 +259,96 @@ log('');
   check('Höchstens zehn Stellen, dann „und 2 weitere“', items.length === 11 && items[10] === 'und 2 weitere', items.length + ' Zeilen: ' + items.join(' | '));
   await ctx.close();
 }
-{
-  // Gegenprobe sachtext
-  const { page, ctx } = await openUI(path.join(FXT, 'sachtext.txt'), 'person');
-  const r = await page.evaluate(() => { const A = window.__anon; return { web: A.app.result.hits.filter((x) => x.type === 'web').length, acc: A.app.result.hits.filter((x) => x.type === 'account').length }; });
-  await goTo(page, 'a3');
-  await waitCheck(page);
-  const items = await page.$$eval('#points li', (l) => { const li = l.find((x) => x.innerText.startsWith('Hier könnte')); return li ? [...li.querySelectorAll('.plist li')].map((x) => x.innerText.replace(/\s+/g, ' ').trim()) : []; });
-  log(`Gegenprobe sachtext.txt: ${r.web} Webadressen, ${r.acc} Konten, ${items.length} Stellen im Warnpunkt${items.length ? ': ' + items.join(' | ') : ''}.`);
-  check('sachtext: 0 Webadressen, 0 Konten', r.web === 0 && r.acc === 0);
+async function sachtext(html) {
+  const { page, ctx } = await newPage(html);
+  const r = await page.evaluate(async (arr) => {
+    const A = window.__anon;
+    A.app.state.settings.mode = 'person';
+    await A.openBytes(new Uint8Array(arr), 'sachtext.txt');
+    const res = A.app.result;
+    const pts = A.savePoints();
+    const warn = pts.find((p) => /^einr:/.test(p.id));
+    return { web: res.hits.filter((x) => x.type === 'web').length, acc: res.hits.filter((x) => x.type === 'account').length, org: res.hits.filter((x) => x.type === 'org').length,
+      orgQ: A.questions().filter((q) => q.kind === 'org').length, qs: A.questions().map((q) => q.id), warn: warn ? warn.items.map((i) => i.text) : [] };
+  }, [...fs.readFileSync(path.join(FXT, 'sachtext.txt'))]);
   await ctx.close();
+  return r;
+}
+{
+  const r = await sachtext(HTML);
+  const o = OLD ? await sachtext(OLD) : null;
+  log(`Gegenprobe sachtext.txt: ${r.web} Webadressen, ${r.acc} Konten, ${r.org} Einrichtungs-Stellen ersetzt, ${r.orgQ} Einrichtungs-Fragen, ${r.qs.length} Fragen insgesamt${o ? ` (Vorversion ${o.qs.length})` : ''}, ${r.warn.length} Stellen im Warnpunkt${r.warn.length ? ': ' + r.warn.join(' | ') : ''}${o ? ` (Vorversion ${o.warn.length})` : ''}.`);
+  check('sachtext: 0 Webadressen, 0 Konten, 0 Einrichtungen ersetzt, 0 Einrichtungs-Fragen', r.web === 0 && r.acc === 0 && r.org === 0 && r.orgQ === 0);
+  if (o) check('sachtext: 0 neue Fragen gegenüber der Vorversion (dieselben Fragen)', JSON.stringify(r.qs) === JSON.stringify(o.qs), `${o.qs.length} → ${r.qs.length}`);
+}
+log('');
+
+// ---------- 3b. einrichtungen-auto ----------
+log('## 3b. Testdatei „einrichtungen-auto“ (je Fall eine Zeile; Word mit Kopfzeile, Fußnote, Kommentar; Excel auf zwei Blättern)');
+log('');
+log(`Soll: alle Namen ersetzt (0 Vorkommen von ${EINR_AUTO_NAMES.map((w) => '„' + w + '“').join(', ')}), Einrichtungs-Fragen = ${EINR_AUTO_COUNT} (verschiedene Einrichtungen). Seit der Nachbesserung: „Haus Marlene“ ist wegen der sicheren Person „Marlene“ keine Einrichtung (Regel 2); „Marlene“ wird als Person ersetzt, „Haus Marlene“ steht im Warnpunkt.`);
+log('');
+log('| Format | Modus | Ausgabe | Namen noch im Text | Einrichtungs-Fragen | Einrichtungen |');
+log('|---|---|---|---|---|---|');
+async function measureAuto(html, ext, mode) {
+  const { page, ctx } = await newPage(html);
+  const res = await page.evaluate(async ([arr, nm, md]) => {
+    const A = window.__anon;
+    A.app.state.settings.mode = md;
+    await A.openBytes(new Uint8Array(arr), nm);
+    const x = await A.buildOutput(nm.split('.').pop());
+    const w = (A.savePoints ? A.savePoints() : []).find((p) => /^einr:/.test(p.id));
+    return { o: x.zip ? Array.from(x.bytes) : x.text, orgQ: A.questions().filter((q) => q.kind === 'org').map((q) => q.word), orgs: [...A.app.result.orgs.values()].map((og) => og.label + ': ' + [...og.forms.keys()].join(' / ')),
+      warn: w ? w.items.map((i) => i.text) : [] };
+  }, [[...fs.readFileSync(path.join(FXT, 'einrichtungen-auto.' + ext))], 'einrichtungen-auto.' + ext, mode]);
+  await ctx.close();
+  const t = await allText(res.o);
+  return { left: EINR_AUTO_NAMES.filter((w) => t.toLowerCase().includes(w.toLowerCase())), ...res };
+}
+for (const ext of ['txt', 'docx', 'xlsx']) for (const mode of MODES) {
+  const r = await measureAuto(HTML, ext, mode);
+  const o = OLD ? await measureAuto(OLD, ext, mode) : null;
+  log(`| ${ext} | ${mode} | .${ext} | ${r.left.length ? r.left.join(', ') : '0'}${o ? ` (Vorversion ${o.left.length})` : ''} | ${r.orgQ.length}${o ? ` (${o.orgQ.length})` : ''} | ${mode === 'person' ? r.orgs.join('; ') : ''} |`);
+  check(`einrichtungen-auto.${ext}/${mode}: alle Namen ersetzt, ${EINR_AUTO_COUNT} Einrichtungs-Fragen, „Haus Marlene“ (Person darin) im Warnpunkt`, !r.left.length && r.orgQ.length === EINR_AUTO_COUNT && EINR_AUTO_WARN.every((x) => r.warn.some((w) => w.includes(x))), r.left.join(', ') + ' / ' + r.orgQ.length + ' / ' + r.warn.join(' | '));
+}
+log('');
+
+// ---------- 3c. einrichtung-person (Nachbesserung 2.8.0, Befund 1 und 2) ----------
+log('## 3c. Einrichtung und Person dicht beieinander, Sachwörter nach Kopfwort (einrichtung-person.txt, .csv, .xlsx)');
+log('');
+const TITLES = /\b(Herr|Herrn|Frau|Fräulein|Hr|Fr|Dr|Prof)\b/;
+const PERSONS = ['Kessler', 'Sommerfeld', 'Erika', 'Brandner', 'Lehmann'];
+async function personRun(ext, how, html = HTML) {
+  const { page, ctx } = await newPage(html);
+  const r = await page.evaluate(async ([arr, nm, how]) => {
+    const A = window.__anon;
+    A.app.state.settings.mode = 'person';
+    await A.openBytes(new Uint8Array(arr), nm);
+    if (how === 'nein') for (const id of A.questions().filter((q) => q.kind === 'org').map((q) => q.id)) { const q = A.questions().find((x) => x.id === id); if (q) A.answer(q, false); }
+    const res = A.app.result;
+    const orgs = [...(res.orgs || new Map()).values()].map((o) => ({ forms: [...o.forms.keys()], units: [...new Set(o.hits.map((h) => h.unit))], released: o.hits.every((h) => h.released) }));
+    const x = await A.buildOutput(nm.split('.').pop());
+    return { orgs, o: x.zip ? Array.from(x.bytes) : x.text, warn: ((A.savePoints ? A.savePoints() : []).find((p) => /^einr:/.test(p.id)) || { items: [] }).items.map((i) => i.text) };
+  }, [[...fs.readFileSync(path.join(FXT, 'einrichtung-person.' + ext))], 'einrichtung-person.' + ext, how]);
+  await ctx.close();
+  return { ...r, text: await allText(r.o) };
+}
+for (const ext of ['txt', 'csv', 'xlsx']) {
+  const a = await personRun(ext, 'keine');
+  const b = await personRun(ext, 'nein');
+  log(`einrichtung-person.${ext}: Einrichtungen ${a.orgs.map((o) => o.forms.join(' / ')).join('; ') || '–'}${a.warn.length ? '; Warnpunkt: ' + a.warn.join(' | ') : ''}`);
+  check(`einrichtung-person.${ext}: keine Einrichtung enthält eine Anrede oder einen Titel`, a.orgs.every((o) => o.forms.every((f) => !TITLES.test(f))), a.orgs.map((o) => o.forms.join('/')).join('; '));
+  const leftA = PERSONS.filter((w) => a.text.includes(w));
+  check(`einrichtung-person.${ext}: ohne Antwort ist jede Person ersetzt`, !leftA.length, leftA.join(', '));
+  // Maßstab (Auftrag Punkt 6): nach „Nein“ ist jede Person ersetzt, die die Vorversion (2.7.0) ersetzt
+  const c = OLD ? await personRun(ext, 'keine', OLD) : null;
+  const leftB = PERSONS.filter((w) => b.text.includes(w) && (!c || !c.text.includes(w)));
+  check(`einrichtung-person.${ext}: nach „Nein“ auf alle Einrichtungs-Fragen ist jede Person ersetzt, die 2.7.0 ersetzt${c ? '' : ' (ohne Vorversion: alle)'}`, !leftB.length && b.orgs.every((o) => o.released), leftB.join(', ') + (c ? ` (2.7.0 lässt stehen: ${PERSONS.filter((w) => c.text.includes(w)).join(', ') || '–'})` : ''));
+  if (ext === 'txt') {
+    const inB2 = a.orgs.filter((o) => o.units.some((u) => EINR_PERSON_BEFUND2.includes(u)));
+    check('einrichtung-person.txt: die Sätze aus Befund 2 ergeben 0 Einrichtungen', !inB2.length, inB2.map((o) => o.forms.join('/')).join('; '));
+    check('einrichtung-person.txt: „Brandner lern und spiel“ (wegen der Person „Erika Brandner“ nicht ersetzt) steht im Warnpunkt', a.warn.some((w) => w.includes('Brandner lern und spiel')));
+  }
 }
 log('');
 
@@ -319,6 +453,18 @@ for (const ext of ['txt', 'csv', 'docx', 'xlsx']) {
   const r3 = await restore(fixed, a.keyPath);
   check(`${ext}: nach Korrektur wie vorgeschlagen Rückbau exakt`, !!r3.bytes && (await content(r3.bytes, ext)) === orig, r3.plan.verdict);
 }
+// Version 2.8.0: gefundene Einrichtungen mit mehreren Schreibweisen (einrichtungen-auto)
+for (const ext of ['txt', 'docx', 'xlsx']) {
+  const file = path.join(FXT, 'einrichtungen-auto.' + ext);
+  const orig = await content(fs.readFileSync(file), ext);
+  const a = await anonymize(ext, file);
+  const key = JSON.parse(fs.readFileSync(a.keyPath, 'utf8').replace(/^\uFEFF/, ''));
+  const wend = key.platzhalter.filter((e) => e.kategorie === 'Einrichtung' && /Wendorf/i.test(e.wert) && /gymnas/i.test(e.wert)).map((e) => `${e.platzhalter} = ${e.wert}`);
+  log(`einrichtungen-auto.${ext}: Schlüssel mit ${key.platzhalter.length} Platzhaltern, ${(key.einrichtungen || []).length} Einrichtungen; Gymnasium Wendorf: ${wend.join('; ')}`);
+  check(`einrichtungen-auto.${ext}: Schreibweisen einer gefundenen Einrichtung mit eigenen Nummern (mindestens 3)`, wend.length >= 3 && new Set(wend.map((x) => x.split(' = ')[0].replace(/\d+$/, ''))).size === 1);
+  const r = await restore(a.outPath, a.keyPath);
+  check(`einrichtungen-auto.${ext}: Rückbau exakt`, !!r.bytes && (await content(r.bytes, ext)) === orig, r.plan.verdict);
+}
 // Kollisions-Schutz: steht „[WEBADRESSE-1]“ oder „[KONTO]“ schon im Original, vergibt das Tool die nächste freie Nummer
 {
   const f = path.join(outDir, 'kollision.txt');
@@ -332,12 +478,12 @@ for (const ext of ['txt', 'csv', 'docx', 'xlsx']) {
 }
 // Schlüsseldatei aus Version 2.6.1 (fest im Repo, ohne die neuen Arten)
 // je Unterordner (txt, docx): anonymisierte Datei und Schlüsseldatei unter ihren Originalnamen (Kennung im Dateinamen)
-for (const ext of fs.existsSync(FXALT) ? fs.readdirSync(FXALT).sort() : []) {
-  const dir = path.join(FXALT, ext);
+for (const [ver, root2] of FXALT) for (const ext of fs.existsSync(root2) ? fs.readdirSync(root2).sort() : []) {
+  const dir = path.join(root2, ext);
   const f = fs.readdirSync(dir).find((x) => !/\.json$/.test(x));
   const keyF = fs.readdirSync(dir).find((x) => /\.json$/.test(x));
   const r = await restore(path.join(dir, f), path.join(dir, keyF));
-  check(`Schlüsseldatei aus 2.6.1 (${ext}): Rückbau exakt`, !!r.bytes && (await content(r.bytes, ext)) === await content(fs.readFileSync(path.join(FXT, 'anmeldung.' + ext)), ext), r.plan.verdict);
+  check(`Schlüsseldatei aus ${ver} (${ext}): Rückbau exakt`, !!r.bytes && (await content(r.bytes, ext)) === await content(fs.readFileSync(path.join(FXT, 'anmeldung.' + ext)), ext), r.plan.verdict);
 }
 log('');
 

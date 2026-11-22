@@ -3,7 +3,7 @@
 Liste (57 Wörter): amen, apollo, arena, atlas, aura, bares, bars, blick, buddha, campus, cola, delta, dock, dolch, faktor, frauen, gala, harter, hort, inder, jazz, judin, kalender, kardinal, kita, klemme, krabbe, lama, landen, lava, liga, los, machtig, mama, manns, monde, papa, patrone, perle, pole, pop, raucher, reale, reine, schimmer, schlangen, skala, soda, spinner, tat, termine, tode, treff, truben, volle, wale, yoga
 
 ## Einzelprüfungen (vorher = 2.3.4, nachher = diese Version)
-- „Die Kita Freie Waldorfschule lädt ein.“: vorher Kita Freie (sicher, an); nachher Kita (unsicher, aus)
+- „Die Kita Freie Waldorfschule lädt ein.“: vorher Kita Freie (sicher, an); nachher kein Personentreffer
 - OK: „Die Kita Freie Waldorfschule lädt ein.“: kein Personentreffer „Kita Freie“ mehr
 - „Yoga für Anfänger“: vorher Yoga (sicher, an); nachher Yoga (unsicher, an)
 - OK: „Yoga für Anfänger“: „Yoga“ nicht mehr „sicher“
@@ -31,7 +31,8 @@ Liste (57 Wörter): amen, apollo, arena, atlas, aura, bares, bars, blick, buddha
 - OK: Regel a2: „Kalender“ nach allein stehender Anrede bleibt ersetzt
 - Regel a2, „Herr“ ⏎ „Campus“: vorher Campus (sicher, an, Regel a2); nachher Campus (unsicher, an)
 - OK: Regel a2: „Campus“ nach allein stehender Anrede bleibt ersetzt
-- Einrichtung „Freie Waldorfschule“: Treffer vorher „Freie Waldorfschule“, nachher „Freie Waldorfschule“; Schlusscheck Einrichtung vorher Freie⏎Waldorfschule, nachher Freie⏎Waldorfschule; Personen vorher Kita Freie (sicher, an), nachher Kita (unsicher, an)
+- Neu seit 2.8.0 (Einrichtungen selbst finden, Regel a): Kita Freie (ersetzt und gefragt)
+- Einrichtung „Freie Waldorfschule“: Treffer vorher „Freie Waldorfschule“, nachher „Freie Waldorfschule“; Schlusscheck Einrichtung vorher Freie⏎Waldorfschule, nachher Freie⏎Waldorfschule; Personen vorher Kita Freie (sicher, an), nachher kein Personentreffer
 - OK: Einrichtungen: Vorrang und Schlusscheck für „Freie Waldorfschule“ unverändert
 - Übertragung „Kalender“: vorher Felix Kalender (sicher, an); Kalenders (sicher, an); KALENDER (sicher, an); KALENDERS (sicher, an); nachher Felix Kalender (sicher, an); Kalenders (unsicher, an); KALENDER (unsicher, an); KALENDERS (unsicher, an)
 - OK: Endungs-/Großformen von „Kalender“: keine Übertragung entfällt, alles bleibt ersetzt

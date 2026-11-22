@@ -61,7 +61,12 @@ for (const w of ['Yoga', 'Kita', 'Mama', 'Kalender', 'Campus']) {
   const units = [{ text: 'Kita Freie' }, { text: 'Waldorfschule', follows: true }, { text: 'Die Freie Waldorfschule lädt ein.' }];
   const opt = { orgTerms: ['Freie Waldorfschule'] };
   const { a, b } = both(units, opt);
-  const orgs = (r) => r.hits.filter((h) => h.type === 'org').map((h) => r.fullText.slice(h.s, h.e)).join('; ');
+  // Version 2.8.0 (angepasst, begründet): Das Tool findet Einrichtungen selbst; „Kita Freie“ (Kopfwort + Name, Regel a)
+  // ist ein neuer Fund. Verglichen werden die Treffer der von Hand markierten Einrichtung (streng wie bisher); neue Funde
+  // stehen eigens im Bericht.
+  const orgs = (r) => r.hits.filter((h) => h.type === 'org' && h.origin !== 'orgauto').map((h) => r.fullText.slice(h.s, h.e)).join('; ');
+  const autoNew = b.hits.filter((h) => h.origin === 'orgauto').map((h) => b.fullText.slice(h.s, h.e));
+  if (autoNew.length) log(`- Neu seit 2.8.0 (Einrichtungen selbst finden, Regel a): ${autoNew.join('; ')} (ersetzt und gefragt)`);
   const la = OLD.orgCoverageLeaks(a, opt.orgTerms).map((f) => f.text.replace(/\n/g, '⏎'));
   const lb = NEW.orgCoverageLeaks(b, opt.orgTerms).map((f) => f.text.replace(/\n/g, '⏎'));
   log(`- Einrichtung „Freie Waldorfschule“: Treffer vorher „${orgs(a)}“, nachher „${orgs(b)}“; Schlusscheck Einrichtung vorher ${la.join(', ')}, nachher ${lb.join(', ')}; Personen vorher ${desc(a)}, nachher ${desc(b)}`);
