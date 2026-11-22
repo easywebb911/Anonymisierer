@@ -123,6 +123,16 @@ Geprüfte Datei: index.html. Nur Chromium, Firefox prüft Easy. Alle Namen erfun
 - OK: weg-xlsx-reversible: „Einrichtung“ übernommen, dann ausgeschaltet = nie übernommen
 - OK: weg-xlsx-reversible: „bleibt immer stehen“ und zurück = nie – in Ausnahmen: true
 
+## 6. Bedienung der Sammelfrage
+
+- OK: txt: Klick auf „Sonnleitner“ zeigt die erste Stelle (kräftig markiert, im Bild) – {"found":true,"text":"Sonnleitner","vis":true,"bold":"700"}
+- OK: txt: Taste N = „Kein Name dabei“ – nein
+- OK: docx: Klick auf „Sonnleitner“ zeigt die erste Stelle (kräftig markiert, im Bild) – {"found":true,"text":"Sonnleitner","vis":true,"bold":"700"}
+- OK: docx: Taste N = „Kein Name dabei“ – nein
+- OK: xlsx: Klick auf „Sonnleitner“ zeigt die erste Stelle (kräftig markiert, im Bild) – {"found":true,"text":"Sonnleitner","vis":true,"bold":"700"}
+- OK: xlsx: Taste N = „Kein Name dabei“ – nein
+- OK: mehr als 40 Wörter: die Liste rollt, kein „alle übernehmen“ – {"n":45,"scroll":true,"all":false}
+
 - OK: 0 Anfragen nach außen
 - OK: keine Fehler auf der Seite
 
@@ -171,4 +181,4 @@ Geprüfte Datei: index.html. Nur Chromium, Firefox prüft Easy. Alle Namen erfun
 | 5 Weg-Gleichheit | xlsx | name | übernommen+aus = nie (Name, Einrichtung); „bleibt immer stehen“+zurück = nie | gleich / gleich / gleich |
 | 5 Weg-Gleichheit | xlsx | reversible | übernommen+aus = nie (Name, Einrichtung); „bleibt immer stehen“+zurück = nie | gleich / gleich / gleich |
 
-**Ergebnis: bestanden** (108/108)
+**Ergebnis: bestanden** (115/115)

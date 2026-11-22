@@ -87,9 +87,9 @@ schwach.txt: Hier könnte eine Einrichtung stehen. Bitte prüfen und bei Bedarf 
 - OK: Nach „als Einrichtung markiert“ fällt die Stelle weg, die übrigen bleiben – Hier könnte eine Einrichtung stehen. Bitte prüfen und bei Bedarf als Einrichtung markieren. „Stille Ecke“ – Zeile 2 Im Text zeigen „Bunte Kiste“ – Zeile 3 Im Text zeigen
 - OK: Warnpunkt läuft über das eine Häkchen (ohne Häkchen gesperrt) – Speichern blockiert – bitte zuerst die Punkte oben ansehen und „Ich habe alle Punkte gesehen und speichere so.“ abhaken.
 - OK: Höchstens zehn Stellen, dann „und 2 weitere“ – 11 Zeilen: „Blaue Stunde“ – Zeile 1 Im Text zeigen | „Stille Ecke“ – Zeile 2 Im Text zeigen | „Bunte Kiste“ – Zeile 3 Im Text zeigen | „Ruhige Insel“ – Zeile 4 Im Text zeigen | „Große Runde“ – Zeile 5 Im Text zeigen | „Leise Wolke“ – Zeile 6 Im Text zeigen | „Warme Decke“ – Zeile 7 Im Text zeigen | „Sanfte Musik“ – Zeile 8 Im Text zeigen | „Frische Luft“ – Zeile 9 Im Text zeigen | „Gute Laune“ – Zeile 10 Im Text zeigen | und 2 weitere
-Gegenprobe sachtext.txt: 0 Webadressen, 0 Konten, 0 Einrichtungs-Stellen ersetzt, 0 Einrichtungs-Fragen, 10 Fragen insgesamt (Vorversion 9), 0 Stellen im Warnpunkt (Vorversion 11).
+Gegenprobe sachtext.txt: 0 Webadressen, 0 Konten, 0 Einrichtungs-Stellen ersetzt, 0 Einrichtungs-Fragen, 9 Fragen insgesamt (Vorversion 9), 0 Stellen im Warnpunkt (Vorversion 11).
 - OK: sachtext: 0 Webadressen, 0 Konten, 0 Einrichtungen ersetzt, 0 Einrichtungs-Fragen
-- FEHLER: sachtext: 0 neue Fragen gegenüber der Vorversion (dieselben Fragen) – 9 → 10
+- OK: sachtext: 0 neue Fragen gegenüber der Vorversion (dieselben Fragen) – 9 → 9
 
 ## 3b. Testdatei „einrichtungen-auto“ (je Fall eine Zeile; Word mit Kopfzeile, Fußnote, Kommentar; Excel auf zwei Blättern)
 
@@ -179,6 +179,6 @@ Kollision: Vorlage: [WEBADRESSE-1] und [KONTO] bleiben so stehen. ⏎ Seite: [WE
 - OK: 0 Anfragen ins Netz
 - OK: 0 Fehler in der Seite
 
-**Ergebnis: 97/98 bestanden.** Nur Chromium, Firefox prüft Easy.
+**Ergebnis: 98/98 bestanden.** Nur Chromium, Firefox prüft Easy.
 
 Weitere Messungen (Fehltreffer im ganzen Korpus, Aufzählungsstellen, Laufzeit, Prüfsumme, Link-Ziele vorher): tests/TRAEGER-MESSUNGEN.md

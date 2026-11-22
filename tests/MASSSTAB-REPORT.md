@@ -106,6 +106,9 @@ Neue Version: Anonymisierer/index.html; Vorversion: index-2.7.0.html. Nur Chromi
 | fixtures-pfade/pfade-ueblich.xlsx | 9 | 0 | alle | alle | alle | alle | alle | alle | 9: alle |
 | fixtures-pfade/pfade-unueblich.docx | 6 | 0 | alle | alle | alle | alle | alle | alle | 6: alle |
 | fixtures-pfade/pfade-unueblich.xlsx | 9 | 0 | alle | alle | alle | alle | alle | alle | 9: alle |
+| fixtures-reste/reste.docx | 5 | 0 | alle | alle | alle | alle | alle | alle | 5: alle |
+| fixtures-reste/reste.txt | 5 | 0 | alle | alle | alle | alle | alle | alle | 5: alle |
+| fixtures-reste/reste.xlsx | 5 | 0 | alle | alle | alle | alle | alle | alle | 5: alle |
 | fixtures-traeger/anmeldung.csv | 8 | 2 | alle | alle | alle | alle | alle | alle | 13: alle |
 | fixtures-traeger/anmeldung.docx | 6 | 2 | alle | alle | alle | alle | alle | alle | 11: alle |
 | fixtures-traeger/anmeldung.pdf | 6 | 2 | alle | alle | alle | alle | alle | alle | 11: alle |
@@ -141,8 +144,8 @@ Neue Version: Anonymisierer/index.html; Vorversion: index-2.7.0.html. Nur Chromi
 | out/massstab/korpus-kurse2.txt | 12 | 0 | alle | alle | alle | alle | alle | alle | 12: alle |
 | out/massstab/korpus-aushang.txt | 2 | 0 | alle | alle | alle | alle | alle | alle | 2: alle |
 
-Referenzen alter Versionen (tests/referenz/): gespeichert verwendet – 405 aus der Datei, 4 frisch gerechnet.
-Geprüft: 136 Dateien (Testdateien und 15 Korpus-Abschnitte), 1914 Stellen der Vorversion, je sechs Abläufe; zweiter Maßstab: 2053 Stellen von 2.8.0 (ohne Antwort).
+Referenzen alter Versionen (tests/referenz/): gespeichert verwendet – 405 aus der Datei, 13 frisch gerechnet.
+Geprüft: 139 Dateien (Testdateien und 15 Korpus-Abschnitte), 1929 Stellen der Vorversion, je sechs Abläufe; zweiter Maßstab: 2068 Stellen von 2.8.0 (ohne Antwort).
 
 Ausnahmen: 0 (seit Guardian-Lauf 5 keine Ausnahme mehr erlaubt)
 - OK: 0 Anfragen ins Netz (0)

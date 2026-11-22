@@ -44,17 +44,29 @@ log('');
 const firstSet = new Set(FIRST.split('|'));
 const lastSet = new Set(LAST.split('|'));
 // von Hand eingeordnet (Testdateien sind erfunden; Einordnung nach dem Satz, in dem das Wort steht)
+const P = 'Name einer Person (erfunden)';
+const PG = 'Name einer Person in GROSS-Form mit Endung (erfunden)';
+const E = 'Einrichtung oder Ort (erfunden)';
+const K = 'Kürzel einer Einrichtung (erfunden)';
+const SW = 'Sachwort (kein Name)';
+const SG = 'Sachwort in GROSS-Form mit Endung (kein Name)';
 const HAND = {
-  Pausenverkauf: 'Sachwort', Klassenleitung: 'Sachwort', Tannfeld: 'Ort (erfunden)', Tannhofen: 'Ort (erfunden)',
-  OGTS: 'Kürzel einer Einrichtung', GYMTH: 'Kürzel einer Einrichtung', Lindenblick: 'Einrichtung (erfunden)',
+  Brzęczek: P, Dobbeling: P, Hallmayer: P, Huckebein: P, Ijeoma: P, Jolanthe: P, Kirchbichler: P, Kortlang: P, Rautenbach: P,
+  Sonnleitner: P, Uchendu: P, Wenjie: P, Xiong: P, Wittekindhorn: P, WITTEKINDHORN: P, WITTEKINDHORNES: PG, WITTEKINDHORNN: PG,
+  WITTEKINDHORNNS: PG, WITTEKINDHORNS: PG, QUABBENJANSEN: P, QUABBENJANSENES: PG, QUABBENJANSENN: PG, QUABBENJANSENNS: PG,
+  QUABBENJANSENS: PG, LÜDINGHAUS: P, LÜDINGHAUSES: PG, LÜDINGHAUSN: PG, LÜDINGHAUSNS: PG, LÜDINGHAUSS: PG,
+  Tannfeld: E, Tannhofen: E, Lindenblick: E, Lindenschule: E, Wiesenkamp: E, Lindenauer: 'Ortsname als Beiwort („Lindenauer Bürgerverein“, erfunden)',
+  OGTS: K, GYMTH: K, FZS: K, BÜRGERVEREINES: SG, BÜRGERVEREINN: SG, BÜRGERVEREINNS: SG,
+  Pausenverkauf: SW, Klassenleitung: SW, Bastelgruppe: SW, ELTERNINFORMATION: SW, Elterncafé: SW, Kopfzeilenzeichen: SW, Kursname: SW,
+  Kursübersicht: SW, Protokollführung: SW, Teamsitzung: SW, TÖPFERKURS: SW, Töpferkurs: SW, Vortreffen: SW,
+  Übertragungs: 'Sachwort-Teil („Übertragungs-“ in einer Zusammensetzung)',
 };
 function classify(w, nameSpans) {
   if (nameSpans && nameSpans.has(fold(w))) return 'Name (im Korpus als Name gekennzeichnet)';
   if (HAND[w]) return HAND[w];
-  if (/^[\p{Lu}]+$/u.test(w)) return 'Kürzel (ganz groß)';
   const k = fold(w);
   if (lastSet.has(k) || firstSet.has(k)) return 'Name (steht in den Namenslisten des Tools)';
-  return nameSpans ? 'kein Name (Sachwort)' : 'kein Name in den Namenslisten (Sachwort, Ort oder seltener Name)';
+  return nameSpans ? 'kein Name (Sachwort)' : 'NICHT EINGEORDNET';
 }
 
 // ---------- Browser ----------
@@ -169,7 +181,7 @@ log('');
 log('');
 
 // ---------- 5. Größe und Zeit ----------
-log('## 5. Größe und Zeit (Chromium, headless, Mittelwert aus 5 Läufen)');
+log('## 5. Größe und Zeit (Chromium, headless, Median aus 5 Läufen; große Testdatei: 1 Lauf)');
 log('');
 const med = (a) => a.sort((x, y) => x - y)[Math.floor(a.length / 2)];
 async function timing(file) {

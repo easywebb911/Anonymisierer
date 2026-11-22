@@ -382,6 +382,47 @@ for (const ext of ['txt', 'docx', 'xlsx']) {
 }
 log('');
 
+// ---------- 6. Bedienung: Klick zeigt erste Stelle, mehr als 40 Wörter, Taste N ----------
+log('## 6. Bedienung der Sammelfrage');
+log('');
+for (const ext of ['txt', 'docx', 'xlsx']) {
+  // niedriges Fenster, damit gerollt werden muss
+  const { page, ctx } = await newPage();
+  await page.setViewportSize({ width: 1280, height: 420 });
+  await startAnon(page, 'person');
+  await loadIn(page, path.join(FX, 'reste.' + ext));
+  await goTo(page, 'a2');
+  await showRestQ(page);
+  await page.click('#rest-list li[data-key="sonnleitner"] button.restword');
+  await page.waitForTimeout(700);
+  const st = await page.evaluate(() => {
+    const m = document.querySelector('#docview mark.restmark.cur');
+    if (!m) return { found: false };
+    const r = m.getBoundingClientRect();
+    const top = document.querySelector('.top').getBoundingClientRect().bottom;
+    return { found: true, text: m.textContent, vis: r.top >= top - 0.5 && r.bottom <= innerHeight + 0.5, bold: getComputedStyle(m).fontWeight };
+  });
+  check(`${ext}: Klick auf „Sonnleitner“ zeigt die erste Stelle (kräftig markiert, im Bild)`, st.found && st.text === 'Sonnleitner' && st.vis && Number(st.bold) >= 700, JSON.stringify(st));
+  await page.keyboard.press('n');
+  const ans = await page.evaluate(() => { const A = window.__anon; const q = A.questions().find((x) => x.kind === 'rest'); return A.answerOf(q); });
+  check(`${ext}: Taste N = „Kein Name dabei“`, ans === 'nein', String(ans));
+  await ctx.close();
+}
+{
+  // 45 erfundene Wörter, die in keiner Wortliste stehen
+  const syl = ['zor', 'bril', 'quen', 'vax', 'drum', 'pel', 'tik', 'wo', 'sna'];
+  const many = [];
+  for (let i = 0; many.length < 45; i++) many.push('Q' + syl[i % 9] + syl[Math.floor(i / 9) % 9] + 'ux');
+  const f = path.join(outDir, 'viele.txt');
+  fs.writeFileSync(f, many.map((w) => `Heute kam ${w} vorbei.`).join('\n') + '\n');
+  const { page, ctx } = await openUI(f, 'person');
+  await showRestQ(page);
+  const st = await page.evaluate(() => { const l = document.querySelector('#rest-list'); return { n: l.children.length, scroll: l.classList.contains('scroll') && l.scrollHeight > l.clientHeight, all: /alle übernehmen/i.test(document.querySelector('#qcard').textContent) }; });
+  check('mehr als 40 Wörter: die Liste rollt, kein „alle übernehmen“', st.n > 40 && st.scroll && !st.all, JSON.stringify(st));
+  await ctx.close();
+}
+log('');
+
 await browser.close();
 check('0 Anfragen nach außen', requests.length === 0, requests.slice(0, 3).join(', '));
 check('keine Fehler auf der Seite', errors.length === 0, errors.slice(0, 3).join(' | '));

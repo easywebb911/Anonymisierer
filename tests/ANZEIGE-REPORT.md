@@ -1,6 +1,6 @@
 # Anzeige beim Prüfen (Version 2.6.1)
 
-Chromium headless gegen index.html (SHA-256 51b039c10a514d2a…). Alle Namen in den Testdateien sind erfunden.
+Chromium headless gegen index.html (SHA-256 b5fc60ff442486e3…). Alle Namen in den Testdateien sind erfunden.
 
 ## a) Drei Zustände im Text und im Satz-Ausschnitt
 - OK: wird ersetzt: Fläche #FFF3C4, kein Rahmen – rgb(255, 243, 196), Rahmen 3px none rgb(23, 33, 43), Stärke 400
@@ -12,10 +12,10 @@ Chromium headless gegen index.html (SHA-256 51b039c10a514d2a…). Alle Namen in 
 - OK: vorhandene Klassen bleiben (hit, on/off, ask) + neue Klasse cur – hit on ask cur
 
 ## b) Kräftig markierte Stellen = Stellen der gezeigten Frage; c) Rollen zur ersten Stelle
-- OK: brief.docx: 10 Fragen, kräftig markiert = Stellen der Frage
+- OK: brief.docx: 11 Fragen, kräftig markiert = Stellen der Frage
 - OK: brief.docx: nach jedem Fragenwechsel erste Stelle sichtbar (9/9)
 - OK: brief.docx: Klick auf eine Markierung rollt nicht
-- OK: brief.docx: Fokus bleibt (Tasten J/N), 11/11
+- OK: brief.docx: Fokus bleibt (Tasten J/N), 12/12
 - OK: liste.xlsx: 4 Fragen, kräftig markiert = Stellen der Frage
 - OK: liste.xlsx: nach jedem Fragenwechsel erste Stelle sichtbar (3/3)
 - OK: liste.xlsx: Klick auf eine Markierung rollt nicht
@@ -23,63 +23,63 @@ Chromium headless gegen index.html (SHA-256 51b039c10a514d2a…). Alle Namen in 
 - OK: protokoll.txt: 7 Fragen, kräftig markiert = Stellen der Frage
 - OK: protokoll.txt: nach jedem Fragenwechsel erste Stelle sichtbar (8/8)
 - OK: protokoll.txt: Klick auf eine Markierung rollt nicht
-- OK: protokoll.txt: Fokus bleibt (Tasten J/N), 8/8
-- OK: bedienung.docx: 5 Fragen, kräftig markiert = Stellen der Frage
+- OK: protokoll.txt: Fokus bleibt (Tasten J/N), 10/10
+- OK: bedienung.docx: 6 Fragen, kräftig markiert = Stellen der Frage
 - OK: bedienung.docx: nach jedem Fragenwechsel erste Stelle sichtbar (5/5)
 - OK: bedienung.docx: Klick auf eine Markierung rollt nicht
-- OK: bedienung.docx: Fokus bleibt (Tasten J/N), 6/6
-- OK: bedienung.txt: 4 Fragen, kräftig markiert = Stellen der Frage
+- OK: bedienung.docx: Fokus bleibt (Tasten J/N), 8/8
+- OK: bedienung.txt: 5 Fragen, kräftig markiert = Stellen der Frage
 - OK: bedienung.txt: nach jedem Fragenwechsel erste Stelle sichtbar (5/5)
 - OK: bedienung.txt: Klick auf eine Markierung rollt nicht
-- OK: bedienung.txt: Fokus bleibt (Tasten J/N), 5/5
-- OK: bedienung.xlsx: 5 Fragen, kräftig markiert = Stellen der Frage
+- OK: bedienung.txt: Fokus bleibt (Tasten J/N), 6/6
+- OK: bedienung.xlsx: 6 Fragen, kräftig markiert = Stellen der Frage
 - OK: bedienung.xlsx: nach jedem Fragenwechsel erste Stelle sichtbar (5/5)
 - OK: bedienung.xlsx: Klick auf eine Markierung rollt nicht
-- OK: bedienung.xlsx: Fokus bleibt (Tasten J/N), 6/6
+- OK: bedienung.xlsx: Fokus bleibt (Tasten J/N), 8/8
 - OK: mehrblatt.xlsx: 3 Fragen, kräftig markiert = Stellen der Frage
 - OK: mehrblatt.xlsx: nach jedem Fragenwechsel erste Stelle sichtbar (4/4), Reiter = Blatt der Stelle
 - OK: mehrblatt.xlsx: Klick auf eine Markierung rollt nicht
 - OK: mehrblatt.xlsx: Fokus bleibt (Tasten J/N), 4/4
-- OK: lang.txt: 3 Fragen, kräftig markiert = Stellen der Frage
+- OK: lang.txt: 4 Fragen, kräftig markiert = Stellen der Frage
 - OK: lang.txt: nach jedem Fragenwechsel erste Stelle sichtbar (3/3)
 - OK: lang.txt: Klick auf eine Markierung rollt nicht
-- OK: lang.txt: Fokus bleibt (Tasten J/N), 3/3
-- OK: anmeldung.txt: 5 Fragen, kräftig markiert = Stellen der Frage
+- OK: lang.txt: Fokus bleibt (Tasten J/N), 4/4
+- OK: anmeldung.txt: 6 Fragen, kräftig markiert = Stellen der Frage
 - OK: anmeldung.txt: nach jedem Fragenwechsel erste Stelle sichtbar (5/5)
 - OK: anmeldung.txt: Klick auf eine Markierung rollt nicht
-- OK: anmeldung.txt: Fokus bleibt (Tasten J/N), 5/5
-- OK: einrichtungen-auto.docx: 14 Fragen, kräftig markiert = Stellen der Frage
+- OK: anmeldung.txt: Fokus bleibt (Tasten J/N), 6/6
+- OK: einrichtungen-auto.docx: 15 Fragen, kräftig markiert = Stellen der Frage
 - OK: einrichtungen-auto.docx: nach jedem Fragenwechsel erste Stelle sichtbar (14/14)
 - OK: einrichtungen-auto.docx: Klick auf eine Markierung rollt nicht
-- OK: einrichtungen-auto.docx: Fokus bleibt (Tasten J/N), 15/15
-- OK: einrichtungen-auto.xlsx: 13 Fragen, kräftig markiert = Stellen der Frage
+- OK: einrichtungen-auto.docx: Fokus bleibt (Tasten J/N), 16/16
+- OK: einrichtungen-auto.xlsx: 14 Fragen, kräftig markiert = Stellen der Frage
 - OK: einrichtungen-auto.xlsx: nach jedem Fragenwechsel erste Stelle sichtbar (14/14)
 - OK: einrichtungen-auto.xlsx: Klick auf eine Markierung rollt nicht
-- OK: einrichtungen-auto.xlsx: Fokus bleibt (Tasten J/N), 14/14
+- OK: einrichtungen-auto.xlsx: Fokus bleibt (Tasten J/N), 16/16
 
 | Datei | Fragen | kräftig = Stellen | ohne Frage nichts kräftig | Fragenwechsel | Stelle sichtbar | Klick rollt nicht | Fokus unverändert |
 |---|---|---|---|---|---|---|---|
-| brief.docx | 10 | 10/10 | ja | 9 | 9/9 | ja | 11/11 |
+| brief.docx | 11 | 11/11 | ja | 9 | 9/9 | ja | 12/12 |
 | liste.xlsx | 4 | 4/4 | ja | 3 | 3/3 | ja | 4/4 |
-| protokoll.txt | 7 | 7/7 | ja | 8 | 8/8 | ja | 8/8 |
-| bedienung.docx | 5 | 5/5 | ja | 5 | 5/5 | ja | 6/6 |
-| bedienung.txt | 4 | 4/4 | ja | 5 | 5/5 | ja | 5/5 |
-| bedienung.xlsx | 5 | 5/5 | ja | 5 | 5/5 | ja | 6/6 |
+| protokoll.txt | 7 | 7/7 | ja | 8 | 8/8 | ja | 10/10 |
+| bedienung.docx | 6 | 6/6 | ja | 5 | 5/5 | ja | 8/8 |
+| bedienung.txt | 5 | 5/5 | ja | 5 | 5/5 | ja | 6/6 |
+| bedienung.xlsx | 6 | 6/6 | ja | 5 | 5/5 | ja | 8/8 |
 | mehrblatt.xlsx | 3 | 3/3 | ja | 4 | 4/4 | ja | 4/4 |
-| lang.txt | 3 | 3/3 | ja | 3 | 3/3 | ja | 3/3 |
-| anmeldung.txt | 5 | 5/5 | ja | 5 | 5/5 | ja | 5/5 |
-| einrichtungen-auto.docx | 14 | 14/14 | ja | 14 | 14/14 | ja | 15/15 |
-| einrichtungen-auto.xlsx | 13 | 13/13 | ja | 14 | 14/14 | ja | 14/14 |
-- OK: mit Gleit-Bewegung: Stelle nach dem Rollen sichtbar (lang.txt) – Frage 2 von 3
+| lang.txt | 4 | 4/4 | ja | 3 | 3/3 | ja | 4/4 |
+| anmeldung.txt | 6 | 6/6 | ja | 5 | 5/5 | ja | 6/6 |
+| einrichtungen-auto.docx | 15 | 15/15 | ja | 14 | 14/14 | ja | 16/16 |
+| einrichtungen-auto.xlsx | 14 | 14/14 | ja | 14 | 14/14 | ja | 16/16 |
+- OK: mit Gleit-Bewegung: Stelle nach dem Rollen sichtbar (lang.txt) – Frage 2 von 4
 - OK: Excel: eigener Reiterwechsel bleibt (Blatt 0 → 1); nächste Frage wechselt zum Blatt ihrer Stelle
 
 ## d) Zähler, Vorige/Nächste Frage, Pfeiltasten
 - OK: Frage 1: „Vorige Frage“ sichtbar und ausgegraut, mit aria-label und title
 - OK: Frage 1 ohne Antwort: „Nächste Frage“ ausgegraut
-  - Beim Beantworten gezeigt: Frage 1 von 5 → Frage 2 von 5 → Frage 3 von 5 → Frage 4 von 6 → Frage 5 von 6 → Frage 6 von 6 → Frage 3 von 7 → Frage 4 von 7 → Frage 5 von 7 → Frage 6 von 7 → Frage 7 von 7
+  - Beim Beantworten gezeigt: Frage 1 von 6 → Frage 2 von 6 → Frage 3 von 6 → Frage 4 von 7 → Frage 5 von 7 → Frage 6 von 7 → Frage 3 von 8 → Frage 8 von 8
 - OK: „Alle Fragen beantwortet“ hat „Vorige Frage“ (aktiv)
-- OK: „Vorige Frage“ auf „Alle Fragen beantwortet“ führt zur letzten Frage (Frage 7 von 7)
-- OK: vorwärts mit → lückenlos 1 … 7 – Frage 1 von 7, Frage 2 von 7, Frage 3 von 7, Frage 4 von 7, Frage 5 von 7, Frage 6 von 7, Frage 7 von 7
+- OK: „Vorige Frage“ auf „Alle Fragen beantwortet“ führt zur letzten Frage (Frage 8 von 8)
+- OK: vorwärts mit → lückenlos 1 … 8 – Frage 1 von 8, Frage 2 von 8, Frage 3 von 8, Frage 4 von 8, Frage 5 von 8, Frage 6 von 8, Frage 7 von 8, Frage 8 von 8
 - OK: rückwärts mit ← jeweils k → k−1
 - OK: bei Frage 1 ist „Vorige Frage“ ausgegraut
 - OK: Knöpfe ← und → wie die Tasten
@@ -141,9 +141,9 @@ Fallen:
 ## z) Kein Text „null“ oder „undefined“ (Fragekarte in jedem Zustand, Bildschirme Datei/Prüfen/Speichern je Format)
 - OK: #qcard „Frage offen (Frage 1)“: kein „null“/„undefined“ – Frage 1 von 7 ← → Frau Rose bringt Rosen mit. Ist hier die Person Rose
 - OK: #qcard „Frage beantwortet (zurück zur Frage 1)“: kein „null“/„undefined“ – Frage 1 von 7 ← → Frau Rose bringt Rosen mit. Ist hier die Person Rose
-- OK: #qcard „Alle Fragen beantwortet“: kein „null“/„undefined“ – 7 von 7 Fragen ← → Alle Fragen beantwortet Fragen noch einmal zeigen
+- OK: #qcard „Alle Fragen beantwortet“: kein „null“/„undefined“ – 8 von 8 Fragen ← → Alle Fragen beantwortet Fragen noch einmal zeigen
 - OK: #qcard „mit Einstellungs-Hinweis (Frage offen)“: kein „null“/„undefined“ – Frage 1 von 7 ← → Du hast eine Einstellung geändert. Die Fragen sind w
-- OK: #qcard „mit Einstellungs-Hinweis (alle beantwortet)“: kein „null“/„undefined“ – 7 von 7 Fragen ← → Alle Fragen beantwortet Fragen noch einmal zeigen
+- OK: #qcard „mit Einstellungs-Hinweis (alle beantwortet)“: kein „null“/„undefined“ – 8 von 8 Fragen ← → Alle Fragen beantwortet Fragen noch einmal zeigen
 - OK: #qcard „Keine Fragen“: kein „null“/„undefined“ – Keine Fragen Es gibt nichts zu entscheiden.
 - OK: Einstellungs-Hinweis wurde tatsächlich gezeigt
 - OK: protokoll.txt: Datei, Prüfen, Speichern ohne „null“/„undefined“
@@ -169,6 +169,6 @@ Fallen:
 | z) kein „null“/„undefined“ in Fragekarte und Bildschirmen | alle | 12 von 12 bestanden |
 | n) 0 Anfragen nach außen, keine JS-Fehler | alle | 2 von 2 bestanden |
 
-Geprüfte Fragen (b): 73 in 11 Dateien. Weg-Gleichheit (e): 29 Fälle × 3 Modi. Rückbau (f): 3 Dateien.
+Geprüfte Fragen (b): 81 in 11 Dateien. Weg-Gleichheit (e): 29 Fälle × 3 Modi. Rückbau (f): 3 Dateien.
 
 **Ergebnis: 121 von 121 Prüfungen bestanden.** Nur Chromium; Firefox prüft Easy.

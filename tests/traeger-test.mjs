@@ -269,7 +269,7 @@ async function sachtext(html) {
     const pts = A.savePoints();
     const warn = pts.find((p) => /^einr:/.test(p.id));
     return { web: res.hits.filter((x) => x.type === 'web').length, acc: res.hits.filter((x) => x.type === 'account').length, org: res.hits.filter((x) => x.type === 'org').length,
-      orgQ: A.questions().filter((q) => q.kind === 'org').length, qs: A.questions().map((q) => q.id), warn: warn ? warn.items.map((i) => i.text) : [] };
+      orgQ: A.questions().filter((q) => q.kind === 'org').length, qs: A.questions().filter((q) => q.kind !== 'rest').map((q) => q.id) /* 2.9.0: Sammelfrage gesondert (Testlauf restwoerter) */, warn: warn ? warn.items.map((i) => i.text) : [] };
   }, [...fs.readFileSync(path.join(FXT, 'sachtext.txt'))]);
   await ctx.close();
   return r;
