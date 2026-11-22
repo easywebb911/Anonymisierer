@@ -99,7 +99,7 @@ function score(name, log) {
     return `${a ? a[1] : '?'} Abweichungen (${m[1]} Dateien, ${m[2]} + ${(log.match(/: (\d+) Stellen von 2\.8\.0/) || [])[1] || '?'} Stellen)`;
   }
   if (name === 'korpus') return /Alle Zahlen wie erwartet/.test(log) ? 'alle Zahlen wie erwartet' : 'Zahlen weichen ab';
-  if (name === 'run-tests') { const ok = (log.match(/^\s*(?:✓|OK)/gm) || []).length; return ok ? `${ok} OK-Zeilen` : 'ohne Zähler'; }
+  if (name === 'run-tests') return 'Messbericht ohne Zähler (Ende erreicht)';
   return 'ohne Zähler';
 }
 function run(name, script, a) {

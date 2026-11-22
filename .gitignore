@@ -13,3 +13,5 @@ tests/out-platzhalter/
 tests/out-kollision/
 tests/out-pfade/
 tests/out-bedienung/
+tests/out-alt/
+tests/out-logs/

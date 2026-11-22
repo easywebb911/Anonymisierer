@@ -7,7 +7,9 @@
   "type": "module",
   "scripts": {
     "build": "node build/build.mjs",
-    "test": "node tests/run-tests.mjs"
+    "test": "node tests/run-tests.mjs",
+    "test:all": "node tests/run-all.mjs",
+    "test:quick": "node tests/run-all.mjs --quick"
   },
   "devDependencies": {
     "@faker-js/faker": "10.6.0",

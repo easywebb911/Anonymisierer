@@ -30,6 +30,8 @@ export const LANG = Array.from({ length: 160 }, (_, i) => (i === 4 ? 'Im Chor gi
 export const FALLE = ['Frau Anna Rose leitet den Kurs.', 'Rose bringt Rosen mit.', 'Wir singen Lieder aus aller Welt.'];
 
 export async function makeAll() {
+  // Tempo: bei „npm run test:all“ schon einmal vorher erzeugt
+  if (process.env.ANON_FIXTURES_FERTIG === '1') return;
   fs.rmSync(FXA, { recursive: true, force: true });
   fs.mkdirSync(FXA, { recursive: true });
   const ss = [];
