@@ -280,11 +280,13 @@ log('## Art-Wechsel: Einrichtung → Person → Einrichtung (rückbaufähig)');
   await goTo(page, 'a2');
   await openMenu(page, 'org', ORG.verein);
   await page.click('#orgs .emenu .kindbtn');
-  await page.waitForFunction(() => window.__anon.app.result.orgs.size === 0);
+  // Version 2.8.0 (angepasst, begründet): In der Datei findet das Tool weitere Einrichtungen selbst; es zählt nur der Verein
+  await page.waitForFunction((v) => ![...window.__anon.app.result.orgs.values()].some((o) => o.display === v), ORG.verein);
   await goTo(page, 'a3');
   const b = await counts();
   const ampelB = await page.$eval('#save-lead', (e) => e.textContent.replace(/\s+/g, ' '));
-  check('„ist eine Person“: Platzhalter, Zählung und Kennung folgen; Schlüssel muss neu gespeichert werden', a.orgs === 1 && b.orgs === 0 && b.persons === a.persons + 1 && /Vorname [A-Z] Nachname [A-Z]|Name [A-Z]/.test(b.line) && b.kennung !== st0.k && b.saveDisabled && !/Einrichtung/.test(ampelB.split('.')[0]),
+  const nOrgs = (t) => { const m = t.match(/(\d+|Eine?) Einrichtung(en)?/); return m ? (/^\d/.test(m[1]) ? Number(m[1]) : 1) : 0; };
+  check('„ist eine Person“: Platzhalter, Zählung und Kennung folgen; Schlüssel muss neu gespeichert werden', a.orgs >= 1 && b.orgs === a.orgs - 1 && b.persons === a.persons + 1 && /Vorname [A-Z] Nachname [A-Z]|Name [A-Z]/.test(b.line) && b.kennung !== st0.k && b.saveDisabled && nOrgs(ampelB.split('.')[0]) === b.orgs,
     `vorher: ${a.persons} Personen/${a.orgs} Einrichtung, „${a.line}“; nachher: ${b.persons}/${b.orgs}, „${b.line}“, Kennung ${st0.k} → ${b.kennung}`);
   await ackAll(page);
   await saveKey(page);
@@ -292,11 +294,11 @@ log('## Art-Wechsel: Einrichtung → Person → Einrichtung (rückbaufähig)');
   await goTo(page, 'a2');
   await openMenu(page, 'person', ORG.verein);
   await page.click('#entities .emenu .kindbtn');
-  await page.waitForFunction(() => window.__anon.app.result.orgs.size === 1);
+  await page.waitForFunction((v) => [...window.__anon.app.result.orgs.values()].some((o) => o.display === v), ORG.verein);
   await goTo(page, 'a3');
   const c = await counts();
   const ampelC = await page.$eval('#save-lead', (e) => e.textContent.replace(/\s+/g, ' '));
-  check('„ist eine Einrichtung“ zurück: wieder „Einrichtung A“, Zählung und Kennung folgen', c.orgs === 1 && c.persons === a.persons && c.line === a.line && c.kennung !== k2 && c.saveDisabled && /und 1 Einrichtung sind ersetzt/.test(ampelC), `„${c.line}“, Kennung ${k2} → ${c.kennung}`);
+  check('„ist eine Einrichtung“ zurück: wieder „Einrichtung A“, Zählung und Kennung folgen', c.orgs === a.orgs && c.persons === a.persons && c.line === a.line && c.kennung !== k2 && c.saveDisabled && new RegExp(`und ${a.orgs === 1 ? '1 Einrichtung' : a.orgs + ' Einrichtungen'} sind ersetzt`).test(ampelC), `„${c.line}“, Kennung ${k2} → ${c.kennung}`);
   await ctx.close();
 }
 log('');
@@ -570,8 +572,11 @@ for (const [name, want, desc] of SC) {
       const first = r.own[0] ? r.own[0].replace(/^.*?steht noch in: /, '').slice(0, 170) : '–';
       log(`| ${desc} | ${fmt} | ${mode} | ${r.own.length} (${want}) | ${first} | ${r.own.length ? (r.blocked ? 'ja' : 'NEIN') : '–'} |`);
       const okHint = !want || r.own.every((x) => (fmt === 'docx' ? /Entferne den Absatz in Word/ : /Entferne die Leerzeile/).test(x));
-      const extra = name === 'freie-person' ? /^(?:Person A|Nachname A|Vorname A|Name A) Freie$/.test(r.out.split('\n')[0]) : true;
-      check(`${name}, ${fmt}, ${mode}: ${want} Meldung(en)${want ? ', mit Fundort und Anleitung, Speichern gesperrt' : ''}${name === 'freie-person' ? ' („Kita“ als Person ersetzt, „Freie“ bleibt)' : ''}`, r.own.length === want && okHint && (!want || r.blocked) && extra, r.out.split('\n')[0]);
+      // Version 2.8.0 (angepasst, begründet): „Kita Freie“ (Kopfwort + Name) findet das Tool jetzt selbst als Einrichtung;
+      // der Teil in der ersten Zeile wird ganz ersetzt. Die Meldung zur über zwei Absätze getrennten „Freie Waldorfschule“
+      // bleibt (streng wie bisher).
+      const extra = name === 'freie-person' ? /^Einrichtung A$/.test(r.out.split('\n')[0]) : true;
+      check(`${name}, ${fmt}, ${mode}: ${want} Meldung(en)${want ? ', mit Fundort und Anleitung, Speichern gesperrt' : ''}${name === 'freie-person' ? ' (seit 2.8.0: „Kita Freie“ als gefundene Einrichtung ersetzt)' : ''}`, r.own.length === want && okHint && (!want || r.blocked) && extra, r.out.split('\n')[0]);
     }
   }
 }

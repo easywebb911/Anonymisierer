@@ -14,6 +14,7 @@ import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import JSZip from 'jszip';
+import { orgTermTokens } from '../src/core/detect.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..');
@@ -37,16 +38,31 @@ const FIXTURES = [['protokoll.txt', ['txt', 'docx']], ['mitarbeiter.csv', ['csv'
 const sha = (b) => crypto.createHash('sha256').update(b).digest('hex');
 
 const browser = await chromium.launch();
-async function outputs(html, file, mode, formats) {
+async function outputs(html, file, mode, formats, orgTerms = null) {
+  const res0 = {};
   const ctx = await browser.newContext();
   const page = await ctx.newPage();
   await page.goto('file://' + html);
+  // Version 2.8.0 (Nachweis): von Hand markierte Einrichtungen vor dem Laden setzen
+  // (Regel c: Schreibweisen einer gefundenen Einrichtung sind eine Einrichtung -> in der alten Version „zusammenführen“)
+  if (orgTerms) {
+    const groups = orgTerms;
+    const merges = {};
+    for (const g of groups) for (const t of g.slice(1)) merges[orgTermTokens(t).key] = orgTermTokens(g[0]).key;
+    await page.evaluate((t) => { window.__anon.app.state.orgTerms.push(...t); }, groups.flat());
+    res0.merges = merges;
+  }
   await page.evaluate((m) => { const rb = document.querySelector(`input[name=mode][value="${m}"]`); rb.checked = true; rb.dispatchEvent(new Event('change')); }, mode);
   await page.setInputFiles('#file', path.join(here, 'fixtures', file));
   await page.waitForFunction(() => /Gelesen|nicht|Fehler/.test(document.querySelector('#load-status').textContent), null, { timeout: 120000 });
   const res = {};
+  // Zusammenführen gilt je Dokument (wird beim Laden zurückgesetzt): nach dem Laden setzen und neu rechnen
+  if (res0.merges && Object.keys(res0.merges).length) await page.evaluate((m) => { Object.assign(window.__anon.app.state.merges, m); window.__anon.runAnalysis(); }, res0.merges);
   // Hat das Dokument Bildbeschreibungen? (nur die neue Version kennt die Abschnitte „Bildbeschreibung …“)
   res.altTexts = await page.evaluate(() => window.__anon.app.doc.units.filter((u) => /^Bildbeschreibung/.test(u.label)).map((u) => u.text));
+  // Version 2.8.0: selbst gefundene Einrichtungen (Schreibweisen) – nur die neue Version kennt sie
+  res.orgGroups = await page.evaluate(() => [...window.__anon.app.result.orgs.values()].filter((o) => o.auto).map((o) => [...o.forms.keys()]));
+  res.orgAuto = res.orgGroups.flat();
   for (const f of formats) {
     res[f] = await page.evaluate(async (fmt) => {
       const o = await window.__anon.buildOutput(fmt);
@@ -119,6 +135,7 @@ let same = 0;
 let onlyKennung = 0;
 let altChanged = 0;
 let v26Changed = 0;
+let v28Changed = 0;
 // Version 2.6.0 (Namensspalten, Anrede am Zeilenende, „von“): Diese Dokumente dürfen sich ändern, alle übrigen nicht
 const CHANGED_260 = {
   'a2-risiko.txt': 'Anrede am Zeilenende: „Liebe Frau⏎Vielen Dank …“ und „Gesprächspartner: Herr⏎Schulleitung“ jetzt ersetzt (unsicher, an); Buchstaben danach verschoben.',
@@ -171,8 +188,28 @@ for (const [file, formats] of FIXTURES) {
         if (lower) reasons.push(`- ${file}, Modus ${mode}, Ausgabe .${f}: ${diff.length} Zeilen geändert, nur große Endung hinter dem Platzhalter jetzt klein (${diff.slice(0, 2).map((i) => `„${ol[i]}“ → „${nl[i]}“`).join('; ')}${diff.length > 2 ? '; …' : ''}). Grund: Version 2.3.3, damit „Person AS“ nie wie eine andere Person aussieht.`);
       }
       if (lower) lowerChanged++;
+      // Version 2.8.0: Einrichtungen selbst finden. Nachweis je Ausgabe: Die alte Version liefert GENAU dieselbe Ausgabe
+      // (bis auf die Kennung), wenn man ihr die von 2.8.0 gefundenen Einrichtungen als von Hand markiert vorgibt. Dann
+      // stammt jede Änderung allein von den gefundenen Einrichtungen.
+      let v28 = false;
+      if (!ok && !kOnly && b.orgAuto.length) {
+        if (!b.v28ref) b.v28ref = await outputs(oldHtml, file, mode, formats, b.orgGroups);
+        const c = b.v28ref[f];
+        v28 = c.sha === b[f].sha || (mode === 'reversible' && sameParts(c.parts, b[f].parts));
+        if (v28) {
+          v28Changed++;
+          let detail = '';
+          if (b[f].text !== null && a[f].text !== null) {
+            const ol = a[f].text.split('\n');
+            const nl = b[f].text.split('\n');
+            const diff = nl.map((l, i) => (l !== ol[i] ? i : -1)).filter((i) => i >= 0);
+            detail = ` ${diff.length} Zeile(n): ${diff.slice(0, 2).map((i) => `„${ol[i]}“ → „${nl[i]}“`).join('; ')}${diff.length > 2 ? '; …' : ''}.`;
+          }
+          reasons.push(`- ${file}, Modus ${mode}, Ausgabe .${f}:${detail} Grund (Version 2.8.0): selbst gefundene Einrichtung(en) ${[...new Set(b.orgAuto)].map((x) => '„' + x + '“').join(', ')}; Ausgabe gleich der von 2.7.0 mit diesen als von Hand markiert${b.orgGroups.some((g) => g.length > 1) ? ' (Schreibweisen derselben Einrichtung zusammengeführt, Regel c)' : ''}.`);
+        }
+      }
       // Version 2.6.0: Dokumente, die sich durch die neuen Regeln gewollt ändern (Grund je Dokument, Zeilen im Bericht)
-      const v26 = !ok && !kOnly && !alt && !ending && !caps && !lower && !!CHANGED_260[file];
+      const v26 = !ok && !kOnly && !v28 && !alt && !ending && !caps && !lower && !!CHANGED_260[file];
       if (v26) {
         v26Changed++;
         let detail = '';
@@ -189,7 +226,7 @@ for (const [file, formats] of FIXTURES) {
       if (alt) altChanged++;
       if (ending) endingChanged++;
       const label = `${file}, Modus ${({ person: '„Person A“', name: '„[NAME]“', reversible: '„rückbaufähig“' })[mode]}, Ausgabe .${f}`;
-      lines.push(`- ${label}: ${ok ? 'identisch' : v26 ? 'geändert durch die Regeln von Version 2.6.0 (Grund unten)' : kOnly ? 'gleich bis auf die Kennung (Eigenschaft)' : alt ? 'geändert nur in Bildbeschreibungen (Grund unten)' : ending ? 'geändert nur durch die Endungsprüfung (Grund unten)' : caps ? 'geändert nur durch GROSS-Formen mit Endung (Grund unten)' : lower ? 'geändert nur durch kleine Endung hinter dem Platzhalter (Grund unten)' : 'UNTERSCHIEDLICH'} (${a[f].sha.slice(0, 12)} / ${b[f].sha.slice(0, 12)})`);
+      lines.push(`- ${label}: ${ok ? 'identisch' : v28 ? 'geändert durch die Regeln von Version 2.8.0 (Grund unten)' : v26 ? 'geändert durch die Regeln von Version 2.6.0 (Grund unten)' : kOnly ? 'gleich bis auf die Kennung (Eigenschaft)' : alt ? 'geändert nur in Bildbeschreibungen (Grund unten)' : ending ? 'geändert nur durch die Endungsprüfung (Grund unten)' : caps ? 'geändert nur durch GROSS-Formen mit Endung (Grund unten)' : lower ? 'geändert nur durch kleine Endung hinter dem Platzhalter (Grund unten)' : 'UNTERSCHIEDLICH'} (${a[f].sha.slice(0, 12)} / ${b[f].sha.slice(0, 12)})`);
       if (alt) {
         if (b[f].text !== null) reasons.push(`- ${label}: neue Zeilen ${b[f].text.split('\n').filter((l) => /^\[Bildbeschreibung /.test(l)).map((l) => `„${l}“`).join(', ')} (Bildbeschreibungen sind jetzt eigene Textabschnitte); alle übrigen Zeilen gleich.`);
         else {
@@ -205,8 +242,8 @@ for (const [file, formats] of FIXTURES) {
   }
 }
 await browser.close();
-const bad = total - same - onlyKennung - altChanged - endingChanged - capsChanged - lowerChanged - v26Changed;
-const out = [`Regression: ${same} von ${total} Ausgaben byte-identisch, ${onlyKennung} gleich bis auf die Kennung, ${altChanged} nur in Bildbeschreibungen geändert, ${endingChanged} nur durch die Endungsprüfung geändert, ${capsChanged} nur durch GROSS-Formen mit Endung geändert, ${lowerChanged} nur durch kleine Endung hinter dem Platzhalter geändert, ${v26Changed} durch die Regeln von Version 2.6.0 geändert, ${bad} unterschiedlich (Referenz ${sha(fs.readFileSync(oldHtml)).slice(0, 16)}…, neu ${sha(fs.readFileSync(newHtml)).slice(0, 16)}…)`,
+const bad = total - same - onlyKennung - altChanged - endingChanged - capsChanged - lowerChanged - v26Changed - v28Changed;
+const out = [`Regression: ${same} von ${total} Ausgaben byte-identisch, ${onlyKennung} gleich bis auf die Kennung, ${altChanged} nur in Bildbeschreibungen geändert, ${endingChanged} nur durch die Endungsprüfung geändert, ${capsChanged} nur durch GROSS-Formen mit Endung geändert, ${lowerChanged} nur durch kleine Endung hinter dem Platzhalter geändert, ${v26Changed} durch die Regeln von Version 2.6.0 geändert, ${v28Changed} durch die Regeln von Version 2.8.0 geändert, ${bad} unterschiedlich (Referenz ${sha(fs.readFileSync(oldHtml)).slice(0, 16)}…, neu ${sha(fs.readFileSync(newHtml)).slice(0, 16)}…)`,
   ...lines, '', reasons.length ? '## Geänderte Ausgaben einzeln mit Grund' : '', ...reasons].join('\n');
 console.log(out);
 process.exit(bad === 0 ? 0 : 1);

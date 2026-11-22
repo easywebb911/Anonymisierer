@@ -143,7 +143,16 @@ function unitCandidates(text, covered) {
 }
 
 // Wortfolge (mit beliebigem Leerraum, ohne Groß-/Kleinschreibung) als ganze Wörter zählen
+const phraseCache = new Map();
 function countPhrase(fullText, words) {
+  const ck = fullText.length + '|' + words.join(' ').toLowerCase();
+  if (phraseCache.has(ck) && phraseCache.get(ck).t === fullText) return phraseCache.get(ck).n;
+  if (phraseCache.size > 5000) phraseCache.clear();
+  const n = countPhrase0(fullText, words);
+  phraseCache.set(ck, { t: fullText, n });
+  return n;
+}
+function countPhrase0(fullText, words) {
   const esc = words.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
   const re = new RegExp('(?<![\\p{L}\\p{N}])' + esc.join('\\s+') + '(?![\\p{L}\\p{N}])', 'giu');
   return (fullText.match(re) || []).length;
@@ -161,7 +170,9 @@ function quoteCandidates(text, fullText, webJoined, covered) {
       const inner = text.slice(i + 1, j);
       const words = inner.trim().split(/[  ]+/).filter(Boolean);
       const ok = inner.trim() === inner && words.length >= 2 && words.length <= 6 && /^\p{Lu}/u.test(words[0])
-        && words.every((w) => /[\p{L}\p{N}]/u.test(w)) && !/[.!?;:,]/.test(inner) && !(covered && covered(i + 1, j));
+        && words.every((w) => /[\p{L}\p{N}]/u.test(w)) && !/[.!?;:,]/.test(inner) && !(covered && covered(i + 1, j))
+        // beginnt mit einer Anrede oder einem Titel („Herr Kowalczyk“): eine Person, keine Einrichtung
+        && !lex.isTitle(fold(words[0].replace(/\.$/, '')));
       if (ok) {
         const before = text.slice(0, i).match(/([\p{L}\p{N}.]+)[  ]*:?[  ]*$/u);
         const after = text.slice(j + 1).match(/^[  ]+([\p{L}][\p{L}.]*(?:[  ]V\.)?)/u);
@@ -191,14 +202,17 @@ const PRE = /[sS]chul|SCHUL|[gG]ymnasi|GYMNASI|Universit|UNIVERSIT|[kK]ita|KITA|
 // Ergebnis: {groups: [{key, terms:[Bezeichnung], manualKey|null}], weak: [{unit, s, e, text}]}
 export function findOrgs(units, fullText, { covered, exceptions, manualTerms }) {
   // Webadressen und Konten des Dokuments (für Merkmal 3), unabhängig vom Schalter
-  const webJoined = [];
-  for (const u of units) if (/[./:@]/.test(u.text)) for (const c of findContacts(u.text, { web: true })) if (c.type === 'web' || c.type === 'account') webJoined.push(fold(u.text.slice(c.s, c.e)));
+  const webSet = new Set();
+  for (const u of units) if (/[./:@]/.test(u.text)) for (const c of findContacts(u.text, { web: true })) if (c.type === 'web' || c.type === 'account') webSet.add(fold(u.text.slice(c.s, c.e)));
+  const webJoined = [...webSet];
   const cands = [];
   const weak = [];
   units.forEach((u, ui) => {
     if (!u.text || !PRE.test(u.text)) return;
     const cv = covered ? (s, e) => covered(ui, s, e) : null;
-    const qs = /[„“"»«]/.test(u.text) ? quoteCandidates(u.text, fullText, webJoined, cv) : [];
+    // Excel-Formeln: Anführungszeichen sind dort Zeichenketten der Formel, keine Namensklammern
+    const formula = / \(Formel\)/.test(u.label || '');
+    const qs = !formula && /[„“"»«]/.test(u.text) ? quoteCandidates(u.text, fullText, webJoined, cv) : [];
     for (const q of qs) if (q.weak) weak.push({ unit: ui, s: q.s, e: q.e, text: u.text.slice(q.s, q.e) });
     const all = [...unitCandidates(u.text, cv), ...qs.filter((q) => !q.weak)];
     for (const c of all) {
@@ -209,9 +223,15 @@ export function findOrgs(units, fullText, { covered, exceptions, manualTerms }) 
   });
   // GROSSSCHRIFT: Wörter dahinter sind auch groß („FAMILIENZENTRUM SONNENBLUME LÄDT“). Gibt es dieselbe Einrichtung in
   // normaler Schreibweise, endet die GROSS-Form nach genauso vielen Namens-Wörtern.
+  const normal = new Map(); // Kopfwort -> verschiedene Namensfolgen in normaler Schreibweise
+  for (const o of cands) {
+    if (o.caps || !o.head) continue;
+    if (!normal.has(o.head)) normal.set(o.head, new Map());
+    normal.get(o.head).set(o.names.join(' '), o);
+  }
   for (const c of cands) {
     if (!c.caps || c.lf || !c.nameEnds) continue;
-    const ref = cands.filter((o) => !o.caps && o.head === c.head && o.names.length < c.names.length && o.names.every((n, i) => n === c.names[i]));
+    const ref = [...(normal.get(c.head) || new Map()).values()].filter((o) => o.names.length < c.names.length && o.names.every((n, i) => n === c.names[i]));
     if (!ref.length) continue;
     const n = Math.max(...ref.map((o) => o.names.length));
     c.names = c.names.slice(0, n);
@@ -225,7 +245,10 @@ export function findOrgs(units, fullText, { covered, exceptions, manualTerms }) 
     const c = cs.find((x) => x.s === 0 && x.e >= t.trim().length - 1) || null;
     anchors.push({ term: t, head: c ? c.head : null, names: c ? c.names : tokenize(t).filter((x) => x.word).map((x) => fold(x.t)), manual: true });
   }
-  const items = [...anchors, ...cands];
+  // Gleiche Bezeichnung nur einmal (Geschwindigkeit; die Suche im ganzen Dokument macht danach matchOrgTerms)
+  const seenTerm = new Set();
+  const uniq = cands.filter((c) => { const k = c.term + '|' + (c.quoted ? 'q' : ''); if (seenTerm.has(k)) return false; seenTerm.add(k); return true; });
+  const items = [...anchors, ...uniq];
   // Gruppen (Regel c): gleiches Kopfwort und Namens-Wörter enthalten; ohne Kopfwort: gleiche Namens-Wörter
   const parent = items.map((_, i) => i);
   const find = (i) => (parent[i] === i ? i : (parent[i] = find(parent[i])));

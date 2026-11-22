@@ -188,7 +188,9 @@ log('## Sperren halten das Speichern weiter auf');
   await ackImages(page);
   check('Nach dem Öffnen der Bilderliste ist das Häkchen wählbar', !(await page.$eval('#ack-all', (b) => b.disabled)));
   r = await exportOnce(page, 'docx');
-  check('Offene Fragen und Schlusscheck-Fund blockieren weiter ohne Häkchen', !r.dl && /blockiert/.test(r.status) && pts.some((x) => /Fragen sind noch offen/.test(x)) && pts.some((x) => /steht noch in/.test(x)), r.status);
+  // Version 2.8.0 (angepasst, begründet): „Familienzentrum Sonnenblume“ (Firma aus den Dateiangaben) wird jetzt selbst als
+  // Einrichtung gefunden und ersetzt; ein Schlusscheck-Fund entsteht deshalb nicht mehr. Es sperren die offenen Fragen.
+  check('Offene Fragen blockieren weiter ohne Häkchen (Firmenname seit 2.8.0 ersetzt, kein Schlusscheck-Fund mehr)', !r.dl && /blockiert/.test(r.status) && pts.some((x) => /Fragen sind noch offen/.test(x)) && !pts.some((x) => /steht noch in/.test(x)), r.status);
   // Auch die anderen Wege sind gesperrt
   r = await exportOnce(page, 'txt');
   check('Offene Punkte blockieren auch „Als .txt speichern“', !r.dl && /blockiert/.test(r.status), r.status);

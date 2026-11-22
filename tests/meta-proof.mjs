@@ -315,13 +315,18 @@ log('## Firmenname aus den Dateiangaben im sichtbaren Text (kurse.docx)');
   const { status } = await exportOnce(page, 'docx');
   const box = await page.textContent('#scr-a3');
   const items = await page.$$eval('#points li.bad', (els) => els.map((e) => e.textContent));
-  check('Schlusscheck blockiert wegen des Firmennamens', /blockiert/.test(status) && items.length > 0 && items.every((t) => t.includes('Familienzentrum Sonnenblume')), items.length + ' Fund(e)');
-  // Version 2.5.0: Fundort in einfacher Sprache; der Alt-Text des Logos in der Kopfzeile heißt jetzt „Bildbeschreibung“
-  check('Meldung nennt den Ort in einfacher Sprache („Kopfzeile“, „Bildbeschreibung“)', items.every((t) => /steht noch in: (Kopfzeile|Bildbeschreibung)/.test(t)), items.join(' | '));
-  check('Meldung nennt beide Wege: als Einrichtung übernehmen oder bewusst stehen lassen (Häkchen)', /Als Einrichtung übernehmen/.test(box) && /Ich habe alle Punkte gesehen und speichere so/.test(box));
-  await page.click('#points li.bad button');
-  const after = await page.evaluate(async () => { const o = await window.__anon.buildOutput('docx'); return (await window.__anon.finalCheck(o)).length; });
-  check('Knopf in der Meldung übernimmt den Firmennamen, danach Schlusscheck ohne Fund', after === 0);
+  // Version 2.8.0 (angepasst, begründet): Das Tool findet „Familienzentrum Sonnenblume“ jetzt selbst als Einrichtung
+  // (Kopfwort + Name) und ersetzt es; der Firmenname bleibt nicht mehr im Text, deshalb gibt es keinen Schlusscheck-Fund
+  // mehr. Geprüft wird stattdessen streng: ersetzt, gefragt, Speichern ohne Häkchen gesperrt (offene Fragen), kein Fund.
+  const st = await page.evaluate(async () => {
+    const A = window.__anon;
+    const o = await A.buildOutput('docx');
+    const q = A.questions().find((x) => x.kind === 'org' && /Familienzentrum Sonnenblume/.test(x.word));
+    return { leaks: (await A.finalCheck(o)).length, q: q ? q.word : null, on: q ? q.hits.every((x) => x.on) : false };
+  });
+  log(`- 2.8.0: gefundene Einrichtung „${st.q}“, alle Stellen ersetzt: ${st.on}, Schlusscheck-Funde: ${st.leaks}; Punkte: ${items.length}`);
+  check('Firmenname aus den Dateiangaben steht im Text: seit 2.8.0 selbst als Einrichtung gefunden, ersetzt und gefragt', !!st.q && st.on && st.leaks === 0);
+  check('Speichern bleibt ohne Häkchen gesperrt (offene Fragen)', /blockiert/.test(status) && /Ich habe alle Punkte gesehen und speichere so/.test(box));
   await ctx.close();
 }
 for (const mode of ['person', 'name', 'reversible']) {
