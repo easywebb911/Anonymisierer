@@ -141,11 +141,14 @@ export const NACHBARN_ROWS = [
   'Melanie Grawert kommt morgen.',
   // Guardian-Lauf 2, Fund 1: nach „Nein“ belegt die Person genau dieselbe Stelle wie die Einrichtung
   'Liebe Eltern,', 'die Praxis Lindqvist ist am Montag zu.', 'Die Krippe Halvorsen bleibt heute zu.',
+  // Guardian-Lauf 3, Fund 1 (Entscheidung D): 2.7.0 nahm das Wort hinter dem Kopfwort zum Namen
+  'Frau Ida vom Kindergarten Krüger hat angerufen.', 'Herr Paul Lenz von der Praxis Schulze schreibt.',
+  'Herr Jonas vom Gymnasium Becker kommt später.', 'Frau Lea von der Kanzlei Wagner ruft an.',
 ].map((r) => (Array.isArray(r) ? r : [r]));
 export const NACHBARN = NACHBARN_ROWS.flat();
 // Was ohne Antwort ersetzt sein muss (ganze Wörter, alle Modi)
 export const NACHBARN_PERSONS = ['Quarbeck', 'Broszat', 'Tewesmeier', 'Jana', 'Wolters', 'Tobias', 'Hellwig', 'Anja', 'Petersen', 'Okonkwo',
-  'Lehmann', 'Schuster', 'Demir', 'Kowalski', 'Albers', 'Brandner', 'Lindenau', 'Horten', 'Nikita', 'Schulenburg', 'Brennecke', 'Melanie', 'Grawert', 'Lindqvist', 'Halvorsen'];
+  'Lehmann', 'Schuster', 'Demir', 'Kowalski', 'Albers', 'Brandner', 'Lindenau', 'Horten', 'Nikita', 'Schulenburg', 'Brennecke', 'Melanie', 'Grawert', 'Lindqvist', 'Halvorsen', 'Ida', 'Krüger', 'Paul', 'Lenz', 'Schulze', 'Jonas', 'Becker', 'Lea', 'Wagner'];
 export const NACHBARN_ORGS = ['Sonnenblume', 'Wiesenkamp', 'Lindgrün', 'Regenbogen', 'Lindenhof', 'Kirchberg', 'Tannhofen', 'Holzbau', 'Birkenhain', 'Mühlbach'];
 // Sperre-Test: nur Webadresse und Konto, sonst nichts zu ersetzen
 export const NURWEB = ['Mehr dazu unter www.beispiel-kinderhaus.de/termine.', 'Folgen Sie uns auf Instagram: @sonnenhof_kids'];

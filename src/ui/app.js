@@ -574,6 +574,7 @@ function applyAnswer(q, val, seq, skip) {
     setHits(skip ? list.filter((x) => !skip.has(x.key)) : list, yes);
   } else if (yes && !q.taken) {
     const before = { m: [...app.state.manualTerms], o: [...app.state.orgTerms], e: [...app.state.exceptions], added: app.addedSinceLoad };
+    const ovBefore = { ...app.state.overrides }; // Version 2.8.1 (Guardian-Lauf 3, Fund 2): Umschaltungen von „Markieren gewinnt“
     const wasIn = app.inAnswer;
     app.inAnswer = true;
     if (q.org) addOrg(q.name); else addManual(q.name); // rechnet neu und zeichnet alles
@@ -582,7 +583,10 @@ function applyAnswer(q, val, seq, skip) {
     const other = q.org ? 'm' : 'o';
     const now = { m: app.state.manualTerms, o: app.state.orgTerms, e: app.state.exceptions };
     const lost = (k) => before[k].map((v, i) => ({ i, v })).filter((x) => !now[k].includes(x.v));
-    rec.meta = { org: q.org, added: now[target].filter((t) => !before[target].includes(t)), removedOther: lost(other), removedExc: lost('e'), addedSinceLoad: before.added };
+    const ovNow = app.state.overrides;
+    const ovChanged = [...new Set([...Object.keys(ovBefore), ...Object.keys(ovNow)])].filter((k) => ovBefore[k] !== ovNow[k])
+      .map((k) => ({ key: k, had: k in ovBefore, val: ovBefore[k], has: k in ovNow, set: ovNow[k] }));
+    rec.meta = { org: q.org, added: now[target].filter((t) => !before[target].includes(t)), removedOther: lost(other), removedExc: lost('e'), addedSinceLoad: before.added, ovChanged };
   } else changed();
 }
 // Wirkung einer Antwort zurücknehmen; liefert die Stellen, die inzwischen von Hand umgeschaltet waren
@@ -611,6 +615,13 @@ function undoAnswer(id) {
     for (const x of m.removedOther) if (!st[other].includes(x.v)) st[other].splice(Math.min(x.i, st[other].length), 0, x.v);
     for (const x of m.removedExc) if (!st.exceptions.includes(x.v)) st.exceptions.splice(Math.min(x.i, st.exceptions.length), 0, x.v);
     app.addedSinceLoad = m.addedSinceLoad;
+    // Version 2.8.1 (Guardian-Lauf 3, Fund 2): Umschaltungen, die das Übernehmen ausgelöst hat („Markieren gewinnt“),
+    // zurücknehmen – sofern sie seitdem nicht von Hand geändert wurden. So gilt „Ja“ → „Nein“ = direkt „Nein“.
+    for (const c of m.ovChanged || []) {
+      const cur = Object.prototype.hasOwnProperty.call(st.overrides, c.key);
+      if (cur !== c.has || (cur && st.overrides[c.key] !== c.set)) continue;
+      if (c.had) st.overrides[c.key] = c.val; else delete st.overrides[c.key];
+    }
     saveStored();
     const wasIn = app.inAnswer;
     app.inAnswer = true;

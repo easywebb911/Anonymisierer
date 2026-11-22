@@ -334,7 +334,7 @@ log('## Firmenname aus den Dateiangaben im sichtbaren Text (kurse.docx)');
 // („Lernwerkstatt Sonnenhof“, erfunden) – die Einrichtungs-Suche findet ihn nicht, nur der Schlusscheck. Erzeugt aus
 // kurse.docx (Firmenname in Dateiangaben, Kopfzeile und Bildbeschreibung ersetzt).
 log('');
-log('## Firmenname ohne Kopfwort aus den Dateiangaben im sichtbaren Text (kurse-lernwerkstatt.docx, Version 2.8.1)');
+log('## Firmenname ohne Kopfwort aus den Dateiangaben im sichtbaren Text (kurse-lernwerkstatt.docx, Version 2.8.1) – Schutz, kein Nachweis der Behebung (der Weg ging auch in 2.8.0, er war nur nicht mehr geprüft)');
 {
   const z = await JSZip.loadAsync(fs.readFileSync(path.join(fx, 'kurse.docx')));
   for (const n of Object.keys(z.files)) if (/\.xml$/.test(n)) z.file(n, (await z.file(n).async('string')).split('Familienzentrum Sonnenblume').join('Lernwerkstatt Sonnenhof'));

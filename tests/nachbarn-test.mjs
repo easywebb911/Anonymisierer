@@ -62,8 +62,16 @@ async function covered(html, file, how, mode) {
       A.app.state.settings.mode = mode;
       if (how.startsWith('aus')) A.app.state.settings.unsureOn = false;
       await A.openBytes(new Uint8Array(arr), nm);
-      if (how === 'nein' || how === 'ausnein') {
-        for (const id of A.questions().filter((q) => q.kind === 'org').map((q) => q.id)) { const q = A.questions().find((x) => x.id === id); if (q) A.answer(q, false); }
+      // Antwortfolgen auf alle Einrichtungs-Fragen (Weg-Gleichheit): 'nein', 'ja', 'janein', 'neinjanein', 'janeinja'
+      const seqs = { nein: [false], ausnein: [false], ja: [true], janein: [true, false], neinjanein: [false, true, false], janeinja: [true, false, true] };
+      const ids = A.questions().filter((q) => q.kind === 'org').map((q) => q.id);
+      for (const v of seqs[how] || []) for (const id of ids) { const q = A.questions().find((x) => x.id === id); if (q) A.answer(q, v); }
+      // Version 2.8.1 (Entscheidung D): jede gefundene Einrichtung in der Liste ausschalten (wie ein Mensch, ggf. nochmals)
+      if (how === 'liste') {
+        for (let round = 0; round < 3; round++) for (const o of [...A.app.result.orgs.values()].filter((x) => x.hits.some((h) => h.auto && h.on))) {
+          const i = [...document.querySelectorAll('input[aria-label]')].find((x) => x.getAttribute('aria-label') === o.display + ' an/aus');
+          if (i && i.checked) i.click();
+        }
       }
       const r = A.app.result;
       return { text: r.fullText, spans: r.hits.filter((h) => h.on).map((h) => [h.s, h.e]) };
@@ -96,7 +104,9 @@ function missingVs(ref, res) {
     const toks = [...ref.text.slice(s, e).matchAll(/[\p{L}\p{N}][\p{L}\p{N}'’.-]*/gu)].map((m) => ({ s: s + m.index, t: m[0] }));
     const open = toks.filter((t) => [...t.t].some((_, i) => !cov[t.s + i]));
     if (!open.length) continue;
-    if (open.every((t) => HEAD_RE.test(t.t) || /^(von|vom|der|dem|den)$/i.test(t.t))) ausnahmen.push(ref.text.slice(s, e) + ' → offen: ' + open.map((t) => t.t).join(' '));
+    // Version 2.8.1 (Entscheidung Easy nach Lauf 3): Ausnahme nur, wenn jedes Zeichen eines Namens ersetzt ist – offen
+    // darf nur der Zusatz („vom“, „von der“) sein, kein Namens-Wort und kein Kopfwort
+    if (open.every((t) => /^(von|vom|der|dem|den)$/i.test(t.t))) ausnahmen.push(ref.text.slice(s, e) + ' → offen: ' + open.map((t) => t.t).join(' '));
     else miss.push(ref.text.slice(s, e));
   }
   return { miss, ausnahmen };
@@ -127,6 +137,22 @@ for (const ext of FORMATS) {
     const mc = missingVs(o, c);
     const mc2 = missingVs(o, c2);
     for (const x of [...mc.ausnahmen, ...mc2.ausnahmen]) AUSNAHMEN.add(`${ext}: ${x}`);
+    // Version 2.8.1 (Entscheidung D): weitere Abläufe; Soll: kein Name im Klartext, den 2.7.0 oder 2.8.0 ersetzt
+    // Vergleich je Ablauf mit demselben Ablauf in 2.7.0 (dort gibt es keine Einrichtungs-Fragen: wie ohne Antwort) und 2.8.0
+    const o0 = await covered(OLD, f, 'keine', mode);
+    for (const [how, oref] of [['nein', o0], ['janein', o0], ['neinjanein', o0], ['liste', o0], ['aus', o], ['ausnein', o]]) {
+      const refs = [oref, PREV ? await covered(PREV, f, how, mode) : null];
+      const res = await covered(HTML, f, how, mode);
+      const m = [];
+      for (const r of refs.filter(Boolean)) { const x = missingVs(r, res); m.push(...x.miss); for (const y of x.ausnahmen) AUSNAHMEN.add(`${ext}, ${how}: ${y}`); }
+      check(`${ext}, ${mode}, ${how}: kein Name im Klartext, den 2.7.0 oder 2.8.0 ersetzt`, m.length === 0, [...new Set(m)].join(', '));
+    }
+    // Weg-Gleichheit: „Ja“ → „Nein“ = direkt „Nein“; „Nein“ → „Ja“ → „Nein“ = direkt „Nein“; „Ja“ → „Nein“ → „Ja“ = direkt „Ja“
+    const sig = (r) => JSON.stringify(r.spans.map((x) => x.join(':')).sort());
+    const dJa = await covered(HTML, f, 'ja', mode);
+    check(`${ext}, ${mode}: Weg-Gleichheit „Ja“ → „Nein“ = „Nein“`, sig(await covered(HTML, f, 'janein', mode)) === sig(b));
+    check(`${ext}, ${mode}: Weg-Gleichheit „Nein“ → „Ja“ → „Nein“ = „Nein“`, sig(await covered(HTML, f, 'neinjanein', mode)) === sig(b));
+    check(`${ext}, ${mode}: Weg-Gleichheit „Ja“ → „Nein“ → „Ja“ = „Ja“`, sig(await covered(HTML, f, 'janeinja', mode)) === sig(dJa));
     let prev = '';
     if (PREV) {
       const pa = openWords(await covered(PREV, f, 'keine', mode), [...NACHBARN_PERSONS, ...NACHBARN_ORGS]);
@@ -143,7 +169,7 @@ for (const ext of FORMATS) {
   }
 }
 log('');
-log('Ausnahmen in c (einzeln, Grund: Teil 4 – ein Kopfwort der Einrichtungs-Suche gehört nicht mehr zu einem Personennamen; 2.7.0 hatte es als Teil eines Namens ersetzt):');
+log('Ausnahmen (einzeln; erlaubt nur, wenn offen allein der Zusatz „vom / von der“ ist – jedes Namens-Zeichen ist ersetzt):');
 if (!AUSNAHMEN.size) log('- keine');
 for (const x of AUSNAHMEN) log('- ' + x);
 log('');
@@ -235,7 +261,10 @@ const wordIn = (t, w) => new RegExp('(?<![\\p{L}\\p{N}])' + w + '(?![\\p{L}\\p{N
   // Echte Namen mit Zusatz bleiben ganze Namen
   const spans = await page.evaluate(() => { const r = window.__anon.app.result; return r.hits.filter((h) => h.type === 'person').map((h) => r.fullText.slice(h.s, h.e)); });
   check('Teil 4: echte Namen mit Zusatz bleiben ganz („von Brandner“, „van der Lindenau“, „von Horten“, „Anja von Horten“, „von Schulenburg“)', ['von Brandner', 'van der Lindenau', 'von Horten', 'Anja von Horten', 'von Schulenburg'].every((x) => spans.includes(x)), spans.filter((x) => /Brandner|Lindenau|Horten|Schulenburg/.test(x)).join(', '));
-  check('Teil 4: Person endet vor „vom / von der“ + Kopfwort', ['Okonkwo', 'Lehmann', 'Schuster', 'Demir', 'Kowalski', 'Albers', 'Brennecke'].every((n) => spans.includes(n)) && !spans.some((x) => /\bvo[nm]\b/.test(x) && !/Brandner|Horten|Schulenburg/.test(x)), spans.filter((x) => /Okonkwo|Schuster|Demir|Kowalski|Albers|Lehmann/.test(x)).join(', '));
+  check('Teil 4: Person endet vor „vom / von der“ + Kopfwort', ['Okonkwo', 'Lehmann', 'Schuster', 'Demir', 'Kowalski', 'Albers', 'Brennecke', 'Ida', 'Paul Lenz'].every((n) => spans.includes(n))
+    // „Gymnasium Becker“ / „Kanzlei Wagner“: „Becker“/„Wagner“ sind allein schon sichere Personen -> keine Einrichtung
+    // (Person geht vor, Teil 3); dann bleibt es wie 2.7.0 ein Name „Jonas vom Gymnasium Becker“ (ganz ersetzt)
+    && !spans.some((x) => /\bvo[nm]\b/.test(x) && !/Brandner|Horten|Schulenburg|Becker|Wagner/.test(x)), spans.filter((x) => /Okonkwo|Schuster|Demir|Kowalski|Albers|Lehmann/.test(x)).join(', '));
   // Oberfläche: kein „null“/„undefined“
   await goTo(page, 'a3');
   await ackPoints(page);
@@ -278,6 +307,37 @@ const wordIn = (t, w) => new RegExp('(?<![\\p{L}\\p{N}])' + w + '(?![\\p{L}\\p{N
       check(`Lauf 2, Fund ${unsureOff ? 2 : 1}: „Praxis Lindqvist“ ${how === 'nein' ? '„Nein“' : 'in der Liste aus'}${unsureOff ? ', „Unsichere“ aus, dann „Lindqvist“ als Name markiert' : ''} – Name ersetzt`, ok, line);
       await ctx.close();
     }
+  }
+  // Guardian-Lauf 3, Fund 2 (Weg-Gleichheit bei Fragen zu den Dateiangaben): Autor „Marta Kowalski“ (kurse.docx, Name
+  // steht auch im Text). Person in der Liste aus, dann die Dateiangaben-Frage „Ja“ → „Nein“ = direkt „Nein“;
+  // „Ja“ → „Nein“ → „Ja“ = direkt „Ja“
+  {
+    const z = await JSZip.loadAsync(fs.readFileSync(path.join(here, 'fixtures', 'kurse.docx')));
+    z.file('docProps/core.xml', (await z.file('docProps/core.xml').async('string')).replace('<dc:creator>Gisela Musterfrau</dc:creator>', '<dc:creator>Marta Kowalski</dc:creator>'));
+    const mf = path.join(outDir, 'kurse-autor.docx');
+    fs.writeFileSync(mf, await z.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' }));
+    const state = async (seq) => {
+      const { page, ctx } = await newPage();
+      await startAnon(page, 'person');
+      await loadIn(page, mf);
+      await goTo(page, 'a2');
+      await listSwitch(page, 'Marta Kowalski', false);
+      const r = await page.evaluate((seq) => {
+        const A = window.__anon;
+        const mq = () => A.questions().find((q) => q.kind === 'meta' && /Marta Kowalski/.test(q.name || ''));
+        if (!mq()) return null;
+        for (const v of seq) A.answer(mq(), v);
+        const res = A.app.result;
+        return JSON.stringify(res.hits.filter((h) => h.on).map((h) => h.s + ':' + h.e).sort());
+      }, seq);
+      await ctx.close();
+      return r;
+    };
+    const nein = await state([false]);
+    const ja = await state([true]);
+    check('Lauf 3, Fund 2: Dateiangaben-Frage „Ja“ → „Nein“ = direkt „Nein“ (Person vorher in der Liste aus)', !!nein && (await state([true, false])) === nein);
+    check('Lauf 3, Fund 2: Dateiangaben-Frage „Nein“ → „Ja“ → „Nein“ = direkt „Nein“', !!nein && (await state([false, true, false])) === nein);
+    check('Lauf 3, Fund 2: Dateiangaben-Frage „Ja“ → „Nein“ → „Ja“ = direkt „Ja“', !!ja && (await state([true, false, true])) === ja);
   }
   // Guardian-Fund 4: Wo eine Einrichtung endet, richtet sich nur nach der Erkennung: Person aus -> Einrichtung bleibt
   // „Kita Sonnenblume“ (wird nicht länger); danach „Als Name markieren“ ersetzt die Person als Person

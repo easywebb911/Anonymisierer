@@ -7,8 +7,8 @@
 //   e) Version 2.8.1: „Unsichere“ aus, dann „Nein“ auf alle Einrichtungs-Fragen (Vorversion: „Unsichere“ aus),
 //   f) Version 2.8.1: jede gefundene Einrichtung in der Liste ausgeschaltet, danach von Hand als Einrichtung markiert.
 // Version 2.8.1: zweiter Maßstab gegen die Version davor (2.8.0, dritter Aufruf-Wert): Jede Stelle, die 2.8.0 ohne
-// Antwort ersetzt, ist auch hier ersetzt. Ausnahme (einzeln gelistet): Teil 4 – „von / vom / von der“ + Kopfwort gehört
-// nicht mehr zum Personennamen, wenn der Rest dahinter als Einrichtung ersetzt ist.
+// Antwort ersetzt, ist auch hier ersetzt. Ausnahme (einzeln gelistet): Teil 4 – nur „von / vom / von der“ offen, jedes
+// Namens-Zeichen ersetzt (Entscheidung Easy nach Guardian-Lauf 3).
 // Warum fand dieser Test Fund 1 (PR #19) nicht? Ablauf d verglich richtig, aber keine Testdatei enthielt einen Namen,
 // der „unsicher, an“ ist (Regel a2) oder per Schalter eingeschaltet wurde, IN einer gefundenen Einrichtung; den Weg über
 // den Schalter gab es als Ablauf nicht. Dafür jetzt tests/fixtures-traeger/nachbarn.* und die Abläufe e und f.
@@ -111,7 +111,8 @@ const HEAD_RE = /^(?:Gymnasium|Schule|\p{Lu}\p{Ll}+schule|Universität|Kita|Kind
 function openToks(text, s, e, cov) {
   return [...text.slice(s, e).matchAll(/[\p{L}\p{N}][\p{L}\p{N}'’.-]*/gu)].map((m) => ({ s: s + m.index, t: m[0] })).filter((t) => [...t.t].some((_, i) => !cov[t.s + i]));
 }
-// streng (Einrichtung an: nur der Zusatz ist offen) oder locker (Einrichtung abgelehnt/aus: auch das Kopfwort)
+// Version 2.8.1 (Entscheidung Easy nach Guardian-Lauf 3): Ausnahme nur, wenn jedes Zeichen eines Namens ersetzt ist –
+// offen darf nur der Zusatz („vom / von der“) sein. Die frühere lockere Form (auch das Kopfwort offen) ist entfallen.
 const PART_RE = /^(von|vom|der|dem|den)$/i;
 const teil4 = (open, lax) => open.length && open.every((t) => PART_RE.test(t.t) || (lax && HEAD_RE.test(t.t)));
 for (const f of files) {
@@ -134,7 +135,7 @@ for (const f of files) {
       const open = openToks(o.text, s, e, cov);
       if (!open.length) continue;
       // Version 2.8.1, Teil 4: nur Zusatz + Kopfwort offen (2.7.0 hatte es als Teil eines Namens ersetzt) -> Ausnahme
-      if (teil4(open, !['keine', 'listemark'].includes(how))) { ausnahmen.push(`${rel}, ${HOW[how]}: „${o.text.slice(s, e)}“ → offen „${open.map((t) => t.t).join(' ')}“`); continue; }
+      if (teil4(open, false)) { ausnahmen.push(`${rel}, ${HOW[how]}: „${o.text.slice(s, e)}“ → offen „${open.map((t) => t.t).join(' ')}“`); continue; }
       miss.push(o.text.slice(s, e));
     }
     if (miss.length) { bad++; fails.push(`${rel}, ${HOW[how]}: ${[...new Set(miss)].join(', ')}`); }
