@@ -67,8 +67,9 @@ const cardState = (page) => page.evaluate(() => {
   const s = A.shownQuestion();
   const qs = A.questions();
   const q = s.idx >= 0 ? qs[s.idx] : null;
-  const exp = !q || q.kind === 'meta' ? [] : q.kind === 'place' ? [q.hit.id] : (q.hits.length ? q.hits : q.neinHits).map((x) => x.id);
-  const first = !q || q.kind === 'meta' ? null : q.kind === 'place' ? q.hit : q.first;
+  // Version 2.9.0: Sammelfrage ohne Treffer (wie Dateiangaben); ihre Wörter werden erst nach einem Klick markiert
+  const exp = !q || q.kind === 'meta' || q.kind === 'rest' ? [] : q.kind === 'place' ? [q.hit.id] : (q.hits.length ? q.hits : q.neinHits).map((x) => x.id);
+  const first = !q || q.kind === 'meta' || q.kind === 'rest' ? null : q.kind === 'place' ? q.hit : q.first;
   const rendered = new Set([...document.querySelectorAll('#docview mark[data-h]')].map((m) => Number(m.dataset.h)));
   const cur = new Set([...document.querySelectorAll('#docview mark.cur')].map((m) => Number(m.dataset.h)));
   const expShown = exp.filter((id) => rendered.has(id));
@@ -157,7 +158,8 @@ for (const [dir, f] of FILES_B) {
   for (let i = 0; i < 60; i++) {
     const s = await cardState(page);
     if (!s.id) break;
-    if (s.kind !== 'meta') { cN++; if (s.vis && s.tabOk !== false) cOk++; else bad.push(`${s.count}: Stelle nicht sichtbar (Reiter ${s.tabOk})`); }
+    // Version 2.9.0: die Sammelfrage rollt erst beim Klick auf ein Wort (geprüft im Testlauf restwoerter), wie Dateiangaben ohne Stelle
+    if (s.kind !== 'meta' && s.kind !== 'rest') { cN++; if (s.vis && s.tabOk !== false) cOk++; else bad.push(`${s.count}: Stelle nicht sichtbar (Reiter ${s.tabOk})`); }
     if (s.focus === 'H1#') focusOk++;
     steps.push(s.count);
     await page.keyboard.press(i % 2 ? 'n' : 'j');
@@ -227,7 +229,8 @@ log('## d) Zähler, Vorige/Nächste Frage, Pfeiltasten');
   check('d', 'Frage 1: „Vorige Frage“ sichtbar und ausgegraut, mit aria-label und title', await page.$eval('#q-prev', (b) => b.disabled && b.getAttribute('aria-label') === 'Vorige Frage' && b.title === 'Vorige Frage'));
   check('d', 'Frage 1 ohne Antwort: „Nächste Frage“ ausgegraut', await page.$eval('#q-next', (b) => b.disabled && b.getAttribute('aria-label') === 'Nächste Frage'));
   const forward = [];
-  for (let i = 0; i < 30 && !(await page.$('#q-again')); i++) { forward.push(await count()); await page.keyboard.press('j'); await page.waitForTimeout(40); }
+  // Version 2.9.0: die Sammelfrage (letzte Frage) hat nur „Kein Name dabei“ (Taste N)
+  for (let i = 0; i < 30 && !(await page.$('#q-again')); i++) { forward.push(await count()); await page.keyboard.press((await page.$('#rest-list')) ? 'n' : 'j'); await page.waitForTimeout(40); }
   log(`  - Beim Beantworten gezeigt: ${forward.join(' → ')}`);
   check('d', '„Alle Fragen beantwortet“ hat „Vorige Frage“ (aktiv)', await page.$eval('#q-prev', (b) => !b.disabled));
   await page.keyboard.press('ArrowLeft');

@@ -7,12 +7,12 @@ Testdokumente: tests/make-bedienung.mjs -> tests/fixtures-bedienung/ (alles erfu
 
 | | vorher (2.4.1) | nachher |
 |---|---|---|
-| Fragen | 6 | 5 (2 zum Wort, 2 je Stelle, 1 Dateiangaben) |
-| Zeilen auf dem Speichern-Bildschirm (ohne Antwort) | 6 | 4 |
+| Fragen | 6 | 6 (2 zum Wort, 2 je Stelle, 1 Dateiangaben) |
+| Zeilen auf dem Speichern-Bildschirm (ohne Antwort) | 6 | 5 |
 | Häkchen auf dem Speichern-Bildschirm (ohne Antwort) | 3 | 1 |
 | Höhe des Speichern-Bildschirms bei 1366×768 | 1984 px | 768 px |
 
-- Zeilen nachher: „5 Fragen sind noch offen. Ohne Antwort bleibt jede Stelle so, wie sie im Moment ist. Beantworten“ · „2 Bilder im Dokument. Das Tool ändert Bilder nicht. Steht auf einem Bild ein Name oder ein Logo, entferne es v“ · „„Wittekindhorn“ steht noch in: Text Name aus den Dateiangaben · „…Wittekindhorn bringt Kuchen mit.…“ Als Namen“ · „„WITTEKINDHORNS“ steht noch in: Text Name aus den Dateiangaben · „…WITTEKINDHORNS Neffe hilft beim Aufbau.…““
+- Zeilen nachher: „5 Fragen sind noch offen. Ohne Antwort bleibt jede Stelle so, wie sie im Moment ist. Beantworten“ · „3 Wörter sind noch nicht geprüft. Ist ein Name dabei? Ansehen“ · „2 Bilder im Dokument. Das Tool ändert Bilder nicht. Steht auf einem Bild ein Name oder ein Logo, entferne es v“ · „„Wittekindhorn“ steht noch in: Text Name aus den Dateiangaben · „…Wittekindhorn bringt Kuchen mit.…“ Als Namen“ · „„WITTEKINDHORNS“ steht noch in: Text Name aus den Dateiangaben · „…WITTEKINDHORNS Neffe hilft beim Aufbau.…““
 - Text ohne Antwort, vorher: Im Winter gehen wir rodeln, sagt Person B. ⏎ Montag ⏎ Do 13:30 Elterncafé ⏎ Wittekindhorn bringt Kuchen mit. ⏎ WITTEKINDHORNS Neffe hilft beim Aufbau. ⏎ Im Formular stehen die Felder Person A und Person F B.
 - Text ohne Antwort, nachher: Im Winter gehen wir rodeln, sagt Person B. ⏎ Montag ⏎ Do 13:30 Elterncafé ⏎ Wittekindhorn bringt Kuchen mit. ⏎ WITTEKINDHORNS Neffe hilft beim Aufbau. ⏎ Im Formular stehen die Felder Person A und Person F B.
 - Text nach „Ja“ bei allen Fragen, vorher: Do 13:30 Elterncafé ⏎ WITTEKINDHORNS Neffe hilft beim Aufbau. ⏎ Im Formular stehen die Person F Person A und Person G B.
@@ -24,18 +24,18 @@ Testdokumente: tests/make-bedienung.mjs -> tests/fixtures-bedienung/ (alles erfu
 - OK: bedienung.docx: „Nein“ je Stelle: „im Winter“ und „Rosen“ bleiben unverändert
 - OK: bedienung.docx: ohne Antwort und nach „Ja“ bei Wort-Fragen bleibt „Rosen“ wie heute ersetzt (Entscheidung Variante a)
 - OK: bedienung.docx: keine Frage und keine Markierung für „Montag“ und „Do 13:30“
-- OK: bedienung.docx: GROSS-Form „WITTEKINDHORNS“ des übernommenen Namens wird je Stelle gefragt; Fragekarte zeigt „Bleibt im Moment stehen.“ – Frage 3 von 6←→WITTEKINDHORNS Neffe hilft beim Aufbau.Ist hier die Person Wittekindhorn gemeint?Bleibt im Moment stehen.Ja, ersetzenNeinTasten: J = Ja, N = Nein, ← vorige, → nächste Frage
+- OK: bedienung.docx: GROSS-Form „WITTEKINDHORNS“ des übernommenen Namens wird je Stelle gefragt; Fragekarte zeigt „Bleibt im Moment stehen.“ – Frage 3 von 7←→WITTEKINDHORNS Neffe hilft beim Aufbau.Ist hier die Person Wittekindhorn gemeint?Bleibt im Moment stehen.Ja, ersetzenNeinTasten: J = Ja, N = Nein, ← vorige, → nächste Frage
 
 ### bedienung.xlsx
 
 | | vorher (2.4.1) | nachher |
 |---|---|---|
-| Fragen | 6 | 5 (2 zum Wort, 2 je Stelle, 1 Dateiangaben) |
-| Zeilen auf dem Speichern-Bildschirm (ohne Antwort) | 7 | 4 |
+| Fragen | 6 | 6 (2 zum Wort, 2 je Stelle, 1 Dateiangaben) |
+| Zeilen auf dem Speichern-Bildschirm (ohne Antwort) | 7 | 5 |
 | Häkchen auf dem Speichern-Bildschirm (ohne Antwort) | 4 | 1 |
 | Höhe des Speichern-Bildschirms bei 1366×768 | 2107 px | 768 px |
 
-- Zeilen nachher: „5 Fragen sind noch offen. Ohne Antwort bleibt jede Stelle so, wie sie im Moment ist. Beantworten“ · „2 Bilder im Dokument. Das Tool ändert Bilder nicht. Steht auf einem Bild ein Name oder ein Logo, entferne es v“ · „„Wittekindhorn“ steht noch in: Blatt Protokoll, Zelle A8 Name aus den Dateiangaben · „…Wittekindhorn bringt Ku“ · „„WITTEKINDHORNS“ steht noch in: Blatt Protokoll, Zelle A9 Name aus den Dateiangaben · „…WITTEKINDHORNS Neffe h“
+- Zeilen nachher: „5 Fragen sind noch offen. Ohne Antwort bleibt jede Stelle so, wie sie im Moment ist. Beantworten“ · „3 Wörter sind noch nicht geprüft. Ist ein Name dabei? Ansehen“ · „2 Bilder im Dokument. Das Tool ändert Bilder nicht. Steht auf einem Bild ein Name oder ein Logo, entferne es v“ · „„Wittekindhorn“ steht noch in: Blatt Protokoll, Zelle A8 Name aus den Dateiangaben · „…Wittekindhorn bringt Ku“ · „„WITTEKINDHORNS“ steht noch in: Blatt Protokoll, Zelle A9 Name aus den Dateiangaben · „…WITTEKINDHORNS Neffe h“
 - Text ohne Antwort, vorher: [Protokoll!A3] Im Winter gehen wir rodeln, sagt Person B. ⏎ [Protokoll!A6] Montag ⏎ [Protokoll!A7] Do 13:30 Elterncafé ⏎ [Protokoll!A8] Wittekindhorn bringt Kuchen mit. ⏎ [Protokoll!A9] WITTEKINDHORNS Neffe hilft beim Aufbau. ⏎ [Protokoll!A10] Im Formular stehen die Felder Person A und Person F B.
 - Text ohne Antwort, nachher: [Protokoll!A3] Im Winter gehen wir rodeln, sagt Person B. ⏎ [Protokoll!A6] Montag ⏎ [Protokoll!A7] Do 13:30 Elterncafé ⏎ [Protokoll!A8] Wittekindhorn bringt Kuchen mit. ⏎ [Protokoll!A9] WITTEKINDHORNS Neffe hilft beim Aufbau. ⏎ [Protokoll!A10] Im Formular stehen die Felder Person A und Person F B.
 - Text nach „Ja“ bei allen Fragen, vorher: [Protokoll!A7] Do 13:30 Elterncafé ⏎ [Protokoll!A9] WITTEKINDHORNS Neffe hilft beim Aufbau. ⏎ [Protokoll!A10] Im Formular stehen die Person F Person A und Person G B.
@@ -47,18 +47,18 @@ Testdokumente: tests/make-bedienung.mjs -> tests/fixtures-bedienung/ (alles erfu
 - OK: bedienung.xlsx: „Nein“ je Stelle: „im Winter“ und „Rosen“ bleiben unverändert
 - OK: bedienung.xlsx: ohne Antwort und nach „Ja“ bei Wort-Fragen bleibt „Rosen“ wie heute ersetzt (Entscheidung Variante a)
 - OK: bedienung.xlsx: keine Frage und keine Markierung für „Montag“ und „Do 13:30“
-- OK: bedienung.xlsx: GROSS-Form „WITTEKINDHORNS“ des übernommenen Namens wird je Stelle gefragt; Fragekarte zeigt „Bleibt im Moment stehen.“ – Frage 3 von 6←→WITTEKINDHORNS Neffe hilft beim Aufbau.Ist hier die Person Wittekindhorn gemeint?Bleibt im Moment stehen.Ja, ersetzenNeinTasten: J = Ja, N = Nein, ← vorige, → nächste Frage
+- OK: bedienung.xlsx: GROSS-Form „WITTEKINDHORNS“ des übernommenen Namens wird je Stelle gefragt; Fragekarte zeigt „Bleibt im Moment stehen.“ – Frage 3 von 7←→WITTEKINDHORNS Neffe hilft beim Aufbau.Ist hier die Person Wittekindhorn gemeint?Bleibt im Moment stehen.Ja, ersetzenNeinTasten: J = Ja, N = Nein, ← vorige, → nächste Frage
 
 ### bedienung.txt
 
 | | vorher (2.4.1) | nachher |
 |---|---|---|
-| Fragen | 5 | 5 (2 zum Wort, 3 je Stelle, 0 Dateiangaben) |
-| Zeilen auf dem Speichern-Bildschirm (ohne Antwort) | 4 | 1 |
+| Fragen | 5 | 6 (2 zum Wort, 3 je Stelle, 0 Dateiangaben) |
+| Zeilen auf dem Speichern-Bildschirm (ohne Antwort) | 4 | 2 |
 | Häkchen auf dem Speichern-Bildschirm (ohne Antwort) | 2 | 1 |
 | Höhe des Speichern-Bildschirms bei 1366×768 | 1476 px | 768 px |
 
-- Zeilen nachher: „5 Fragen sind noch offen. Ohne Antwort bleibt jede Stelle so, wie sie im Moment ist. Beantworten“
+- Zeilen nachher: „5 Fragen sind noch offen. Ohne Antwort bleibt jede Stelle so, wie sie im Moment ist. Beantworten“ · „2 Wörter sind noch nicht geprüft. Ist ein Name dabei? Ansehen“
 - Text ohne Antwort, vorher: Im Winter gehen wir rodeln, sagt Person B. ⏎ Montag ⏎ Do 13:30 Elterncafé ⏎ WITTEKINDHORNS Neffe hilft beim Aufbau. ⏎ Im Formular stehen die Felder Person A und Person G B.
 - Text ohne Antwort, nachher: Im Winter gehen wir rodeln, sagt Person B. ⏎ Montag ⏎ Do 13:30 Elterncafé ⏎ WITTEKINDHORNS Neffe hilft beim Aufbau. ⏎ Im Formular stehen die Felder Person A und Person G B.
 - Text nach „Ja“ bei allen Fragen, vorher: Do 13:30 Elterncafé ⏎ WITTEKINDHORNS Neffe hilft beim Aufbau. ⏎ Im Formular stehen die Person F Person A und Person G B.
@@ -70,7 +70,7 @@ Testdokumente: tests/make-bedienung.mjs -> tests/fixtures-bedienung/ (alles erfu
 - OK: bedienung.txt: „Nein“ je Stelle: „im Winter“ und „Rosen“ bleiben unverändert
 - OK: bedienung.txt: ohne Antwort und nach „Ja“ bei Wort-Fragen bleibt „Rosen“ wie heute ersetzt (Entscheidung Variante a)
 - OK: bedienung.txt: keine Frage und keine Markierung für „Montag“ und „Do 13:30“
-- OK: bedienung.txt: GROSS-Form „WITTEKINDHORNS“ des übernommenen Namens wird je Stelle gefragt; Fragekarte zeigt „Bleibt im Moment stehen.“ – Frage 3 von 5←→WITTEKINDHORNS Neffe hilft beim Aufbau.Ist hier die Person Wittekindhorn gemeint?Bleibt im Moment stehen.Ja, ersetzenNeinTasten: J = Ja, N = Nein, ← vorige, → nächste Frage
+- OK: bedienung.txt: GROSS-Form „WITTEKINDHORNS“ des übernommenen Namens wird je Stelle gefragt; Fragekarte zeigt „Bleibt im Moment stehen.“ – Frage 3 von 6←→WITTEKINDHORNS Neffe hilft beim Aufbau.Ist hier die Person Wittekindhorn gemeint?Bleibt im Moment stehen.Ja, ersetzenNeinTasten: J = Ja, N = Nein, ← vorige, → nächste Frage
 
 ## 2. Beweis D.5: jede stehen gebliebene Stelle eines bestätigten Namens genau einmal
 
@@ -103,7 +103,7 @@ Für jedes Testdokument (tests/fixtures, tests/fixtures-pfade, tests/fixtures-be
 - OK: Stand der Liste auf dem Datei-Bildschirm stimmt – Eigene Namen: keine → Eigene Namen: 1 Einrichtung, 1 Person
 - OK: Hinweis beim Hinzufügen: „Diese Liste gilt nur, bis du die Seite schließt oder neu lädst.“ mit Knopf zum Speichern – Diese Liste gilt nur, bis du die Seite schließt oder neu lädst. Dauerhaft in diesem Browser speichern
 - OK: Nach dem Neuladen ohne Speichern: „Eigene Namen: keine“ – Eigene Namen: keine
-- OK: 1366×768: Start (768 px), Datei (768 px) und Speichern mit 4 offenen Punkten (768 px) ohne Scrollen
+- OK: 1366×768: Start (768 px), Datei (768 px) und Speichern mit 5 offenen Punkten (768 px) ohne Scrollen
 
 ## 5. Kreislauf (rückbaufähig, „Ja“ bei allen Fragen) und Doppellauf
 - OK: bedienung.docx: Kreislauf exakt (alle Abschnitte wie im Original)

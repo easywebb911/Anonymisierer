@@ -151,6 +151,19 @@ mark.hit.off:hover { text-decoration: underline dotted; }
 .qbtns { display: flex; gap: .4rem; flex-wrap: wrap; }
 .qbtns button { flex: 1; }
 .qkeys { font-size: 12px; color: var(--muted); }
+/* Version 2.9.0: Sammelfrage „Diese Wörter bleiben stehen“ */
+.restlist { list-style: none; margin: .3rem 0; padding: 0; border: 1px solid var(--line); border-radius: 6px; }
+.restlist.scroll { max-height: 22rem; overflow: auto; }
+.restrow { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .25rem .4rem; padding: .25rem .4rem; border-top: 1px solid var(--line); }
+.restrow:first-child { border-top: none; }
+.restrow.sel { background: var(--accent-light); }
+.restw { display: flex; align-items: baseline; gap: .35rem; min-width: 0; overflow-wrap: anywhere; }
+.restword { border: none; background: none; padding: 0; color: var(--fg); font: inherit; font-weight: 700; text-decoration: underline dotted; cursor: pointer; min-height: 32px; text-align: left; }
+.restn { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.restbtns { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem; }
+.restkeep { border: none; background: none; padding: 0 .2rem; color: var(--muted); font-size: 12px; text-decoration: underline; cursor: pointer; min-height: 32px; }
+mark.restmark { color: inherit; background: none; }
+mark.restmark.cur { background: var(--cur); outline: 3px solid var(--cur-line); outline-offset: 0; font-weight: 700; border-radius: 3px; }
 .listline { margin: .5rem 0 .25rem; }
 #entities { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); }
 .entity { display: flex; align-items: center; gap: .3rem; padding: 0 .3rem; border-top: 1px solid var(--line); flex-wrap: wrap; }

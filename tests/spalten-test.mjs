@@ -56,7 +56,8 @@ async function analyzeIn(pg, bytes, name, mode = 'person', cols = null) {
       check = (await A.finalCheck(out)).map((l) => l.word + ' (' + l.where + ')');
     } catch (e) { check = ['Fehler: ' + e.message]; }
     return { units: A.app.doc.units.map((u) => ({ text: u.text, label: u.label })), unitStarts: R.unitStarts, hits, columns: R.columns || [],
-      questions: A.questions().map((q) => q.kind + ':' + (q.word || q.name || R.fullText.slice(q.hit.s, q.hit.e))), check, kennung: A.app.kennung };
+      // Version 2.9.0: die Sammelfrage „Diese Wörter bleiben stehen“ ist keine Erkennungsfrage (Vergleich mit 2.5.0 betrifft die Erkennung)
+      questions: A.questions().filter((q) => q.kind !== 'rest').map((q) => q.kind + ':' + (q.word || q.name || R.fullText.slice(q.hit.s, q.hit.e))), check, kennung: A.app.kennung };
   }, [[...bytes], name, mode, cols]);
 }
 const readFx = (f) => fs.readFileSync(path.join(FXS, f));

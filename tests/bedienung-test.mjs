@@ -70,7 +70,8 @@ async function answerAll(page, policy) {
       await page.evaluate(([id, y]) => { const A = window.__anon; const q = A.questions().find((x) => x.id === id); A.answer(q, y); }, [rest.id, policy(rest.kind === 'hit' ? 'word' : rest.kind)]);
       continue;
     }
-    await page.click(yes ? '#q-yes' : '#q-no');
+    // Version 2.9.0: die Sammelfrage hat nur „Kein Name dabei“ (#q-no)
+    await page.click(yes && cur.kind !== 'rest' ? '#q-yes' : '#q-no');
   }
 }
 async function caseRun(html, file, kind, policy) {

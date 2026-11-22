@@ -49,7 +49,7 @@ Erwarteter offener Punkt nach PR B (NICHT bestanden, kommt mit PR C): GYMTH, Vor
 
 ## 2. Sperre beim Speichern
 
-anmeldung.txt, Schalter „Webadressen und Konten“ aus, 5 Fragen mit „Nein“ beantwortet, danach 0 Stellen ersetzt. Punkte:
+anmeldung.txt, Schalter „Webadressen und Konten“ aus, 6 Fragen mit „Nein“ beantwortet, danach 0 Stellen ersetzt. Punkte:
   - In dieser Datei wird nichts ersetzt. Bitte prüfe Schulname, Firma, Webadresse und Konto und markiere sie von Hand. Prüfen
   - 5 Webadressen oder Konten stehen noch im Text. Der Schalter „Webadressen und Konten“ ist aus. „www.lern-und-spiel-tannhofen.de“ – Zeile 5 Im Text zeigen „https://www.lern-und-spiel-tannhofen.de“ – Zeile 5 Im Text zeigen „www.lern-und-spiel-tannhofen.de“ – Zeile 10 Im Text zeigen „https://www.lern-und-spiel-tannhofen.de“ – Zeile 10 Im Text zeigen „brandner_lern_und_spiel“ – Zeile 11 Im Text zeigen Ersetzen
 - OK: Punkt 2 erscheint (Webadresse oder Konto steht noch im Text)
@@ -68,13 +68,13 @@ nurweb.txt (nur Webadresse und Konto), Schalter aus. Punkte:
 Fragen: Ist „Gymnasium Tannhofen“ eine Einrichtung? | Ist „Brandner lern und spiel“ eine Einrichtung?
 - OK: Einrichtungs-Fragen lauten „Ist „…“ eine Einrichtung?“ – Ist „Gymnasium Tannhofen“ eine Einrichtung? | Ist „Brandner lern und spiel“ eine Einrichtung?
 - OK: Schule „Ja“, Träger „Nein“: Träger steht im Text (3×), Schule vollständig ersetzt – Brandner 3, Tannhofen 0
-- OK: … und kein Punkt zum Träger – 3 Fragen sind noch offen. Ohne Antwort bleibt jede Stelle so, wie sie im Moment ist. Beantworten
+- OK: … und kein Punkt zum Träger – 3 Fragen sind noch offen. Ohne Antwort bleibt jede Stelle so, wie sie im Moment ist. Beantworten | 3 Wörter sind noch nicht geprüft. Ist ein Name dabei? Ansehen
   - Eine Einrichtung steht noch im Text: „Gymnasium Tannhofen“ „Gymnasium Tannhofen“ – Zeile 1 Im Text zeigen „Gymnasium Kirchberg Tannhofen“ – Zeile 8 Im Text zeigen Ersetzen
   - Eine Einrichtung steht noch im Text: „Brandner lern und spiel“ „Brandner lern und spiel“ – Zeile 1 Im Text zeigen „Brandner lern und spiel“ – Zeile 5 Im Text zeigen „Brandner lern und spiel“ – Zeile 10 Im Text zeigen Ersetzen
 - OK: „Unsichere Treffer ersetzen“ aus: Punkt 3 für beide Einrichtungen (mit Fundort, „Im Text zeigen“, „Ersetzen“)
 - OK: … Speichern ohne Häkchen gesperrt – Speichern blockiert – bitte zuerst die Punkte oben ansehen und „Ich habe alle Punkte gesehen und speichere so.“ abhaken.
 - OK: … Speichern nach dem einen Häkchen möglich – Gespeichert: anonymisiert_text.txt – Schlusscheck ohne Fund.
-- OK: „Ersetzen“ beim Punkt 3: dieser Punkt verschwindet – 5 Fragen sind noch offen. Ohne Antwort bleibt jede Stelle so, wie sie im Moment ist. Beantworten | Eine Einrichtung steht noch im Text: „Brandner lern und spiel“ „Brandner lern und spiel“ – Zeile 1 Im Text zeigen „Brandner lern und spiel“ – Zeile 5 Im Text zeigen „Brandner lern und spiel“ – Zeile 10 Im Text zeigen Ersetzen
+- OK: „Ersetzen“ beim Punkt 3: dieser Punkt verschwindet – 5 Fragen sind noch offen. Ohne Antwort bleibt jede Stelle so, wie sie im Moment ist. Beantworten | 3 Wörter sind noch nicht geprüft. Ist ein Name dabei? Ansehen | Eine Einrichtung steht noch im Text: „Brandner lern und spiel“ „Brandner lern und spiel“ – Zeile 1 Im Text zeigen „Brandner lern und spiel“ – Zeile 5 Im Text zeigen „Brandner lern und spiel“ – Zeile 10 Im Text zeigen Ersetzen
 
 ## 3. Warnpunkt „Hier könnte eine Einrichtung stehen“ (seit 2.8.0 nur schwache Funde: Anführungszeichen ohne Merkmal)
 

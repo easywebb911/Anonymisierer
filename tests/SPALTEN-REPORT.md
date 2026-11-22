@@ -81,7 +81,7 @@ Testdokumente: tests/fixtures-spalten/ (erzeugt mit tests/make-spalten.mjs). Ver
 ## 4. Spalte von Hand
 - OK: Schalter „Namen“ an Spalte 1 sichtbar, aus (keine Kopfzeile)
 - OK: Einschalten: Spalte 1 alle sicher – Kirchbichler:S+, Magdalena:S+, Brzęczek:S+, Agnieszka:S+, Huckebein:S+
-  - Fragen: 0 → 0 (hier ohne Frage: die Wörter waren vorher gar nicht erkannt)
+  - Fragen: 1 → 0 (hier ohne Frage: die Wörter waren vorher gar nicht erkannt)
 - OK: Einschalten: neue Kennung (nach gespeicherter Schlüsseldatei)
 - OK: Einschalten: Häkchen fällt zurück
 - OK: Kopf als Namensspalte gekennzeichnet

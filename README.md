@@ -52,12 +52,14 @@ Das Tool zeigt immer **nur einen Bildschirm**. Oben steht, in welchem Schritt du
   - **GROSS-Form mit Endung eines von Hand übernommenen Namens** („TANNHÄUSERS“ bei übernommenem „Tannhäuser“): ebenfalls Frage je Stelle; ohne Antwort bleibt sie stehen.
   - **Keine Frage** mehr für Wochentage und Monate allein („Montag“, „Do.“) und für Wochentag vor Uhrzeit („Do 13:30“). Sie bleiben stehen; ein Klick schaltet sie wie jedes Wort um.
   - Namen aus den **Dateiangaben** (Autor, Firma …): „Als Namen übernehmen?“ bzw. „Als Einrichtung übernehmen?“ wie bisher.
+  - **Letzte Frage (seit 2.9): „Diese Wörter bleiben stehen. Ist ein Name dabei?“** mit einer Liste von Wörtern, die stehen bleiben und keine gewöhnlichen deutschen Wörter sind; je Wort „Name“, „Einrichtung“ und „bleibt immer stehen“, dazu „Kein Name dabei“ (Taste N). Siehe Abschnitt „Diese Wörter bleiben stehen“.
 - Darunter: „19 Personen, 1 Einrichtung“ mit **„Liste zeigen“**. Die Liste klappt an Ort und Stelle auf: je Eintrag Schalter, Name, Zahl und „⋯“ (Schreibweisen, zusammenführen, nie anonymisieren, für nächstes Mal merken, Art umstellen). Einrichtungen stehen als eigene Gruppe.
 
 **3. Speichern**
 - Oben ein Satz, z. B. „16 Personen und 1 Einrichtung sind ersetzt. Zwei Punkte bitte noch ansehen:“.
 - Darunter **eine Fläche mit je einer Zeile pro offenem Punkt**, jeweils mit einem Knopf rechts:
   - offene Fragen („Beantworten“),
+  - seit 2.9: „n Wörter sind noch nicht geprüft. Ist ein Name dabei?“ („Ansehen“), solange die Frage „Diese Wörter bleiben stehen“ offen ist,
   - jeder Fund des Schlusschecks („Ersetzen“, „Als Namen übernehmen“ bzw. „Als Einrichtung übernehmen“, bei Einrichtungen „Im Text zeigen“) mit Fundort in einfacher Sprache („Blatt Teilnehmer, Zelle I6“, „Kopfzeile“, „Kommentar zu Zelle C7“, „Bildbeschreibung“) und dem sichtbaren Text der Stelle,
   - Bilder („Ansehen“),
   - Hinweise zur Datei, die eine Entscheidung brauchen (z. B. eingebettete Objekte werden geleert: Der Inhalt fehlt in der Ausgabe und auch nach dem Rückbau; Pivot-Tabellen; Bildtypen ohne Bereinigung).
@@ -168,6 +170,30 @@ Neue Punkte auf „Speichern“. Sie laufen über das **eine Häkchen** wie alle
 - **Webadresse oder Konto steht noch im Text** (nur wenn der Schalter „Webadressen und Konten“ aus ist): jede Stelle mit Fundort und „Im Text zeigen“; „Ersetzen“ schaltet den Schalter ein.
 - **Warnpunkt „Hier könnte eine Einrichtung stehen.“** Seit 2.8 nur noch für Namen in Anführungszeichen, die das Tool nicht sicher genug als Einrichtung erkennt, und für gefundene Einrichtungen, die eine sichere Person verdecken würden und nicht vor ihr enden können („Haus Marlene“, „Quarstedt GmbH“; Abschnitt „Einrichtungen selbst finden“). Kopfwort + Name einer sicheren Person („Verein Quarstedt“) steht seit 2.8.1 nicht mehr darin. Es sind höchstens zehn Stellen aufgeführt, dann „und n weitere“, jede mit Fundort und „Im Text zeigen“. Der Punkt **warnt nur**: Er ersetzt nichts, stellt keine Frage und ändert keine Ausgabe. Eine Stelle fällt weg, sobald sie ersetzt ist (von Hand als Einrichtung oder Name markiert).
 - **Eine Einrichtung steht noch im Text** (seit 2.8): siehe „Einrichtungen selbst finden“.
+
+### Diese Wörter bleiben stehen (seit Version 2.9)
+Bevor gespeichert wird, zeigt das Tool **eine kurze Liste** mit Wörtern, die **stehen bleiben** und **keine gewöhnlichen deutschen Wörter** sind. Dort fallen Namen auf, die das Tool nicht kennt (seltene Nachnamen, Kürzel wie „GYMTH“, Ortsteile).
+
+**Was in die Liste kommt** (alles muss zutreffen):
+- mindestens 3 Buchstaben, groß geschrieben oder ganz in GROSSBUCHSTABEN, nur Buchstaben (Teile mit Bindestrich einzeln; Wörter mit Ziffern nicht),
+- wird im Moment **nicht ersetzt**, steht nicht in „Ausnahmen“,
+- steht **nicht in der Wortliste** (klein verglichen, in der Schreibweise der Liste und in der des Tools, z. B. ohne Akzente). Es zählt die genaue Wortform: keine Zerlegung („Rautenbach“ ist nicht „Rauten“ + „Bach“), kein Abschneiden von Endungen.
+- Ein Wortteil mit Ergänzungsstrich („**Förder-** oder Instrumentalunterricht“) zählt als bekannt, wenn ein Wort der Liste so beginnt.
+- Gelesen werden alle Textteile, die das Tool liest: Text, Kopf- und Fußzeilen, Fußnoten, Kommentare, Zellen, Blattnamen, Bildbeschreibungen, PDF-Text.
+- Jedes Wort steht einmal da, mit der Zahl seiner Stellen, in der Reihenfolge des ersten Vorkommens.
+
+**Was die Liste nicht zeigt:** Namen, die auch gewöhnliche Wörter sind oder in der Wortliste stehen (z. B. „Schuster“, „Regenbogen“, „Kirchberg“, viele Vornamen wie „Gesine“). Sie bleiben Sache der Prüfung im Text. Kleingeschriebene Wörter und Wörter mit 1 oder 2 Buchstaben kommen nie in die Liste.
+
+**Die Frage** ist immer die **letzte Frage** in der Fragekarte und zählt im Zähler mit. Gibt es keine solchen Wörter, gibt es auch keine Frage.
+- Text: **„Diese Wörter bleiben stehen. Ist ein Name dabei?“**, darunter die Wörter (ab 40 Wörtern rollt die Liste; es gibt kein „alle übernehmen“).
+- **Klick auf ein Wort** zeigt seine erste Stelle im Text (rollen und kräftig markieren wie bei den anderen Fragen).
+- Je Wort **„Name“** und **„Einrichtung“**: wirken genau wie „Als Name markieren“ bzw. „Als Einrichtung markieren“ (ganzes Dokument, Endungen, GROSS-Formen). Das Wort verschwindet aus der Liste und lässt sich in der Personen- bzw. Einrichtungsliste wieder ausschalten.
+- Unauffällig: **„bleibt immer stehen“** trägt das Wort in „Ausnahmen“ ein. Wird dasselbe Wort an anderer Stelle ersetzt, fehlt dieser Knopf (eine Ausnahme würde dort die Ersetzung aufheben).
+- Großer Knopf **„Kein Name dabei“** (Taste **N**) beantwortet die Frage für die Wörter, die jetzt dastehen. **Ändert sich die Liste danach, ist die Frage wieder offen.** Vorige/Nächste Frage, Antwort ändern und die Regeln für Einstellungen und Listen gelten wie für alle Fragen (seit 2.6.1).
+- **Kein stilles Speichern:** Ist die Frage offen, steht auf „Speichern“ der Punkt **„n Wörter sind noch nicht geprüft. Ist ein Name dabei?“** mit „Ansehen“. Er läuft über das eine Häkchen und verschwindet, sobald die Frage beantwortet ist. (Er zählt nicht zusätzlich in „… Fragen sind noch offen“.)
+- **Ohne Klick ändert sich nichts:** Die Liste ersetzt selbst nichts; ohne Antwort sind alle Ausgaben wie in 2.8.1.
+
+**Wortliste:** all-the-german-words 1.1.0 (MIT, aus dem deutschen Wiktionary und der Letterpress-Wortliste; rund 1,68 Mio. Wortformen). Im Tool steht sie als gepackter Datenblock (rund 4,3 MB) und wird erst beim Prüfen eines Dokuments entpackt. Die Nachschlage-Struktur ist **exakt** (kein Wort wird fälschlich als bekannt gemeldet). Quelle, Version und Lizenztext: `WORTLISTE-LIZENZ.md`. Messungen: `tests/RESTWOERTER-MESSUNGEN.md`.
 
 ### Eigene Namen und Ausnahmen (unter „Einstellungen und eigene Namen“)
 - **Eigene Namen (Merkliste):** Namen, die das Tool nicht kennt. Sie werden bei jedem weiteren Dokument automatisch mit ersetzt. Auch „Als Name markieren“, „Als Einrichtung markieren“ und „für nächstes Mal merken“ tragen dort ein.
@@ -321,7 +347,7 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 ## Grenzen (bitte lesen)
 
 **Seit Version 2.8 (Einrichtungen selbst finden):**
-- **Kürzel und Namensteile allein** („GYMTH“, „Tannhofen“ allein, „lernundspiel“) findet das Tool noch nicht. Bitte von Hand markieren. Das kommt mit einer späteren Version.
+- **Kürzel und Namensteile allein** („GYMTH“, „Tannhofen“ allein, „lernundspiel“) findet das Tool noch nicht. Bitte von Hand markieren. Seit 2.9 stehen solche Wörter in der Frage „Diese Wörter bleiben stehen“ (wenn sie nicht in der Wortliste stehen), ein Klick auf „Einrichtung“ ersetzt sie.
 - **Einrichtungen ohne Kopfwort und ohne Rechtsform** („Lindenhof“, „die Sonnenblume“) und ohne Anführungszeichen werden nicht gefunden.
 - **Name über einen Zeilenumbruch** (Zeile endet nach „Kita Freie“, nächste Zeile „Spatzen“): gefunden wird nur der Teil in der ersten Zeile. Bitte den ganzen Namen von Hand markieren; dann gilt die Regel für den Zeilenumbruch.
 - **GROSSSCHRIFT:** In einer Zeile ganz in Großbuchstaben kann das Wort nach dem Namen mitgenommen werden („FAMILIENZENTRUM SONNENBLUME LÄDT“), wenn die Einrichtung nirgends in normaler Schreibweise steht.
@@ -462,13 +488,15 @@ Die Datei muss in einem Browser geöffnet werden (z. B. über „Teilen → in S
 
 ## Version und Prüfsumme
 
-Version **2.8.1**, Stand 2026-11-22 (steht auch im Fußbereich des Tools).
+Version **2.9.0**, Stand 2026-11-22 (steht auch im Fußbereich des Tools).
 
 SHA-256 der `index.html` dieser Version:
 
 ```
-51b039c10a514d2aa82218baa4d4bc502e0763c97df3ed981eda2f37622c55cd
+c8117f37c68689cf68f3589e3ffca5a7157d34205b5216e0d6998f5e81a75ec5
 ```
+
+Seit 2.9.0 ist die Datei rund 8 MB groß (vorher 3,7 MB): Sie enthält die gepackte Wortliste für „Diese Wörter bleiben stehen“.
 
 Hinweis: Bei Version 2.6.1 stand hier versehentlich ein veralteter Wert (d411bf2f…). Die `index.html` von 2.6.1 hat die Prüfsumme f5b29a3d6cd1127b23a7226fbd44d155471d705c0dc961a6cf8853a983f18cc9.
 
@@ -502,6 +530,7 @@ Bewusst **nicht** verwendet: SheetJS/`xlsx` (die npm-Version 0.18.5 ist veraltet
 |---|---|---|---|
 | [esbuild](https://www.npmjs.com/package/esbuild) | 0.28.1 | MIT | Bündeln |
 | [@faker-js/faker](https://www.npmjs.com/package/@faker-js/faker) | 10.6.0 | MIT | **Quelle der Namenslisten** (nur die Daten werden übernommen, kein Faker-Code) |
+| [all-the-german-words](https://www.npmjs.com/package/all-the-german-words) | 1.1.0 | MIT (Urheber laut Paket: CreativeCouple, zeke; das Paket hat keine eigene Lizenzdatei) | **Wortliste** für „Diese Wörter bleiben stehen“ (seit 2.9.0; nur die Daten aus `woerter.json`, gepackt als Datenblock in `index.html`, kein Code; installiert mit `--ignore-scripts`). Quelle, Version, Lizenztext: `WORTLISTE-LIZENZ.md` |
 
 Alle Pakete stammen aus der offiziellen npm-Registry, mit festen Versionen (`package.json`, `package-lock.json`).
 Absichtlich keine ganz frischen Releases (jszip 3.10.2 und pdfjs-dist 6.x waren zum Zeitpunkt erst wenige Tage bis Wochen alt).
@@ -526,7 +555,9 @@ Vor jeder Fertig-Meldung prüft ein unabhängiger Zweitblick, der **Guardian** (
 npm ci                       # feste Versionen aus package-lock.json
 npm run test:all             # alle Testläufe gleichzeitig (so viele wie Rechenkerne; --jobs N), Ergebnis → tests/STAND.md
 npm run test:quick -- nachbarn massstab   # nur die genannten Testläufe (Namen siehe tests/run-all.mjs)
-npm run build                # erzeugt index.html (Namenslisten, CMaps, Bündel, CSP-Hashes)
+npm run build                # erzeugt index.html (Namenslisten, Wortliste, CMaps, Bündel, CSP-Hashes)
+node tests/restwoerter-test.mjs  # „Diese Wörter bleiben stehen“ (Testlauf restwoerter) → tests/RESTWOERTER-REPORT.md
+node tests/restwoerter-messung.mjs <index.html von main>  # Listenlängen, Fehlerrate, Größe, Zeiten → tests/RESTWOERTER-MESSUNGEN.md
 node tests/make-fixtures.mjs # erfundene Testdokumente (braucht LibreOffice für PDF/DOC/XLS)
 node tests/make-kurse.mjs    # Kurs-Tabelle und Risiko-Test für „Anrede allein“ (erfunden)
 node tests/make-meta.mjs     # Testdokumente mit versteckten Angaben (Eigenschaften, SharePoint, Bild-Metadaten; erfunden)
