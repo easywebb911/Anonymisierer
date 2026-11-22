@@ -117,9 +117,9 @@ Neue Version: Anonymisierer/index.html; Vorversion: index-270.html. Nur Chromium
 | fixtures-traeger/einrichtungen-auto.docx | 4 | 11 | alle | alle | alle | alle | alle | alle | 21: alle |
 | fixtures-traeger/einrichtungen-auto.txt | 4 | 11 | alle | alle | alle | alle | alle | alle | 21: alle |
 | fixtures-traeger/einrichtungen-auto.xlsx | 4 | 11 | alle | alle | alle | alle | alle | alle | 20: alle |
-| fixtures-traeger/nachbarn.csv | 30 | 13 | alle | alle | alle | alle | alle | alle | 32: alle |
-| fixtures-traeger/nachbarn.txt | 30 | 13 | alle | alle | alle | alle | alle | alle | 32: alle |
-| fixtures-traeger/nachbarn.xlsx | 30 | 13 | alle | alle | alle | alle | alle | alle | 32: alle |
+| fixtures-traeger/nachbarn.csv | 33 | 15 | alle | alle | alle | alle | alle | alle | 35: alle |
+| fixtures-traeger/nachbarn.txt | 33 | 15 | alle | alle | alle | alle | alle | alle | 35: alle |
+| fixtures-traeger/nachbarn.xlsx | 33 | 15 | alle | alle | alle | alle | alle | alle | 35: alle |
 | fixtures-traeger/nurweb.txt | 2 | 0 | alle | alle | alle | alle | alle | alle | 2: alle |
 | fixtures-traeger/sachtext.txt | 12 | 0 | alle | alle | alle | alle | alle | alle | 12: alle |
 | out/massstab/korpus-kursbeschreibungen.txt | 21 | 1 | alle | alle | alle | alle | alle | alle | 22: alle |
@@ -138,7 +138,7 @@ Neue Version: Anonymisierer/index.html; Vorversion: index-270.html. Nur Chromium
 | out/massstab/korpus-kurse2.txt | 12 | 0 | alle | alle | alle | alle | alle | alle | 12: alle |
 | out/massstab/korpus-aushang.txt | 2 | 0 | alle | alle | alle | alle | alle | alle | 2: alle |
 
-Geprüft: 133 Dateien (Testdateien und 15 Korpus-Abschnitte), 1899 Stellen der Vorversion, je sechs Abläufe; zweiter Maßstab: 2032 Stellen von 2.8.0 (ohne Antwort).
+Geprüft: 133 Dateien (Testdateien und 15 Korpus-Abschnitte), 1908 Stellen der Vorversion, je sechs Abläufe; zweiter Maßstab: 2041 Stellen von 2.8.0 (ohne Antwort).
 
 Ausnahmen (einzeln; Grund: Version 2.8.1, Teil 4 – „von / vom / von der“ und das Kopfwort danach gehören nicht mehr zum Personennamen; der Name der Person ist ersetzt, die Einrichtung dahinter wird selbst gefunden): 195
 - fixtures-traeger/nachbarn.csv, gegen 2.8.0: „Okonkwo vom Gymnasium“ → offen „vom“
