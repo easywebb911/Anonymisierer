@@ -1,6 +1,6 @@
 # Maßstab: Was 2.7.0 ersetzt, ersetzt auch diese Version (2.8.1) (ohne Antwort, nach „Nein“ auf alle Einrichtungs-Fragen, nach „Ja“ → „Nein“, mit „Unsichere“ aus)
 
-Neue Version: Anonymisierer/index.html; Vorversion: index-270.html. Nur Chromium, Firefox prüft Easy.
+Neue Version: Anonymisierer/index.html; Vorversion: index-2.7.0.html. Nur Chromium, Firefox prüft Easy.
 
 | Datei | Stellen 2.7.0 | Einrichtungs-Fragen | ohne Antwort | nach „Nein“ | nach „Ja“ → „Nein“ | „Unsichere“ aus | „Unsichere“ aus, dann „Nein“ | Liste aus, dann markiert | gegen 2.8.0 (Stellen) |
 |---|---|---|---|---|---|---|---|---|---|
@@ -141,6 +141,7 @@ Neue Version: Anonymisierer/index.html; Vorversion: index-270.html. Nur Chromium
 | out/massstab/korpus-kurse2.txt | 12 | 0 | alle | alle | alle | alle | alle | alle | 12: alle |
 | out/massstab/korpus-aushang.txt | 2 | 0 | alle | alle | alle | alle | alle | alle | 2: alle |
 
+Referenzen alter Versionen (tests/referenz/): gespeichert verwendet – 405 aus der Datei, 4 frisch gerechnet.
 Geprüft: 136 Dateien (Testdateien und 15 Korpus-Abschnitte), 1914 Stellen der Vorversion, je sechs Abläufe; zweiter Maßstab: 2053 Stellen von 2.8.0 (ohne Antwort).
 
 Ausnahmen: 0 (seit Guardian-Lauf 5 keine Ausnahme mehr erlaubt)
