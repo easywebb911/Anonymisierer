@@ -384,9 +384,11 @@ const wordIn = (t, w) => new RegExp('(?<![\\p{L}\\p{N}])' + w + '(?![\\p{L}\\p{N
     await page.selectOption('#name-kind', 'person');
     await page.click('#name-add button[type=submit]');
     await startAnon(page, 'person');
-    await loadIn(page, fx('txt'));
+    const f1 = path.join(outDir, 'fund1.txt');
+    fs.writeFileSync(f1, 'Wir danken Quarbeck für die Hilfe.\r\nPRAXIS QUARBECKS hat zu.\r\n');
+    await loadIn(page, f1);
     await goTo(page, 'a2');
-    const line = (await outText(page)).split('\n').find((l) => /hat zu\.$/.test(l) && !/Montag|heute/.test(l)) || '';
+    const line = (await outText(page)).split(/\r?\n/)[1] || '';
     check('Lauf 5, Fund 1: „Quarbeck“ als eigener Name – „PRAXIS QUARBECKS hat zu.“ ohne Antwort ohne Namen im Klartext', !!line && !/QUARBECK/i.test(line), line);
     await ctx.close();
   }

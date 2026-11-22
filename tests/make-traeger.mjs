@@ -134,9 +134,9 @@ export const NACHBARN_ROWS = [
   'Melanie Grawert kommt morgen.',
   // Guardian-Lauf 2, Fund 1: nach „Nein“ belegt die Person genau dieselbe Stelle wie die Einrichtung
   'Liebe Eltern,', 'die Praxis Lindqvist ist am Montag zu.', 'Die Krippe Halvorsen bleibt heute zu.',
-  // Guardian-Lauf 5, Fund 1 (GROSS-Form mit Endung eines eigenen Namens, Probe mit „Quarbeck“ als eigenem Namen) und
-  // Guardian-Lauf 4 (Name ohne Anrede vor „von der“ + Einrichtung)
-  'PRAXIS QUARBECKS hat zu.', 'Viele Grüße, dein Fuchs von der Praxis Lindholm',
+  // Guardian-Lauf 4 (Name ohne Anrede vor „von der“ + Einrichtung). Guardian-Lauf 5, Fund 1 („PRAXIS QUARBECKS“) steht in
+  // einer eigenen kleinen Datei im Test (nachbarn-test.mjs), weil „Praxis“ hier durch andere Zeilen als Namensteil gilt.
+  'Viele Grüße, dein Fuchs von der Praxis Lindholm',
 
 ].map((r) => (Array.isArray(r) ? r : [r]));
 export const NACHBARN = NACHBARN_ROWS.flat();
