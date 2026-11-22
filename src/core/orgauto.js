@@ -26,6 +26,12 @@ export const HEAD_LIST = ['Gymnasium', 'Schule und Wörter auf -schule', 'Univer
   'Krippe (auch auf -krippe)', 'Hort', 'Kinderhaus', 'Familienzentrum', 'Jugendzentrum', 'Verein (auch auf -verein, z. B. Förderverein)',
   'Stiftung (auch auf -stiftung)', 'Praxis (auch auf -praxis)', 'Klinik (auch auf -klinik)', 'Krankenhaus', 'Kanzlei', 'Firma',
   'Institut (auch auf -institut)', 'Akademie (auch auf -akademie)', 'Gymnasium auch auf -gymnasium'];
+// Version 2.8.1 (Teil 4): Ist das Wort ein Kopfwort der Einrichtungs-Suche (auch mit Endung, auch GROSS)? Dann gehört es
+// nie zu einem Personennamen hinter einem Namenszusatz („Frau Okonkwo vom Gymnasium …“).
+export function isHeadWord(t) {
+  if (!t || !/^\p{Lu}/u.test(t)) return false;
+  return !!headOf(t === t.toUpperCase() && t !== t.toLowerCase() ? t.charAt(0) + t.slice(1).toLowerCase() : t);
+}
 // Wörter auf -schule usw. müssen mit einem Großbuchstaben beginnen (Nomen)
 function headOf(t) {
   if (!/^\p{Lu}/u.test(t) || t.includes('-')) return null;
@@ -154,6 +160,17 @@ function unitCandidates(text, covered) {
   return out;
 }
 
+// Version 2.8.1 (Teil 3): Kandidat (Kopfwort + Namen) vor einer sicheren Person abschneiden. Bleibt Kopfwort + mindestens
+// ein Namens-Wort, ist das die Einrichtung; sonst kein Fund. Beginnt die Person schon am Kopfwort (oder ist es eine andere
+// Form), bleibt der Kandidat wie er ist (die Sperre „Person geht vor“ greift danach wie bisher).
+function cutBefore(c, p) {
+  if (p < 0 || c.form !== 1 || !c.nameEnds || p <= c.s) return c;
+  const keep = c.nameEnds.filter((x) => x <= p).length;
+  if (keep >= c.names.length && !c.lf) return c;
+  if (!keep) return null;
+  return { ...c, names: c.names.slice(0, keep), nameEnds: c.nameEnds.slice(0, keep), e: c.nameEnds[keep - 1], lf: false, cut: true };
+}
+
 // Wortfolge (mit beliebigem Leerraum, ohne Groß-/Kleinschreibung) als ganze Wörter zählen
 const phraseCache = new Map();
 function countPhrase(fullText, words) {
@@ -213,7 +230,9 @@ const PRE = /[sS]chul|SCHUL|[gG]ymnasi|GYMNASI|Universit|UNIVERSIT|[kK]ita|KITA|
 // units: [{text}], covered(ui, s, e): Stelle ist schon belegt (Kontaktdaten, von Hand markierte Einrichtungen,
 // Namensspalten). exceptions: Set gefalteter Wörter (Liste „Ausnahmen“). manualTerms: von Hand markierte Bezeichnungen.
 // Ergebnis: {groups: [{key, terms:[Bezeichnung], manualKey|null}], weak: [{unit, s, e, text}]}
-export function findOrgs(units, fullText, { covered, exceptions, manualTerms }) {
+// cutAt(ui, s, e) (Version 2.8.1, Teil 3): Beginn (in der Einheit) der ersten „sicheren“ Person, die die Stelle s..e
+// überschneidet, sonst -1. Eine Einrichtung, hinter deren Kopfwort eine sichere Person steht, endet vor ihr.
+export function findOrgs(units, fullText, { covered, exceptions, manualTerms, cutAt }) {
   // Webadressen und Konten des Dokuments (für Merkmal 3), unabhängig vom Schalter
   const webSet = new Set();
   for (const u of units) if (/[./:@]/.test(u.text)) for (const c of findContacts(u.text, { web: true })) if (c.type === 'web' || c.type === 'account') webSet.add(fold(u.text.slice(c.s, c.e)));
@@ -228,7 +247,9 @@ export function findOrgs(units, fullText, { covered, exceptions, manualTerms }) 
     const qs = !formula && /[„“"»«]/.test(u.text) ? quoteCandidates(u.text, fullText, webJoined, cv) : [];
     for (const q of qs) if (q.weak) weak.push({ unit: ui, s: q.s, e: q.e, text: u.text.slice(q.s, q.e) });
     const all = [...unitCandidates(u.text, cv), ...qs.filter((q) => !q.weak)];
-    for (const c of all) {
+    for (const c0 of all) {
+      const c = cutAt ? cutBefore(c0, cutAt(ui, c0.s, c0.e)) : c0;
+      if (!c) continue;
       const term = u.text.slice(c.s, c.e).replace(/\s+/g, ' ');
       if (exceptions && (exceptions.has(fold(term)) || c.names.some((n) => exceptions.has(n)))) continue;
       cands.push({ ...c, unit: ui, term });

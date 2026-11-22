@@ -107,6 +107,39 @@ export const EINR_PERSON_PERSONS = ['Kessler', 'Sommerfeld', 'Erika Brandner', '
 export const EINR_KOPF = 'Kita Sonnenblume – Elternbrief';
 export const EINR_FUSS = 'Gemeint ist das Kinderhaus Regenbogen.';
 export const EINR_KOMMENTAR = 'Rückfrage an die Kita Sonnenblume';
+// Version 2.8.1 („Einrichtungen: Leck und Lücken schließen“): Person neben Einrichtung. Je Teil die Sätze aus dem Auftrag
+// und je zwei eigene. Alle Namen erfunden.
+// Zeilen; [Anrede, Name] = in TXT zwei Zeilen, in CSV/Excel zwei Zellen nebeneinander (Regel a2 gilt in Tabellen für die
+// linke Nachbarzelle, seit 2.6.0)
+export const NACHBARN_ROWS = [
+  // Teil 1: Name (Regel a2, „unsicher, an“) in einer gefundenen Einrichtung; Probe mit „Unsichere Treffer“ aus
+  ['Frau', 'Quarbeck'], 'Der Verein Quarbeck lädt ein.',
+  'Bitte wenden Sie sich an Koch.', 'Die Praxis Koch ist am Montag zu.',
+  ['Herrn', 'Broszat'], 'Die Kanzlei Broszat berät Sie gern.',
+  ['Frau', 'Tewesmeier'], 'Das Institut Tewesmeier schreibt aus.',
+  // Teil 2: gefundene Einrichtungen (Liste aus, dann von Hand markiert)
+  'Einladung: Die Kita Sonnenblume feiert am Freitag. Die Kita Sonnenblume freut sich.',
+  'Das Familienzentrum Wiesenkamp öffnet um neun.',
+  'Die Musikschule Lindgrün sucht Helfer.',
+  // Teil 3: Person direkt hinter der Einrichtung, ohne Anrede
+  'Kita Sonnenblume Jana Wolters',
+  'Kindergarten Regenbogen Tobias Hellwig',
+  'Familienzentrum Lindenhof Anja Petersen',
+  // Teil 4: Person mit „von / vom / von der“ vor einer Einrichtung
+  'Mit Grüßen, Frau Okonkwo vom Gymnasium Kirchberg Tannhofen',
+  'Herr Lehmann von der Firma Holzbau Lehmann GmbH',
+  'Frau Schuster vom Kindergarten Regenbogen',
+  'Herr Demir vom Verein Birkenhain e. V.',
+  'Herr Kowalski von der Musikschule Lindgrün',
+  'Frau Albers vom Familienzentrum Wiesenkamp',
+  // echte Namen mit Zusatz bleiben Namen
+  'Herr von Brandner und Frau van der Lindenau kommen auch.',
+].map((r) => (Array.isArray(r) ? r : [r]));
+export const NACHBARN = NACHBARN_ROWS.flat();
+// Was ohne Antwort ersetzt sein muss (ganze Wörter, alle Modi)
+export const NACHBARN_PERSONS = ['Quarbeck', 'Broszat', 'Tewesmeier', 'Jana', 'Wolters', 'Tobias', 'Hellwig', 'Anja', 'Petersen', 'Okonkwo',
+  'Lehmann', 'Schuster', 'Demir', 'Kowalski', 'Albers', 'Brandner', 'Lindenau'];
+export const NACHBARN_ORGS = ['Sonnenblume', 'Wiesenkamp', 'Lindgrün', 'Regenbogen', 'Lindenhof', 'Kirchberg', 'Tannhofen', 'Holzbau', 'Birkenhain'];
 // Sperre-Test: nur Webadresse und Konto, sonst nichts zu ersetzen
 export const NURWEB = ['Mehr dazu unter www.beispiel-kinderhaus.de/termine.', 'Folgen Sie uns auf Instagram: @sonnenhof_kids'];
 // Zeilen; {link} = Webadresse (in Word/Excel als Verknüpfung, in Text-Formaten wie in Easys Text als [www…](https://…))
@@ -180,11 +213,11 @@ async function einrXlsx() {
     'xl/sharedStrings.xml': X + `<sst xmlns="${S}" count="${ss.length}" uniqueCount="${ss.length}">${ss.map((s) => `<si><t xml:space="preserve">${esc(s)}</t></si>`).join('')}</sst>`,
   });
 }
-async function personXlsx() {
+async function personXlsx(name = 'einrichtung-person.xlsx', table = EINR_PERSON_TABLE) {
   const ss = [];
   const si = (s) => { let i = ss.indexOf(s); if (i < 0) { ss.push(s); i = ss.length - 1; } return i; };
-  const rows = EINR_PERSON_TABLE.map((r, i) => `<row r="${i + 1}">${r.map((v, c) => `<c r="${String.fromCharCode(65 + c)}${i + 1}" t="s"><v>${si(v)}</v></c>`).join('')}</row>`).join('');
-  await save('einrichtung-person.xlsx', {
+  const rows = table.map((r, i) => `<row r="${i + 1}">${r.map((v, c) => `<c r="${String.fromCharCode(65 + c)}${i + 1}" t="s"><v>${si(v)}</v></c>`).join('')}</row>`).join('');
+  await save(name, {
     '[Content_Types].xml': X + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/></Types>',
     '_rels/.rels': X + `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${R}/officeDocument" Target="xl/workbook.xml"/></Relationships>`,
     'xl/workbook.xml': X + `<workbook xmlns="${S}" xmlns:r="${R}"><sheets><sheet name="Kontakte" sheetId="1" r:id="rId1"/></sheets></workbook>`,
@@ -223,6 +256,10 @@ export async function makeAll() {
   fs.writeFileSync(path.join(FXT, 'einrichtung-person.txt'), EINR_PERSON.join('\r\n') + '\r\n');
   fs.writeFileSync(path.join(FXT, 'einrichtung-person.csv'), EINR_PERSON_TABLE.map((r) => r.join(';')).join('\r\n') + '\r\n');
   await personXlsx();
+  // Version 2.8.1: nachbarn (txt, csv, xlsx; je Zeile eine Zelle)
+  fs.writeFileSync(path.join(FXT, 'nachbarn.txt'), NACHBARN.join('\r\n') + '\r\n');
+  fs.writeFileSync(path.join(FXT, 'nachbarn.csv'), NACHBARN_ROWS.map((r) => r.map((t) => (/[;"]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t)).join(';')).join('\r\n') + '\r\n');
+  await personXlsx('nachbarn.xlsx', NACHBARN_ROWS);
   // PDF über LibreOffice aus der Word-Fassung
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'traeger-'));
   try {

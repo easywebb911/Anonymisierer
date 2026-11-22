@@ -129,10 +129,14 @@ Das Tool findet Schulnamen, Träger, Kitas, Vereine und Firmen **selbst**. Eine 
 
 **Vorrang:** Namensspalten (2.6), Webadressen, Konten, E-Mail und Adressen gehen vor; von Hand markierte Einrichtungen und Namen gehen vor. Markierst du eine gefundene Einrichtung von Hand, ist sie ab dann sicher und ihre Frage fällt weg. Die Liste „Ausnahmen“ gilt auch hier.
 
+**Von Hand markieren gewinnt immer (seit 2.8.1):** Hast du eine gefundene Einrichtung vorher ausgeschaltet (Liste, Klick) oder mit „Nein“ beantwortet und markierst sie danach von Hand als Einrichtung, wird sie ersetzt und ist sicher. Dasselbe gilt für „Als Name markieren“.
+
 **Personen gehen vor:**
 - Eine gefundene Einrichtung endet **vor einer Anrede oder einem Titel** (Herr, Frau, Dr., Prof. …): Aus „Gymnasium Tannhofen Herr Kessler“ wird die Einrichtung „Gymnasium Tannhofen“ und die Person „Herr Kessler“.
 - Eine gefundene Einrichtung verdeckt **nie eine Stelle, die das Tool sonst sicher als Person ersetzt** (Ausnahme: Name mit Bindestrich wie „Erika-Brandner-Schule“). Ist das so, wird die Person ersetzt, und die Einrichtung steht im Punkt „Hier könnte eine Einrichtung stehen“ (z. B. „Verein Quarstedt“, wenn auch „Herr Anton Quarstedt“ im Text steht).
-- **„Nein“** bei einer gefundenen Einrichtung (oder Ausschalten in der Liste oder per Klick) gibt ihre Wörter frei: Das Tool sucht dort wieder nach Personen, mit eigenen Fragen. Was Version 2.7 ersetzt hat, wird so auch nach „Nein“ ersetzt.
+- Steht eine **Person direkt hinter der Einrichtung, ohne Anrede** (seit 2.8.1), endet die Einrichtung vor der Person: Aus „Kita Sonnenblume Jana Wolters“ werden die Einrichtung „Kita Sonnenblume“ und die Person „Jana Wolters“. Bleibt vor der Person nur das Kopfwort, ist es kein Fund.
+- **„von / vom / von der“ vor einer Einrichtung** (seit 2.8.1): Ein Kopfwort gehört nie zu einem Personennamen. Aus „Frau Okonkwo vom Gymnasium Kirchberg Tannhofen“ werden die Person „Okonkwo“ und die Einrichtung „Gymnasium Kirchberg Tannhofen“. Echte Namen mit Zusatz bleiben ganz („Herr von Brandner“, „Frau van der Lindenau“).
+- **Eine gefundene Einrichtung, die nicht ersetzt wird, gibt ihre Wörter frei**, gleich warum: „Nein“, Ausschalten in der Liste, Klick oder (seit 2.8.1) die Einstellung „Unsichere Treffer standardmäßig ersetzen“ aus. Das Tool sucht dort wieder nach Personen, mit eigenen Fragen. Was Version 2.7 ersetzt hat, wird so auch dann ersetzt.
 
 **Neuer Punkt auf „Speichern“:** Wird eine gefundene Einrichtung nicht ersetzt und ist ihre Frage offen (z. B. weil „Unsichere Treffer standardmäßig ersetzen“ aus ist), steht dort „Eine Einrichtung steht noch im Text: …“ mit Fundort, „Im Text zeigen“ und „Ersetzen“. Nach „Nein“ oder bewusstem Ausschalten kommt kein Punkt.
 
@@ -457,12 +461,12 @@ Die Datei muss in einem Browser geöffnet werden (z. B. über „Teilen → in S
 
 ## Version und Prüfsumme
 
-Version **2.8.0**, Stand 2026-11-21 (steht auch im Fußbereich des Tools).
+Version **2.8.1**, Stand 2026-11-22 (steht auch im Fußbereich des Tools).
 
 SHA-256 der `index.html` dieser Version:
 
 ```
-c3ce5b2b219992ef91b85cbbe5460b4bc85d200e17428bf11696661717f2290d
+acb4160533503914c0681b5d4e56fa1e2e9804f89aa3fa15856d2ed411ccaa5d
 ```
 
 Hinweis: Bei Version 2.6.1 stand hier versehentlich ein veralteter Wert (d411bf2f…). Die `index.html` von 2.6.1 hat die Prüfsumme f5b29a3d6cd1127b23a7226fbd44d155471d705c0dc961a6cf8853a983f18cc9.
@@ -546,6 +550,8 @@ node tests/spalten-test.mjs [--alt <index.html-2.5.0>]  # Namensspalten, Spalte 
 node tests/make-anzeige.mjs   # Testdokumente 2.6.1: Fragen auf mehreren Excel-Blättern, breite Tabelle, langer Text, Falle „Rose/Rosen“ → tests/fixtures-anzeige/
 node tests/anzeige-test.mjs   # Anzeige beim Prüfen: drei Zustände, Rollen, Vorige/Nächste Frage, Antwort ändern = wie direkt geantwortet, Einstellungen/Listen, Rückbau → tests/ANZEIGE-REPORT.md
 node tests/bedienung-test.mjs <index.html-2.4.1>  # Fragen und Speichern vorher/nachher, Beweis D.5, ohne Bedienung byte-gleich, Sperren, Eigene Namen, 1366×768 → tests/BEDIENUNG-REPORT.md
+node tests/massstab-test.mjs <index.html-2.7.0> [index.html-2.8.0]  # Maßstab: was 2.7.0 ersetzt, ersetzt auch diese Version (sechs Abläufe, auch „Unsichere“ aus und Liste); zweiter Maßstab gegen 2.8.0 → tests/MASSSTAB-REPORT.md
+node tests/nachbarn-test.mjs <index.html-2.7.0> [index.html-2.8.0]  # Ziel-Test 2.8.1 „Person neben Einrichtung“: Soll/gemessen je Format und Modus, Bedienwege, Rückbau → tests/NACHBARN-REPORT.md
 ```
 
 **Messkorpus (seit 2.4.0):** `tests/korpus/korpus-quelle.mjs` enthält rund 3000 Wörter erfundener Alltagstexte (Kursbeschreibungen, Elternbrief, Protokoll, Einladung, Tabelle, Liste …). Jeder echte Personenname ist dort mit ⟦…⟧ gekennzeichnet. `tests/korpus-test.mjs` zählt je Wort: Fehltreffer (sicher / unsicher an / unsicher aus), echte Namen (ersetzt / nur als Frage / ganz übersehen), Fragen und Schlusscheck-Meldungen. Jede Änderung an der Erkennung muss dieselben Zahlen liefern wie `tests/korpus/erwartung.json`, oder die Abweichung wird gezeigt (Erwartung nur nach bewusster Änderung mit `--update` neu schreiben).

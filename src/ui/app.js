@@ -1256,6 +1256,18 @@ function addManual(term) {
   const sel = window.getSelection();
   if (sel) sel.removeAllRanges();
   runAnalysis();
+  // Version 2.8.1 (Teil 2): Von Hand markieren gewinnt immer. Stellen dieses Namens, die vorher aus waren (Schalter, Klick,
+  // Antwort), werden ersetzt.
+  const norm = (x) => fold(x.replace(/\s+/g, ' ').trim());
+  const ents = new Set(app.result.hits.filter((x) => x.type === 'person' && x.origin === 'manual' && !x.capsManual
+    && norm(app.result.fullText.slice(x.s, x.e)) === norm(t)).map((x) => x.entity));
+  if (markWins((x) => x.type === 'person' && ents.has(x.entity) && !x.capsManual)) runAnalysis();
+}
+// Version 2.8.1 (Teil 2): ausgeschaltete Stellen (Umschaltung „aus“) der gerade von Hand markierten Sache wieder auf Standard
+function markWins(test) {
+  let n = 0;
+  for (const x of app.result.hits) if (test(x) && app.state.overrides[x.key] === false) { delete app.state.overrides[x.key]; n++; }
+  return n;
 }
 
 // Als Einrichtung markieren (Version 2.3): ganze Wortfolge, eigener Platzhalter „Einrichtung A“
@@ -1271,6 +1283,10 @@ function addOrg(term) {
   const sel = window.getSelection();
   if (sel) sel.removeAllRanges();
   runAnalysis();
+  // Version 2.8.1 (Teil 2): Von Hand markieren gewinnt immer – die Einrichtung ist danach sicher und ersetzt, gleich was
+  // vorher geantwortet oder geschaltet war
+  const key = orgKeyOf(t);
+  if (markWins((x) => x.type === 'org' && x.entity === key && !x.auto)) runAnalysis();
 }
 // Wie cleanTerm, aber ein Punkt am Ende bleibt (z. B. „e.V.“)
 function cleanOrgTerm(s) {
