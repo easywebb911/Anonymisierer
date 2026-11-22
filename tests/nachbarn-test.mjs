@@ -2,8 +2,7 @@
 // Soll in allen drei Modi:
 //   a) ohne Antwort ist jede Person und jede Einrichtung ersetzt,
 //   b) nach „Nein“ auf alle Einrichtungs-Fragen ist jede Person ersetzt,
-//   c) mit „Unsichere Treffer standardmäßig ersetzen“ aus ist alles ersetzt, was 2.7.0 mit „Unsichere“ aus ersetzt
-//      (Ausnahme, einzeln gelistet: ein Kopfwort, das 2.7.0 als Teil eines Personennamens ersetzt hat – Teil 4).
+//   c) mit „Unsichere Treffer standardmäßig ersetzen“ aus ist alles ersetzt, was 2.7.0 mit „Unsichere“ aus ersetzt.
 // Dazu die Bedienwege über die Oberfläche (Teil 1: Einstellung und Schalter, Teil 2: Liste aus und von Hand markiert,
 // auch „Als Name markieren“), echte Namen mit Zusatz, Rückbau exakt (auch mit Schlüsseldatei aus 2.8.0), 0 Anfragen.
 // Aufruf: node tests/nachbarn-test.mjs <index.html 2.7.0> [<index.html 2.8.0>]   (Ergebnis: tests/NACHBARN-REPORT.md)
@@ -49,8 +48,6 @@ async function newPage(html = HTML) {
 const FORMATS = ['txt', 'csv', 'xlsx'];
 const MODES = ['person', 'name', 'reversible'];
 const fx = (ext) => path.join(FXT, 'nachbarn.' + ext);
-// Kopfwörter der Einrichtungs-Suche (für die Ausnahme in c); wie orgauto.js
-const HEAD_RE = /^(?:Gymnasium|Schule|\p{Lu}\p{Ll}+schule|Universität|Kita|Kindergarten|Krippe|Hort|Kinderhaus|Familienzentrum|Jugendzentrum|Verein|Stiftung|Praxis|Klinik|Krankenhaus|Kanzlei|Firma|Institut|Akademie)$/u; // Version 2.8.1 (Entscheidung Easy C): Kopfwort nur in der Grundform, ganzes Wort (wie detect.js, Teil 4)
 
 // ---------- Messung über die Erkennung (Ablauf wie ein Mensch, Stand über window.__anon gelesen) ----------
 // how: 'keine' | 'nein' (alle Einrichtungs-Fragen „Nein“) | 'aus' („Unsichere“ aus) | 'ausnein' (aus, dann alle „Nein“)
@@ -103,19 +100,20 @@ function openWords(res, words) {
   }
   return miss;
 }
-// Stellen der Vorversion, die hier nicht ersetzt sind; getrennt: Ausnahme „nur Kopfwort (Teil 4)“
+// Stellen der Vorversion, die hier nicht ersetzt sind (keine Ausnahmen mehr, Guardian-Lauf 5, Fund 3)
 function missingVs(ref, res) {
   const cov = coverArr(res);
   const miss = [];
   const ausnahmen = [];
   for (const [s, e] of ref.spans) {
-    const toks = [...ref.text.slice(s, e).matchAll(/[\p{L}\p{N}][\p{L}\p{N}'’.-]*/gu)].map((m) => ({ s: s + m.index, t: m[0] }));
-    const open = toks.filter((t) => [...t.t].some((_, i) => !cov[t.s + i]));
-    if (!open.length) continue;
+    // wie vor 2.8.1: jedes nicht ersetzte Zeichen, das kein Leerraum ist, zählt
+    let open = false;
+    for (let i = s; i < e; i++) if (!cov[i] && /\S/.test(ref.text[i])) { open = true; break; }
+    if (!open) continue;
     // Version 2.8.1 (Entscheidung Easy nach Lauf 3): Ausnahme nur, wenn jedes Zeichen eines Namens ersetzt ist – offen
     // darf nur der Zusatz („vom“, „von der“) sein, kein Namens-Wort und kein Kopfwort
-    if (open.every((t) => /^(von|vom|der|dem|den)$/i.test(t.t))) ausnahmen.push(ref.text.slice(s, e) + ' → offen: ' + open.map((t) => t.t).join(' '));
-    else miss.push(ref.text.slice(s, e));
+    // Guardian-Lauf 5, Fund 3: keine Ausnahme mehr (Teil 4 ist herausgenommen) – jede offene Stelle zählt
+    miss.push(ref.text.slice(s, e));
   }
   return { miss, ausnahmen };
 }
@@ -375,6 +373,22 @@ const wordIn = (t, w) => new RegExp('(?<![\\p{L}\\p{N}])' + w + '(?![\\p{L}\\p{N
     check('Lauf 3, Fund 2: Dateiangaben-Frage „Ja“ → „Nein“ = direkt „Nein“ (Person vorher in der Liste aus)', !!nein && (await state([true, false])) === nein);
     check('Lauf 3, Fund 2: Dateiangaben-Frage „Nein“ → „Ja“ → „Nein“ = direkt „Nein“', !!nein && (await state([false, true, false])) === nein);
     check('Lauf 3, Fund 2: Dateiangaben-Frage „Ja“ → „Nein“ → „Ja“ = direkt „Ja“', !!ja && (await state([true, false, true])) === ja);
+  }
+  // Guardian-Lauf 5, Fund 1: „Quarbeck“ als eigener Name (Liste „Eigene Namen“), dann „PRAXIS QUARBECKS hat zu.“ ohne
+  // Antwort: der Name steht nicht im Klartext (2.8.0: „Einrichtung A“)
+  {
+    const { page, ctx } = await newPage();
+    await page.click('#go-anon');
+    if (await page.isHidden('#advanced')) await page.click('#tgl-adv');
+    await page.fill('#name-input', 'Quarbeck');
+    await page.selectOption('#name-kind', 'person');
+    await page.click('#name-add button[type=submit]');
+    await startAnon(page, 'person');
+    await loadIn(page, fx('txt'));
+    await goTo(page, 'a2');
+    const line = (await outText(page)).split('\n').find((l) => /hat zu\.$/.test(l) && !/Montag|heute/.test(l)) || '';
+    check('Lauf 5, Fund 1: „Quarbeck“ als eigener Name – „PRAXIS QUARBECKS hat zu.“ ohne Antwort ohne Namen im Klartext', !!line && !/QUARBECK/i.test(line), line);
+    await ctx.close();
   }
   // Guardian-Fund 4: Wo eine Einrichtung endet, richtet sich nur nach der Erkennung: Person aus -> Einrichtung bleibt
   // „Kita Sonnenblume“ (wird nicht länger); danach „Als Name markieren“ ersetzt die Person als Person

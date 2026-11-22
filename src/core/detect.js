@@ -368,8 +368,10 @@ export function analyze(units, state, extra = {}) {
   const safe = () => {
     if (!safeSpans) {
       const plain = analyze(units, state, { ...extra, noAutoOrgs: true });
-      // Version 2.8.1 (Guardian-Fund 4, Entscheidung Easy): nur die Erkennung zählt, nicht Schalter oder Antworten
-      safeSpans = plain.hits.filter((h) => h.type === 'person' && h.cert === 'sicher').map((h) => [h.s, h.e]);
+      // Version 2.8.1 (Guardian-Fund 4, Entscheidung Easy): Schalter oder Antworten, die eine Person ausschalten, ändern die
+      // Grenze nicht. Guardian-Lauf 5, Fund 1 (Entscheidung Easy): Personen, die von Anfang an aus sind (z. B. GROSS-Form
+      // mit Endung eines eigenen Namens), zählen nicht – nur solche, die ersetzt werden oder von Hand ausgeschaltet sind.
+      safeSpans = plain.hits.filter((h) => h.type === 'person' && h.cert === 'sicher' && (h.on || (st.overrides || {})[h.key] === false)).map((h) => [h.s, h.e]);
     }
     return safeSpans;
   };

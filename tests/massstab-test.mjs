@@ -7,8 +7,7 @@
 //   e) Version 2.8.1: „Unsichere“ aus, dann „Nein“ auf alle Einrichtungs-Fragen (Vorversion: „Unsichere“ aus),
 //   f) Version 2.8.1: jede gefundene Einrichtung in der Liste ausgeschaltet, danach von Hand als Einrichtung markiert.
 // Version 2.8.1: zweiter Maßstab gegen die Version davor (2.8.0, dritter Aufruf-Wert): Jede Stelle, die 2.8.0 ohne
-// Antwort ersetzt, ist auch hier ersetzt. Ausnahme (einzeln gelistet): Teil 4 – nur „von / vom / von der“ offen, jedes
-// Namens-Zeichen ersetzt (Entscheidung Easy nach Guardian-Lauf 3).
+// Antwort ersetzt, ist auch hier ersetzt. Keine Ausnahmen (Guardian-Lauf 5, Fund 3).
 // Warum fand dieser Test Fund 1 (PR #19) nicht? Ablauf d verglich richtig, aber keine Testdatei enthielt einen Namen,
 // der „unsicher, an“ ist (Regel a2) oder per Schalter eingeschaltet wurde, IN einer gefundenen Einrichtung; den Weg über
 // den Schalter gab es als Ablauf nicht. Dafür jetzt tests/fixtures-traeger/nachbarn.* und die Abläufe e und f.
@@ -106,15 +105,13 @@ const fails = [];
 const ausnahmen = [];
 let nPrev = 0;
 const HOW = { keine: 'ohne Antwort', nein: 'nach „Nein“', janein: 'nach „Ja“ → „Nein“', aus: '„Unsichere“ aus', ausnein: '„Unsichere“ aus, dann „Nein“', listemark: 'Liste aus, dann markiert' };
-const HEAD_RE = /^(?:Gymnasium|Schule|\p{Lu}\p{Ll}+schule|Universität|Kita|Kindergarten|Krippe|Hort|Kinderhaus|Familienzentrum|Jugendzentrum|Verein|Stiftung|Praxis|Klinik|Krankenhaus|Kanzlei|Firma|Institut|Akademie)$/u; // Version 2.8.1 (Entscheidung Easy C): Kopfwort nur in der Grundform, ganzes Wort (wie detect.js, Teil 4)
-// offene Wörter einer Stelle der Vorversion; Ausnahme Teil 4 nur, wenn alle offenen Wörter Zusatz/Kopfwort sind
+// Guardian-Lauf 5, Fund 3 (Entscheidung Easy): keine Ausnahme mehr; wie vor 2.8.1 zählt jedes nicht ersetzte Zeichen,
+// das kein Leerraum ist (auch Satzzeichen)
 function openToks(text, s, e, cov) {
-  return [...text.slice(s, e).matchAll(/[\p{L}\p{N}][\p{L}\p{N}'’.-]*/gu)].map((m) => ({ s: s + m.index, t: m[0] })).filter((t) => [...t.t].some((_, i) => !cov[t.s + i]));
+  const out = [];
+  for (let i = s; i < e; i++) if (!cov[i] && /\S/.test(text[i])) { out.push({ s: i, t: text.slice(s, e) }); break; }
+  return out;
 }
-// Version 2.8.1 (Entscheidung Easy nach Guardian-Lauf 3): Ausnahme nur, wenn jedes Zeichen eines Namens ersetzt ist –
-// offen darf nur der Zusatz („vom / von der“) sein. Die frühere lockere Form (auch das Kopfwort offen) ist entfallen.
-const PART_RE = /^(von|vom|der|dem|den)$/i;
-const teil4 = (open, lax) => open.length && open.every((t) => PART_RE.test(t.t) || (lax && HEAD_RE.test(t.t)));
 for (const f of files) {
   const rel = path.relative(here, f);
   const o = await covered(OLD, f, 'keine');
@@ -135,7 +132,6 @@ for (const f of files) {
       const open = openToks(o.text, s, e, cov);
       if (!open.length) continue;
       // Version 2.8.1, Teil 4: nur Zusatz + Kopfwort offen (2.7.0 hatte es als Teil eines Namens ersetzt) -> Ausnahme
-      if (teil4(open, false)) { ausnahmen.push(`${rel}, ${HOW[how]}: „${o.text.slice(s, e)}“ → offen „${open.map((t) => t.t).join(' ')}“`); continue; }
       miss.push(o.text.slice(s, e));
     }
     if (miss.length) { bad++; fails.push(`${rel}, ${HOW[how]}: ${[...new Set(miss)].join(', ')}`); }
@@ -154,7 +150,6 @@ for (const f of files) {
       for (const [s, e] of ps) {
         const open = openToks(o.text, s, e, cov);
         if (!open.length) continue;
-        if (teil4(open, false)) { ausnahmen.push(`${rel}, gegen 2.8.0: „${o.text.slice(s, e)}“ → offen „${open.map((t) => t.t).join(' ')}“`); continue; }
         pm.push(o.text.slice(s, e));
       }
       if (pm.length) { bad++; fails.push(`${rel}, gegen 2.8.0: ${[...new Set(pm)].join(', ')}`); }
@@ -168,7 +163,7 @@ log('');
 log(`Geprüft: ${nFiles} Dateien (Testdateien und ${Object.keys(SECTIONS).length} Korpus-Abschnitte), ${nSpans} Stellen der Vorversion, je sechs Abläufe${PREV ? `; zweiter Maßstab: ${nPrev} Stellen von 2.8.0 (ohne Antwort)` : ''}.`);
 if (fails.length) { log(''); log('Fehlende Stellen:'); for (const x of fails) log('- ' + x); }
 log('');
-log(`Ausnahmen (einzeln; erlaubt nur, wenn offen allein der Zusatz „vom / von der“ ist und jedes Namens-Zeichen ersetzt ist; Teil 4 ist herausgenommen, erwartet: 0): ${ausnahmen.length}`);
+log(`Ausnahmen: ${ausnahmen.length} (seit Guardian-Lauf 5 keine Ausnahme mehr erlaubt)`);
 for (const x of ausnahmen) log('- ' + x);
 log(`- ${requests.length ? 'FEHLER' : 'OK'}: 0 Anfragen ins Netz (${requests.length})`);
 log(`- ${errors.length ? 'FEHLER' : 'OK'}: 0 Fehler in der Seite (${errors.length})`);
