@@ -14,6 +14,7 @@ import { fileURLToPath } from 'node:url';
 import JSZip from 'jszip';
 import { makeAll, FXT, NACHBARN_PERSONS, NACHBARN_ORGS, NACHBARN_TEIL4_OFFEN, NACHBARN_OFFEN_PERSONS } from './make-traeger.mjs';
 import { startAnon, loadIn, goTo, exportWithAck, saveKey, rbConfirm, ackPoints } from './ui-helpers.mjs';
+import { cached, fileSha, flush, refNote } from './referenz.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..');
@@ -75,6 +76,8 @@ async function covered(html, file, how, mode) {
     }, [[...fs.readFileSync(file)], path.basename(file), how, mode]);
   } finally { await ctx.close(); }
 }
+// Tempo (Teil 4): Ergebnisse alter Versionen aus tests/referenz/ (ändern sich nie)
+const oldCovered = (html, f, how, mode) => cached('nachbarn', html, `${path.basename(f)}|${fileSha(f)}|${how}|${mode}`, () => covered(html, f, how, mode));
 function coverArr(res) {
   const cov = new Uint8Array(res.text.length + 1);
   for (const [s, e] of res.spans) for (let i = s; i < e; i++) cov[i] = 1;
@@ -137,7 +140,7 @@ for (const ext of FORMATS) {
     const b = await covered(HTML, f, 'nein', mode);
     const c = await covered(HTML, f, 'aus', mode);
     const c2 = await covered(HTML, f, 'ausnein', mode);
-    const o = await covered(OLD, f, 'aus', mode);
+    const o = await oldCovered(OLD, f, 'aus', mode);
     const ma = openWords(a, [...NACHBARN_PERSONS, ...NACHBARN_ORGS]);
     const mb = openWords(b, NACHBARN_PERSONS);
     const mc = missingVs(o, c);
@@ -145,9 +148,9 @@ for (const ext of FORMATS) {
     for (const x of [...mc.ausnahmen, ...mc2.ausnahmen]) AUSNAHMEN.add(`${ext}: ${x}`);
     // Version 2.8.1 (Entscheidung D): weitere Abläufe; Soll: kein Name im Klartext, den 2.7.0 oder 2.8.0 ersetzt
     // Vergleich je Ablauf mit demselben Ablauf in 2.7.0 (dort gibt es keine Einrichtungs-Fragen: wie ohne Antwort) und 2.8.0
-    const o0 = await covered(OLD, f, 'keine', mode);
+    const o0 = await oldCovered(OLD, f, 'keine', mode);
     for (const [how, oref] of [['nein', o0], ['janein', o0], ['neinjanein', o0], ['liste', o0], ['aus', o], ['ausnein', o]]) {
-      const refs = [oref, PREV ? await covered(PREV, f, how, mode) : null];
+      const refs = [oref, PREV ? await oldCovered(PREV, f, how, mode) : null];
       const res = await covered(HTML, f, how, mode);
       const m = [];
       for (const r of refs.filter(Boolean)) { const x = missingVs(r, res); m.push(...x.miss); for (const y of x.ausnahmen) AUSNAHMEN.add(`${ext}, ${how}: ${y}`); }
@@ -161,9 +164,9 @@ for (const ext of FORMATS) {
     check(`${ext}, ${mode}: Weg-Gleichheit „Ja“ → „Nein“ → „Ja“ = „Ja“`, sig(await covered(HTML, f, 'janeinja', mode)) === sig(dJa));
     let prev = '';
     if (PREV) {
-      const pa = openWords(await covered(PREV, f, 'keine', mode), [...NACHBARN_PERSONS, ...NACHBARN_ORGS]);
-      const pb = openWords(await covered(PREV, f, 'nein', mode), NACHBARN_PERSONS);
-      const pc = missingVs(o, await covered(PREV, f, 'aus', mode));
+      const pa = openWords(await oldCovered(PREV, f, 'keine', mode), [...NACHBARN_PERSONS, ...NACHBARN_ORGS]);
+      const pb = openWords(await oldCovered(PREV, f, 'nein', mode), NACHBARN_PERSONS);
+      const pc = missingVs(o, await oldCovered(PREV, f, 'aus', mode));
       prev = ` ${pa.length} / ${pb.length} / ${pc.miss.length} |`;
     }
     const cell = (m) => (m.length ? `**${m.length}** (${[...new Set(m)].slice(0, 4).join(', ')})` : '0');
@@ -198,12 +201,12 @@ for (const ext of FORMATS) {
     const cv = coverArr(a);
     for (const n of NACHBARN_OFFEN_PERSONS) for (const m of a.text.matchAll(new RegExp('(?<![\\p{L}\\p{N}])' + n + '(?![\\p{L}\\p{N}])', 'gu'))) if (!cv[m.index]) pm.push(n);
     // „Unsichere“ aus und alle Abläufe: nichts im Klartext, was 2.7.0 bzw. 2.8.0 im selben Ablauf ersetzt
-    const o0 = await covered(OLD, f, 'keine', mode);
-    const oA = await covered(OLD, f, 'aus', mode);
+    const o0 = await oldCovered(OLD, f, 'keine', mode);
+    const oA = await oldCovered(OLD, f, 'aus', mode);
     const mm = [];
     for (const [how, oref] of [['aus', oA], ['nein', o0], ['janein', o0], ['liste', o0], ['ausnein', oA]]) {
       const res = how === 'aus' ? c : await covered(HTML, f, how, mode);
-      for (const r of [oref, PREV ? await covered(PREV, f, how, mode) : null].filter(Boolean)) mm.push(...missingVs(r, res).miss.map((x) => how + ': ' + x));
+      for (const r of [oref, PREV ? await oldCovered(PREV, f, how, mode) : null].filter(Boolean)) mm.push(...missingVs(r, res).miss.map((x) => how + ': ' + x));
     }
     check(`nachbarn-offen.${ext}, ${mode}: ohne Antwort jede Person ersetzt`, !pm.length, pm.join(', '));
     check(`nachbarn-offen.${ext}, ${mode}: „Unsichere“ aus, „Nein“, „Ja“ → „Nein“, Liste aus: nichts im Klartext, was 2.7.0 oder 2.8.0 so ersetzt`, !mm.length, [...new Set(mm)].join(', '));
@@ -481,6 +484,8 @@ await browser.close();
 log('');
 check('0 Anfragen ins Netz', requests.length === 0, String(requests.length));
 check('0 Fehler in der Seite', errors.length === 0, errors.slice(0, 3).join(' | '));
+flush();
+log(refNote());
 const bad = results.filter((r) => !r[1]).length;
 log('');
 log(`**Ergebnis: ${bad ? 'NICHT bestanden' : 'bestanden'}** (${results.length - bad}/${results.length}).`);

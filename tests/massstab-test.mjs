@@ -19,6 +19,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { makeAll } from './make-traeger.mjs';
 import { SECTIONS } from './korpus/korpus-quelle.mjs';
+import { cached, fileSha, flush, refNote } from './referenz.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..');
@@ -92,6 +93,8 @@ async function covered(html, file, how) {
     }, [[...fs.readFileSync(file)], path.basename(file), how]);
   } catch (e) { return { err: e.message.slice(0, 100) }; } finally { await ctx.close(); }
 }
+// Tempo (Teil 4): Ergebnis einer alten Version für eine Datei und einen Ablauf aus tests/referenz/ (ändert sich nie)
+const oldCovered = (html, f, how) => cached('massstab', html, `${path.basename(f)}|${fileSha(f)}|${how}`, () => covered(html, f, how));
 log('# Maßstab: Was 2.7.0 ersetzt, ersetzt auch diese Version (2.8.1) (ohne Antwort, nach „Nein“ auf alle Einrichtungs-Fragen, nach „Ja“ → „Nein“, mit „Unsichere“ aus)');
 log('');
 log(`Neue Version: ${path.basename(path.dirname(NEW))}/${path.basename(NEW)}; Vorversion: ${path.basename(OLD)}. Nur Chromium, Firefox prüft Easy.`);
@@ -114,9 +117,9 @@ function openToks(text, s, e, cov) {
 }
 for (const f of files) {
   const rel = path.relative(here, f);
-  const o = await covered(OLD, f, 'keine');
+  const o = await oldCovered(OLD, f, 'keine');
   if (o.err) continue; // z. B. gescannte PDF ohne Text (in beiden Versionen gleich)
-  const oAus = await covered(OLD, f, 'aus');
+  const oAus = await oldCovered(OLD, f, 'aus');
   const res = {};
   for (const how of ['keine', 'nein', 'janein', 'aus', 'ausnein', 'listemark']) res[how] = await covered(NEW, f, how);
   if (Object.values(res).some((x) => x.err) || res.keine.text !== o.text) { fails.push(`${rel}: Text weicht ab oder Fehler`); bad++; continue; }
@@ -140,7 +143,7 @@ for (const f of files) {
   // Zweiter Maßstab (2.8.1): jede Stelle, die 2.8.0 ohne Antwort ersetzt, ist auch hier ersetzt
   let pcell = '';
   if (PREV) {
-    const pv = await covered(PREV, f, 'keine');
+    const pv = await oldCovered(PREV, f, 'keine');
     if (pv.err || pv.text !== o.text) { fails.push(`${rel}: 2.8.0 Text weicht ab oder Fehler`); bad++; pcell = ' Fehler |'; } else {
       const cov = new Uint8Array(o.text.length + 1);
       for (const [s, e] of res.keine.spans) for (let i = s; i < e; i++) cov[i] = 1;
@@ -160,6 +163,8 @@ for (const f of files) {
 }
 await browser.close();
 log('');
+flush();
+log(refNote());
 log(`Geprüft: ${nFiles} Dateien (Testdateien und ${Object.keys(SECTIONS).length} Korpus-Abschnitte), ${nSpans} Stellen der Vorversion, je sechs Abläufe${PREV ? `; zweiter Maßstab: ${nPrev} Stellen von 2.8.0 (ohne Antwort)` : ''}.`);
 if (fails.length) { log(''); log('Fehlende Stellen:'); for (const x of fails) log('- ' + x); }
 log('');

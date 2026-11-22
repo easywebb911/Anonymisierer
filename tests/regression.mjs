@@ -15,6 +15,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import JSZip from 'jszip';
 import { orgTermTokens } from '../src/core/detect.js';
+import { cached, fileSha, flush, refNote } from './referenz.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..');
@@ -76,6 +77,12 @@ async function outputs(html, file, mode, formats, orgTerms = null) {
   await ctx.close();
   return res;
 }
+// Tempo (Teil 4): Ausgaben der alten Version aus tests/referenz/ (ändern sich nie). Für den Beweis gespeichert = frisch
+// zählt bei Word/Excel der Inhalt ohne die zufällige Kennung (parts), nicht die rohe Prüfsumme.
+const noKennungSha = (r) => { for (const k of Object.keys(r)) if (r[k] && typeof r[k] === 'object' && r[k].parts) delete r[k].sha; return r; };
+const oldOutputs = (file, mode, formats, orgTerms = null) => cached('regression', oldHtml,
+  `${file}|${fileSha(path.join(here, 'fixtures', file))}|${mode}|${formats.join(',')}|${orgTerms ? JSON.stringify(orgTerms) : ''}`,
+  () => outputs(oldHtml, file, mode, formats, orgTerms), noKennungSha);
 // Word/Excel-Teile ohne die Kennung (Version 2.1, Modus rückbaufähig): Eigenschaft „AnonymisiererKennung“
 // entfernen; besteht der Teil danach nur noch aus der leeren Hülle, auch den Teil, seinen Verweis und Inhaltstyp.
 // Nur für den Vergleich „gleich bis auf die Kennung“; byte-gleich wird weiterhin streng gezählt.
@@ -147,7 +154,7 @@ const lines = [];
 const reasons = [];
 for (const [file, formats] of FIXTURES) {
   for (const mode of ['person', 'name', 'reversible']) {
-    const a = await outputs(oldHtml, file, mode, formats);
+    const a = await oldOutputs(file, mode, formats);
     const b = await outputs(newHtml, file, mode, formats);
     for (const f of formats) {
       total++;
@@ -193,7 +200,7 @@ for (const [file, formats] of FIXTURES) {
       // stammt jede Änderung allein von den gefundenen Einrichtungen.
       let v28 = false;
       if (!ok && !kOnly && b.orgAuto.length) {
-        if (!b.v28ref) b.v28ref = await outputs(oldHtml, file, mode, formats, b.orgGroups);
+        if (!b.v28ref) b.v28ref = await oldOutputs(file, mode, formats, b.orgGroups);
         const c = b.v28ref[f];
         v28 = c.sha === b[f].sha || (mode === 'reversible' && sameParts(c.parts, b[f].parts));
         if (v28) {
@@ -245,5 +252,7 @@ await browser.close();
 const bad = total - same - onlyKennung - altChanged - endingChanged - capsChanged - lowerChanged - v26Changed - v28Changed;
 const out = [`Regression: ${same} von ${total} Ausgaben byte-identisch, ${onlyKennung} gleich bis auf die Kennung, ${altChanged} nur in Bildbeschreibungen geändert, ${endingChanged} nur durch die Endungsprüfung geändert, ${capsChanged} nur durch GROSS-Formen mit Endung geändert, ${lowerChanged} nur durch kleine Endung hinter dem Platzhalter geändert, ${v26Changed} durch die Regeln von Version 2.6.0 geändert, ${v28Changed} durch die Regeln von Version 2.8.0 geändert, ${bad} unterschiedlich (Referenz ${sha(fs.readFileSync(oldHtml)).slice(0, 16)}…, neu ${sha(fs.readFileSync(newHtml)).slice(0, 16)}…)`,
   ...lines, '', reasons.length ? '## Geänderte Ausgaben einzeln mit Grund' : '', ...reasons].join('\n');
+flush();
 console.log(out);
+console.log(refNote());
 process.exit(bad === 0 ? 0 : 1);

@@ -260,6 +260,12 @@ function txt(name, lines, eol) {
 }
 
 export async function makeAll() {
+  // Tempo: bei „npm run test:all“ schon einmal vorher erzeugt; die Wahrheit steht in wahrheit.json
+  if (process.env.ANON_FIXTURES_FERTIG === '1') {
+    for (const k of Object.keys(truth)) delete truth[k];
+    Object.assign(truth, JSON.parse(fs.readFileSync(path.join(FXS, 'wahrheit.json'), 'utf8')));
+    return truth;
+  }
   fs.rmSync(FXS, { recursive: true, force: true });
   fs.mkdirSync(FXS, { recursive: true });
   for (const k of Object.keys(truth)) delete truth[k];

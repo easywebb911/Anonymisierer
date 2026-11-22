@@ -1,6 +1,6 @@
 # Ziel-Test „nachbarn“ (Version 2.8.1): Person neben Einrichtung
 
-Geprüft: Anonymisierer/index.html; Vorversion 2.7.0: index-270.html; Vergleich 2.8.0: index-main-280.html. Nur Chromium, Firefox prüft Easy.
+Geprüft: Anonymisierer/index.html; Vorversion 2.7.0: index-2.7.0.html; Vergleich 2.8.0: index-2.8.0.html. Nur Chromium, Firefox prüft Easy.
 
 Soll-Wörter (müssen ersetzt sein): Personen Quarbeck, Broszat, Tewesmeier, Jana, Wolters, Tobias, Hellwig, Anja, Petersen, Brandner, Lindenau, Horten, Nikita, Schulenburg, Melanie, Grawert, Lindqvist, Halvorsen, Fuchs; Einrichtungen Sonnenblume, Wiesenkamp, Lindgrün, Regenbogen, Lindenhof.
 Nicht im Soll: „Koch“ in „Bitte wenden Sie sich an Koch.“ – mehrdeutiges Wort nach Präposition, in 2.7.0, 2.8.0 und 2.8.1 gleich „unsicher, aus“ und gefragt (Wortliste „mehrdeutig“, nicht Teil dieses Auftrags).
@@ -198,5 +198,6 @@ Soll hier nur: jede Person ersetzt (wie 2.8.0). Der Name der Einrichtung hinter 
 
 - OK: 0 Anfragen ins Netz – 0
 - OK: 0 Fehler in der Seite
+Referenzen alter Versionen (tests/referenz/): gespeichert verwendet – 162 aus der Datei, 0 frisch gerechnet.
 
 **Ergebnis: bestanden** (168/168).

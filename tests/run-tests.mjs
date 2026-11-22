@@ -16,7 +16,7 @@ import { startAnon, loadIn, goTo, ackAll, exportWithAck } from './ui-helpers.mjs
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..');
 const fx = path.join(here, 'fixtures');
-const outDir = path.join(here, 'out');
+const outDir = path.join(here, 'out', 'run-tests'); // Tempo: eigener Ordner (tests/out/ teilen sich mehrere Läufe)
 fs.rmSync(outDir, { recursive: true, force: true });
 fs.mkdirSync(outDir, { recursive: true });
 

@@ -1,6 +1,6 @@
 # Namensspalten, Anrede in der Nachbarzelle, Anrede am Zeilenende, „von“ (Version 2.6.0)
 
-Testdokumente: tests/fixtures-spalten/ (erzeugt mit tests/make-spalten.mjs). Vergleich mit Vorversion: p261/index-250.html.
+Testdokumente: tests/fixtures-spalten/ (erzeugt mit tests/make-spalten.mjs). Vergleich mit Vorversion: out-alt/index-2.5.0.html.
 
 ## 1. Ziel: Brief, Liste, Protokoll – kein echter Name bleibt stehen
 

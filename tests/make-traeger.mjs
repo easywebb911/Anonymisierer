@@ -258,6 +258,8 @@ async function xlsx() {
   });
 }
 export async function makeAll() {
+  // Tempo: Bei „npm run test:all“ sind die Testdateien schon einmal vorher erzeugt; kein Lauf erzeugt sie währenddessen neu
+  if (process.env.ANON_FIXTURES_FERTIG === '1') return;
   fs.rmSync(FXT, { recursive: true, force: true });
   fs.mkdirSync(FXT, { recursive: true });
   fs.writeFileSync(path.join(FXT, 'anmeldung.txt'), LINES.map(textLine).join('\r\n') + '\r\n');
