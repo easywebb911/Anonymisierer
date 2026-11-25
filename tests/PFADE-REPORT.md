@@ -36,13 +36,13 @@ Testdokumente: tests/make-pfade.mjs -> tests/fixtures-pfade/ (alles erfunden). V
 - OK: pfade-hauptteil.docx: Kopfzeile, Fußzeile, Fußnote, Endnote, Kommentar in der Prüfansicht – Text, Text, Text, Tabelle, Kopfzeile, Fußzeile, Fußnote, Endnote, Kommentar
 
 ## 3. Kreislauf (rückbaufähig -> Rückbau), jeder Abschnitt exakt wie im Original
-- pfade-phase0.xlsx: Urteil passend; 9 Abschnitte, falsch zurückgebaut 0; Kommentar anonymisiert: „Kommentar B2: Rückruf bei Vorname B Nachname B, Mutter Vorname F Nachname F“
+- pfade-phase0.xlsx: Urteil passend; 9 Abschnitte, falsch zurückgebaut 0; Kommentar anonymisiert: „Kommentar B2: Rückruf bei Vorname A Nachname A, Mutter Vorname E Nachname E“
 - OK: pfade-phase0.xlsx: Kreislauf exakt (auch Kommentare)
-- pfade-ueblich.xlsx: Urteil passend; 11 Abschnitte, falsch zurückgebaut 0; Kommentar anonymisiert: „Kommentar B2: Rückruf bei Herrn Vorname E Nachname E erbeten.“, „Kommentar (Unterhaltung) B3: Bitte mit Herrn Vorname F Nachname F klären.“
+- pfade-ueblich.xlsx: Urteil passend; 11 Abschnitte, falsch zurückgebaut 0; Kommentar anonymisiert: „Kommentar B2: Rückruf bei Herrn Vorname D Nachname D erbeten.“, „Kommentar (Unterhaltung) B3: Bitte mit Herrn Vorname E Nachname E klären.“
 - OK: pfade-ueblich.xlsx: Kreislauf exakt (auch Kommentare)
-- pfade-unueblich.xlsx: Urteil passend; 11 Abschnitte, falsch zurückgebaut 0; Kommentar anonymisiert: „Kommentar B2: Rückruf bei Herrn Vorname E Nachname E erbeten.“, „Kommentar (Unterhaltung) B3: Bitte mit Herrn Vorname F Nachname F klären.“
+- pfade-unueblich.xlsx: Urteil passend; 11 Abschnitte, falsch zurückgebaut 0; Kommentar anonymisiert: „Kommentar B2: Rückruf bei Herrn Vorname D Nachname D erbeten.“, „Kommentar (Unterhaltung) B3: Bitte mit Herrn Vorname E Nachname E klären.“
 - OK: pfade-unueblich.xlsx: Kreislauf exakt (auch Kommentare)
-- pfade-hauptteil.xlsx: Urteil passend; 11 Abschnitte, falsch zurückgebaut 0; Kommentar anonymisiert: „Kommentar B2: Rückruf bei Herrn Vorname E Nachname E erbeten.“, „Kommentar (Unterhaltung) B3: Bitte mit Herrn Vorname F Nachname F klären.“
+- pfade-hauptteil.xlsx: Urteil passend; 11 Abschnitte, falsch zurückgebaut 0; Kommentar anonymisiert: „Kommentar B2: Rückruf bei Herrn Vorname D Nachname D erbeten.“, „Kommentar (Unterhaltung) B3: Bitte mit Herrn Vorname E Nachname E klären.“
 - OK: pfade-hauptteil.xlsx: Kreislauf exakt (auch Kommentare)
 - pfade-ueblich.docx: Urteil passend; 9 Abschnitte, falsch zurückgebaut 0; Kommentar anonymisiert: „Kommentar: Mit Frau Vorname F Nachname F abgestimmt.“
 - OK: pfade-ueblich.docx: Kreislauf exakt (auch Kommentare)
@@ -50,7 +50,7 @@ Testdokumente: tests/make-pfade.mjs -> tests/fixtures-pfade/ (alles erfunden). V
 - OK: pfade-unueblich.docx: Kreislauf exakt (auch Kommentare)
 - pfade-hauptteil.docx: Urteil passend; 9 Abschnitte, falsch zurückgebaut 0; Kommentar anonymisiert: „Kommentar: Mit Frau Vorname F Nachname F abgestimmt.“
 - OK: pfade-hauptteil.docx: Kreislauf exakt (auch Kommentare)
-- pfade-gegenprobe.xlsx: Urteil passend; 20 Abschnitte, falsch zurückgebaut 0; Kommentar anonymisiert: „Kommentar B2: Bitte Zeile prüfen.“, „Kommentar (Unterhaltung) B3: Bitte mit Herrn Vorname E Nachname E klären.“
+- pfade-gegenprobe.xlsx: Urteil passend; 20 Abschnitte, falsch zurückgebaut 0; Kommentar anonymisiert: „Kommentar B2: Bitte Zeile prüfen.“, „Kommentar (Unterhaltung) B3: Bitte mit Herrn Vorname D Nachname D klären.“
 - OK: pfade-gegenprobe.xlsx: Kreislauf exakt (auch Kommentare)
 - pfade-gegenprobe.docx: Urteil passend; 14 Abschnitte, falsch zurückgebaut 0; Kommentar anonymisiert: „Kommentar: Mit Frau Vorname E Nachname E abgestimmt.“
 - OK: pfade-gegenprobe.docx: Kreislauf exakt (auch Kommentare)

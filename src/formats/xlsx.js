@@ -159,7 +159,7 @@ async function open(bytes) {
   return { zip, idx, wbPart };
 }
 
-// Version 2.10.0: opts.treat = Map(Blattname -> Map(Spalte (ab 0) -> Kopfzeile (ab 0))): Zellen unterhalb der Kopfzeile in
+// Version 2.10.0: opts.treat = Map(Blattname -> Map(Spalte (ab 0) -> {head: Kopfzeile (ab 0), rows: Set(Zeilen) | null})) (2.11.0: rows = nur diese Zellen, z. B. seltene Werte): Zellen unterhalb der Kopfzeile in
 // Spalten mit Behandlung „Name“ oder „ganz ersetzen“ werden eigene Abschnitte (Text in der Zelle statt in der gemeinsamen
 // Liste, damit gleiche Texte verschiedener Zellen verschieden ersetzt werden können); Zahl-, Datums- und Wahrheitszellen
 // werden Text mit ihrem angezeigten Wert (Zelltyp und Wert stehen am Abschnitt, cellOrig, für den Schlüssel). Formeln und
@@ -187,7 +187,8 @@ export async function readXlsx(bytes, opts = {}) {
   const siDone = new Set();
   const treat = opts.treat || null;
   const colIssues = { formulas: [], merged: [] };
-  const fmt = treat ? cellFormats(docs, wb, wbRels) : null;
+  // Version 2.11.0: Zahlenformate immer (Datumszellen erkennen, auch ohne behandelte Spalten)
+  const fmt = cellFormats(docs, wb, wbRels);
   // Verweise je gemeinsamem Text (alle Blätter) und wie viele davon zu eigenen Abschnitten werden
   const siRefs = new Map();
   const siSplit = new Map();
@@ -225,8 +226,11 @@ export async function readXlsx(bytes, opts = {}) {
       const n0 = units.length;
       // Version 2.10.0: Zelle in einer behandelten Spalte (unterhalb der Kopfzeile)?
       let cellOrig = null;
+      let cellDate = false;
       const rm = tcols ? /^([A-Z]+)(\d+)$/.exec(ref) : null;
-      if (rm && tcols.has(colIndex(rm[1])) && Number(rm[2]) - 1 > tcols.get(colIndex(rm[1]))) {
+      // Version 2.11.0: je Spalte {head, rows}; rows = nur diese Zeilen (seltene Werte in lesbaren Spalten), sonst alle
+      const tc = rm ? tcols.get(colIndex(rm[1])) : null;
+      if (tc && Number(rm[2]) - 1 > tc.head && (!tc.rows || tc.rows.has(Number(rm[2]) - 1))) {
         if (f || t === 'str') { if (f || (v && v.textContent.trim())) colIssues.formulas.push({ sheet: sh.name, ref }); }
         else if (t === 's' && v) {
           const k = parseInt(v.textContent, 10);
@@ -239,6 +243,7 @@ export async function readXlsx(bytes, opts = {}) {
           }
         } else if (v && v.textContent !== '' && t !== 'inlineStr') {
           cellOrig = { t: t || null, v: v.textContent };
+          cellDate = isDateCell(cellOrig, c.getAttribute('s'), fmt);
           const is = sdoc.createElementNS(c.namespaceURI, 'is');
           const te = sdoc.createElementNS(c.namespaceURI, 't');
           te.textContent = cellDisplay(cellOrig, c.getAttribute('s'), fmt);
@@ -255,13 +260,18 @@ export async function readXlsx(bytes, opts = {}) {
         if (siUnit.has(idx)) sv.cells.push({ ref, u: siUnit.get(idx) });
       } else if (t === 'inlineStr') {
         const is = childEls(c, 'is')[0];
-        if (is) push(groupUnit(is, lab + hidden, owned), { cellEl: c, ...(cellOrig ? { cellOrig } : {}) }, sh.part);
+        if (is) push(groupUnit(is, lab + hidden, owned), { cellEl: c, ...(cellOrig ? { cellOrig } : {}), ...(cellDate ? { cellDate } : {}) }, sh.part);
         if (units.length > n0) sv.cells.push({ ref, u: n0 });
       } else if (t === 'str' && v && v.textContent.trim()) {
         owned.add(v);
         push(makeUnit([textSegment(v, false)], lab + ' (Formelergebnis)' + hidden), { formula: true }, sh.part);
         sv.cells.push({ ref, u: n0 });
-      } else if (v && v.textContent !== '') sv.cells.push({ ref, value: v.textContent });
+      } else if (v && v.textContent !== '') {
+        // Version 2.11.0: Datumszelle und angezeigter Wert (für den Vorschlag je Spalte und die Übersicht)
+        const o = { t: t || null, v: v.textContent };
+        const date = !f && isDateCell(o, c.getAttribute('s'), fmt);
+        sv.cells.push({ ref, value: v.textContent, ...(date ? { date: true, display: cellDisplay(o, c.getAttribute('s'), fmt) } : {}), ...(f ? { formula: true } : {}) });
+      }
       if (f && f.textContent.includes('"')) {
         owned.add(f);
         push(makeUnit([textSegment(f, false)], lab + ' (Formel)' + hidden), { kind: 'formula' }, sh.part);
@@ -293,8 +303,9 @@ export async function readXlsx(bytes, opts = {}) {
       if (m) span.set((Number(m[2]) - 1) + '|' + (colIndex(m[1])), colIndex(m[3]));
       // Version 2.10.0: verbundene Zellen, die eine behandelte Spalte unterhalb der Kopfzeile berühren -> melden
       if (m && tcols) {
-        for (const [c, hr] of tcols) {
-          if (c >= colIndex(m[1]) && c <= colIndex(m[3]) && Number(m[4]) - 1 > hr) { colIssues.merged.push({ sheet: sh.name, ref: mc.getAttribute('ref') }); break; }
+        for (const [c, tc] of tcols) {
+          if (tc.rows) continue; // nur ganz behandelte Spalten
+          if (c >= colIndex(m[1]) && c <= colIndex(m[3]) && Number(m[4]) - 1 > tc.head) { colIssues.merged.push({ sheet: sh.name, ref: mc.getAttribute('ref') }); break; }
         }
       }
     }
@@ -447,6 +458,13 @@ function isDateFormat(id, code) {
   return /[dmyhs]/i.test(c) && !/^general$/i.test(c.trim());
 }
 const pad = (n) => String(n).padStart(2, '0');
+// Zahlzelle mit Datumsformat?
+function isDateCell(orig, s, fmt) {
+  if (orig.t === 'd') return true;
+  if (orig.t && orig.t !== 'n') return false;
+  const id = fmt && s !== null && fmt.xfs[Number(s)] !== undefined ? fmt.xfs[Number(s)] : 0;
+  return !!fmt && Number.isFinite(Number(orig.v)) && isDateFormat(id, fmt.codes.get(id));
+}
 // Angezeigter Wert einer Zahl-, Datums- oder Wahrheitszelle (nur für Anzeige, Prüfansicht und Schlüssel; der Rückbau
 // schreibt Zelltyp und gespeicherten Wert zurück)
 function cellDisplay(orig, s, fmt) {

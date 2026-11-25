@@ -219,7 +219,9 @@ const summary = [];
   const E = phFor(a.key, 'anna.mueller@beispiel-firma.de');
   const edit = (t, n, v, e) => {
     const lines = t.split('\r\n');
-    lines[1] = lines[1].replace('Leitung', 'Geschäftsleitung');
+    // Version 2.11.0: Die Spalte „Abteilung“ ist in der Personen-Tabelle ganz ersetzt ([ANGABE-…]); die „KI“ hängt deshalb
+    // an das Feld an (statt „Leitung“ zu „Geschäftsleitung“ zu ändern)
+    lines[1] = lines[1].split(';').map((x, i) => (i === 2 ? x + ' (Bereich Nord)' : x)).join(';');
     const tmp = lines[3]; lines[3] = lines[4]; lines[4] = tmp; // Zeilen tauschen
     lines.splice(lines.length - 1, 0, `${v};${n};Neu;${e};"eingefügt; ${n}s Vertretung"`);
     return lines.join('\r\n');
@@ -300,6 +302,8 @@ const summary = [];
     // Version 2.10.0: In der anonymisierten Datei steht „Elternzeit“ (Spalte „Bemerkung“, ganz ersetzt) als Platzhalter in
     // der Zelle D4; die KI hängt dort „ (verlängert)“ an (im Original: in der gemeinsamen Textliste, wie bisher)
     sh = sh.replace(/(<c r="D4"[^>]*t="inlineStr"[^>]*><is>(?:<r>)?<t(?:\s[^>]*)?>)([^<]*)(<\/t>)/, (m, x, t, y) => x + t + ' (verlängert)' + y);
+    // Version 2.11.0: „Vertrieb“ (Spalte „Abteilung“) ist in der Personen-Tabelle ganz ersetzt und steht in der Zelle C4
+    sh = sh.replace(/(<c r="C4"[^>]*t="inlineStr"[^>]*><is>(?:<r>)?<t(?:\s[^>]*)?>)([^<]*)(<\/t>)/, (m, x, t, y) => x + t + `, Ansprechpartner ${v} ${n}s Team` + y);
     // Zeilen 3 und 4 (Spalten A, B) tauschen. Version 2.10.0: ganze Zelle (Zelltyp und Inhalt) tauschen – in Spalten mit
     // Behandlung „Name“ steht der Text seit 2.10.0 in der Zelle (inlineStr) statt in der gemeinsamen Liste
     const cellRe = (ref) => new RegExp(`<c r="${ref}"((?:\\s[^>]*)?)>([\\s\\S]*?)</c>`);

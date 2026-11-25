@@ -39,7 +39,7 @@ const FIXTURES = [['protokoll.txt', ['txt', 'docx']], ['mitarbeiter.csv', ['csv'
 const sha = (b) => crypto.createHash('sha256').update(b).digest('hex');
 
 const browser = await chromium.launch();
-async function outputs(html, file, mode, formats, orgTerms = null, allBisher = false) {
+async function outputs(html, file, mode, formats, orgTerms = null, treatFrom = null, noCommon = false) {
   const res0 = {};
   const ctx = await browser.newContext();
   const page = await ctx.newPage();
@@ -58,7 +58,10 @@ async function outputs(html, file, mode, formats, orgTerms = null, allBisher = f
   await page.waitForFunction(() => /Gelesen|nicht|Fehler/.test(document.querySelector('#load-status').textContent), null, { timeout: 120000 });
   const res = {};
   // Version 2.10.0 (Nachweis): alle Spalten „wie bisher“ (nur die neue Version kennt die Behandlung je Spalte)
-  if (allBisher) await page.evaluate(async () => { const A = window.__anon; for (const c of A.app.result.colPlan || []) A.app.state.colTreat[c.id] = 'bisher'; await A.applyColumns(); });
+  // Version 2.11.0 (Nachweis): jede Spalte mit der Behandlung, die main (2.10.0) für sie hatte, Regel „seltene Werte“ aus
+  if (treatFrom) await page.evaluate(async (tf) => { const A = window.__anon; A.app.state.colRare = false; A.app.state.colCommon = false; for (const c of A.app.result.colPlan || []) A.app.state.colTreat[c.id] = tf[c.id] || 'bisher'; await A.applyColumns(); }, treatFrom);
+  if (noCommon) await page.evaluate(() => { window.__anon.app.state.colCommon = false; window.__anon.runAnalysis(); });
+  res.plan = await page.evaluate(() => Object.fromEntries(((window.__anon.app.result && window.__anon.app.result.colPlan) || []).map((c) => [c.id, c.treat])));
   // Version 2.10.0: Spalten mit Behandlung „Name“ oder „ganz ersetzen“ (für den Bericht)
   res.cols = await page.evaluate(() => ((window.__anon.app.result && window.__anon.app.result.colPlan) || []).filter((c) => c.treat !== 'bisher').map((c) => `„${c.header}“ ${c.treat === 'name' ? 'Name' : 'ganz ersetzen (' + c.kind + ')'}`));
   // Zusammenführen gilt je Dokument (wird beim Laden zurückgesetzt): nach dem Laden setzen und neu rechnen
@@ -164,13 +167,26 @@ for (const [file, formats] of FIXTURES) {
     for (const f of formats) {
       total++;
       const ok = a[f].sha === b[f].sha;
-      // Version 2.10.0: Tabellen – Spalten behandeln. Nachweis je Ausgabe: Mit allen Spalten „wie bisher“ liefert die neue
-      // Version GENAU die Ausgabe von main (bis auf die Kennung). Dann stammt jede Änderung allein von der Behandlung der
-      // genannten Spalten (Vorschlag anhand der Überschrift).
+      // Version 2.11.0: Tabellen – Spalten behandeln, Personen-Tabellen. Nachweis je Ausgabe: Mit jeder Spalte in der
+      // Behandlung von main (2.10.0), ohne „seltene Werte“ und mit gewöhnlichen Wörtern aus Namensspalten wie in 2.10.0 liefert die neue Version GENAU die Ausgabe von main (bis auf
+      // die Kennung). Dann stammt jede Änderung allein von den neuen Vorschlägen je Spalte und den seltenen Werten.
       if (!ok && b.cols && b.cols.length) {
-        if (!b.v210ref) b.v210ref = await outputs(newHtml, file, mode, formats, null, true);
+        if (!b.v210ref) b.v210ref = await outputs(newHtml, file, mode, formats, null, a.plan || {});
         const c = b.v210ref[f];
         let v210 = c.sha === a[f].sha || (mode === 'reversible' && sameParts(c.parts, a[f].parts));
+        // Version 2.11.0: Die Kopfzeile wird nie mehr ersetzt (main ersetzte z. B. die Überschrift „Name“). Erlaubt ist eine
+        // Abweichung nur in Zeilen, die jetzt genau wie im Original stehen (die Kopfzeile), und die dadurch verschobenen
+        // Buchstaben der Platzhalter (nach erstem Auftreten neu gezählt). Nur für CSV-Ausgaben aus CSV-Dateien.
+        let headOnly = false;
+        if (!v210 && f === 'csv' && file.endsWith('.csv') && c.text !== null && a[f].text !== null) {
+          const canon = (t) => { const m = new Map(); return t.replace(/(Person|Einrichtung|Vorname|Nachname|Name|Initiale) ([A-Z]{1,3})(\d*)/g, (x, w, l, d) => { const k = (w.startsWith('Einr') ? 'E' : 'P') + l; if (!m.has(k)) m.set(k, m.size); return `${w} #${m.get(k)}${d}`; }); };
+          const orig = fs.readFileSync(path.join(here, 'fixtures', file), 'utf8').replace(/^\uFEFF/, '').split(/\r?\n/);
+          const nRaw = c.text.replace(/^\uFEFF/, '').split(/\r?\n/);
+          const oRaw = a[f].text.replace(/^\uFEFF/, '').split(/\r?\n/);
+          // erste Zeile (Kopfzeile) jetzt wie im Original; alle übrigen Zeilen gleich, Buchstaben ab Zeile 2 neu gezählt
+          headOnly = nRaw[0] === orig[0] && nRaw[0] !== oRaw[0] && nRaw.length === oRaw.length && canon(nRaw.slice(1).join('\n')) === canon(oRaw.slice(1).join('\n'));
+          if (headOnly) v210 = true;
+        }
         // nie schwächer (Guardian-Lauf 1, Fund 4): in der neuen Text-Ausgabe kein Wort, das main nicht auch stehen lässt
         // (außer Wörtern der Platzhalter)
         let weaker = [];
@@ -179,13 +195,22 @@ for (const [file, formats] of FIXTURES) {
           const PH = /^(Person|Vorname|Nachname|Name|Initiale|Einrichtung|DATUM|ANGABE|ADRESSE|TELEFON|E|MAIL|IBAN|WEBADRESSE|KONTO|NAME|EINRICHTUNG|[A-Z]{1,3}\d*|\d+)$/;
           const old = ws(a[f].text);
           weaker = [...ws(b[f].text)].filter((w) => !old.has(w) && !PH.test(w));
+          // Version 2.11.0 (Teil 5): Ein gewöhnliches Wort aus einer Spalte „Name“ oder „ganz ersetzen“ gilt nicht mehr als Name
+          // anderswo. Nachweis: ohne diese Regel (sonst gleich) ersetzt die neue Version das Wort wieder.
+          if (weaker.length) {
+            if (!b.noCommonRef) b.noCommonRef = await outputs(newHtml, file, mode, formats, null, null, true);
+            const nc = ws(b.noCommonRef[f].text || '');
+            const common = weaker.filter((w) => !nc.has(w));
+            weaker = weaker.filter((w) => nc.has(w));
+            if (common.length) reasons.push(`- ${file}, Modus ${mode}, Ausgabe .${f}: jetzt lesbar, weil gewöhnliches Wort aus einer Namensspalte (Version 2.11.0, Teil 5): ${common.join(', ')}`);
+          }
           if (weaker.length) v210 = false;
         }
         if (weaker.length) reasons.push(`- ${file}, Modus ${mode}, Ausgabe .${f}: SCHWÄCHER als main, neu im Klartext: ${weaker.slice(0, 10).join(', ')}`);
         if (v210) {
           v210Changed++;
           const label = `${file}, Modus ${({ person: '„Person A“', name: '„[NAME]“', reversible: '„rückbaufähig“' })[mode]}, Ausgabe .${f}`;
-          lines.push(`- ${label}: geändert durch die Spalten-Behandlung von Version 2.10.0 (Grund unten) (${a[f].sha.slice(0, 12)} / ${b[f].sha.slice(0, 12)})`);
+          lines.push(`- ${label}: geändert durch die Spalten-Behandlung von Version 2.11.0 (Grund unten) (${a[f].sha.slice(0, 12)} / ${b[f].sha.slice(0, 12)})`);
           let detail = '';
           if (b[f].text !== null && a[f].text !== null) {
             const ol = a[f].text.split('\n');
@@ -193,7 +218,7 @@ for (const [file, formats] of FIXTURES) {
             const diff = nl.map((l, i) => (l !== ol[i] ? i : -1)).filter((i) => i >= 0);
             detail = ` ${diff.length} Zeile(n): ${diff.slice(0, 2).map((i) => `„${ol[i]}“ → „${nl[i]}“`).join('; ')}${diff.length > 2 ? '; …' : ''}.`;
           }
-          reasons.push(`- ${label}:${detail} Grund (Version 2.10.0): Spalten ${b.cols.join(', ')}; mit allen Spalten „wie bisher“ ist die Ausgabe gleich der von main.`);
+          reasons.push(`- ${label}:${detail} Grund (Version 2.11.0): Spalten jetzt ${b.cols.join(', ')}; mit den Spalten wie in main, ohne „seltene Werte“ und mit gewöhnlichen Wörtern aus Namensspalten wie in 2.10.0 ist die Ausgabe gleich der von main${headOnly ? ' bis auf die Kopfzeile (seit 2.11.0 nie ersetzt, main ersetzte darin ein Wort) und die dadurch verschobenen Buchstaben' : ''}.`);
           continue;
         }
       }
@@ -288,7 +313,7 @@ for (const [file, formats] of FIXTURES) {
 }
 await browser.close();
 const bad = total - same - onlyKennung - altChanged - endingChanged - capsChanged - lowerChanged - v26Changed - v28Changed - v210Changed;
-const out = [`Regression: ${same} von ${total} Ausgaben byte-identisch, ${onlyKennung} gleich bis auf die Kennung, ${altChanged} nur in Bildbeschreibungen geändert, ${endingChanged} nur durch die Endungsprüfung geändert, ${capsChanged} nur durch GROSS-Formen mit Endung geändert, ${lowerChanged} nur durch kleine Endung hinter dem Platzhalter geändert, ${v26Changed} durch die Regeln von Version 2.6.0 geändert, ${v28Changed} durch die Regeln von Version 2.8.0 geändert, ${v210Changed} durch die Spalten-Behandlung von Version 2.10.0 geändert, ${bad} unterschiedlich (Referenz ${sha(fs.readFileSync(oldHtml)).slice(0, 16)}…, neu ${sha(fs.readFileSync(newHtml)).slice(0, 16)}…)`,
+const out = [`Regression: ${same} von ${total} Ausgaben byte-identisch, ${onlyKennung} gleich bis auf die Kennung, ${altChanged} nur in Bildbeschreibungen geändert, ${endingChanged} nur durch die Endungsprüfung geändert, ${capsChanged} nur durch GROSS-Formen mit Endung geändert, ${lowerChanged} nur durch kleine Endung hinter dem Platzhalter geändert, ${v26Changed} durch die Regeln von Version 2.6.0 geändert, ${v28Changed} durch die Regeln von Version 2.8.0 geändert, ${v210Changed} durch die Spalten-Behandlung von Version 2.11.0 geändert, ${bad} unterschiedlich (Referenz ${sha(fs.readFileSync(oldHtml)).slice(0, 16)}…, neu ${sha(fs.readFileSync(newHtml)).slice(0, 16)}…)`,
   ...lines, '', reasons.length ? '## Geänderte Ausgaben einzeln mit Grund' : '', ...reasons].join('\n');
 flush();
 console.log(out);
