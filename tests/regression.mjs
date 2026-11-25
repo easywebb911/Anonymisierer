@@ -177,7 +177,7 @@ let v28Changed = 0;
 let v210Changed = 0;
 let v2111Changed = 0;
 // Version 2.11.1: Vergleich mit 2.11.0 streng (siehe unten)
-const STRICT = path.basename(oldHtml) === 'index-2.11.0.html';
+const STRICT = /^index-2\.11\.\d+\.html$/.test(path.basename(oldHtml));
 // Version 2.6.0 (Namensspalten, Anrede am Zeilenende, „von“): Diese Dokumente dürfen sich ändern, alle übrigen nicht
 const CHANGED_260 = {
   'a2-risiko.txt': 'Anrede am Zeilenende: „Liebe Frau⏎Vielen Dank …“ und „Gesprächspartner: Herr⏎Schulleitung“ jetzt ersetzt (unsicher, an); Buchstaben danach verschoben.',

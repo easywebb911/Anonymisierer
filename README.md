@@ -63,7 +63,7 @@ Das Tool zeigt immer **nur einen Bildschirm**. Oben steht, in welchem Schritt du
   - jeder Fund des Schlusschecks („Ersetzen“, „Als Namen übernehmen“ bzw. „Als Einrichtung übernehmen“, bei Einrichtungen „Im Text zeigen“) mit Fundort in einfacher Sprache („Blatt Teilnehmer, Zelle I6“, „Kopfzeile“, „Kommentar zu Zelle C7“, „Bildbeschreibung“) und dem sichtbaren Text der Stelle,
   - Bilder („Ansehen“),
   - Hinweise zur Datei, die eine Entscheidung brauchen (z. B. eingebettete Objekte werden geleert: Der Inhalt fehlt in der Ausgabe und auch nach dem Rückbau; Pivot-Tabellen; Bildtypen ohne Bereinigung).
-- **EIN Häkchen**: „Ich habe alle Punkte gesehen und speichere so.“ Es ersetzt die früheren Einzel-Häkchen. Mit Bildern ist es erst wählbar, wenn du die Bilderliste geöffnet hast. Es **fällt zurück**, sobald sich an Treffern, Antworten oder Punkten etwas ändert. Ohne offene Punkte gibt es kein Häkchen.
+- **EIN Häkchen**: „Ich habe alle Punkte gesehen und speichere so.“ Es ersetzt die früheren Einzel-Häkchen. Mit Bildern ist es erst wählbar, wenn du die Bilderliste geöffnet hast. Seit 2.11.2 steht dann direkt beim Häkchen „Sieh dir zuerst die Bilder an.“ mit dem Knopf **„Bilder ansehen“**; er öffnet die Bilderliste und zeigt sie an, danach ist das Häkchen wählbar. Es **fällt zurück**, sobald sich an Treffern, Antworten oder Punkten etwas ändert. Ohne offene Punkte gibt es kein Häkchen.
 - Eine Zeile mit den Dateinamen („… bleibt auf diesem PC“, „… geht an die KI“) und den Knöpfen **„1 Schlüssel speichern“**, **„2 Datei speichern“** (rückbaufähig; der zweite geht erst nach dem ersten) bzw. nur **„Datei speichern“**.
 - „Lade die Datei danach direkt hoch, ohne sie vorher in Word bzw. Excel zu öffnen.“ mit **„Hinweis für die KI kopieren“**.
 - **„Details und andere Formate“** klappt auf: alles, was in Ordnung ist oder das Tool erledigt hat (versteckte Angaben, ausgeblendete Blätter, Wörter wie Platzhalter, Schlusscheck ohne Fund …), die anderen Speicherwege (Text kopieren, .txt, .docx) und die Zuordnungstabelle. Für alle Wege gelten dieselben Sperren.
@@ -529,6 +529,7 @@ Der Schlusscheck sucht nur dort, wo Nutzertext stehen kann. Formatangaben meldet
   - Feldfunktionen, Inhaltssteuerelemente (Titel, Tag, Auswahlliste), Formularfelder, Textmarken, Link-Ziele und -Hinweise, Gültigkeitsregeln, Filterwerte und bedingte Formatierung „Text enthält“;
   - Pivot-Felder und -Werte, Verbindungen und verknüpfte Dateien (mit Pfaden), Namen eigener Formatvorlagen, Text in Anführungszeichen im Zahlenformat, Verweisziele und Teilnamen;
   - bei Binärteilen der Text in UTF-8 und UTF-16.
+  - **Seit 2.11.2:** In PNG und JPEG sucht er kurze Namen (bis 4 Buchstaben, z. B. „Li“, „Jan“) nicht mehr in den reinen Bilddaten (PNG: IDAT, JPEG: die Daten nach dem Bildanfang SOS). Dort entstehen zufällige Buchstabenfolgen, die wie ein kurzer Name aussehen (gemessen: 91 Zufallstreffer in einer Testdatei mit zehn Bildern). Lesbarer Text in den Bildangaben (PNG-Textfelder, EXIF, XMP, Kommentare) und Alt-Texte werden weiter mit allen Namen geprüft, Namen ab 5 Buchstaben weiter in allen Bytes. Die Ausgabedatei ändert sich dadurch nicht.
 - **Nicht durchsucht** (Formatangaben):
   - Rahmenart, Ausrichtung, Farbe, Schriftart, Sprache, Maße, Stilverweise;
   - Name eingebauter Formatvorlagen;

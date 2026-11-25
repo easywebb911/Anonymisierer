@@ -495,18 +495,24 @@ async function buildOutput(format) {
 // (Fundort „Blatt Liste, Zelle B2“, Ausschnitt = sichtbarer Text), danach die ganze Datei; dort zählen nur Funde, die über
 // die Abschnitte hinausgehen (je Wort nie weniger als bisher). Stellen, die als Frage offen oder mit „Nein“ entschieden
 // sind, erscheinen nicht zusätzlich im Schlusscheck (D.5).
-async function finalCheck(out) {
+// opt.pixelSkip === false nur für die Messung in tests/bildrauschen-test.mjs (Schlusscheck wie 2.11.1, mit Fundort)
+async function finalCheck(out, opt = {}) {
   const { forms, phrases } = checkForms();
   const unitLeaks = [];
   newUnitTexts().forEach((t, ui) => {
     for (const l of findLeaks(forms, [{ where: '', text: t, plain: t }], phrases)) unitLeaks.push({ ...l, unit: ui, where: unitPlace(ui) });
   });
   let texts;
-  if (out.zip) texts = await collectZipTexts(await JSZip.loadAsync(out.bytes), { inflatePng: true, userText: true });
+  if (out.zip) texts = await collectZipTexts(await JSZip.loadAsync(out.bytes), { inflatePng: true, userText: true, pixelSkip: opt.pixelSkip !== false });
   else texts = [{ where: '', text: out.text, plain: out.text }];
   const fileLeaks = [];
   for (const t of texts) {
-    for (const l of findLeaks(forms, [t], phrases)) fileLeaks.push({ ...l, where: out.zip ? plainPart(t.where) : 'Text', context: visibleContext(t, l.word, l.context) });
+    for (const l of findLeaks(forms, [t], phrases)) {
+      // Version 2.11.2: PNG/JPEG – lange Namen in allen Bytes, kurze nur außerhalb der reinen Bilddaten (siehe collectZipTexts)
+      const letters = (l.word.match(/\p{L}/gu) || []).length;
+      if ((t.minLetters && letters < t.minLetters) || (t.maxLetters && letters > t.maxLetters)) continue;
+      fileLeaks.push({ ...l, where: out.zip ? plainPart(t.where) : 'Text', context: visibleContext(t, l.word, l.context), raw: t.where });
+    }
   }
   const keyOf = (l) => (l.org ? 'O|' : 'P|') + fold(l.word);
   const inUnits = new Map();
@@ -1865,6 +1871,8 @@ function renderSave() {
   $('#ack-all').disabled = needImages;
   $('#ack-all').checked = !!n && app.ackSig === pointSig(pts);
   $('#ack-all-row').title = needImages ? 'Erst die Bilder ansehen.' : '';
+  // Version 2.11.2: der Grund für die Sperre steht sichtbar beim Häkchen, mit Knopf zur Bilderliste
+  $('#ack-img-row').hidden = !n || !needImages;
   // Details: alles, was in Ordnung ist oder das Tool erledigt hat (I)
   const info = [];
   const spots = r.hits.filter((x) => x.on && x.type === 'person').length;
@@ -2354,6 +2362,15 @@ function init() {
   });
   // A3
   $('#ack-all').addEventListener('change', (e) => { app.ackSig = e.target.checked ? pointSig(savePoints()) : null; renderSave(); });
+  // Version 2.11.2: Bilderliste öffnen und in den sichtbaren Bereich bringen; danach ist das Häkchen wählbar
+  $('#btn-ack-images').addEventListener('click', async () => {
+    const p = openImages(true);
+    const box = $('#imgbox');
+    if (box && box.scrollIntoView) box.scrollIntoView({ block: 'start' });
+    await p;
+    // Tastatur: der Fokus geht auf das jetzt wählbare Häkchen, ohne die Bilderliste wegzuschieben
+    $('#ack-all').focus({ preventScroll: true });
+  });
   $('#btn-save').addEventListener('click', () => doExport(mainFormat()));
   $('#btn-key').addEventListener('click', exportKey);
   $('#btn-next-doc').addEventListener('click', nextDocument);

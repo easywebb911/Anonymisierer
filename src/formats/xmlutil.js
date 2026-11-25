@@ -202,14 +202,66 @@ export async function collectZipTexts(zip, opts = {}) {
     } else {
       const bytes = await zip.file(name).async('uint8array');
       if (bytes.length > 8 * 1024 * 1024) { texts.push({ where: name, text: '', skipped: true }); continue; }
-      texts.push({ where: name + ' (binär, UTF-8)', text: new TextDecoder('utf-8').decode(bytes) });
-      texts.push({ where: name + ' (binär, UTF-16)', text: new TextDecoder('utf-16le').decode(bytes.length % 2 ? bytes.subarray(0, bytes.length - 1) : bytes) });
+      const utf16 = (b) => new TextDecoder('utf-16le').decode(b.length % 2 ? b.subarray(0, b.length - 1) : b);
+      // Version 2.11.2 (opts.pixelSkip, nur Schlusscheck beim Anonymisieren): In PNG und JPEG sind die reinen Bilddaten
+      // (PNG: IDAT/fdAT, JPEG: die Daten nach SOS) Zufallsbytes. Kurze Namen (bis 4 Buchstaben) werden dort nicht gesucht
+      // (Zufallstreffer), sonst überall wie bisher; lange Namen (ab 5 Buchstaben) weiter in allen Bytes.
+      const pix = opts.pixelSkip ? pixelRanges(bytes) : null;
+      if (pix && pix.length) {
+        texts.push({ where: name + ' (binär, UTF-8)', text: new TextDecoder('utf-8').decode(bytes), minLetters: 5 });
+        texts.push({ where: name + ' (binär, UTF-16)', text: utf16(bytes), minLetters: 5 });
+        const masked = bytes.slice();
+        for (const [a, b] of pix) masked.fill(0, a, b);
+        texts.push({ where: name + ' (binär, UTF-8)', text: new TextDecoder('utf-8').decode(masked), maxLetters: 4 });
+        texts.push({ where: name + ' (binär, UTF-16)', text: utf16(masked), maxLetters: 4 });
+      } else {
+        texts.push({ where: name + ' (binär, UTF-8)', text: new TextDecoder('utf-8').decode(bytes) });
+        texts.push({ where: name + ' (binär, UTF-16)', text: utf16(bytes) });
+      }
       if (opts.inflatePng && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
         for (const t of await pngCompressedTexts(bytes)) texts.push({ where: name + ' (binär, Bildangaben)', text: t });
       }
     }
   }
   return texts;
+}
+
+// Version 2.11.2: Bereiche der reinen Bilddaten [Anfang, Ende) in PNG (IDAT, fdAT) und JPEG (Daten nach SOS bis zur
+// nächsten Marke). Alles andere (Textfelder, EXIF, XMP, Kommentare, Tabellen) bleibt außerhalb. Bei unklarer Struktur
+// endet die Liste dort (der Rest wird wie bisher ganz geprüft).
+export function pixelRanges(b) {
+  const out = [];
+  if (b.length > 8 && b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) {
+    let i = 8;
+    while (i + 12 <= b.length) {
+      const len = ((b[i] << 24) | (b[i + 1] << 16) | (b[i + 2] << 8) | b[i + 3]) >>> 0;
+      const type = String.fromCharCode(b[i + 4], b[i + 5], b[i + 6], b[i + 7]);
+      if (i + 12 + len > b.length) break;
+      if (type === 'IDAT' || type === 'fdAT') out.push([i + 8, i + 8 + len]);
+      i += 12 + len;
+    }
+    return out;
+  }
+  if (b.length > 4 && b[0] === 0xff && b[1] === 0xd8) {
+    let i = 2;
+    while (i + 4 <= b.length) {
+      if (b[i] !== 0xff) break;
+      const m = b[i + 1];
+      if (m === 0xff) { i++; continue; } // Füllbyte
+      if (m === 0xd9) break; // Ende
+      if ((m >= 0xd0 && m <= 0xd7) || m === 0x01) { i += 2; continue; }
+      const len = (b[i + 2] << 8) | b[i + 3];
+      if (len < 2 || i + 2 + len > b.length) break;
+      i += 2 + len;
+      if (m !== 0xda) continue;
+      // Bilddaten bis zur nächsten Marke (0xFF gefolgt von etwas anderem als 0x00 oder RST)
+      let j = i;
+      while (j + 1 < b.length && !(b[j] === 0xff && b[j + 1] !== 0x00 && !(b[j + 1] >= 0xd0 && b[j + 1] <= 0xd7))) j++;
+      out.push([i, j]);
+      i = j;
+    }
+  }
+  return out;
 }
 
 // Komprimierte PNG-Textblöcke entpacken. Ohne DecompressionStream (sehr alte Browser): Hinweistext, damit nichts still fehlt.
