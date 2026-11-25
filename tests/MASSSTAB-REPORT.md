@@ -4,10 +4,10 @@ Neue Version: Anonymisierer/index.html; Vorversion: index-2.7.0.html. Nur Chromi
 
 | Datei | Stellen 2.7.0 | Einrichtungs-Fragen | ohne Antwort | nach „Nein“ | nach „Ja“ → „Nein“ | „Unsichere“ aus | „Unsichere“ aus, dann „Nein“ | Liste aus, dann markiert | gegen 2.8.0 (Stellen) |
 |---|---|---|---|---|---|---|---|---|---|
-| fixtures/a2-risiko.csv | 12 | 0 | alle | alle | alle | alle | alle | alle | 12: alle |
+| fixtures/a2-risiko.csv | 12 | 0 | **FEHLT** Name | **FEHLT** Name | **FEHLT** Name | alle | alle | **FEHLT** Name | 12: **FEHLT** Name |
 | fixtures/a2-risiko.docx | 23 | 0 | alle | alle | alle | alle | alle | alle | 23: alle |
 | fixtures/a2-risiko.txt | 16 | 0 | alle | alle | alle | alle | alle | alle | 16: alle |
-| fixtures/a2-uebertragung.csv | 20 | 0 | alle | alle | alle | alle | alle | alle | 20: alle |
+| fixtures/a2-uebertragung.csv | 20 | 0 | **FEHLT** Name | **FEHLT** Name | **FEHLT** Name | alle | alle | **FEHLT** Name | 20: **FEHLT** Name |
 | fixtures/a2-uebertragung.docx | 21 | 0 | alle | alle | alle | alle | alle | alle | 21: alle |
 | fixtures/a2-uebertragung.txt | 21 | 0 | alle | alle | alle | alle | alle | alle | 21: alle |
 | fixtures/bilder-excel.xlsx | 3 | 0 | alle | alle | alle | alle | alle | alle | 3: alle |
@@ -98,14 +98,14 @@ Neue Version: Anonymisierer/index.html; Vorversion: index-2.7.0.html. Nur Chromi
 | fixtures-bedienung/bedienung.txt | 5 | 0 | alle | alle | alle | alle | alle | alle | 5: alle |
 | fixtures-bedienung/bedienung.xlsx | 6 | 0 | alle | alle | alle | alle | alle | alle | 6: alle |
 | fixtures-pfade/pfade-gegenprobe.docx | 11 | 0 | alle | alle | alle | alle | alle | alle | 11: alle |
-| fixtures-pfade/pfade-gegenprobe.xlsx | 11 | 0 | alle | alle | alle | alle | alle | alle | 11: alle |
+| fixtures-pfade/pfade-gegenprobe.xlsx | 11 | 0 | **FEHLT** Name | **FEHLT** Name | **FEHLT** Name | alle | alle | **FEHLT** Name | 11: **FEHLT** Name |
 | fixtures-pfade/pfade-hauptteil.docx | 6 | 0 | alle | alle | alle | alle | alle | alle | 6: alle |
-| fixtures-pfade/pfade-hauptteil.xlsx | 9 | 0 | alle | alle | alle | alle | alle | alle | 9: alle |
-| fixtures-pfade/pfade-phase0.xlsx | 8 | 0 | alle | alle | alle | alle | alle | alle | 8: alle |
+| fixtures-pfade/pfade-hauptteil.xlsx | 9 | 0 | **FEHLT** Name | **FEHLT** Name | **FEHLT** Name | alle | alle | **FEHLT** Name | 9: **FEHLT** Name |
+| fixtures-pfade/pfade-phase0.xlsx | 8 | 0 | **FEHLT** Name | **FEHLT** Name | **FEHLT** Name | alle | alle | **FEHLT** Name | 8: **FEHLT** Name |
 | fixtures-pfade/pfade-ueblich.docx | 6 | 0 | alle | alle | alle | alle | alle | alle | 6: alle |
-| fixtures-pfade/pfade-ueblich.xlsx | 9 | 0 | alle | alle | alle | alle | alle | alle | 9: alle |
+| fixtures-pfade/pfade-ueblich.xlsx | 9 | 0 | **FEHLT** Name | **FEHLT** Name | **FEHLT** Name | alle | alle | **FEHLT** Name | 9: **FEHLT** Name |
 | fixtures-pfade/pfade-unueblich.docx | 6 | 0 | alle | alle | alle | alle | alle | alle | 6: alle |
-| fixtures-pfade/pfade-unueblich.xlsx | 9 | 0 | alle | alle | alle | alle | alle | alle | 9: alle |
+| fixtures-pfade/pfade-unueblich.xlsx | 9 | 0 | **FEHLT** Name | **FEHLT** Name | **FEHLT** Name | alle | alle | **FEHLT** Name | 9: **FEHLT** Name |
 | fixtures-reste/reste.docx | 5 | 0 | alle | alle | alle | alle | alle | alle | 5: alle |
 | fixtures-reste/reste.txt | 5 | 0 | alle | alle | alle | alle | alle | alle | 5: alle |
 | fixtures-reste/reste.xlsx | 5 | 0 | alle | alle | alle | alle | alle | alle | 5: alle |
@@ -147,8 +147,45 @@ Neue Version: Anonymisierer/index.html; Vorversion: index-2.7.0.html. Nur Chromi
 Referenzen alter Versionen (tests/referenz/): gespeichert verwendet – 405 aus der Datei, 13 frisch gerechnet.
 Geprüft: 139 Dateien (Testdateien und 15 Korpus-Abschnitte), 1929 Stellen der Vorversion, je sechs Abläufe; zweiter Maßstab: 2068 Stellen von 2.8.0 (ohne Antwort).
 
+Fehlende Stellen:
+- fixtures/a2-risiko.csv, gegen 2.8.0: Name
+- fixtures/a2-risiko.csv, ohne Antwort: Name
+- fixtures/a2-risiko.csv, nach „Nein“: Name
+- fixtures/a2-risiko.csv, nach „Ja“ → „Nein“: Name
+- fixtures/a2-risiko.csv, Liste aus, dann markiert: Name
+- fixtures/a2-uebertragung.csv, gegen 2.8.0: Name
+- fixtures/a2-uebertragung.csv, ohne Antwort: Name
+- fixtures/a2-uebertragung.csv, nach „Nein“: Name
+- fixtures/a2-uebertragung.csv, nach „Ja“ → „Nein“: Name
+- fixtures/a2-uebertragung.csv, Liste aus, dann markiert: Name
+- fixtures-pfade/pfade-gegenprobe.xlsx, gegen 2.8.0: Name
+- fixtures-pfade/pfade-gegenprobe.xlsx, ohne Antwort: Name
+- fixtures-pfade/pfade-gegenprobe.xlsx, nach „Nein“: Name
+- fixtures-pfade/pfade-gegenprobe.xlsx, nach „Ja“ → „Nein“: Name
+- fixtures-pfade/pfade-gegenprobe.xlsx, Liste aus, dann markiert: Name
+- fixtures-pfade/pfade-hauptteil.xlsx, gegen 2.8.0: Name
+- fixtures-pfade/pfade-hauptteil.xlsx, ohne Antwort: Name
+- fixtures-pfade/pfade-hauptteil.xlsx, nach „Nein“: Name
+- fixtures-pfade/pfade-hauptteil.xlsx, nach „Ja“ → „Nein“: Name
+- fixtures-pfade/pfade-hauptteil.xlsx, Liste aus, dann markiert: Name
+- fixtures-pfade/pfade-phase0.xlsx, gegen 2.8.0: Name
+- fixtures-pfade/pfade-phase0.xlsx, ohne Antwort: Name
+- fixtures-pfade/pfade-phase0.xlsx, nach „Nein“: Name
+- fixtures-pfade/pfade-phase0.xlsx, nach „Ja“ → „Nein“: Name
+- fixtures-pfade/pfade-phase0.xlsx, Liste aus, dann markiert: Name
+- fixtures-pfade/pfade-ueblich.xlsx, gegen 2.8.0: Name
+- fixtures-pfade/pfade-ueblich.xlsx, ohne Antwort: Name
+- fixtures-pfade/pfade-ueblich.xlsx, nach „Nein“: Name
+- fixtures-pfade/pfade-ueblich.xlsx, nach „Ja“ → „Nein“: Name
+- fixtures-pfade/pfade-ueblich.xlsx, Liste aus, dann markiert: Name
+- fixtures-pfade/pfade-unueblich.xlsx, gegen 2.8.0: Name
+- fixtures-pfade/pfade-unueblich.xlsx, ohne Antwort: Name
+- fixtures-pfade/pfade-unueblich.xlsx, nach „Nein“: Name
+- fixtures-pfade/pfade-unueblich.xlsx, nach „Ja“ → „Nein“: Name
+- fixtures-pfade/pfade-unueblich.xlsx, Liste aus, dann markiert: Name
+
 Ausnahmen: 0 (seit Guardian-Lauf 5 keine Ausnahme mehr erlaubt)
 - OK: 0 Anfragen ins Netz (0)
 - OK: 0 Fehler in der Seite (0)
 
-**Ergebnis: bestanden** (0 Abweichung(en)).
+**Ergebnis: NICHT bestanden** (35 Abweichung(en)).

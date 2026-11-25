@@ -217,15 +217,17 @@ log('');
 // ---------- 3. Ohne Bedienung byte-gleich ----------
 log('## 3. Ohne Bedienung byte-gleich zu Version 2.4.1 (alle Testdokumente, alle Modi, alle Formate, Schlüsseldatei)');
 const FORMATS = { txt: ['txt', 'docx'], csv: ['csv', 'txt', 'docx'], docx: ['docx', 'txt'], xlsx: ['xlsx', 'txt'], pdf: ['txt', 'docx'] };
-async function outputs(html, file, mode, manual, groups = null, allBisher = false) {
+async function outputs(html, file, mode, manual, groups = null, allBisher = false, headOff = null) {
   const { page, ctx } = await newPage(html);
   // Version 2.8.0 (Nachweis): gefundene Einrichtungen der neuen Version als von Hand markiert vorgeben, ihre Schreibweisen
   // zusammenführen (Regel c)
   const merges = {};
   for (const g of groups || []) for (const t of g.slice(1)) merges[orgTermTokens(t).key] = orgTermTokens(g[0]).key;
-  const res = await page.evaluate(async ([b, n, m, man, F, terms, mg, ab]) => {
+  const res = await page.evaluate(async ([b, n, m, man, F, terms, mg, ab, ho]) => {
     const A = window.__anon;
     A.app.state.settings.mode = m;
+    // Version 2.11.0 (Nachweis): Kopfzeile wie 2.10.0 (Schutz der reinen Kopf-Zellen aus)
+    if (ho) A.app.state.headKeep = false;
     A.app.state.manualTerms = man;
     if (terms.length) A.app.state.orgTerms = terms;
     try { await A.openBytes(new Uint8Array(b), n); } catch (e) { return { err: e.message }; }
@@ -237,8 +239,12 @@ async function outputs(html, file, mode, manual, groups = null, allBisher = fals
     A.app.kennung = 'TST1'; // feste Kennung (sonst Zufall)
     const o = {};
     for (const f of F[A.app.doc.kind]) { const x = await A.buildOutput(f); o[f] = x.zip ? Array.from(x.bytes) : x.text; }
-    return { o, kind: A.app.doc.kind, groups, cols };
-  }, [[...fs.readFileSync(file)], path.basename(file), mode, manual, FORMATS, (groups || []).flat(), merges, allBisher]);
+    const r = A.app.result;
+    const head = r && r.headOnly ? [...r.headOnly] : [];
+    // im Nachweis: Kopf-Zellen (aus dem Lauf ohne Nachweis), die ohne den Schutz ersetzt würden
+    const headHit = ho ? [...new Set(r.hits.filter((h) => h.on !== false && ho.includes(h.unit)).map((h) => A.app.doc.units[h.unit].text))] : [];
+    return { o, kind: A.app.doc.kind, groups, cols, head, headHit };
+  }, [[...fs.readFileSync(file)], path.basename(file), mode, manual, FORMATS, (groups || []).flat(), merges, allBisher, headOff]);
   let key = null;
   if (mode === 'reversible' && !res.err) {
     await page.evaluate(() => window.__anon.show('a3'));
@@ -259,6 +265,8 @@ const diffs = [];
 const v28 = []; // Version 2.8.0: Änderung allein durch selbst gefundene Einrichtungen (nachgewiesen)
 const v210 = []; // Version 2.10.0: Änderung allein durch die Spalten-Behandlung (nachgewiesen: alle Spalten „wie bisher“ = Vorversion)
 const v210cols = new Map();
+const v211 = []; // Version 2.11.0: Änderung allein durch den Schutz reiner Kopf-Zellen (nachgewiesen, siehe oben)
+const v211cells = new Map();
 for (const [file, manual] of allFiles) {
   for (const mode of ['person', 'name', 'reversible']) {
     const a = await outputs(oldHtml, file, mode, manual);
@@ -272,6 +280,10 @@ for (const [file, manual] of allFiles) {
     // beides zusammen (gefundene Einrichtungen 2.8.0 und Spalten-Behandlung 2.10.0): alle Spalten „wie bisher“ = Vorversion
     // mit den dann gefundenen Einrichtungen als von Hand markiert
     let cr = null;
+    // Version 2.11.0: alle Spalten „wie bisher“ und Kopfzeile wie 2.10.0 = Vorversion; die Abweichung liegt dann allein in
+    // reinen Kopf-Zellen (Regel 1), die das Tool seit 2.11.0 nie ersetzt
+    let ch = null;
+    const bisherHead = async () => { if (!ch) ch = await outputs(newHtml, file, mode, manual, null, true, b.head); return ch; };
     const both = async () => { if (!cr) { const bb = await bisher(); cr = bb.groups.length ? await outputs(oldHtml, file, mode, manual, bb.groups) : { o: {}, key: null }; } return cr; };
     const label = `${path.basename(file)}${manual.length ? ' (mit eigenen Namen)' : ''}`;
     for (const f of Object.keys(a.o)) {
@@ -281,6 +293,7 @@ for (const [file, manual] of allFiles) {
       if (b.groups.length && JSON.stringify((await ref()).o[f]) === JSON.stringify(b.o[f])) { v28.push(`${label}, ${mode}, .${f}`); continue; }
       if (b.cols && b.cols.length && JSON.stringify((await bisher()).o[f]) === JSON.stringify(a.o[f])) { v210.push(`${label}, ${mode}, .${f}`); v210cols.set(label, b.cols); continue; }
       if (b.cols && b.cols.length && (await bisher()).groups.length && JSON.stringify((await bisher()).o[f]) === JSON.stringify((await both()).o[f])) { v210.push(`${label}, ${mode}, .${f} (dazu 2.8.0)`); v210cols.set(label, b.cols); continue; }
+      if (b.head.length && JSON.stringify((await bisherHead()).o[f]) === JSON.stringify(a.o[f]) && (await bisherHead()).headHit.length) { v211.push(`${label}, ${mode}, .${f}`); v211cells.set(label, (await bisherHead()).headHit); continue; }
       diffs.push(`${label}, ${mode}, .${f}`);
     }
     if (mode === 'reversible') {
@@ -289,6 +302,7 @@ for (const [file, manual] of allFiles) {
         if (b.groups.length && (await ref()).key === b.key) v28.push(`${label}, Schlüsseldatei`);
         else if (b.cols && b.cols.length && (await bisher()).key === a.key) v210.push(`${label}, Schlüsseldatei`);
         else if (b.cols && b.cols.length && (await bisher()).groups.length && (await bisher()).key === (await both()).key) v210.push(`${label}, Schlüsseldatei (dazu 2.8.0)`);
+        else if (b.head.length && (await bisherHead()).key === a.key && (await bisherHead()).headHit.length) { v211.push(`${label}, Schlüsseldatei`); v211cells.set(label, (await bisherHead()).headHit); }
         else diffs.push(`${label}, Schlüsseldatei`);
       }
     }
@@ -316,8 +330,10 @@ for (const [doc, why] of Object.entries(CHANGED_260)) {
 }
 log(`- Version 2.8.0: ${v28.length} Ausgabe(n) geändert allein durch selbst gefundene Einrichtungen (nachgewiesen: gleich der Vorversion mit diesen Einrichtungen als von Hand markiert, Schreibweisen zusammengeführt)${v28.length ? ': ' + v28.join('; ') : ''}`);
 log(`- Version 2.10.0: ${v210.length} Ausgabe(n) geändert allein durch die Spalten-Behandlung (nachgewiesen: mit allen Spalten „wie bisher“ gleich der Vorversion; „dazu 2.8.0“: gleich der Vorversion mit den dann gefundenen Einrichtungen als von Hand markiert)${v210.length ? ': ' + v210.join('; ') : ''}`);
+log(`- Version 2.11.0: ${v211.length} Ausgabe(n) geändert allein durch den Schutz reiner Kopf-Zellen (nachgewiesen: alle Spalten „wie bisher“ und Kopfzeile wie 2.10.0 gleich der Vorversion)${v211.length ? ': ' + v211.join('; ') : ''}`);
+for (const [doc, cells] of v211cells) log(`  - ${doc}: Kopf-Zellen, die die Vorversion ersetzte und die jetzt stehen bleiben: ${cells.map((x) => '„' + x + '“').join(', ')}`);
 for (const [doc, cols] of v210cols) log(`  - ${doc}: Spalten mit Behandlung „Name“/„ganz ersetzen“: ${cols.map((x) => '„' + x + '“').join(', ')}`);
-check('Ohne Bedienung byte-gleich zur Vorversion (Kennung fest), außer den Dokumenten mit Grund aus Version 2.6.0 und den nachgewiesenen Änderungen durch gefundene Einrichtungen (2.8.0) und durch die Spalten-Behandlung (2.10.0)', unexplained.length === 0, unexplained.join('; '));
+check('Ohne Bedienung byte-gleich zur Vorversion (Kennung fest), außer den Dokumenten mit Grund aus Version 2.6.0 und den nachgewiesenen Änderungen durch gefundene Einrichtungen (2.8.0), durch die Spalten-Behandlung (2.10.0) und durch den Schutz reiner Kopf-Zellen (2.11.0)', unexplained.length === 0, unexplained.join('; '));
 log('');
 
 // ---------- 4. Sperren, Eigene Namen, 1366×768 ----------

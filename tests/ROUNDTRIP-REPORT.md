@@ -1,9 +1,9 @@
 # Rückbau: Kreislauf-Beweis und Fallen
 
-Chromium headless gegen index.html (SHA-256 4f073eefd534bc00…). Alle Namen sind erfunden.
+Chromium headless gegen index.html (SHA-256 89e519fd9cf15896…). Alle Namen sind erfunden.
 
 ## TXT (protokoll.txt)
-- Anonymisiert (rückbaufähig): 57 Platzhalter in der Schlüsseldatei; Status „Gespeichert: anonymisiert_7S34.txt – mit bestätigten Restfunden.“
+- Anonymisiert (rückbaufähig): 57 Platzhalter in der Schlüsseldatei; Status „Gespeichert: anonymisiert_8N34.txt – mit bestätigten Restfunden.“
 - Simulierte Korrektur: Wort geändert, Satz mit Nachname A, Vorname A, [E-MAIL-1] und Endung „Nachname As“ eingefügt, Abschnitt TOP 3 vor TOP 2 verschoben
 - Rückbau: 76 Platzhalter ersetzt; abweichende Zeilen gegenüber Erwartung: 0
 - Bericht meldete: Vorname A 2→3, Nachname A 4→7, [E-MAIL-1] 1→2; Auffälligkeiten 0
@@ -13,6 +13,11 @@ Chromium headless gegen index.html (SHA-256 4f073eefd534bc00…). Alle Namen sin
 - Schlüsseldatei: 42 Platzhalter (E-Mail-Platzhalter: [E-MAIL-1], [E-MAIL-2])
 - Korrektur: Zelle geändert, zwei Zeilen getauscht, neue Zeile mit Vorname A Nachname A, [E-MAIL-1], „Nachname As“ eingefügt
 - Rückbau: 46 Platzhalter ersetzt; abweichende Zeilen: 0
+- JS-Fehler: keine
+
+## CSV (mitarbeiter.csv), Spalte „Abteilung“ lesbar
+- Korrektur: „Leitung“ → „Geschäftsleitung“ (lesbare Spalte), zwei Zeilen getauscht, neue Zeile mit Vorname A Nachname A, [E-MAIL-1]
+- Rückbau: 36 Platzhalter ersetzt; abweichende Zeilen: 0
 - JS-Fehler: keine
 
 ## DOCX (protokoll.docx)
@@ -28,7 +33,7 @@ Chromium headless gegen index.html (SHA-256 4f073eefd534bc00…). Alle Namen sin
 ## XLSX (mitarbeiter.xlsx)
 - Schlüsseldatei: 40 Platzhalter; ausgeblendetes Blatt „Yılmaz“ hieß anonymisiert „Nachname C“
 - Korrektur: Zelltext geändert, Text mit Platzhaltern in eine Zelle eingefügt, Zeilen 3/4 getauscht
-- Rückbau: 52 Platzhalter ersetzt; abweichende Zellen/Blattnamen/Formeln/Kommentare/Kopfzeilen: 0
+- Rückbau: 54 Platzhalter ersetzt; abweichende Zellen/Blattnamen/Formeln/Kommentare/Kopfzeilen: 0
 - Blattnamen und Bezüge nach Rückbau: Blatt 1: Mitarbeiter · Blatt 2: Yılmaz · Blatt 3: Notizen · Name: 'Yılmaz'!$A$1 · S1!E3: Notizen zu Mehmet Yılmaz | f='Yılmaz'!A1 · app: Mitarbeiter · app: Yılmaz · app: Notizen
 - JS-Fehler: keine
 
@@ -90,11 +95,11 @@ Hartung und Tannheim stehen nach allein stehender Anrede und später im Text (au
 - OK: Ergebnis entspricht exakt der Erwartung (alle exakten Platzhalter zurück, Auffälliges unverändert)
 - Rückbau-Bericht: 79 ersetzt; Auffälligkeiten: verändert: nachname ac | unbekannt: Nachname ZZ | gebeugt: Nachnamens A | verändert: [E-Mail-1] | getrennt: Nachname | A
 - OK: falsche Schlüsseldatei (vom Protokoll) erkannt – Urteil: zweifelhaft; Meldung: Wahrscheinlich die falsche Schlüsseldatei: 47 von 57 Platzhaltern gefunden, nur bei 33 stimmt die Anzahl, 28 unbekannte Platzhalter in der Datei.
-- OK: Datei ohne passende Platzhalter: kein Ergebnis – Rückbau nicht möglich.Im Dokument steht keine Kennung. Der Schlüssel hat die Kennung N276. Prüfe, ob beide zusammengehör
+- OK: Datei ohne passende Platzhalter: kein Ergebnis – Rückbau nicht möglich.Im Dokument steht keine Kennung. Der Schlüssel hat die Kennung B26P. Prüfe, ob beide zusammengehör
 - OK: alte Zuordnungstabelle (CSV) wird abgelehnt – Das ist die alte Zuordnungstabelle (zuordnung_VERTRAULICH.csv). Sie reicht für einen Rückbau NICHT: Sie enthäl
 - OK: Rückbau deterministisch (Doppellauf byte-gleich) – ac385ab26ac6aaf2 / ac385ab26ac6aaf2
 - OK: Anonymisierung rückbaufähig deterministisch (Datei und Schlüssel ohne Kennung) – 6e6b33171283923f / 6e6b33171283923f
-- OK: Kennungen zweier Läufe verschieden (Zufall) – N276 / 89J7
+- OK: Kennungen zweier Läufe verschieden (Zufall) – B26P / D85H
 
 ## Namensspalten und Anrede am Zeilenende (Version 2.6.0, tests/fixtures-spalten)
 - protokoll.txt: Sonnleitner → Nachname D; 9 Platzhalter; bearbeitet (Zeile mit dem Platzhalter angefügt); 15 zurückgebaut, Abweichungen: 0
@@ -112,8 +117,9 @@ Hartung und Tannheim stehen nach allein stehender Anrede und später im Text (au
 |---|---|---|---|
 | TXT | 76 | 76 | 0 |
 | CSV | 46 | 46 | 0 |
+| CSV (Wort im Klartext) | 36 | 36 | 0 |
 | DOCX | 98 | 98 | 0 |
-| XLSX | 52 | 52 | 0 |
+| XLSX | 54 | 54 | 0 |
 | DOCX Kurs-Tabelle | 25 | 25 | 0 |
 | Risiko-Test TXT | 18 | 18 | 0 |
 | Risiko-Test CSV | 25 | 25 | 0 |

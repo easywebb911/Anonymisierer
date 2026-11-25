@@ -204,6 +204,20 @@ function csv(file, data) {
   const lines = [HEADERS, ...data.map((r) => r.map(cellText))].map((r) => r.map((v) => q(String(v))).join(';'));
   fs.writeFileSync(path.join(FXW, file), lines.join('\r\n') + '\r\n');
 }
+// Version 2.11.0: Fälle der Guardian-Läufe zur Kopfzeile (alle Namen erfunden). Erwartung: nirgends schwächer als main;
+// die Überschriften „Name“, „Nachname“, „Vorname“ bleiben stehen.
+export const GUARDIAN_CASES = {
+  'g-p5': ['Klasse 5a, Klassenleitung Frau Ruckdäschel;', 'Nachname;Vorname', 'Kowalczyk;Bernd', 'Brandauer;Hilde', 'Liebknecht;Ottmar', 'Schwarzkopf;Ilse',
+    'Wendling;Gerd', 'Ammermann;Rosi'],
+  'g-p1': ['Kowalczyk;Bernd;Raum 12;Termin 3', 'Brandauer;Hilde;Raum 14;Termin 4', 'Liebknecht;Ottmar;Raum 15;Termin 5'],
+  'g-p2': ['Stunde;Frau Kowalczyk;Herr Brandauer', '1;Mathe 5a;Deutsch 6b', '2;Mathe 6a;Deutsch 5b', '3;Mathe 7a;Deutsch 7b', '4;Mathe 8a;Deutsch 8b',
+    '5;Mathe 9a;Deutsch 9b', '6;Mathe 5b;Deutsch 6a'],
+  'g-a': ['Nachname;Vorname;Klassenleitung Frau Brunhilde Wetzlarski, Tel. 0171 2345678', 'Quenteler;Jorinde;5a', 'Pfaffenrath;Malwine;5a', 'Oderbrecht;Kasimir;5b'],
+  'g-b': ['Kurs Mathematik;Leitung Herr Dr. Ottokar Brannemann;Raum 12;Termin 12.03.2025', 'Kurs Deutsch;Leitung Frau Gesine Wolkenhauer;Raum 14;Termin 14.03.2025',
+    'Kurs Englisch;Leitung Frau Gesine Wolkenhauer;Raum 15;Termin 15.03.2025'],
+  'g-c': ['Rückmeldung: Glocke und Kuchenbrod fehlen, Hammer kommt später;;', 'Name;Klasse;Ganztag', 'Glocke, Henrike;5c;ja', 'Hammer, Ole;5a;nein',
+    'Kuchenbrod, Malte;5b;ja', 'Wiesler, Tamme;5b;ja'],
+};
 export async function makeAll() {
   fs.mkdirSync(FXW, { recursive: true });
   const data = rows(60);
@@ -232,6 +246,12 @@ export async function makeAll() {
   // Titelzeile darüber (Text wie bisher)
   fs.writeFileSync(path.join(FXW, 'komma.csv'), ['Liste für Tilda Berger und Hauke Quandt;;', 'Name;Klasse;Ganztag', 'Berger, Tilda;5c;ja', 'Quandt, Hauke;5a;nein', 'Wiesel, Ole;5b;ja', ''].join('\r\n'));
   fs.writeFileSync(path.join(FXW, 'kollision-datum.csv'), ['Geburtsdatum;Religion;Text', '14.03.2015;rk;siehe [DATUM-1] und [ANGABE-2]', '02.07.2015;ev;Feld [ANGABE-2] bleibt', ''].join('\r\n'));
+  // Version 2.11.0: Fälle der Guardian-Läufe 1 (p1, p2, p5) und 2 (a, b, c) zur Kopfzeile, als CSV und als XLSX
+  for (const [name, lines] of Object.entries(GUARDIAN_CASES)) {
+    const rowsG = lines.map((l) => l.split(';'));
+    fs.writeFileSync(path.join(FXW, name + '.csv'), lines.join('\r\n') + '\r\n');
+    await xlsx(name + '.xlsx', rowsG.slice(1).map((r) => r.map((v) => ({ v, typ: 's' }))), { headers: rowsG[0], sheet: 'Liste' });
+  }
   const truth = { headers: HEADERS, expect: EXPECT, rows: data.map((r) => r.map(cellText)), types: data.map((r) => r.map((c) => c.typ)) };
   fs.writeFileSync(path.join(FXW, 'stammdaten-wahrheit.json'), JSON.stringify(truth, null, 1));
 }

@@ -362,9 +362,7 @@ export function analyze(units, state, extra = {}) {
   // Ende der Erkennung (columnWholeHits). Ohne Tabelle mit Kopfzeile oder mit „wie bisher“ überall: wie 2.9.0.
   const colPlan = columnPlan(units, st.colTreat || {}, st.colMemory || {}, { valueCells: extra.valueCells, rare: st.colRare !== false });
   const nameUnits = new Set();
-  // (st.colCommon === false nur für den Nachweis in tests/regression.mjs: gewöhnliche Wörter wie bis 2.10.0)
-  const isCommon = st.colCommon === false ? null : extra.isCommon || null;
-  const ganzUnits = columnTreatRule(units, unitToks, unitStarts, covered, tokHit, hits, mentions, exceptions, colPlan, nameUnits, isCommon);
+  const ganzUnits = columnTreatRule(units, unitToks, unitStarts, covered, tokHit, hits, mentions, exceptions, colPlan, nameUnits);
   // Version 2.6.0: Namensspalten in Tabellen (Excel, CSV, Word) – vor allen übrigen Regeln (Vorrang vor „mehrdeutig“,
   // Regel b2 und Regel a2)
   const columns = nameColumnRule(units, unitToks, covered, tokHit, hits, mentions, exceptions, fullText, st.nameColumns || {},
@@ -626,9 +624,6 @@ export function analyze(units, state, extra = {}) {
       const raw = fullText.slice(c.s, c.stemEnd || c.e);
       if (h.origin !== 'manual' && ([...c.key].length < 3 || lex.isStopWord(raw) || lex.PARTICLES.has(raw.toLowerCase()))) continue;
       if (h.cert !== 'sicher' && h.origin === 'auto') continue;
-      // Version 2.11.0: Wert einer Spalte „Name“ oder „ganz ersetzen“, der ein gewöhnliches Wort ist (Wortliste, in keiner
-      // Namensliste): wird nicht anderswo im Dokument gesucht
-      if (c.common || (isCommon && ganzUnits.has(h.unit) && h.origin !== 'manual' && !lex.inLists(c.key) && isCommon(raw))) continue;
       if (!partToEntities.has(c.key)) partToEntities.set(c.key, new Set());
       partToEntities.get(c.key).add(h.entity);
     }
@@ -698,8 +693,9 @@ export function analyze(units, state, extra = {}) {
 
   // Version 2.10.0: Spalten mit Behandlung „ganz ersetzen“ (nach allen Regeln und der Übertragung)
   columnWholeHits(units, unitStarts, hits, ganzUnits, st.settings.mode === MODE_REVERSIBLE);
-  // Version 2.11.0: Die Kopfzeile einer Tabelle (Excel, CSV) wird nie ersetzt, in keiner Behandlung und keinem Modus
-  const headOnly = headerOnlyUnits(units);
+  // Version 2.11.0: Zellen der Kopfzeile einer Tabelle (Excel, CSV), die nur aus üblichen Spaltenkopf-Wörtern bestehen,
+  // werden nie ersetzt (st.headKeep === false nur für den Nachweis in tests/bedienung-test.mjs: Kopfzeile wie 2.10.0)
+  const headOnly = st.headKeep === false ? new Set() : headerOnlyUnits(units);
   for (let i = hits.length - 1; i >= 0; i--) if (headOnly.has(hits[i].unit) || (hits[i].unit2 !== undefined && headOnly.has(hits[i].unit2))) hits.splice(i, 1);
 
   hits.sort((a, b) => a.s - b.s || a.e - b.e);
@@ -1079,7 +1075,7 @@ export function leakForms(result) {
     for (const h of en.hits) {
       if (!h.on) continue;
       for (const c of h.comps || []) {
-        if (c.type !== 'W' || c.common) continue; // Version 2.11.0: gewöhnliches Wort aus einer Spalte „Name“
+        if (c.type !== 'W') continue;
         const raw = result.fullText.slice(c.s, c.stemEnd || c.e);
         const keys = new Set([c.key, fold(raw)]);
         const uv = umlautVariant(raw);
@@ -1582,15 +1578,21 @@ export const SENSITIVE_STEMS = ['relig', 'konfess', 'glaub', 'zuzug', 'asyl', 'a
   'diagn', 'allerg', 'medik', 'behind', 'beeintr', 'störung', 'lrs', 'legasth', 'dyskalk', 'inklus', 'förder', 'msd', 'therap', 'sorge', 'wohn',
   'pflege', 'einkommen', 'sozial', 'bemerk', 'erläut', 'notiz', 'anmerk', 'hinweis', 'komment', 'sonstig', 'wunsch',
   // ergänzt (2.11.0)
-  'flucht', 'migra', 'jugendamt', 'vormund', 'psych', 'adhs', 'autis', 'nachteilsausgl', 'notenschutz'];
-export const SENSITIVE_ABBR = ['rel.'];
+  'flucht', 'migra', 'jugendamt', 'vormund', 'psych', 'adhs', 'autis', 'nachteilsausgl', 'notenschutz',
+  // ergänzt nach Guardian-Fund (2.11.0)
+  'bekenntnis', 'geburtsland', 'ethni', 'familienstand', 'lebtbei'];
+// Kürzel mit Punkt oder Bindestrich (vorne ein Wortanfang): „Rel.“, „Konf.“, „Rel-Unt“
+export const SENSITIVE_ABBR = ['rel.', 'konf.', 'rel-'];
+// Kurze Kürzel zählen nur als ganzer Spaltenkopf (sonst träfen sie Wortteile)
+export const SENSITIVE_WHOLE = ['ru', 'daz'];
 // Zu weit (im Test belegt, Rückfalllinie): „Fremdsprache“ und „Gewünschte …“ (gewählte Schulfächer) sind kein heikles Thema
 const STEM_EXCEPT = { sprach: ['fremdsprach'], wunsch: ['gewunsch'] };
 const STEMS_NORM = SENSITIVE_STEMS.map((x) => [x, colNorm(x).replace(/ /g, '')]);
 export function sensitiveStem(header) {
   const flat = colNorm(header).replace(/ /g, '');
   const low = fold(String(header || '').normalize('NFC'));
-  for (const a of SENSITIVE_ABBR) if (new RegExp('(^|[^a-z])' + a.replace('.', '\\.')).test(low)) return a;
+  for (const a of SENSITIVE_ABBR) if (new RegExp('(^|[^a-z])' + a.replace(/[.-]/g, (m) => '\\' + m)).test(low)) return a;
+  for (const w of SENSITIVE_WHOLE) if (colNorm(header) === w) return w;
   for (const [orig, st] of STEMS_NORM) {
     let i = flat.indexOf(st);
     while (i >= 0) {
@@ -1684,19 +1686,45 @@ export function columnPlan(units, overrides = {}, memory = {}, opts = {}) {
 // Datenzelle steht, gehört nicht dazu (sonst bliebe die Datenzelle stehen).
 export function headerOnlyUnits(units) {
   const out = new Set();
-  for (const { t, tb, headRows, headUnits } of findTables(units)) {
+  for (const { t, headRows, headUnits } of findTables(units)) {
     if (!headRows.length || !(t === 'csv' || t.startsWith('x|'))) continue;
-    // Nur eine sichere Kopfzeile bleibt stehen: mindestens zwei gefüllte Zellen, und entweder ein Namens-Spaltenkopf
-    // („Nachname“, „Name“ …) oder jede Zelle sieht wie ein Spaltenkopf aus. Eine Titelzeile mit einer einzigen Zelle oder
-    // eine Datenzeile (z. B. „Kowalczyk | Bernd | Raum 12“) gilt im Zweifel nicht als Kopfzeile und wird wie bisher geprüft.
-    const sure = headRows.every((r) => {
-      const cells = [...tb.get(r).values()].map((cell) => [...cell.units].map((ui) => units[ui].text).join(' ').trim()).filter(Boolean);
-      return cells.length >= 2 && (cells.some((tx) => hasNameHeader(tx)) || cells.every((tx) => isHeaderLike(tx)));
-    });
-    if (!sure) continue;
-    for (const ui of headUnits) if ((units[ui].tcells || []).every((tc) => tc.t === t && headRows.includes(tc.r))) out.add(ui);
+    // Schutz je Zelle (Entscheidung Easy zu 2.11.0): nur eine Zelle, die ausschließlich aus üblichen Spaltenkopf-Wörtern
+    // (und Füllwörtern) besteht, bleibt stehen. Jede andere Zelle der Kopfzeile wird geprüft wie in 2.10.0.
+    for (const ui of headUnits) {
+      if (!(units[ui].tcells || []).every((tc) => tc.t === t && headRows.includes(tc.r))) continue;
+      if (isPureHeaderCell(units[ui].text)) out.add(ui);
+    }
   }
   return out;
+}
+// Übliche Köpfe aus Schul-Stammdaten (nur ganze Wörter; nur für den Schutz der Kopfzeile, nicht für die Erkennung einer
+// Kopfzeile oder einer Namensspalte)
+export const HEAD_SCHOOL_WORDS = ['schule', 'grundschule', 'schulart', 'schulform', 'schulnummer', 'schuljahr', 'schulweg', 'einrichtung',
+  'kita', 'kindergarten', 'hort', 'einschulung', 'eintritt', 'austritt', 'übertritt', 'übertrittszeugnis', 'übertrittszeugnisses', 'zeugnis',
+  'ergebnis', 'jahrgang', 'jahrgangsstufe', 'jgst', 'zweig', 'ausbildungsrichtung', 'ganztag', 'geschlecht', 'geburtsort', 'geburtsland',
+  'geburtsurkunde', 'muttersprache', 'staatsangehörigkeit', 'religion', 'konfession', 'religionsunterricht', 'ethik', 'fremdsprache',
+  'sprache', 'erste', 'zweite', 'dritte', 'gewünscht', 'gewünschte', 'gewünschter', 'hausnummer', 'gkz', 'notfall', 'notfälle',
+  'notfallnummer', 'sorgerecht', 'sorgeberechtigt', 'sorgeberechtigte', 'erziehungsberechtigt', 'elternteil', 'mutter', 'vater',
+  'auskunftsberechtigt', 'akad', 'akademischer', 'wohnt', 'schwimmen', 'schwimmabzeichen', 'zuzug', 'zuzugsart', 'bisherige',
+  'bisheriger', 'gesundheitliche', 'beeinträchtigung', 'erläuterung', 'msd', 'lrs', 'rechtschreibstörung', 'lese', 'inklusionsbedarf',
+  'förderbedarf', 'kontaktdaten', 'wunschpartner', 'unt', 'rel', 'konf', 'laut', 'mobilnummer', 'festnetz', 'pflegschaft',
+  // Fragen als Überschrift aus einem Schul-Export (Testdatei stammdaten): „Besteht Kontakt zum MSD“, „Wurde in der
+  // Grundschule Nachteilsausgleich oder Notenschutz wegen LRS gewährt?“
+  'besteht', 'wurde', 'nachteilsausgleich', 'notenschutz', 'wegen', 'gewährt'];
+// Füllwörter in Spaltenköpfen
+const HEAD_PROTECT_FILL = ['der', 'die', 'das', 'des', 'dem', 'den', 'zu', 'zum', 'zur', 'mit', 'von', 'vom', 'für', 'am', 'im', 'an', 'auf',
+  'ab', 'bis', 'pro', 'je', 'nach', 'bei', 'r', 'e', 's'];
+const HEAD_PROTECT = new Set([...NAME_HEADERS_STRONG, ...NAME_HEADERS_WEAK, ...HEAD_GENERAL, ...HEAD_FILL,
+  ...HEAD_SCHOOL_WORDS.map(fold), ...HEAD_PROTECT_FILL.map(fold)]);
+// Zelle nur aus Spaltenkopf-Wörtern: jedes Wort steht in HEAD_PROTECT; Zahlen höchstens zweistellig („1. Ort“); sonst nur
+// Satzzeichen
+export function isPureHeaderCell(text) {
+  let words = 0;
+  for (const tk of tokenize(text)) {
+    if (tk.word) { if (!HEAD_PROTECT.has(fold(tk.t))) return false; words++; continue; }
+    if (/\d/.test(tk.t) && !/^\d{1,2}$/.test(tk.t)) return false;
+  }
+  return words > 0;
 }
 // Vorschlag in einer Personen-Tabelle (Reihenfolge laut Auftrag 2.11.0)
 function personProposal(x) {
@@ -1747,7 +1775,7 @@ function nameCellSegments(toks, covered, commaList = false) {
 }
 // Treffer für die Spalten mit Behandlung „Name“ (vor allen übrigen Regeln, wie die Namensspalten). Liefert die Abschnitte
 // mit Behandlung „ganz ersetzen“ (deren Treffer entstehen am Ende, siehe columnWholeHits).
-function columnTreatRule(units, unitToks, unitStarts, covered, tokHit, hits, mentions, exceptions, plan, nameUnits = new Set(), isCommon = null) {
+function columnTreatRule(units, unitToks, unitStarts, covered, tokHit, hits, mentions, exceptions, plan, nameUnits = new Set()) {
   const byUnit = new Map(); // ui -> {treat, kind, col, cells}
   const tabs = new Map(findTables(units).map((x) => [x.t, x]));
   for (const col of plan) {
@@ -1798,9 +1826,7 @@ function columnTreatRule(units, unitToks, unitStarts, covered, tokHit, hits, men
         const tk = toks[k];
         const inf = info(tk, exceptions);
         if (inf.particle && !tk.cap && !tk.allcaps && i < wordIdx.length - 1) return { type: 'P', s: tk.s, e: tk.e, key: fold(tk.t) };
-        // Version 2.11.0: gewöhnliches Wort (Wortliste, in keiner Namensliste) – gilt nicht als Name anderswo im Dokument
-        const common = !!isCommon && !inf.known && isCommon(tk.t);
-        return { type: 'W', s: tk.s, e: tk.e, stemEnd: tk.e, suffix: '', key: fold(tk.t), F: inf.F, L: inf.L, A: inf.A, known: inf.known, shaped: inf.shaped, allcaps: tk.allcaps, tokIdx: k, ...(common ? { common: true } : {}) };
+        return { type: 'W', s: tk.s, e: tk.e, stemEnd: tk.e, suffix: '', key: fold(tk.t), F: inf.F, L: inf.L, A: inf.A, known: inf.known, shaped: inf.shaped, allcaps: tk.allcaps, tokIdx: k };
       });
       if (!comps.some((x) => x.type === 'W')) comps[comps.length - 1].type = 'W';
       // „Nachname, Vorname“ (genau ein Komma zwischen zwei Wortgruppen) wie bei der Namensspalten-Regel: Nachname vorn

@@ -167,7 +167,7 @@ Bei **Excel- und CSV-Tabellen mit Kopfzeile** entscheidest du **je Spalte**, was
 
 **Personen-Tabelle: im Zweifel ersetzen (seit 2.11).** Hat eine Tabelle eine Kopfzeile und mindestens eine Spalte mit Namen, ist sie eine **Personen-Tabelle**. Dort bleibt eine Spalte nur lesbar, wenn sie erkennbar harmlos ist. Das Tool prüft je Spalte in dieser Reihenfolge:
 1. **Bekannte Überschriften** (Liste unten) gelten weiter. „Name“ gibt es aber nur noch, wenn ein Namenswort in der Überschrift steht (Nachname, Vorname, Vornamen, Rufname, Familienname, Geburtsname, Name). „Wunschpartner“, „Ansprechpartner“ oder „Erziehungsberechtigte“ ohne Namenswort werden ganz ersetzt.
-2. **Heikle Themen** werden ganz ersetzt als [ANGABE]. Es genügt ein Wortstamm irgendwo in der Überschrift, auch mitten in einem Wort: rel. (als Abkürzung), relig, konfess, glaub, zuzug, asyl, aufenth, herkunft, staats, national, sprach, gesund, krank, diagn, allerg, medik, behind, beeintr, störung, lrs, legasth, dyskalk, inklus, förder, msd, therap, sorge, wohn, pflege, einkommen, sozial, bemerk, erläut, notiz, anmerk, hinweis, komment, sonstig, wunsch, dazu flucht, migra, jugendamt, vormund, psych, adhs, autis, nachteilsausgl, notenschutz. **Nicht** heikel: „Fremdsprache“ (bei „sprach“) und „Gewünschte …“ (bei „wunsch“), denn das sind gewählte Fächer. Trifft ein Wortstamm neben „Einrichtung“, gilt [ANGABE].
+2. **Heikle Themen** werden ganz ersetzt als [ANGABE]. Es genügt ein Wortstamm irgendwo in der Überschrift, auch mitten in einem Wort: rel., konf. und rel- (als Abkürzung, z. B. „Rel.-Unt.“, „Rel-Unt“, „Konf.“), RU und DaZ (nur als ganze Überschrift), relig, konfess, glaub, zuzug, asyl, aufenth, herkunft, staats, national, sprach, gesund, krank, diagn, allerg, medik, behind, beeintr, störung, lrs, legasth, dyskalk, inklus, förder, msd, therap, sorge, wohn, pflege, einkommen, sozial, bemerk, erläut, notiz, anmerk, hinweis, komment, sonstig, wunsch, dazu flucht, migra, jugendamt, vormund, psych, adhs, autis, nachteilsausgl, notenschutz, bekenntnis, geburtsland, ethni, familienstand, lebt bei. **Nicht** heikel: „Fremdsprache“ (bei „sprach“) und „Gewünschte …“ (bei „wunsch“), denn das sind gewählte Fächer. Trifft ein Wortstamm neben „Einrichtung“, gilt [ANGABE].
 3. **Datumswerte:** Enthält eine Spalte überwiegend Datumswerte, wird sie ganz ersetzt als [DATUM].
 4. **Alle übrigen Spalten nach ihrem Inhalt:** Eine **Auswahl-Spalte** bleibt lesbar: höchstens 12 verschiedene Werte, jeder höchstens 40 Zeichen, und die Werte wiederholen sich (höchstens ein Drittel so viele verschiedene Werte wie gefüllte Zellen). Alles andere (Freitext, viele verschiedene Werte, laufende Nummern) wird ganz ersetzt als [ANGABE].
 
@@ -175,9 +175,7 @@ Bei **Excel- und CSV-Tabellen mit Kopfzeile** entscheidest du **je Spalte**, was
 
 **Du siehst, was lesbar bleibt.** Die Übersicht zeigt für jede lesbare Spalte ihre Werte mit Häufigkeit, die häufigsten zuerst (z. B. „Schulweg: Bus 30, Fahrrad 15, zu Fuß 15“), und wie viele seltene Werte ersetzt werden. Lesbare Spalten sind nicht eingeklappt. Auf „Speichern“ steht bei jeder Personen-Tabelle der Punkt **„Diese Spalten bleiben lesbar: …“** mit „Ansehen“. Er läuft über das eine Häkchen.
 
-**Die Kopfzeile wird nie ersetzt** (seit 2.11), in keiner Behandlung und in keinem Modus. Steht in einer Überschrift ein Wort, das im Dokument als Name gilt, meldet es der Schlusscheck.
-
-**Gewöhnliche Wörter in Namensspalten (seit 2.11):** Steht in einer Spalte „Name“ oder in einer ganz ersetzten Spalte ein gewöhnliches Wort (Wortliste aus „Diese Wörter bleiben stehen“, und es steht in keiner Namensliste, z. B. „Grundschule“, „Fußballverein“), wird es dort ersetzt, gilt aber **nicht** als Name an anderen Stellen des Dokuments. Namen wie „Koch“ oder „Winter“ (auch gewöhnliche Wörter, aber in der Namensliste) gelten weiter überall.
+**Kopfzeile (seit 2.11):** Eine Zelle der Kopfzeile bleibt immer stehen, wenn sie **nur aus üblichen Spaltenkopf-Wörtern** besteht (z. B. „Name“, „Nachname“, „1. Erziehungsberechtigte/r Vorname“, „Übertritt von“, „Bisherige Grundschule“; Zahlen höchstens zweistellig wie „1.“). Jede andere Zelle der Kopfzeile prüft das Tool wie jeden Text, mit allen Trefferarten (Namen, Kontaktdaten, eigene Namen, Handmarkierung). Beispiel: „Klassenleitung Frau Wetzlarski, Tel. 0171 …“ in der Kopfzeile wird ersetzt. Zu den Wörtern zählen die Namens- und üblichen Spaltenköpfe (siehe „Namensspalten“) und übliche Köpfe aus Schul-Stammdaten (Liste `HEAD_SCHOOL_WORDS` in `src/core/detect.js`).
 
 **Für alle anderen Tabellen** (ohne Spalte mit Namen, z. B. ein Raumplan) gilt der Vorschlag nur anhand der Überschrift wie in 2.10; was dort nicht passt, bleibt „wie bisher“.
 
@@ -401,8 +399,7 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 - **Lesbar bleiben Auswahl-Spalten** einer Personen-Tabelle (wenige, sich wiederholende Werte, z. B. Geschlecht, Schulweg, Ganztag). Ein Wert, der mindestens 3-mal vorkommt, bleibt lesbar, auch wenn er zusammen mit anderen lesbaren Spalten eine Person erkennbar machen kann (z. B. die einzige Kombination aus zwei häufigen Werten). Prüfe die Liste „Diese Spalten bleiben lesbar“.
 - **Kleine Tabellen (weniger als 20 Zeilen):** Die Regel „seltene Werte“ ist dort aus; ein Wert, der nur einmal vorkommt, bleibt lesbar.
 - **Wortstämme** treffen nur, was in der Überschrift steht. Eine heikle Spalte mit einer harmlosen Überschrift (z. B. „Info 2“ mit wenigen Werten) bleibt eine Auswahl-Spalte und damit lesbar.
-- **Die Kopfzeile wird nie ersetzt.** Steht darin ein echter Name (z. B. „Notizen zu …“), bleibt er stehen; der Schlusscheck meldet ihn, wenn der Name im Dokument als Name gilt.
-- **Gewöhnliche Wörter** aus Namensspalten gelten nicht mehr anderswo als Name. Ist ein echter Name zugleich ein gewöhnliches Wort und steht in keiner Namensliste, wird er anderswo im Text nur noch über die übrigen Regeln erkannt (z. B. mit Anrede).
+- **Kopfzeile:** Eine Kopf-Zelle mit einem Wort außerhalb der Liste wird geprüft wie Text. Steht darin ein Wort, das im Dokument als Name gilt (z. B. ein Nachname, der auch eine Überschrift sein könnte), wird es dort ersetzt wie in 2.10.
 
 **Seit Version 2.10 (Tabellen: Spalten behandeln):**
 - **Nur Excel und CSV.** Tabellen in Word und PDF haben keine Übersicht „Spalten“; dort gilt alles wie bisher (auch die Namensspalten-Regel aus 2.6).
@@ -562,7 +559,7 @@ Version **2.11.0**, Stand 2026-11-25 (steht auch im Fußbereich des Tools).
 SHA-256 der `index.html` dieser Version:
 
 ```
-f6e9546bf17ad947f5e43c0e19d911cfdb9148437b173ffdc864a0571188b24c
+89e519fd9cf15896dd2542010478f929dabdd9bf996bfd29a8f6f464391a6928
 ```
 
 Seit 2.9.0 ist die Datei rund 8 MB groß (vorher 3,7 MB): Sie enthält die gepackte Wortliste für „Diese Wörter bleiben stehen“.

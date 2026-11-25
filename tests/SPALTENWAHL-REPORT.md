@@ -234,12 +234,93 @@ Schlüsseldatei (Excel): Format-Version 3, 910 Platzhalter (Name 369, Datum 55, 
 - OK: Sammelfrage „Diese Wörter bleiben stehen“: kein Wort aus ersetzten Zellen
 - OK: Schlusscheck: kein Fund (ersetzte Zellen sind ersetzt)
 - OK: Name in einer unsicheren Kopfzeile (eine Spalte), „Unsichere Treffer“ aus: ersetzt
-- OK: titelzeile.csv (unsichere Kopfzeile), „Unsichere Treffer“ an: Namen ersetzt
-- OK: titelzeile.csv (unsichere Kopfzeile), „Unsichere Treffer“ aus: Namen ersetzt
-- OK: ohnekopf.csv (unsichere Kopfzeile), „Unsichere Treffer“ an: Namen ersetzt
-- OK: ohnekopf.csv (unsichere Kopfzeile), „Unsichere Treffer“ aus: Namen ersetzt
-- OK: namekopf.csv (unsichere Kopfzeile), „Unsichere Treffer“ an: Namen ersetzt
-- OK: namekopf.csv (unsichere Kopfzeile), „Unsichere Treffer“ aus: Namen ersetzt
+
+## Guardian-Fälle zur Kopfzeile (CSV und XLSX, „Person A“ und „rückbaufähig“)
+- OK: g-p5.csv, person: nirgends schwächer als main
+- OK: g-p5.csv, person: Überschriften Nachname, Vorname bleiben stehen
+- g-p5.csv, Person A: Zeile 1 gleich: main „Klasse 5a, Klassenleitung Frau Person A;“ / jetzt „Klasse 5a, Klassenleitung Frau Person A;“
+- OK: g-p5.csv, person, „Unsichere Treffer“ aus: nirgends schwächer als main
+- OK: g-p5.csv, person, „Unsichere Treffer“ aus: Überschriften Nachname, Vorname bleiben stehen
+- OK: g-p5.csv, reversible: nirgends schwächer als main
+- OK: g-p5.csv, reversible: Überschriften Nachname, Vorname bleiben stehen
+- OK: g-p5.csv, reversible: Rückbau ergibt das Original – passend
+- OK: g-p5.xlsx, person: nirgends schwächer als main
+- OK: g-p5.xlsx, person: Überschriften Nachname, Vorname bleiben stehen
+- OK: g-p5.xlsx, person, „Unsichere Treffer“ aus: nirgends schwächer als main
+- OK: g-p5.xlsx, person, „Unsichere Treffer“ aus: Überschriften Nachname, Vorname bleiben stehen
+- OK: g-p5.xlsx, reversible: nirgends schwächer als main
+- OK: g-p5.xlsx, reversible: Überschriften Nachname, Vorname bleiben stehen
+- OK: g-p5.xlsx, reversible: Rückbau ergibt das Original – passend
+- OK: g-p1.csv, person: nirgends schwächer als main
+- g-p1.csv, Person A: Zeile 1 gleich: main „Person A;Person B;Raum 12;Termin 3“ / jetzt „Person A;Person B;Raum 12;Termin 3“
+- OK: g-p1.csv, person, „Unsichere Treffer“ aus: nirgends schwächer als main
+- OK: g-p1.csv, reversible: nirgends schwächer als main
+- OK: g-p1.csv, reversible: Rückbau ergibt das Original – passend
+- OK: g-p1.xlsx, person: nirgends schwächer als main
+- OK: g-p1.xlsx, person, „Unsichere Treffer“ aus: nirgends schwächer als main
+- OK: g-p1.xlsx, reversible: nirgends schwächer als main
+- OK: g-p1.xlsx, reversible: Rückbau ergibt das Original – passend
+- OK: g-p2.csv, person: nirgends schwächer als main
+- g-p2.csv, Person A: Zeile 1 gleich: main „Stunde;Frau Person A;Herr Person B“ / jetzt „Stunde;Frau Person A;Herr Person B“
+- OK: g-p2.csv, person, „Unsichere Treffer“ aus: nirgends schwächer als main
+- OK: g-p2.csv, reversible: nirgends schwächer als main
+- OK: g-p2.csv, reversible: Rückbau ergibt das Original – passend
+- OK: g-p2.xlsx, person: nirgends schwächer als main
+- OK: g-p2.xlsx, person, „Unsichere Treffer“ aus: nirgends schwächer als main
+- OK: g-p2.xlsx, reversible: nirgends schwächer als main
+- OK: g-p2.xlsx, reversible: Rückbau ergibt das Original – passend
+- OK: g-a.csv, person: nirgends schwächer als main
+- OK: g-a.csv, person: Überschriften Nachname, Vorname bleiben stehen
+- g-a.csv, Person A: Zeile 1 gleich: main „Nachname;Vorname;Klassenleitung Frau Person A, Tel. [TELEFON]“ / jetzt „Nachname;Vorname;Klassenleitung Frau Person A, Tel. [TELEFON]“; Zeile 2: main „Person B;Person B;5a“ / jetzt „Person B;Person B;[ANGABE]“; Zeile 3: main „Person C;Person C;5a“ / jetzt „Person C;Person C;[ANGABE]“; Zeile 4: main „Person D;Person D;5b“ / jetzt „Person D;Person D;[ANGABE]“
+- OK: g-a.csv, person, „Unsichere Treffer“ aus: nirgends schwächer als main
+- OK: g-a.csv, person, „Unsichere Treffer“ aus: Überschriften Nachname, Vorname bleiben stehen
+- OK: g-a.csv, reversible: nirgends schwächer als main
+- OK: g-a.csv, reversible: Überschriften Nachname, Vorname bleiben stehen
+- OK: g-a.csv, reversible: Rückbau ergibt das Original – passend
+- OK: g-a.xlsx, person: nirgends schwächer als main
+- OK: g-a.xlsx, person: Überschriften Nachname, Vorname bleiben stehen
+- OK: g-a.xlsx, person, „Unsichere Treffer“ aus: nirgends schwächer als main
+- OK: g-a.xlsx, person, „Unsichere Treffer“ aus: Überschriften Nachname, Vorname bleiben stehen
+- OK: g-a.xlsx, reversible: nirgends schwächer als main
+- OK: g-a.xlsx, reversible: Überschriften Nachname, Vorname bleiben stehen
+- OK: g-a.xlsx, reversible: Rückbau ergibt das Original – passend
+- OK: g-b.csv, person: nirgends schwächer als main
+- g-b.csv, Person A: Zeile 1 gleich: main „Kurs Mathematik;Leitung Herr Dr. Person A Brannemann;Raum 12;Termin 12.03.2025“ / jetzt „Kurs Mathematik;Leitung Herr Dr. Person A Brannemann;Raum 12;Termin 12.03.2025“
+- OK: g-b.csv, person, „Unsichere Treffer“ aus: nirgends schwächer als main
+- OK: g-b.csv, reversible: nirgends schwächer als main
+- OK: g-b.csv, reversible: Rückbau ergibt das Original – passend
+- OK: g-b.xlsx, person: nirgends schwächer als main
+- OK: g-b.xlsx, person, „Unsichere Treffer“ aus: nirgends schwächer als main
+- OK: g-b.xlsx, reversible: nirgends schwächer als main
+- OK: g-b.xlsx, reversible: Rückbau ergibt das Original – passend
+- OK: g-c.csv, person: nirgends schwächer als main
+- OK: g-c.csv, person: Überschriften Name bleiben stehen
+- g-c.csv, Person A: Zeile 1 gleich: main „Rückmeldung: Person A und Person B fehlen, Person C kommt später;;“ / jetzt „Rückmeldung: Person A und Person B fehlen, Person C kommt später;;“; Zeile 2: main „Person D;Klasse;Ganztag“ / jetzt „Name;Klasse;Ganztag“; Zeile 3: main „Person A;5c;ja“ / jetzt „Person A;[ANGABE];[ANGABE]“; Zeile 4: main „Person C;5a;nein“ / jetzt „Person C;[ANGABE];[ANGABE]“; Zeile 5: main „Person B;5b;ja“ / jetzt „Person B;[ANGABE];[ANGABE]“; Zeile 6: main „Person E;5b;ja“ / jetzt „Person D;[ANGABE];[ANGABE]“
+- OK: g-c.csv, person, „Unsichere Treffer“ aus: nirgends schwächer als main
+- OK: g-c.csv, person, „Unsichere Treffer“ aus: Überschriften Name bleiben stehen
+- OK: g-c.csv, reversible: nirgends schwächer als main
+- OK: g-c.csv, reversible: Überschriften Name bleiben stehen
+- OK: g-c.csv, reversible: Rückbau ergibt das Original – passend
+- OK: g-c.xlsx, person: nirgends schwächer als main
+- OK: g-c.xlsx, person: Überschriften Name bleiben stehen
+- OK: g-c.xlsx, person, „Unsichere Treffer“ aus: nirgends schwächer als main
+- OK: g-c.xlsx, person, „Unsichere Treffer“ aus: Überschriften Name bleiben stehen
+- OK: g-c.xlsx, reversible: nirgends schwächer als main
+- OK: g-c.xlsx, reversible: Überschriften Name bleiben stehen
+- OK: g-c.xlsx, reversible: Rückbau ergibt das Original – passend
+
+## Ersetzte Kopf-Zellen (Modus „Person A“)
+- fixtures-spaltenwahl/g-a.csv: 1 Kopf-Zelle(n) geprüft und ersetzt: „Klassenleitung Frau Brunhilde Wetzlarski, Tel. 0171 2345678“
+- fixtures-spaltenwahl/g-a.xlsx: 1 Kopf-Zelle(n) geprüft und ersetzt: „Klassenleitung Frau Brunhilde Wetzlarski, Tel. 0171 2345678“
+- fixtures-spaltenwahl/g-b.csv: 1 Kopf-Zelle(n) geprüft und ersetzt: „Leitung Herr Dr. Ottokar Brannemann“
+- fixtures-spaltenwahl/g-b.xlsx: 1 Kopf-Zelle(n) geprüft und ersetzt: „Leitung Herr Dr. Ottokar Brannemann“
+- fixtures-spaltenwahl/g-p1.csv: 2 Kopf-Zelle(n) geprüft und ersetzt: „Kowalczyk“, „Bernd“
+- fixtures-spaltenwahl/g-p1.xlsx: 2 Kopf-Zelle(n) geprüft und ersetzt: „Kowalczyk“, „Bernd“
+- fixtures-spaltenwahl/g-p2.csv: 2 Kopf-Zelle(n) geprüft und ersetzt: „Frau Kowalczyk“, „Herr Brandauer“
+- fixtures-spaltenwahl/g-p2.xlsx: 2 Kopf-Zelle(n) geprüft und ersetzt: „Frau Kowalczyk“, „Herr Brandauer“
+- fixtures/mitarbeiter.xlsx: 1 Kopf-Zelle(n) geprüft und ersetzt: „Notizen zu Mehmet Yılmaz“
+- Summe: 13 ersetzte Kopf-Zellen in 35 Dateien
+- OK: Kopf-Zellen: keine Zelle aus reinen Spaltenkopf-Wörtern wird ersetzt (jede ersetzte Kopf-Zelle steht oben einzeln)
 
 ## Merkliste: Wahl je Überschrift
 - OK: Merkliste an: Wahl je Überschrift gemerkt und beim nächsten Dokument angewendet (auch in Excel) – {"geschlecht":"ganz"}
@@ -347,4 +428,4 @@ Schlüsseldatei (Excel): Format-Version 3, 910 Platzhalter (Name 369, Datum 55, 
 
 - OK: 0 Anfragen nach außen (alle Seiten dieses Laufs)
 
-Ergebnis: 141 von 141 Prüfungen bestanden
+Ergebnis: 202 von 202 Prüfungen bestanden

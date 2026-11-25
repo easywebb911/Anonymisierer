@@ -264,13 +264,6 @@ function valueCellsOf(doc) {
   }
   return out;
 }
-// Version 2.11.0: gewöhnliches Wort (Wortliste aus 2.9.0)
-function commonWord(w) {
-  const k = '+' + w;
-  let v = restCache.common.get(k);
-  if (v === undefined) { v = isKnown(getDict(), w, false); restCache.common.set(k, v); }
-  return v;
-}
 function planOf(doc, overrides) { return columnPlan(doc.units, overrides, app.state.colMemory || {}, { valueCells: valueCellsOf(doc), rare: app.state.colRare !== false }); }
 function currentPlan(doc) { return planOf(doc || app.doc, app.state.colTreat || {}); }
 // Excel: neu lesen, wenn sich die behandelten Spalten geändert haben (gleiche Datei, andere Abschnitte). Höchstens dreimal,
@@ -401,7 +394,7 @@ function focusA2() {
 function runAnalysis() {
   if (!app.doc) return;
   const qBefore = app.result && !app.inAnswer ? new Set(questions().map((q) => q.id)) : null;
-  app.result = analyze(app.doc.units, app.state, { linkTexts: app.doc.linkTexts, valueCells: valueCellsOf(app.doc), isCommon: commonWord });
+  app.result = analyze(app.doc.units, app.state, { linkTexts: app.doc.linkTexts, valueCells: valueCellsOf(app.doc) });
   // Version 2.6.1 (Entscheidung Easy): Liste geändert (Eigene Namen, Einrichtungen, Ausnahmen) -> Antworten bleiben gültig;
   // ein über „Ja“ bei Dateiangaben übernommener und wieder entfernter Eintrag gilt als „Nein“; Antworten zu Fragen, die
   // dadurch wegfallen, werden verworfen (samt ihrer Wirkung)
@@ -515,7 +508,9 @@ async function finalCheck(out) {
   for (const l of unitLeaks) inUnits.set(keyOf(l), (inUnits.get(keyOf(l)) || 0) + 1);
   const seen = new Map();
   const extra = fileLeaks.filter((l) => { const k = keyOf(l); const n = (seen.get(k) || 0) + 1; seen.set(k, n); return n > (inUnits.get(k) || 0); });
-  const leaks = [...withoutDecided(unitLeaks), ...extra];
+  // Version 2.11.0: Zellen der Kopfzeile aus reinen Spaltenkopf-Wörtern ersetzt das Tool nie; ein Wort darin ist kein Fund
+  const head = (app.result && app.result.headOnly) || new Set();
+  const leaks = [...withoutDecided(unitLeaks.filter((l) => !head.has(l.unit))), ...extra];
   // Version 2.3: jede Einrichtung aus der Liste im Originaltext; nicht vollständig ersetzte Fundstellen melden
   const org = orgCheckLeaks();
   if (!org.length) return leaks;
@@ -736,7 +731,7 @@ function getDict() {
   wordDict = makeDict(text);
   return wordDict;
 }
-const restCache = { doc: null, known: new Map(), sig: null, list: [], common: new Map() }; // common: Version 2.11.0 (gewöhnliche Wörter)
+const restCache = { doc: null, known: new Map(), sig: null, list: [] };
 function restList() {
   const r = app.result;
   if (!r || !app.doc) return [];
@@ -1828,11 +1823,6 @@ function leakPoint(l, i, offered = new Set()) {
   const kind = l.orgCheck ? 'Einrichtung aus deiner Liste, nicht vollständig ersetzt' : l.meta ? (l.metaOrg ? 'Einrichtung aus den Dateiangaben' : 'Name aus den Dateiangaben') : l.org ? 'bestätigte Einrichtung' : 'bestätigter Name';
   const pt = { id: `leak:${i}:${l.word}:${l.where}`, leak: true, text: [h('strong', {}, `„${l.word.replace(/\s+/g, ' ')}“`), ` steht noch in: ${l.where}`], small: `${kind} · „…${(l.context || '').replace(/\s+/g, ' ')}…“`, hint: l.hint || null, acts: [] };
   const taken = (t) => app.state.manualTerms.some((m) => fold(m) === fold(t)) || app.state.orgTerms.some((m) => fold(m) === fold(t));
-  // Version 2.11.0: Fund in einer Kopfzeile – Überschriften ersetzt das Tool nie; nur von Hand in der Datei änderbar
-  if (l.unit !== undefined && app.result.headOnly && app.result.headOnly.has(l.unit)) {
-    pt.hint = 'Das steht in der Kopfzeile einer Tabelle. Überschriften ersetzt das Tool nie. Bitte ändere die Überschrift selbst in der Datei.';
-    return pt;
-  }
   if (l.orgCheck || l.org) pt.acts.push(['Im Text zeigen', () => show('a2')]);
   else if (l.meta) { if (!taken(l.full) && !offered.has(fold(l.full))) pt.acts.push(l.metaOrg ? ['Als Einrichtung übernehmen', () => addOrg(l.full)] : ['Als Namen übernehmen', () => addManual(l.full)]); offered.add(fold(l.full)); }
   else if (l.entity === 'Blattname') pt.acts = [];

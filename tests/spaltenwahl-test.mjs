@@ -18,8 +18,9 @@ import { fileURLToPath } from 'node:url';
 import os from 'node:os';
 import { execFileSync } from 'node:child_process';
 import JSZip from 'jszip';
+import { isPureHeaderCell } from '../src/core/detect.js';
 import { startAnon, loadIn, goTo, ackPoints, saveKey, exportWithAck, rbConfirm, savePoints, waitCheck } from './ui-helpers.mjs';
-import { FXW, HEADERS, EXPECT, EXPECT_MAIN, makeAll } from './make-spaltenwahl.mjs';
+import { FXW, HEADERS, EXPECT, EXPECT_MAIN, GUARDIAN_CASES, makeAll } from './make-spaltenwahl.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..');
@@ -530,7 +531,7 @@ for (const f of ['stammdaten.xlsx', 'stammdaten.csv']) {
   const ixD = HEADERS.indexOf('Geschlecht');
   check(`${f}: Schalter „Seltene Werte“ aus: der seltene Wert „d“ (Geschlecht) bleibt lesbar`, ro.some((r) => r[ixD] === 'd'));
   // alle Spalten „wie bisher“ und Schalter „Seltene Werte“ aus = Ausgabe von main (2.10.0); Unterschiede nur in der
-  // Kopfzeile oder durch gewöhnliche Wörter aus Namensspalten wären begründet (hier: keine erwartet)
+  // Kopfzeile (reine Kopf-Zellen, seit 2.11.0 nie ersetzt) wären begründet (hier: keine erwartet)
   const allOld = await bytesOf(path.join(FXW, f), 'person', async (page) => {
     if (await page.isVisible('#col-change')) await page.click('#col-change');
     await page.evaluate(async () => { const A = window.__anon; A.app.state.colRare = false; for (const c of A.app.result.colPlan) A.app.state.colTreat[c.id] = 'bisher'; await A.applyColumns(); });
@@ -644,25 +645,85 @@ log('## Sammelfrage und Schlusscheck');
   check('Name in einer unsicheren Kopfzeile (eine Spalte), „Unsichere Treffer“ aus: ersetzt', !/Mehmet|Yılmaz/.test(txt));
 }
 
-// Version 2.11.0 (Guardian-Fund): Nur eine sichere Kopfzeile bleibt stehen. Eine Titelzeile mit einer Zelle oder eine
-// Datenzeile ohne Kopfzeile darüber wird wie bisher geprüft (Namen dort werden ersetzt), auch mit „Unsichere Treffer“ aus.
+// Version 2.11.0 (Entscheidung Easy zu den Guardian-Fällen p1, p2, p5, a, b, c): Schutz der Kopfzeile nur je Zelle, die
+// ausschließlich aus üblichen Spaltenkopf-Wörtern besteht. Maßstab: nirgends schwächer als main; „Name“, „Nachname“,
+// „Vorname“ bleiben stehen; Rückbau im Modus „rückbaufähig“ ergibt das Original.
+log('');
+log('## Guardian-Fälle zur Kopfzeile (CSV und XLSX, „Person A“ und „rückbaufähig“)');
 {
-  const cases = [
-    ['titelzeile.csv', 'Klasse 5a, Klassenleitung Frau Ruckdäschel;\nNachname;Vorname\nKowalczyk;Bernd\nBrandauer;Hilde\nLiebknecht;Ottmar\nSchwarzkopf;Ilse\nWendling;Gerd\nAmmermann;Rosi\n', ['Ruckdäschel', 'Kowalczyk', 'Brandauer']],
-    ['ohnekopf.csv', 'Kowalczyk;Bernd;Raum 12;Termin 3\nBrandauer;Hilde;Raum 14;Termin 4\nLiebknecht;Ottmar;Raum 15;Termin 5\n', ['Kowalczyk;Bernd']],
-    ['namekopf.csv', 'Stunde;Frau Kowalczyk;Herr Brandauer\n1;Mathe 5a;Deutsch 6b\n2;Mathe 6a;Deutsch 5b\n3;Mathe 7a;Deutsch 7b\n4;Mathe 8a;Deutsch 8b\n5;Mathe 9a;Deutsch 9b\n6;Mathe 5b;Deutsch 6a\n', ['Kowalczyk', 'Brandauer']],
-  ];
-  for (const [name, text, needles] of cases) {
-    const f = path.join(outDir, name);
-    fs.writeFileSync(f, text);
-    for (const unsure of [true, false]) {
-      const a = await anonymize(f, 'person', { unsure });
-      const out = fs.readFileSync(a.outPath, 'utf8');
-      const left = needles.filter((n) => out.includes(n));
-      check(`${name} (unsichere Kopfzeile), „Unsichere Treffer“ ${unsure ? 'an' : 'aus'}: Namen ersetzt`, !left.length, left.join(', '));
+  const textOf = async (p) => {
+    if (!p.endsWith('.xlsx')) return fs.readFileSync(p, 'utf8').replace(/^\uFEFF/, '');
+    const z = await JSZip.loadAsync(fs.readFileSync(p));
+    let t = '';
+    for (const n of Object.keys(z.files).sort()) if (/^xl\/(sharedStrings|worksheets\/sheet\d+)\.xml$/.test(n)) t += dec((await z.file(n).async('string')).replace(/<[^>]+>/g, ' ')) + ' ';
+    return t;
+  };
+  const ws = (t) => new Set(t.split(/[^\p{L}\p{N}]+/u).filter(Boolean));
+  const PH = /^(Person|Vorname|Nachname|Name|Initiale|Einrichtung|DATUM|ANGABE|ADRESSE|TELEFON|E|MAIL|[A-Z]{1,3}\d*|\d+)$/;
+  const HEADS = ['Name', 'Nachname', 'Vorname'];
+  for (const name of Object.keys(GUARDIAN_CASES)) {
+    for (const ext of ['csv', 'xlsx']) {
+      const f = path.join(FXW, `${name}.${ext}`);
+      const orig = GUARDIAN_CASES[name];
+      for (const [mode, unsure] of [['person', true], ['person', false], ['reversible', true]]) {
+        const a = await anonymize(f, mode, { unsure });
+        const m = await anonymize(f, mode, { unsure, html: MAIN });
+        const tn = await textOf(a.outPath);
+        const tm = await textOf(m.outPath);
+        const old = ws(tm);
+        const weaker = [...ws(tn)].filter((w) => !old.has(w) && !PH.test(w));
+        const lbl = `${name}.${ext}, ${mode}${unsure ? '' : ', „Unsichere Treffer“ aus'}`;
+        check(`${lbl}: nirgends schwächer als main`, !weaker.length, weaker.join(', '));
+        const heads = orig.flatMap((l) => l.split(';')).filter((x) => HEADS.includes(x));
+        if (heads.length) {
+          const cellsN = ext === 'csv' ? tn.split(/\r?\n/).flatMap((l) => l.split(';')) : [...ws(tn)];
+          check(`${lbl}: Überschriften ${heads.join(', ')} bleiben stehen`, heads.every((h) => cellsN.includes(h)));
+        }
+        if (ext === 'csv' && mode === 'person' && unsure) {
+          const ln = tn.split(/\r?\n/);
+          const lm = tm.split(/\r?\n/);
+          const diff = orig.map((_, i) => i).filter((i) => i === 0 || ln[i] !== lm[i]);
+          log(`- ${name}.csv, Person A: ${diff.map((i) => `Zeile ${i + 1}${ln[i] === lm[i] ? ' gleich' : ''}: main „${lm[i]}“ / jetzt „${ln[i]}“`).join('; ')}`);
+        }
+        if (mode === 'reversible') {
+          const r = await restore(a.outPath, a.keyPath);
+          const ok = ext === 'csv' ? r.bytes && noBom(r.bytes).toString('utf8') === fs.readFileSync(f, 'utf8')
+            : r.bytes && JSON.stringify([...(await xlsxGrid(r.bytes))].map(([k, c]) => [k, c.text])) === JSON.stringify([...(await xlsxGrid(fs.readFileSync(f)))].map(([k, c]) => [k, c.text]));
+          check(`${lbl}: Rückbau ergibt das Original`, !!ok, r.plan ? r.plan.verdict : 'kein Plan');
+        }
+      }
     }
   }
-  // Gegenprobe: eine sichere Kopfzeile (stammdaten.csv) bleibt byte-gleich – siehe oben „Kopfzeile byte-gleich“
+}
+// Zahl der ersetzten Kopf-Zellen in allen Tabellen-Testdateien (Ziel 0): Zellen der Kopfzeile, die sich im Modus „Person A“
+// gegenüber dem Original ändern, je Datei mit Begründung (nur Zellen, die nicht nur aus Spaltenkopf-Wörtern bestehen)
+log('');
+log('## Ersetzte Kopf-Zellen (Modus „Person A“)');
+{
+  const files = [...fs.readdirSync(FXW).filter((x) => /\.(csv|xlsx)$/.test(x)).map((x) => path.join(FXW, x)),
+    ...['mitarbeiter.xlsx', 'mitarbeiter.csv', 'a2-risiko.csv', 'a2-uebertragung.csv', 'vertausch-1.csv', 'vertausch-2.csv', 'einrichtung.csv'].map((x) => path.join(here, 'fixtures', x)),
+    ...fs.readdirSync(path.join(here, 'fixtures-spalten')).filter((x) => /\.(csv|xlsx)$/.test(x)).map((x) => path.join(here, 'fixtures-spalten', x))];
+  let total = 0;
+  const pureHit = [];
+  for (const f of files) {
+    const o = await openFile(f, 'person', { confirm: true });
+    const heads = await o.page.evaluate(() => {
+      const A = window.__anon;
+      const r = A.app.result;
+      const out = [];
+      for (const c of r.colPlan || []) out.push(c.headerRow);
+      const units = A.app.doc.units;
+      const hu = new Set();
+      for (const h of r.hits) if (h.on !== false && units[h.unit] && units[h.unit].tcells && units[h.unit].tcells.some((tc) => (r.colPlan || []).some((c) => c.t === tc.t && c.headerRow === tc.r))) hu.add(h.unit);
+      return [...hu].map((ui) => units[ui].text);
+    });
+    await o.ctx.close();
+    total += heads.length;
+    for (const x of heads) if (isPureHeaderCell(x)) pureHit.push(`${path.basename(f)}: „${x}“`);
+    if (heads.length) log(`- ${path.relative(here, f)}: ${heads.length} Kopf-Zelle(n) geprüft und ersetzt: ${heads.map((x) => `„${x}“`).join(', ')}`);
+  }
+  log(`- Summe: ${total} ersetzte Kopf-Zellen in ${files.length} Dateien`);
+  check('Kopf-Zellen: keine Zelle aus reinen Spaltenkopf-Wörtern wird ersetzt (jede ersetzte Kopf-Zelle steht oben einzeln)', !pureHit.length, pureHit.join('; '));
 }
 
 // ---------- Merkliste ----------
