@@ -135,10 +135,10 @@ Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.h
 - Nach „Merkliste löschen“: localStorage 0 Einträge
 
 ## Größe/Geschwindigkeit (Desktop-Chromium, headless)
-- TXT 1 MB: Laden+Analyse 2.9 s, Export+Schlusscheck 4.3 s, JS-Speicher ca. 87 MB – Gelesen: gross.txt (TXT, 13289 Textabschnitte).
-- TXT 5 MB: Laden+Analyse 9.7 s, Export+Schlusscheck 24.2 s, JS-Speicher ca. 257 MB – Gelesen: gross.txt (TXT, 66419 Textabschnitte).
-- TXT 10 MB: Laden+Analyse 18.4 s, Export+Schlusscheck 64.8 s, JS-Speicher ca. 527 MB – Gelesen: gross.txt (TXT, 132815 Textabschnitte).
-- XLSX mit 20 000 Zeilen × 4 Spalten (0.5 MB gepackt): Laden+Analyse 10.8 s, Export+Schlusscheck 6.9 s, JS-Speicher ca. 141 MB – Gelesen: gross.xlsx (XLSX, 60052 Textabschnitte).
+- TXT 1 MB: Laden+Analyse 3.1 s, Export+Schlusscheck 3.9 s, JS-Speicher ca. 78 MB – Gelesen: gross.txt (TXT, 13289 Textabschnitte).
+- TXT 5 MB: Laden+Analyse 9.6 s, Export+Schlusscheck 27.7 s, JS-Speicher ca. 242 MB – Gelesen: gross.txt (TXT, 66419 Textabschnitte).
+- TXT 10 MB: Laden+Analyse 19.1 s, Export+Schlusscheck 61.2 s, JS-Speicher ca. 527 MB – Gelesen: gross.txt (TXT, 132815 Textabschnitte).
+- XLSX mit 20 000 Zeilen × 4 Spalten (0.5 MB gepackt): Laden+Analyse 10.1 s, Export+Schlusscheck 7.3 s, JS-Speicher ca. 242 MB – Gelesen: gross.xlsx (XLSX, 60052 Textabschnitte).
 
 ## Netzwerkzugriffe während aller Tests
 - Anfragen gesamt: 23; davon nicht lokal (http/https/ws …): 0

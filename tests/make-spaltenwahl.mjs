@@ -217,6 +217,9 @@ export const GUARDIAN_CASES = {
     'Kurs Englisch;Leitung Frau Gesine Wolkenhauer;Raum 15;Termin 15.03.2025'],
   'g-c': ['Rückmeldung: Glocke und Kuchenbrod fehlen, Hammer kommt später;;', 'Name;Klasse;Ganztag', 'Glocke, Henrike;5c;ja', 'Hammer, Ole;5a;nein',
     'Kuchenbrod, Malte;5b;ja', 'Wiesler, Tamme;5b;ja'],
+  // Entscheidung Easy: Wörter der Liste HEAD_SCHOOL_WORDS, die auch Nachnamen sind (Zweig, Hort, Vater), in einer CSV
+  // ohne Kopfzeile
+  'g-zweig': ['Zweig;Ottmar;Klasse 5a', 'Hort;Wiebke;Klasse 5b', 'Vater;Konstantin;Klasse 6a', 'Kranich;Edeltraud;Klasse 6b'],
 };
 export async function makeAll() {
   fs.mkdirSync(FXW, { recursive: true });

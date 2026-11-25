@@ -308,6 +308,15 @@ Schlüsseldatei (Excel): Format-Version 3, 910 Platzhalter (Name 369, Datum 55, 
 - OK: g-c.xlsx, reversible: nirgends schwächer als main
 - OK: g-c.xlsx, reversible: Überschriften Name bleiben stehen
 - OK: g-c.xlsx, reversible: Rückbau ergibt das Original – passend
+- OK: g-zweig.csv, person: nirgends schwächer als main
+- g-zweig.csv, Person A: Zeile 1 gleich: main „Zweig;Ottmar;Klasse 5a“ / jetzt „Zweig;Ottmar;Klasse 5a“
+- OK: g-zweig.csv, person, „Unsichere Treffer“ aus: nirgends schwächer als main
+- OK: g-zweig.csv, reversible: nirgends schwächer als main
+- OK: g-zweig.csv, reversible: Rückbau ergibt das Original – passend
+- OK: g-zweig.xlsx, person: nirgends schwächer als main
+- OK: g-zweig.xlsx, person, „Unsichere Treffer“ aus: nirgends schwächer als main
+- OK: g-zweig.xlsx, reversible: nirgends schwächer als main
+- OK: g-zweig.xlsx, reversible: Rückbau ergibt das Original – passend
 
 ## Ersetzte Kopf-Zellen (Modus „Person A“)
 - fixtures-spaltenwahl/g-a.csv: 1 Kopf-Zelle(n) geprüft und ersetzt: „Klassenleitung Frau Brunhilde Wetzlarski, Tel. 0171 2345678“
@@ -319,7 +328,7 @@ Schlüsseldatei (Excel): Format-Version 3, 910 Platzhalter (Name 369, Datum 55, 
 - fixtures-spaltenwahl/g-p2.csv: 2 Kopf-Zelle(n) geprüft und ersetzt: „Frau Kowalczyk“, „Herr Brandauer“
 - fixtures-spaltenwahl/g-p2.xlsx: 2 Kopf-Zelle(n) geprüft und ersetzt: „Frau Kowalczyk“, „Herr Brandauer“
 - fixtures/mitarbeiter.xlsx: 1 Kopf-Zelle(n) geprüft und ersetzt: „Notizen zu Mehmet Yılmaz“
-- Summe: 13 ersetzte Kopf-Zellen in 35 Dateien
+- Summe: 13 ersetzte Kopf-Zellen in 37 Dateien
 - OK: Kopf-Zellen: keine Zelle aus reinen Spaltenkopf-Wörtern wird ersetzt (jede ersetzte Kopf-Zelle steht oben einzeln)
 
 ## Merkliste: Wahl je Überschrift
@@ -428,4 +437,4 @@ Schlüsseldatei (Excel): Format-Version 3, 910 Platzhalter (Name 369, Datum 55, 
 
 - OK: 0 Anfragen nach außen (alle Seiten dieses Laufs)
 
-Ergebnis: 202 von 202 Prüfungen bestanden
+Ergebnis: 210 von 210 Prüfungen bestanden
