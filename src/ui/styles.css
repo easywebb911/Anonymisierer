@@ -275,3 +275,7 @@ table.wtable th { border: 1px solid var(--line); padding: .1rem .45rem; font-siz
 th.colrep { background: var(--hit); }
 .colbadge { display: block; font-weight: 400; font-size: 12px; white-space: nowrap; }
 td.colrep { background: var(--hit); }
+/* Version 2.11.0: Personen-Tabellen */
+.colvals, .colrare { display: block; color: var(--fg); font-size: 12px; overflow-wrap: anywhere; }
+.colrare { color: var(--muted); }
+.colrareopt { margin: .3rem 0; }

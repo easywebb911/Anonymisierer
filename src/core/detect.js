@@ -29,6 +29,7 @@ export function defaultState() {
     nameColumns: {}, // Version 2.6.0: Spalte von Hand: Spalten-Kennung -> true (enthält Namen) / false (keine Namensspalte)
     colTreat: {}, // Version 2.10.0: Behandlung je Spalte von Hand: Spalten-Kennung -> 'name' | 'ganz' | 'bisher'
     colMemory: {}, // Version 2.10.0: gemerkte Wahl je Überschrift (Merkliste): Vergleichsform der Überschrift -> Behandlung
+    colRare: true, // Version 2.11.0: Personen-Tabellen – seltene Werte (weniger als 3-mal) in lesbaren Spalten ersetzen
   };
 }
 
@@ -359,7 +360,7 @@ export function analyze(units, state, extra = {}) {
   const mentions = [];
   // Version 2.10.0: Behandlung je Spalte (Excel, CSV). „Name“ zuerst (vor der Namensspalten-Regel), „ganz ersetzen“ am
   // Ende der Erkennung (columnWholeHits). Ohne Tabelle mit Kopfzeile oder mit „wie bisher“ überall: wie 2.9.0.
-  const colPlan = columnPlan(units, st.colTreat || {}, st.colMemory || {});
+  const colPlan = columnPlan(units, st.colTreat || {}, st.colMemory || {}, { valueCells: extra.valueCells, rare: st.colRare !== false });
   const nameUnits = new Set();
   const ganzUnits = columnTreatRule(units, unitToks, unitStarts, covered, tokHit, hits, mentions, exceptions, colPlan, nameUnits);
   // Version 2.6.0: Namensspalten in Tabellen (Excel, CSV, Word) – vor allen übrigen Regeln (Vorrang vor „mehrdeutig“,
@@ -692,6 +693,10 @@ export function analyze(units, state, extra = {}) {
 
   // Version 2.10.0: Spalten mit Behandlung „ganz ersetzen“ (nach allen Regeln und der Übertragung)
   columnWholeHits(units, unitStarts, hits, ganzUnits, st.settings.mode === MODE_REVERSIBLE);
+  // Version 2.11.0: Zellen der Kopfzeile einer Tabelle (Excel, CSV), die nur aus üblichen Spaltenkopf-Wörtern bestehen,
+  // werden nie ersetzt (st.headKeep === false nur für den Nachweis in tests/bedienung-test.mjs: Kopfzeile wie 2.10.0)
+  const headOnly = st.headKeep === false ? new Set() : headerOnlyUnits(units);
+  for (let i = hits.length - 1; i >= 0; i--) if (headOnly.has(hits[i].unit) || (hits[i].unit2 !== undefined && headOnly.has(hits[i].unit2))) hits.splice(i, 1);
 
   hits.sort((a, b) => a.s - b.s || a.e - b.e);
 
@@ -773,7 +778,7 @@ export function analyze(units, state, extra = {}) {
   }
   for (const og of orgs.values()) og.count = og.hits.length;
 
-  const result = { fullText, unitStarts, hits, entities, orgs, placeholderWords, columns, colPlan, orgWeak: auto.weak, autoOrgTerms: autoTerms.filter((t) => t.auto).map((t) => ({ text: t.text, entity: t.entity })) };
+  const result = { fullText, unitStarts, hits, entities, orgs, placeholderWords, columns, colPlan, headOnly, orgWeak: auto.weak, autoOrgTerms: autoTerms.filter((t) => t.auto).map((t) => ({ text: t.text, entity: t.entity })) };
   // Version 2.7.0: Webadressen/Konten in Link-Zielen, Link-Hinweisen und Feldfunktionen (nur bei eingeschaltetem Schalter)
   if (st.settings.web && extra.linkTexts && extra.linkTexts.length) result.linkTexts = extra.linkTexts;
   // Modus "rückbaufähig": Platzhalter je Namensteil und nummerierte Kontaktdaten
@@ -1566,27 +1571,180 @@ function colRole(header) {
 }
 // Spalten aller Tabellen mit Kopfzeile, mit Vorschlag und gültiger Behandlung (overrides: Spalten-Kennung -> Behandlung;
 // memory: Vergleichsform der Überschrift -> Behandlung aus der Merkliste)
-export function columnPlan(units, overrides = {}, memory = {}) {
+// ---------- Version 2.11.0: Personen-Tabellen – im Zweifel ersetzen ----------
+// Heikle Themen: Wortstamm irgendwo in der Überschrift, auch in zusammengesetzten Wörtern (Vergleichsform wie colNorm,
+// ohne Trennzeichen). Abkürzungen mit Punkt („Rel.“) zählen als ganzes Wort.
+export const SENSITIVE_STEMS = ['relig', 'konfess', 'glaub', 'zuzug', 'asyl', 'aufenth', 'herkunft', 'staats', 'national', 'sprach', 'gesund', 'krank',
+  'diagn', 'allerg', 'medik', 'behind', 'beeintr', 'störung', 'lrs', 'legasth', 'dyskalk', 'inklus', 'förder', 'msd', 'therap', 'sorge', 'wohn',
+  'pflege', 'einkommen', 'sozial', 'bemerk', 'erläut', 'notiz', 'anmerk', 'hinweis', 'komment', 'sonstig', 'wunsch',
+  // ergänzt (2.11.0)
+  'flucht', 'migra', 'jugendamt', 'vormund', 'psych', 'adhs', 'autis', 'nachteilsausgl', 'notenschutz',
+  // ergänzt nach Guardian-Fund (2.11.0)
+  'bekenntnis', 'geburtsland', 'ethni', 'familienstand', 'lebtbei'];
+// Kürzel mit Punkt oder Bindestrich (vorne ein Wortanfang): „Rel.“, „Konf.“, „Rel-Unt“
+export const SENSITIVE_ABBR = ['rel.', 'konf.', 'rel-'];
+// Kurze Kürzel zählen nur als ganzer Spaltenkopf (sonst träfen sie Wortteile)
+export const SENSITIVE_WHOLE = ['ru', 'daz'];
+// Zu weit (im Test belegt, Rückfalllinie): „Fremdsprache“ und „Gewünschte …“ (gewählte Schulfächer) sind kein heikles Thema
+const STEM_EXCEPT = { sprach: ['fremdsprach'], wunsch: ['gewunsch'] };
+const STEMS_NORM = SENSITIVE_STEMS.map((x) => [x, colNorm(x).replace(/ /g, '')]);
+export function sensitiveStem(header) {
+  const flat = colNorm(header).replace(/ /g, '');
+  const low = fold(String(header || '').normalize('NFC'));
+  for (const a of SENSITIVE_ABBR) if (new RegExp('(^|[^a-z])' + a.replace(/[.-]/g, (m) => '\\' + m)).test(low)) return a;
+  for (const w of SENSITIVE_WHOLE) if (colNorm(header) === w) return w;
+  for (const [orig, st] of STEMS_NORM) {
+    let i = flat.indexOf(st);
+    while (i >= 0) {
+      const ex = (STEM_EXCEPT[orig] || []).map((x) => colNorm(x).replace(/ /g, ''));
+      if (!ex.some((x) => flat.slice(Math.max(0, i - (x.length - st.length)), i + st.length) === x)) return orig;
+      i = flat.indexOf(st, i + 1);
+    }
+  }
+  return null;
+}
+// Namenswörter für die Behandlung „Name“ in einer Personen-Tabelle
+const NAME_HEAD_WORDS = new Set(['nachname', 'nachnamen', 'vorname', 'vornamen', 'rufname', 'rufnamen', 'familienname', 'geburtsname', 'name', 'namen']);
+const DATE_TEXT = /^(\d{1,2}\.\d{1,2}\.(\d{2}|\d{4})|\d{4}-\d{2}-\d{2})$/;
+export const RARE_LIMIT = 3; // seltener Wert: weniger als 3-mal
+export const RARE_MIN_ROWS = 20; // Regel „seltene Werte“ erst ab 20 Zeilen
+// Auswahl-Spalte: höchstens 12 verschiedene Werte, jeder höchstens 40 Zeichen, verschiedene Werte höchstens ein Drittel
+function isChoiceColumn(counts, filled) {
+  if (!filled) return true;
+  return counts.size <= 12 && [...counts.keys()].every((v) => [...v].length <= 40) && counts.size <= filled / 3;
+}
+// Spalten aller Tabellen mit Kopfzeile, mit Vorschlag und gültiger Behandlung (overrides: Spalten-Kennung -> Behandlung;
+// memory: Vergleichsform der Überschrift -> Behandlung aus der Merkliste). opts.valueCells: Zellen ohne Abschnitt (Excel:
+// Zahl, Datum) [{t, r, c, value, date}]; opts.rare: Regel „seltene Werte“ an (Standard an)
+export function columnPlan(units, overrides = {}, memory = {}, opts = {}) {
   const out = [];
-  for (const { t, tb, rnums, head, lastHead, allCols } of findTables(units)) {
+  const rareOn = opts.rare !== false;
+  const vcells = opts.valueCells || [];
+  for (const { t, tb, rnums, head, headUnits, lastHead, allCols } of findTables(units)) {
     // nur Excel und CSV (Tabellen in Word und PDF: wie bisher)
     if (lastHead < 0 || !(t === 'csv' || t.startsWith('x|'))) continue;
-    for (const c of [...allCols].sort((a, b) => a - b)) {
+    const myVals = vcells.filter((x) => x.t === t && x.r > lastHead);
+    const cols = [];
+    const dataRows = new Set();
+    for (const c of [...new Set([...allCols, ...myVals.map((x) => x.c)])].sort((a, b) => a - b)) {
       const hd = head.get(c);
       if (!hd || !hd.text.trim()) continue;
       const id = t + '|' + c;
       const prop = proposeColumn(hd.text);
       const mem = memory[colNorm(hd.text)];
       const ov = overrides[id];
-      const treat = ov === 'name' || ov === 'ganz' || ov === 'bisher' ? ov : mem === 'name' || mem === 'ganz' || mem === 'bisher' ? mem : prop.treat;
-      const kind = treat === 'ganz' ? (prop.kind || 'info') : null;
+      const chosen = ov === 'name' || ov === 'ganz' || ov === 'bisher' ? ov : mem === 'name' || mem === 'ganz' || mem === 'bisher' ? mem : null;
+      // Werte der Zellen unterhalb der Kopfzeile (Text; Zahl- und Datumszellen mit gespeichertem Wert)
+      const vals = new Map(); // Zeile -> {key, text, date}
+      for (const r of rnums) {
+        if (r <= lastHead) continue;
+        const cell = tb.get(r).get(c);
+        if (!cell) continue;
+        const ui = [...cell.units].find((x) => !headUnits.has(x));
+        if (ui === undefined) continue;
+        const u = units[ui];
+        const text = u.text.trim();
+        if (!text) continue;
+        vals.set(r, { key: u.cellOrig ? '#' + u.cellOrig.v : text, text, date: u.cellOrig ? !!u.cellDate : DATE_TEXT.test(text) });
+      }
+      for (const x of myVals) if (x.c === c && String(x.value).trim() !== '') vals.set(x.r, { key: '#' + x.value, text: String(x.display || x.value), date: !!x.date });
+      for (const r of vals.keys()) dataRows.add(r);
       const { role, prefix } = colRole(hd.text);
-      // Zeilen unterhalb der Kopfzeile mit Inhalt (nur Zellen mit Text; Zahl- und Datumszellen zählt die Oberfläche)
+      // Zeilen unterhalb der Kopfzeile mit Inhalt (nur Zellen mit Text)
       const rows = rnums.filter((r) => r > lastHead && tb.get(r).has(c));
-      out.push({ id, t, c, header: hd.text, headerRow: lastHead, proposal: prop, treat, kind, role, prefix, rows, fromMemory: ov === undefined && mem !== undefined });
+      cols.push({ id, t, c, header: hd.text, headerRow: lastHead, prop, chosen, fromMemory: ov === undefined && mem !== undefined, role, prefix, rows, vals });
+    }
+    // Personen-Tabelle: mindestens eine Spalte mit der Behandlung „Name“ (Vorschlag wie 2.10.0 oder eigene Wahl)
+    const person = cols.some((x) => (x.chosen || x.prop.treat) === 'name');
+    const smallTable = dataRows.size < RARE_MIN_ROWS;
+    for (const x of cols) {
+      let proposal = x.prop;
+      if (person) proposal = personProposal(x);
+      const treat = x.chosen || proposal.treat;
+      const kind = treat === 'ganz' ? (proposal.kind || x.prop.kind || 'info') : null;
+      // Werte mit Häufigkeit (häufigste zuerst)
+      const counts = new Map();
+      const texts = new Map();
+      for (const v of x.vals.values()) { counts.set(v.key, (counts.get(v.key) || 0) + 1); if (!texts.has(v.key)) texts.set(v.key, v.text); }
+      const values = [...counts].sort((a, b) => b[1] - a[1] || (texts.get(a[0]) < texts.get(b[0]) ? -1 : 1)).map(([k, n]) => [texts.get(k), n]);
+      // seltene Werte (nur lesbare Spalten einer Personen-Tabelle ab 20 Zeilen)
+      let rareRows = null;
+      let rareValues = 0;
+      if (person && treat === 'bisher' && rareOn && !smallTable) {
+        rareRows = new Set([...x.vals].filter(([, v]) => counts.get(v.key) < RARE_LIMIT).map(([r]) => r));
+        rareValues = [...counts.values()].filter((n) => n < RARE_LIMIT).length;
+      }
+      out.push({ id: x.id, t, c: x.c, header: x.header, headerRow: x.headerRow, proposal, treat, kind, role: x.role, prefix: x.prefix, rows: x.rows,
+        fromMemory: x.fromMemory, person, smallTable, values, filled: x.vals.size, rareRows, rareValues,
+        // Version 2.11.0: „Name“ nach 2.10.0, jetzt „ganz ersetzen“ (z. B. Wunschpartner): Namen darin gelten weiter anderswo
+        seedName: person && treat === 'ganz' && x.prop.treat === 'name' });
     }
   }
   return out;
+}
+// Abschnitte, die nur in Kopfzeilen von Tabellen (Excel, CSV) stehen. Ein gemeinsamer Text (Excel), der auch in einer
+// Datenzelle steht, gehört nicht dazu (sonst bliebe die Datenzelle stehen).
+export function headerOnlyUnits(units) {
+  const out = new Set();
+  for (const { t, headRows, headUnits } of findTables(units)) {
+    if (!headRows.length || !(t === 'csv' || t.startsWith('x|'))) continue;
+    // Schutz je Zelle (Entscheidung Easy zu 2.11.0): nur eine Zelle, die ausschließlich aus üblichen Spaltenkopf-Wörtern
+    // (und Füllwörtern) besteht, bleibt stehen. Jede andere Zelle der Kopfzeile wird geprüft wie in 2.10.0.
+    for (const ui of headUnits) {
+      if (!(units[ui].tcells || []).every((tc) => tc.t === t && headRows.includes(tc.r))) continue;
+      if (isPureHeaderCell(units[ui].text)) out.add(ui);
+    }
+  }
+  return out;
+}
+// Übliche Köpfe aus Schul-Stammdaten (nur ganze Wörter; nur für den Schutz der Kopfzeile, nicht für die Erkennung einer
+// Kopfzeile oder einer Namensspalte)
+export const HEAD_SCHOOL_WORDS = ['schule', 'grundschule', 'schulart', 'schulform', 'schulnummer', 'schuljahr', 'schulweg', 'einrichtung',
+  'kita', 'kindergarten', 'hort', 'einschulung', 'eintritt', 'austritt', 'übertritt', 'übertrittszeugnis', 'übertrittszeugnisses', 'zeugnis',
+  'ergebnis', 'jahrgang', 'jahrgangsstufe', 'jgst', 'zweig', 'ausbildungsrichtung', 'ganztag', 'geschlecht', 'geburtsort', 'geburtsland',
+  'geburtsurkunde', 'muttersprache', 'staatsangehörigkeit', 'religion', 'konfession', 'religionsunterricht', 'ethik', 'fremdsprache',
+  'sprache', 'erste', 'zweite', 'dritte', 'gewünscht', 'gewünschte', 'gewünschter', 'hausnummer', 'gkz', 'notfall', 'notfälle',
+  'notfallnummer', 'sorgerecht', 'sorgeberechtigt', 'sorgeberechtigte', 'erziehungsberechtigt', 'elternteil', 'mutter', 'vater',
+  'auskunftsberechtigt', 'akad', 'akademischer', 'wohnt', 'schwimmen', 'schwimmabzeichen', 'zuzug', 'zuzugsart', 'bisherige',
+  'bisheriger', 'gesundheitliche', 'beeinträchtigung', 'erläuterung', 'msd', 'lrs', 'rechtschreibstörung', 'lese', 'inklusionsbedarf',
+  'förderbedarf', 'kontaktdaten', 'wunschpartner', 'unt', 'rel', 'konf', 'laut', 'mobilnummer', 'festnetz', 'pflegschaft',
+  // Fragen als Überschrift aus einem Schul-Export (Testdatei stammdaten): „Besteht Kontakt zum MSD“, „Wurde in der
+  // Grundschule Nachteilsausgleich oder Notenschutz wegen LRS gewährt?“
+  'besteht', 'wurde', 'nachteilsausgleich', 'notenschutz', 'wegen', 'gewährt'];
+// Füllwörter in Spaltenköpfen
+const HEAD_PROTECT_FILL = ['der', 'die', 'das', 'des', 'dem', 'den', 'zu', 'zum', 'zur', 'mit', 'von', 'vom', 'für', 'am', 'im', 'an', 'auf',
+  'ab', 'bis', 'pro', 'je', 'nach', 'bei', 'r', 'e', 's'];
+const HEAD_PROTECT = new Set([...NAME_HEADERS_STRONG, ...NAME_HEADERS_WEAK, ...HEAD_GENERAL, ...HEAD_FILL,
+  ...HEAD_SCHOOL_WORDS.map(fold), ...HEAD_PROTECT_FILL.map(fold)]);
+// Zelle nur aus Spaltenkopf-Wörtern: jedes Wort steht in HEAD_PROTECT; Zahlen höchstens zweistellig („1. Ort“); sonst nur
+// Satzzeichen
+export function isPureHeaderCell(text) {
+  let words = 0;
+  for (const tk of tokenize(text)) {
+    if (tk.word) { if (!HEAD_PROTECT.has(fold(tk.t))) return false; words++; continue; }
+    if (/\d/.test(tk.t) && !/^\d{1,2}$/.test(tk.t)) return false;
+  }
+  return words > 0;
+}
+// Vorschlag in einer Personen-Tabelle (Reihenfolge laut Auftrag 2.11.0)
+function personProposal(x) {
+  const p = x.prop;
+  const words = colNorm(x.header).split(' ');
+  // 1. bekannte Gruppen; „Name“ nur mit Namenswort in der Überschrift, sonst (Wunschpartner, Ansprechpartner …) ganz ersetzen
+  if (p.treat === 'name') return words.some((w) => NAME_HEAD_WORDS.has(w)) ? p : { ...p, treat: 'ganz', kind: 'info', why: 'Name ohne Namenswort' };
+  // 2. heikle Themen (auch neben einer bekannten Gruppe „Einrichtung“: dann ist es eine Angabe, z. B. „Wurde in der
+  // Grundschule … wegen LRS gewährt?“; wie in 2.10.0 gewinnt die Angabe)
+  const st = sensitiveStem(x.header);
+  if (p.treat === 'ganz') return st && p.kind === 'org' ? { ...p, kind: 'info', conflict: true, groups: [...p.groups, 'heikel'], why: 'heikel: ' + st + ' (vor Einrichtung)' } : p;
+  if (st) return { treat: 'ganz', kind: 'info', groups: ['heikel'], conflict: false, why: 'heikel: ' + st };
+  // 3. überwiegend Datumswerte
+  const vs = [...x.vals.values()];
+  if (vs.length && vs.filter((v) => v.date).length > vs.length / 2) return { treat: 'ganz', kind: 'date', groups: ['datum'], conflict: false, why: 'Datumswerte' };
+  // 4. nach dem Inhalt: Auswahl-Spalte bleibt lesbar, sonst ganz ersetzen
+  const counts = new Map();
+  for (const v of vs) counts.set(v.key, (counts.get(v.key) || 0) + 1);
+  if (isChoiceColumn(counts, vs.length)) return { treat: 'bisher', kind: null, groups: ['auswahl'], conflict: false, why: 'Auswahl' };
+  return { treat: 'ganz', kind: 'info', groups: ['inhalt'], conflict: false, why: 'Freitext oder viele Werte' };
 }
 export function columnKeyOf(header) { return colNorm(header); }
 
@@ -1621,17 +1779,19 @@ function columnTreatRule(units, unitToks, unitStarts, covered, tokHit, hits, men
   const byUnit = new Map(); // ui -> {treat, kind, col, cells}
   const tabs = new Map(findTables(units).map((x) => [x.t, x]));
   for (const col of plan) {
-    if (col.treat === 'bisher') continue;
+    // Version 2.11.0: in lesbaren Spalten nur die Zellen mit seltenen Werten (ganz ersetzen als [ANGABE])
+    if (col.treat === 'bisher' && !(col.rareRows && col.rareRows.size)) continue;
     const tb = tabs.get(col.t);
     if (!tb) continue;
-    for (const r of col.rows) {
+    const rare = col.treat === 'bisher';
+    for (const r of rare ? col.rows.filter((x) => col.rareRows.has(x)) : col.rows) {
       const cell = tb.tb.get(r) && tb.tb.get(r).get(col.c);
       if (!cell) continue;
       for (const ui of cell.units) {
         if (tb.headUnits.has(ui) || units[ui].formula) continue; // Formeln: nicht raten (Punkt auf „Speichern“)
         const old = byUnit.get(ui);
-        const treat = units[ui].cellOrig && col.treat === 'name' ? 'ganz' : col.treat; // Zahl/Datum in einer Namensspalte
-        const kind = treat === 'ganz' ? (units[ui].cellOrig && (col.kind === 'org' || col.treat === 'name') ? 'info' : col.kind) : null;
+        const treat = rare ? 'ganz' : units[ui].cellOrig && col.treat === 'name' ? 'ganz' : col.treat; // Zahl/Datum in einer Namensspalte
+        const kind = rare ? 'info' : treat === 'ganz' ? (units[ui].cellOrig && (col.kind === 'org' || col.treat === 'name') ? 'info' : col.kind) : null;
         if (old && (old.treat === 'ganz' || treat !== 'ganz')) { old.cells.push({ r, col }); continue; }
         byUnit.set(ui, { treat, kind, col, cells: [...(old ? old.cells : []), { r, col }] });
       }
@@ -1640,8 +1800,12 @@ function columnTreatRule(units, unitToks, unitStarts, covered, tokHit, hits, men
   const ganz = new Map();
   const named = [];
   for (const [ui, p] of byUnit) {
-    if (p.treat === 'ganz') { ganz.set(ui, p); continue; }
-    nameUnits.add(ui);
+    if (p.treat === 'ganz') {
+      ganz.set(ui, p);
+      // Version 2.11.0: Spalte war bis 2.10.0 „Name“ (z. B. Wunschpartner): Namen darin werden wie bisher erkannt und gelten
+      // anderswo (nie schwächer); die Zelle selbst wird ganz ersetzt (die Treffer darin fallen in columnWholeHits weg)
+      if (!p.col.seedName || units[ui].cellOrig) continue;
+    } else nameUnits.add(ui);
     const toks = unitToks[ui];
     // „Nachname, Vorname“ nur in Spalten mit Namenswort in der Überschrift (Name, Nachname, Vorname …); sonst ist das Komma
     // eine Aufzählung

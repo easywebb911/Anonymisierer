@@ -37,6 +37,7 @@ const OLD = {
   '2.8.0': ['81b863b2786b1a8a62d310dc7310c33fcadf69c9', 'c3ce5b2b219992ef'],
   '2.8.1': ['cccf13c16473a6c1999e45427d4649bf12a009ed', '51b039c10a514d2a'],
   '2.9.0': ['fc3d7e172b1c72f3e0560f45edd80fb6f0ee0d9e', 'c8117f37c68689cf'],
+  '2.10.0': ['c6d74d8cfd24c5fa041f5f8d3de3a88f5224f1dc', 'f6e9546bf17ad947'],
 };
 const SRC_234 = '479aa0af98ff3d82723c6cc7e9715a4cafa5f349'; // src/ von Version 2.3.4 (wortliste-test)
 const alt = (v) => path.join(ALT, `index-${v}.html`);
@@ -60,12 +61,12 @@ const TESTS = [
   ['pfade', 'pfade-test.mjs', [alt('2.4.0')]],
   ['bedienung', 'bedienung-test.mjs', [alt('2.4.1')]],
   ['anzeige', 'anzeige-test.mjs', []],
-  ['regression', 'regression.mjs', [alt('2.9.0')]], // Version 2.10.0: Regression gegen main (2.9.0)
+  ['regression', 'regression.mjs', [alt('2.10.0')]], // Version 2.11.0: Regression gegen main (2.10.0)
   ['traeger', 'traeger-test.mjs', [alt('2.7.0')]],
   ['massstab', 'massstab-test.mjs', [alt('2.7.0'), alt('2.8.0')]],
   ['nachbarn', 'nachbarn-test.mjs', [alt('2.7.0'), alt('2.8.0')]],
   ['restwoerter', 'restwoerter-test.mjs', []],
-  ['spaltenwahl', 'spaltenwahl-test.mjs', [alt('2.9.0')]], // Version 2.10.0: Spalten behandeln (Gegenprobe gegen main)
+  ['spaltenwahl', 'spaltenwahl-test.mjs', [alt('2.10.0')]], // Version 2.10.0/2.11.0: Spalten behandeln (Gegenprobe gegen main 2.10.0)
 ];
 // Längste zuerst (aus der Messung), damit die Gesamtzeit nicht vom Letzten abhängt
 const ORDER = ['nachbarn', 'massstab', 'bedienung', 'spaltenwahl', 'restwoerter', 'gross', 'run-tests', 'anzeige', 'regression', 'einrichtung', 'pfade', 'traeger', 'roundtrip', 'kollision', 'platzhalter', 'kennung', 'ui-flow', 'bilder', 'endungen', 'meta-proof', 'spalten', 'wortliste', 'korpus'];
@@ -99,7 +100,7 @@ function score(name, log) {
   if ((m = pick(/Prüfungen: (\d+) von (\d+) bestanden/g)) || (m = pick(/Ergebnis: (\d+) von (\d+) Prüfungen bestanden/g)) || (m = pick(/Ergebnis: (?:NICHT )?bestanden\*\* \((\d+)\/(\d+)\)/g))
     || (m = pick(/Ergebnis: (\d+)\/(\d+) bestanden/g)) || (m = pick(/Fallen-Prüfungen: (\d+) von (\d+) bestanden/g))) return `${m[1]}/${m[2]}`;
   if (name === 'regression' && (m = pick(/Regression: (\d+) von (\d+) Ausgaben byte-identisch, (\d+) gleich bis auf die Kennung.*?, (\d+) unterschiedlich/g))) {
-    const v = (log.match(/(\d+) durch die Spalten-Behandlung von Version 2\.10\.0 geändert/) || [])[1];
+    const v = (log.match(/(\d+) durch die Spalten-Behandlung von Version 2\.11\.0 geändert/) || [])[1];
     return `${Number(m[2]) - Number(m[4])}/${m[2]} (${m[1]} byte-gleich, ${m[3]} nur Kennung${v !== undefined ? `, ${v} Spalten-Behandlung` : ''})`;
   }
   if (name === 'massstab' && (m = pick(/Geprüft: (\d+) Dateien.*?, (\d+) Stellen der Vorversion.*?(?:: (\d+) Stellen von 2\.8\.0)?/g))) {

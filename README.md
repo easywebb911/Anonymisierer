@@ -155,15 +155,29 @@ In Excel, CSV und Word-Tabellen schaut das Tool auf die **Überschrift einer Spa
 - **Spalte von Hand:** Im Schritt „Prüfen“ steht an jeder Spaltenüberschrift der Tabelle ein Schalter **„Namen“** (bei Word-Tabellen „Spalte 1“, „Spalte 2“ …). Eine erkannte Namensspalte ist angehakt und farbig. Anhaken wirkt wie ein starkes Kopfwort (auch bei Tabellen ohne Kopfzeile: dann alle Zeilen); Abhaken schaltet die Regel für diese Spalte aus. Das gilt als Änderung der Treffer: Das Häkchen beim Speichern muss neu gesetzt werden, und wurde schon eine Schlüsseldatei gespeichert, gibt es eine neue Kennung.
 - **Anrede in der Nachbarzelle (Excel):** Steht in einer Zelle nur „Frau“ oder „Herr“, gilt die rechte Nachbarzelle wie in Word und CSV als Name (Regel „Anrede allein“). Ist die Spalte eine Namensspalte, gilt die Namensspalte.
 
-### Tabellen: Spalten behandeln (seit Version 2.10)
-Bei **Excel- und CSV-Tabellen mit Kopfzeile** entscheidest du **je Spalte**, was mit ihr passiert. Das Tool schlägt es anhand der Überschrift vor.
+### Tabellen: Spalten behandeln (seit Version 2.10, Personen-Tabellen seit 2.11)
+Bei **Excel- und CSV-Tabellen mit Kopfzeile** entscheidest du **je Spalte**, was mit ihr passiert. Das Tool schlägt es vor.
 
 **Drei Möglichkeiten je Spalte:**
-- **Name:** Jede gefüllte Zelle wird als Person ersetzt, auch unbekannte, klein geschriebene und mehrteilige Namen („Thi Lan“, „van der Meulen“). Stehen mehrere Namen in einer Zelle (getrennt durch `|`, `;`, `/` oder „und“), wird jeder einzeln ersetzt („lena | ben“ → „Person D | Person E“). Füllwerte wie „keine“, „N.N.“ oder „–“ bleiben stehen.
-- **ganz ersetzen:** Jede gefüllte Zelle wird als Ganzes durch einen Platzhalter ersetzt, egal ob Text, Zahl oder Datum. Gleicher Wert = gleicher Platzhalter. Platzhalter je nach Überschrift: **[ADRESSE]**, **[TELEFON]**, **[E-MAIL]**, **[DATUM]** (neu), **Einrichtung A** und **[ANGABE]** (neu, für alles andere). Im Modus „rückbaufähig“ mit Nummer: [DATUM-1], [ANGABE-1] …
-- **wie bisher:** Das Tool sucht Namen im Text der Zelle wie in Version 2.9 (dazu gehört die Namensspalten-Regel aus 2.6 mit dem Schalter „Namen“ an der Spalte).
+- **Name:** Jede gefüllte Zelle wird als Person ersetzt, auch unbekannte, klein geschriebene und mehrteilige Namen. Mehrere Namen in einer Zelle (getrennt durch `|`, `;`, `/` oder „und“) werden einzeln ersetzt. Füllwerte wie „keine“, „N.N.“ oder „–“ bleiben stehen.
+- **ganz ersetzen:** Jede gefüllte Zelle wird als Ganzes durch einen Platzhalter ersetzt, egal ob Text, Zahl oder Datum. Gleicher Wert = gleicher Platzhalter. Platzhalter: **[ADRESSE]**, **[TELEFON]**, **[E-MAIL]**, **[DATUM]**, **Einrichtung A** und **[ANGABE]** (für alles andere). Im Modus „rückbaufähig“ mit Nummer: [DATUM-1], [ANGABE-1] …
+- **wie bisher (lesbar):** Das Tool sucht Namen im Text der Zelle. Die Spalte bleibt sonst lesbar.
 
-**Wichtig:** Ersetzte Spalten kann eine KI danach **nicht mehr inhaltlich prüfen**. Sie sieht nur noch „[ANGABE]“ statt der Diagnose oder „[DATUM]“ statt des Geburtsdatums. Stell eine Spalte auf „wie bisher“, wenn die KI ihren Inhalt braucht und darin kein Name steht.
+**Wichtig:** Ersetzte Spalten kann eine KI danach **nicht mehr inhaltlich prüfen**. Stell eine Spalte auf „wie bisher“, wenn die KI ihren Inhalt braucht und darin nichts über eine Person steht.
+
+**Personen-Tabelle: im Zweifel ersetzen (seit 2.11).** Hat eine Tabelle eine Kopfzeile und mindestens eine Spalte mit Namen, ist sie eine **Personen-Tabelle**. Dort bleibt eine Spalte nur lesbar, wenn sie erkennbar harmlos ist. Das Tool prüft je Spalte in dieser Reihenfolge:
+1. **Bekannte Überschriften** (Liste unten) gelten weiter. „Name“ gibt es aber nur noch, wenn ein Namenswort in der Überschrift steht (Nachname, Vorname, Vornamen, Rufname, Familienname, Geburtsname, Name). „Wunschpartner“, „Ansprechpartner“ oder „Erziehungsberechtigte“ ohne Namenswort werden ganz ersetzt.
+2. **Heikle Themen** werden ganz ersetzt als [ANGABE]. Es genügt ein Wortstamm irgendwo in der Überschrift, auch mitten in einem Wort: rel., konf. und rel- (als Abkürzung, z. B. „Rel.-Unt.“, „Rel-Unt“, „Konf.“), RU und DaZ (nur als ganze Überschrift), relig, konfess, glaub, zuzug, asyl, aufenth, herkunft, staats, national, sprach, gesund, krank, diagn, allerg, medik, behind, beeintr, störung, lrs, legasth, dyskalk, inklus, förder, msd, therap, sorge, wohn, pflege, einkommen, sozial, bemerk, erläut, notiz, anmerk, hinweis, komment, sonstig, wunsch, dazu flucht, migra, jugendamt, vormund, psych, adhs, autis, nachteilsausgl, notenschutz, bekenntnis, geburtsland, ethni, familienstand, lebt bei. **Nicht** heikel: „Fremdsprache“ (bei „sprach“) und „Gewünschte …“ (bei „wunsch“), denn das sind gewählte Fächer. Trifft ein Wortstamm neben „Einrichtung“, gilt [ANGABE].
+3. **Datumswerte:** Enthält eine Spalte überwiegend Datumswerte, wird sie ganz ersetzt als [DATUM].
+4. **Alle übrigen Spalten nach ihrem Inhalt:** Eine **Auswahl-Spalte** bleibt lesbar: höchstens 12 verschiedene Werte, jeder höchstens 40 Zeichen, und die Werte wiederholen sich (höchstens ein Drittel so viele verschiedene Werte wie gefüllte Zellen). Alles andere (Freitext, viele verschiedene Werte, laufende Nummern) wird ganz ersetzt als [ANGABE].
+
+**Seltene Werte (seit 2.11).** In einer lesbaren Spalte einer Personen-Tabelle wird ein Wert, der **weniger als 3-mal** vorkommt, durch [ANGABE] ersetzt. Sonst wäre z. B. ein Doktortitel, den nur zwei Eltern haben, ein Hinweis auf die Person. Schalter in der Übersicht: **„Seltene Werte (weniger als 3-mal) ersetzen“**, Standard an. Bei Tabellen mit **weniger als 20 Zeilen** ist die Regel aus: Dort trägt sie nicht. Das steht dann als Hinweis in der Übersicht; bitte prüfe die lesbaren Spalten dort selbst.
+
+**Du siehst, was lesbar bleibt.** Die Übersicht zeigt für jede lesbare Spalte ihre Werte mit Häufigkeit, die häufigsten zuerst (z. B. „Schulweg: Bus 30, Fahrrad 15, zu Fuß 15“), und wie viele seltene Werte ersetzt werden. Lesbare Spalten sind nicht eingeklappt. Auf „Speichern“ steht bei jeder Personen-Tabelle der Punkt **„Diese Spalten bleiben lesbar: …“** mit „Ansehen“. Er läuft über das eine Häkchen.
+
+**Kopfzeile (seit 2.11):** Eine Zelle der Kopfzeile bleibt immer stehen, wenn sie **nur aus üblichen Spaltenkopf-Wörtern** besteht (z. B. „Name“, „Nachname“, „1. Erziehungsberechtigte/r Vorname“, „Übertritt von“, „Bisherige Grundschule“; Zahlen höchstens zweistellig wie „1.“). Jede andere Zelle der Kopfzeile prüft das Tool wie jeden Text, mit allen Trefferarten (Namen, Kontaktdaten, eigene Namen, Handmarkierung). Beispiel: „Klassenleitung Frau Wetzlarski, Tel. 0171 …“ in der Kopfzeile wird ersetzt. Zu den Wörtern zählen die Namens- und üblichen Spaltenköpfe (siehe „Namensspalten“) und übliche Köpfe aus Schul-Stammdaten (Liste `HEAD_SCHOOL_WORDS` in `src/core/detect.js`).
+
+**Für alle anderen Tabellen** (ohne Spalte mit Namen, z. B. ein Raumplan) gilt der Vorschlag nur anhand der Überschrift wie in 2.10; was dort nicht passt, bleibt „wie bisher“.
 
 **Vorschlag anhand der Überschrift.** Es genügt, dass ein Schlüsselwort als ganzes Wort irgendwo in der Überschrift steht. Groß- und Kleinschreibung, Umlaute (auch „ae“, „oe“, „ue“) und ss/ß sind egal; Zusätze wie „1.“ oder „Erziehungsberechtigte/r“ stören nicht. Teile eines Wortes zählen nicht („Dateiname“, „Ortsangabe“).
 - **Name:** Nachname, Vorname, Vornamen, Rufname, Familienname, Geburtsname, Name, Ansprechpartner, Wunschpartner, Erziehungsberechtigte(r). „Erziehungsberechtigte“ zählt nur, wenn sonst kein anderes Wort folgt (außer Nummer und „/r“): „1. Erziehungsberechtigte/r akad. Titel“ bleibt „wie bisher“. „Name“ zählt nicht in „Name der Schule/Einrichtung/Firma“ (dort gilt die Einrichtung).
@@ -177,13 +191,15 @@ Bei **Excel- und CSV-Tabellen mit Kopfzeile** entscheidest du **je Spalte**, was
 
 **Eine Person je Zeile:** Stehen Vorname(n) und Nachname mit demselben Vorspann in einer Zeile (z. B. beide beginnen mit „1. Erziehungsberechtigte/r“), sind sie **eine** Person. Kind, 1. und 2. Erziehungsberechtigte/r sind so je Zeile drei Personen, auch wenn sie denselben Nachnamen haben. Gibt es zwei Vornamen-Spalten (Rufname und Vornamen laut Geburtsurkunde), gehören beide zur selben Person.
 
-**So sieht es aus:** Im Schritt „Prüfen“ kommt zuerst die Übersicht **„Spalten“** (je Blatt): je Spalte die Überschrift, die Zahl der gefüllten Zellen und die Auswahl „Name“, „ganz ersetzen“ oder „wie bisher“. Spalten, die ersetzt werden, stehen oben; die übrigen darunter zum Aufklappen. Mit **„So übernehmen“** geht es zu den Fragen. Über „Ändern“ oberhalb der Fragen kommst du zurück. In der Tabelle sind ersetzte Spalten farbig und tragen „ersetzt: Name“ bzw. „ganz ersetzt“.
-- Auch bevor du „So übernehmen“ klickst, gilt die Auswahl in der Übersicht (am Anfang die Vorschläge). Auf „Speichern“ steht dann der Punkt **„Die Spalten sind noch nicht geprüft.“** mit „Ansehen“ (kein stilles Speichern).
-- Eine andere Wahl gilt wie eine Einstellung: Antworten und Umschaltungen fallen weg, die Fragen sind wieder offen.
-- **Formeln und verbundene Zellen** in einer ersetzten Spalte ersetzt das Tool nicht. Es meldet sie auf „Speichern“ mit Zelle („In einer ersetzten Spalte steht eine Formel …“, „… gibt es verbundene Zellen“).
-- **Merkliste an:** Das Tool merkt sich deine Wahl je Überschrift (nur die Überschrift, nie Inhalte) und schlägt sie beim nächsten Dokument vor („gemerkte Wahl“).
+**So sieht es aus:** Im Schritt „Prüfen“ kommt zuerst die Übersicht **„Spalten“** (je Blatt): je Spalte die Überschrift, die Zahl der gefüllten Zellen und die Auswahl „Name“, „ganz ersetzen“ oder „wie bisher“. Ersetzte Spalten stehen oben. Mit **„So übernehmen“** geht es zu den Fragen; über „Ändern“ oberhalb der Fragen kommst du zurück. In der Tabelle sind ersetzte Spalten farbig und tragen „ersetzt: Name“ bzw. „ganz ersetzt“.
+- Auch bevor du „So übernehmen“ klickst, gilt die Auswahl in der Übersicht (am Anfang die Vorschläge). Auf „Speichern“ steht dann der Punkt „Die Spalten sind noch nicht geprüft.“ mit „Ansehen“.
+- Eine andere Wahl oder der Schalter „Seltene Werte“ gilt wie eine Einstellung: Antworten und Umschaltungen fallen weg, die Fragen sind wieder offen.
+- **Formeln und verbundene Zellen** in einer ersetzten Spalte ersetzt das Tool nicht; es meldet sie auf „Speichern“ mit Zelle.
+- **Merkliste an:** Das Tool merkt sich deine Wahl je Überschrift (nur die Überschrift, nie Inhalte).
 
 **Rückbau:** Zahl- und Datumszellen stehen in der Ausgabe als Text-Platzhalter in der Zelle; ihr Format bleibt. Der Rückbau schreibt Wert, Zelltyp (Zahl, Datum, Wahrheitswert) und Format exakt zurück. Im Modus „rückbaufähig“ bekommt Text mit gemischter Formatierung in einer ganz ersetzten Zelle je Textlauf einen Platzhalter und kommt exakt zurück. Schlüsseldateien mit [DATUM-…]/[ANGABE-…] oder Zelltyp haben die Format-Version 3; ältere Versionen des Tools lehnen sie klar ab („Unbekannte Version“). Alle übrigen Schlüsseldateien bleiben wie bisher (Version 1 oder 2), und alte Schlüsseldateien bauen weiter exakt zurück.
+
+Seltene Werte kommen beim Rückbau ebenso exakt zurück (eigener Platzhalter [ANGABE-…], Zahl- und Datumszellen mit Zelltyp).
 
 **Gilt für Excel und CSV.** Tabellen in Word und PDF: wie bisher.
 
@@ -379,6 +395,12 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 
 ## Grenzen (bitte lesen)
 
+**Seit Version 2.11 (Personen-Tabellen):**
+- **Lesbar bleiben Auswahl-Spalten** einer Personen-Tabelle (wenige, sich wiederholende Werte, z. B. Geschlecht, Schulweg, Ganztag). Ein Wert, der mindestens 3-mal vorkommt, bleibt lesbar, auch wenn er zusammen mit anderen lesbaren Spalten eine Person erkennbar machen kann (z. B. die einzige Kombination aus zwei häufigen Werten). Prüfe die Liste „Diese Spalten bleiben lesbar“.
+- **Kleine Tabellen (weniger als 20 Zeilen):** Die Regel „seltene Werte“ ist dort aus; ein Wert, der nur einmal vorkommt, bleibt lesbar.
+- **Wortstämme** treffen nur, was in der Überschrift steht. Eine heikle Spalte mit einer harmlosen Überschrift (z. B. „Info 2“ mit wenigen Werten) bleibt eine Auswahl-Spalte und damit lesbar.
+- **Kopfzeile:** Eine Kopf-Zelle mit einem Wort außerhalb der Liste wird geprüft wie Text. Steht darin ein Wort, das im Dokument als Name gilt (z. B. ein Nachname, der auch eine Überschrift sein könnte), wird es dort ersetzt wie in 2.10.
+
 **Seit Version 2.10 (Tabellen: Spalten behandeln):**
 - **Nur Excel und CSV.** Tabellen in Word und PDF haben keine Übersicht „Spalten“; dort gilt alles wie bisher (auch die Namensspalten-Regel aus 2.6).
 - **Kopfzeile:** Es gilt dieselbe Erkennung wie seit 2.6 (erste ausreichend gefüllte Zeile mit einem üblichen Spaltenkopf). Wird keine Kopfzeile erkannt (Tabelle ohne Kopf, Kopf unter mehreren Titelzeilen ohne übliches Kopfwort), gibt es keine Übersicht.
@@ -532,12 +554,12 @@ Die Datei muss in einem Browser geöffnet werden (z. B. über „Teilen → in S
 
 ## Version und Prüfsumme
 
-Version **2.10.0**, Stand 2026-11-25 (steht auch im Fußbereich des Tools).
+Version **2.11.0**, Stand 2026-11-25 (steht auch im Fußbereich des Tools).
 
 SHA-256 der `index.html` dieser Version:
 
 ```
-f6e9546bf17ad947f5e43c0e19d911cfdb9148437b173ffdc864a0571188b24c
+89e519fd9cf15896dd2542010478f929dabdd9bf996bfd29a8f6f464391a6928
 ```
 
 Seit 2.9.0 ist die Datei rund 8 MB groß (vorher 3,7 MB): Sie enthält die gepackte Wortliste für „Diese Wörter bleiben stehen“.

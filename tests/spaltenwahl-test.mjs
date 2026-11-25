@@ -10,7 +10,7 @@
 // 6. Kein stilles Speichern (Punkt „Die Spalten sind noch nicht geprüft“); Formel und verbundene Zellen als Punkt
 // 7. Vorhandene Tabellen-Testdateien: Vorschläge je Spalte
 // dazu: Merkliste (nur Überschrift), Tabellen-Ansicht, Sammelfrage/Schlusscheck, kein „null“/„undefined“, 0 Anfragen nach außen
-// Aufruf: node tests/spaltenwahl-test.mjs <index.html von main (2.9.0)>
+// Aufruf: node tests/spaltenwahl-test.mjs <index.html von main (2.10.0)>
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
@@ -18,14 +18,15 @@ import { fileURLToPath } from 'node:url';
 import os from 'node:os';
 import { execFileSync } from 'node:child_process';
 import JSZip from 'jszip';
+import { isPureHeaderCell } from '../src/core/detect.js';
 import { startAnon, loadIn, goTo, ackPoints, saveKey, exportWithAck, rbConfirm, savePoints, waitCheck } from './ui-helpers.mjs';
-import { FXW, HEADERS, EXPECT, makeAll } from './make-spaltenwahl.mjs';
+import { FXW, HEADERS, EXPECT, EXPECT_MAIN, GUARDIAN_CASES, makeAll } from './make-spaltenwahl.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..');
 const NEW = path.join(root, 'index.html');
-const MAIN = path.resolve(process.argv[2] || path.join(here, 'out-alt', 'index-2.9.0.html'));
-if (!fs.existsSync(MAIN)) { console.error('Bitte Pfad zur index.html von main (2.9.0) angeben.'); process.exit(2); }
+const MAIN = path.resolve(process.argv[2] || path.join(here, 'out-alt', 'index-2.10.0.html'));
+if (!fs.existsSync(MAIN)) { console.error('Bitte Pfad zur index.html von main (2.10.0) angeben.'); process.exit(2); }
 if (!process.env.ANON_FIXTURES_FERTIG) await makeAll();
 const outDir = path.join(here, 'out-spaltenwahl');
 fs.rmSync(outDir, { recursive: true, force: true });
@@ -191,6 +192,20 @@ function csvCells(text) {
   csvRows(text).forEach((r, ri) => r.forEach((c, ci) => out.set(ri + '|' + ci, c)));
   return out;
 }
+// Blattname -> Teil der Datei (xl/worksheets/sheetN.xml) über die Arbeitsmappe
+async function sheetFiles(bytes) {
+  const z = await JSZip.loadAsync(bytes);
+  if (!z.file('xl/workbook.xml') || !z.file('xl/_rels/workbook.xml.rels')) return {}; // Teile an ungewöhnlicher Stelle (pfade-Testdateien)
+  const wb = await z.file('xl/workbook.xml').async('string');
+  const rels = await z.file('xl/_rels/workbook.xml.rels').async('string');
+  const out = {};
+  for (const m of wb.matchAll(/<sheet [^>]*name="([^"]*)"[^>]*r:id="([^"]*)"/g)) {
+    const t = (rels.match(new RegExp(`Id="${m[2]}"[^>]*Target="([^"]*)"`)) || rels.match(new RegExp(`Target="([^"]*)"[^>]*Id="${m[2]}"`)) || [])[1];
+    if (t) out[dec(m[1])] = 'xl/' + t.replace(/^\/?xl\//, '');
+  }
+  return out;
+}
+const colL = (i) => { let s = ''; let n = i + 1; while (n > 0) { const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); } return s; };
 const words = (t) => new Set(String(t).split(/[^\p{L}\p{N}]+/u).filter((w) => w.length >= 2 && /\p{L}/u.test(w)));
 // Originalwert noch in der Zelle? Name: jeder Name (Teile getrennt durch | ; / „und“, ohne Füllwerte) als ganzes Wort;
 // ganz ersetzen: der ganze Zellwert als Text in der Zelle
@@ -210,31 +225,42 @@ function leftover(orig, out, treat) {
   const toks = o.split(/[^\p{L}\p{N}]+/u).filter((t) => t.length >= 3 || /^\d{2,}$/.test(t));
   return toks.some((t) => new RegExp(`(^|[^\\p{L}\\p{N}])${esc(t)}($|[^\\p{L}\\p{N}])`, 'u').test(rest));
 }
+// Zählung je Spalte: „Name“/„ganz ersetzen“ = Zellen mit Originalwert; lesbare Spalte = Zellen mit einem seltenen Wert
+// (weniger als 3-mal) im Klartext und Zellen, die lesbar geblieben sind
+const RARE = {};
+HEADERS.forEach((hd, ci) => { const c = new Map(); for (const r of TRUTH.rows) if (String(r[ci]).trim()) c.set(r[ci], (c.get(r[ci]) || 0) + 1); RARE[hd] = c; });
 async function plainCount(file) {
   const rows = await outRows(file);
   const per = {};
   HEADERS.forEach((hd, ci) => {
     const e = EXPECT[hd];
-    if (e === 'bisher') return;
-    const treat = e === 'name' ? 'name' : 'ganz';
     let n = 0;
-    TRUTH.rows.forEach((r, ri) => { if (leftover(r[ci], (rows[ri + 1] || [])[ci] || '', treat)) n++; });
-    per[hd] = n;
+    let rare = 0;
+    let kept = 0;
+    TRUTH.rows.forEach((r, ri) => {
+      const o = String(r[ci]).trim();
+      if (!o) return;
+      const out = (rows[ri + 1] || [])[ci] || '';
+      if (e === 'bisher') { if (out === o) { kept++; if (RARE[hd].get(r[ci]) < 3) rare++; } return; }
+      if (leftover(r[ci], out, e === 'name' ? 'name' : 'ganz')) n++;
+    });
+    per[hd] = e === 'bisher' ? { rare, kept } : n;
   });
+  // Kopfzeile unverändert?
+  per.__head = (rows[0] || []).join('\u0001') === HEADERS.join('\u0001');
   return per;
 }
-
 // ======================================================================================================
-log('# Tabellen: Spalten behandeln (Version 2.10.0)');
+log('# Tabellen: Spalten behandeln (Version 2.10.0) und Personen-Tabellen (Version 2.11.0)');
 log('');
-log(`Neue Version: index.html; Gegenprobe: main (2.9.0), ${path.relative(root, MAIN)}. Nur Chromium, Firefox prüft Easy. Alle Daten erfunden.`);
+log(`Neue Version: index.html; Gegenprobe: main (2.10.0), ${path.relative(root, MAIN)}. Nur Chromium, Firefox prüft Easy. Alle Daten erfunden.`);
 log('');
 
 // ---------- 1. Vorschläge ----------
 log('## 1. Vorschlag anhand der Überschrift (stammdaten.xlsx und stammdaten.csv)');
 const planOf = async (file) => {
   const o = await openFile(file, 'person', { confirm: false });
-  const p = await o.page.evaluate(() => window.__anon.app.result.colPlan.map((c) => ({ id: c.id, header: c.header, treat: c.treat, kind: c.kind, groups: c.proposal.groups, conflict: c.proposal.conflict })));
+  const p = await o.page.evaluate(() => window.__anon.app.result.colPlan.map((c) => ({ id: c.id, header: c.header, treat: c.treat, kind: c.kind, groups: c.proposal.groups, conflict: c.proposal.conflict, why: c.proposal.why || '', person: c.person })));
   const ui = await o.page.$$eval('#qcard .colrow', (els) => els.map((e) => ({ col: e.dataset.col, sel: e.querySelector('select').value, text: e.innerText.replace(/\s+/g, ' ') })));
   await o.ctx.close();
   return { p, ui };
@@ -243,68 +269,84 @@ for (const f of ['stammdaten.xlsx', 'stammdaten.csv']) {
   const { p, ui } = await planOf(path.join(FXW, f));
   const got = Object.fromEntries(p.map((c) => [c.header, c.treat === 'ganz' ? 'ganz:' + c.kind : c.treat]));
   const wrong = HEADERS.filter((hd) => got[hd] !== EXPECT[hd]);
-  check(`${f}: Vorschlag für alle 40 Spalten wie erwartet`, p.length === 40 && !wrong.length, wrong.map((hd) => `${hd}: ${got[hd]} statt ${EXPECT[hd]}`).join('; '));
-  check(`${f}: Übersicht zeigt jede Spalte mit gewählter Behandlung (Auswahl = Vorschlag)`, ui.length === 40 && ui.every((u) => { const c = p.find((x) => x.id === u.col); return c && u.sel === c.treat; }));
+  const N = HEADERS.length;
+  check(`${f}: Vorschlag für alle ${N} Spalten wie erwartet (Personen-Tabelle)`, p.length === N && !wrong.length, wrong.map((hd) => `${hd}: ${got[hd]} statt ${EXPECT[hd]}`).join('; '));
+  check(`${f}: Übersicht zeigt jede Spalte mit gewählter Behandlung (Auswahl = Vorschlag)`, ui.length === N && ui.every((u) => { const c = p.find((x) => x.id === u.col); return c && u.sel === c.treat; }));
   if (f.endsWith('.xlsx')) {
     log('');
-    log('| Spalte | Vorschlag | Gruppen |');
-    log('|---|---|---|');
-    for (const c of p) log(`| ${c.header} | ${c.treat === 'ganz' ? 'ganz ersetzen (' + c.kind + ')' : c.treat === 'name' ? 'Name' : 'wie bisher'} | ${c.groups.join(' + ') || '–'}${c.conflict ? ' (Konflikt)' : ''} |`);
+    log('| Spalte | Vorschlag main (2.10.0) | Vorschlag jetzt | Grund |');
+    log('|---|---|---|---|');
+    const lab = (x) => (x === 'name' ? 'Name' : x === 'bisher' ? 'lesbar (wie bisher)' : 'ganz ersetzen (' + x.split(':')[1] + ')');
+    for (const c of p) log(`| ${c.header} | ${lab(EXPECT_MAIN[c.header])} | ${lab(got[c.header])} | ${c.why || c.groups.join(' + ') || '–'}${c.conflict ? ' (Konflikt)' : ''} |`);
     log('');
     log(`Konflikte: ${p.filter((c) => c.conflict).map((c) => `„${c.header}“ (${c.groups.join(' + ')} → ${c.kind})`).join('; ') || 'keine'}`);
-    const fills = ui.map((u) => u.text.match(/(\d+) Zellen? gefüllt/)).filter(Boolean).map((m) => Number(m[1]));
     const geb = ui.find((u) => /Geburtsdatum/.test(u.text));
-    check(`${f}: Zahl der gefüllten Zellen zählt auch Datums- und Zahlzellen (Geburtsdatum 30)`, !!geb && /30 Zellen gefüllt/.test(geb.text), geb ? geb.text : '');
-    check(`${f}: Spalten „Name“/„ganz ersetzen“ oben, „wie bisher“ darunter einklappbar`, await (async () => {
+    check(`${f}: Zahl der gefüllten Zellen zählt auch Datums- und Zahlzellen (Geburtsdatum 60)`, !!geb && /60 Zellen gefüllt/.test(geb.text), geb ? geb.text : '');
+    const nRead = HEADERS.filter((hd) => EXPECT[hd] === 'bisher').length;
+    check(`${f}: Personen-Tabelle: ersetzte Spalten oben, lesbare Spalten darunter NICHT eingeklappt, je mit ihren Werten`, await (async () => {
       const o = await openFile(path.join(FXW, f), 'person', { confirm: false });
-      const r = await o.page.evaluate(() => ({ top: [...document.querySelectorAll('#qcard > ul.collist .colrow')].map((e) => e.querySelector('select').value), rest: [...document.querySelectorAll('#qcard details.colrest .colrow')].map((e) => e.querySelector('select').value), open: document.querySelector('#qcard details.colrest').open }));
+      const r = await o.page.evaluate(() => ({ top: [...document.querySelectorAll('#qcard > ul.collist:not(.lesbar) .colrow')].map((e) => e.querySelector('select').value),
+        read: [...document.querySelectorAll('#qcard ul.collist.lesbar .colrow')].map((e) => ({ v: e.querySelector('select').value, vals: (e.querySelector('.colvals') || {}).textContent || '' })),
+        details: document.querySelectorAll('#qcard details').length, rareOpt: !!document.querySelector('#col-rare:checked'), text: document.querySelector('#qcard').innerText }));
       await o.ctx.close();
-      log(`  (oben ${r.top.length}, eingeklappt ${r.rest.length}, offen: ${r.open})`);
-      return r.top.length === 33 && r.top.every((v) => v !== 'bisher') && r.rest.length === 7 && r.rest.every((v) => v === 'bisher') && !r.open;
-    })(), `${fills.length} Zeilen`);
+      log(`  (oben ${r.top.length}, lesbar ${r.read.length}, eingeklappt ${r.details}; Schalter „Seltene Werte“ an: ${r.rareOpt})`);
+      log('');
+      log('Lesbare Spalten, wie der Nutzer sie sieht:');
+      for (const x of r.read) log(`- ${x.vals}`);
+      log('');
+      return r.top.length === N - nRead && r.top.every((v) => v !== 'bisher') && r.read.length === nRead && r.read.every((x) => x.v === 'bisher' && /^Bleibt lesbar: .+ \d+/.test(x.vals)) && !r.details && r.rareOpt && !/\bnull\b|\bundefined\b/.test(r.text);
+    })());
   }
 }
 
 // ---------- 2. Ziel: kein Originalwert ----------
 log('');
 log('## 2. Ohne jeden Klick außer „So übernehmen“: Klartext-Zellen je Spalte (Excel und CSV, drei Modi)');
-const table = {}; // Spalte -> {main, now}
+const table = {}; // Spalte -> Lauf -> {main, now}
 for (const f of ['stammdaten.xlsx', 'stammdaten.csv']) {
   for (const mode of ['person', 'name', 'reversible']) {
     const a = await anonymize(path.join(FXW, f), mode);
     const per = await plainCount(a.outPath);
-    const bad = Object.entries(per).filter(([, n]) => n);
-    check(`${f}, ${mode}: keine Zelle mit Originalwert in Spalten „Name“/„ganz ersetzen“`, !bad.length, bad.map(([hd, n]) => `${hd}: ${n}`).join('; '));
+    const bad = HEADERS.filter((hd) => EXPECT[hd] !== 'bisher' && per[hd]);
+    check(`${f}, ${mode}: keine Zelle mit Originalwert in Spalten „Name“/„ganz ersetzen“`, !bad.length, bad.map((hd) => `${hd}: ${per[hd]}`).join('; '));
+    const rareLeft = HEADERS.filter((hd) => EXPECT[hd] === 'bisher' && per[hd].rare);
+    check(`${f}, ${mode}: kein seltener Wert (weniger als 3-mal) in einer lesbaren Spalte`, !rareLeft.length, rareLeft.map((hd) => `${hd}: ${per[hd].rare}`).join('; '));
+    check(`${f}, ${mode}: Kopfzeile unverändert`, per.__head);
     check(`${f}, ${mode}: keine JS-Fehler`, !a.errors.length, a.errors.join(' | '));
     const m = await anonymize(path.join(FXW, f), mode, { html: MAIN });
     const pm = await plainCount(m.outPath);
-    for (const hd of Object.keys(per)) {
-      const k = hd;
-      table[k] = table[k] || {};
-      table[k][`${f}|${mode}`] = { main: pm[hd], now: per[hd] };
-    }
+    for (const hd of HEADERS) { table[hd] = table[hd] || {}; table[hd][`${f}|${mode}`] = { main: pm[hd], now: per[hd] }; }
   }
   // „Unsichere Treffer standardmäßig ersetzen“ aus (CLAUDE.md: jede neue Regel auch so)
   const u = await anonymize(path.join(FXW, f), 'person', { unsure: false });
   const pu = await plainCount(u.outPath);
-  const bu = Object.entries(pu).filter(([, n]) => n);
-  check(`${f}, „Unsichere Treffer“ aus: keine Zelle mit Originalwert in Spalten „Name“/„ganz ersetzen“`, !bu.length, bu.map(([hd, n]) => `${hd}: ${n}`).join('; '));
+  const bu = HEADERS.filter((hd) => (EXPECT[hd] !== 'bisher' ? pu[hd] : pu[hd].rare));
+  check(`${f}, „Unsichere Treffer“ aus: keine Originalwerte in ersetzten Spalten, kein seltener Wert`, !bu.length, bu.join('; '));
+}
+// csv: Kopfzeile byte-gleich
+{
+  const a = await anonymize(path.join(FXW, 'stammdaten.csv'), 'reversible');
+  const first = (b) => b.toString('utf8').replace(/^\uFEFF/, '').split(/\r?\n/)[0];
+  check('stammdaten.csv: Kopfzeile byte-gleich mit dem Original', first(fs.readFileSync(a.outPath)) === first(fs.readFileSync(path.join(FXW, 'stammdaten.csv'))));
 }
 log('');
-log('Zellen mit Klartext (ganz oder teilweise; von 30) je Spalte: main → jetzt. Spalten: Excel Person A / [NAME] / rückbaufähig, CSV Person A / [NAME] / rückbaufähig.');
+log('Zellen mit Klartext (von 60) je Spalte, main → jetzt; Lauf: Excel „Person A“ (alle 6 Läufe gleich, siehe Prüfungen). Bei lesbaren Spalten: lesbare Zellen und davon seltene Werte.');
 log('');
-log('| Spalte | Vorschlag | xlsx Person | xlsx [NAME] | xlsx rückbau | csv Person | csv [NAME] | csv rückbau |');
-log('|---|---|---|---|---|---|---|---|');
+log('| Spalte | Vorschlag main | Vorschlag jetzt | Klartext main | Klartext jetzt |');
+log('|---|---|---|---|---|');
+const fmtN = (x) => (typeof x === 'object' ? `${x.kept} lesbar, ${x.rare} selten` : String(x));
+const labT = (x) => (x === 'name' ? 'Name' : x === 'bisher' ? 'lesbar' : 'ganz ' + x.split(':')[1]);
+let sumMain = 0;
+let sumNow = 0;
 for (const hd of HEADERS) {
-  if (!table[hd]) continue;
-  const cells = ['stammdaten.xlsx', 'stammdaten.csv'].flatMap((f) => ['person', 'name', 'reversible'].map((m) => { const x = table[hd][`${f}|${m}`]; return `${x.main} → ${x.now}`; }));
-  log(`| ${hd} | ${EXPECT[hd].replace('ganz:', 'ganz ersetzen ')} | ${cells.join(' | ')} |`);
+  const x = table[hd]['stammdaten.xlsx|person'];
+  // main: Klartext-Zellen wie in 2.10.0 gezählt (ganz oder teilweise), auch für Spalten, die jetzt lesbar sind
+  log(`| ${hd} | ${labT(EXPECT_MAIN[hd])} | ${labT(EXPECT[hd])} | ${fmtN(x.main)} | ${fmtN(x.now)} |`);
+  for (const k of Object.keys(table[hd])) { const y = table[hd][k]; if (typeof y.now === 'number') { sumNow += y.now; sumMain += y.main; } else { sumNow += y.now.rare; sumMain += y.main.rare; } }
 }
-const sumMain = Object.values(table).reduce((a, x) => a + Object.values(x).reduce((b, y) => b + y.main, 0), 0);
-const sumNow = Object.values(table).reduce((a, x) => a + Object.values(x).reduce((b, y) => b + y.now, 0), 0);
 log('');
-log(`Summe aller Klartext-Zellen in diesen Spalten (6 Läufe): main ${sumMain}, jetzt ${sumNow}.`);
-check('Gegenprobe: main lässt in diesen Spalten Originalwerte stehen (der Test erkennt sie)', sumMain > 0, `main ${sumMain}`);
+log(`Summe über alle 6 Läufe (ersetzte Spalten: Zellen mit Originalwert; lesbare Spalten: seltene Werte im Klartext): main ${sumMain}, jetzt ${sumNow}.`);
+check('Gegenprobe: main lässt Originalwerte bzw. seltene Werte stehen (der Test erkennt sie)', sumMain > 0, `main ${sumMain}`);
 
 // ---------- 3. Paare ----------
 log('');
@@ -328,7 +370,7 @@ for (const f of ['stammdaten.xlsx', 'stammdaten.csv']) {
       const distinct = new Set(groups.map((g) => g[0])).size === groups.length;
       if (same && distinct) okRows++; else bad.push(`Zeile ${ri + 2}: ${groups.map((g) => g.join('/')).join(' | ')}`);
     });
-    check(`${f}, ${mode}: je Zeile Kind, EB 1 (und EB 2) je eine Person (gleicher Buchstabe im Paar, verschiedene Personen)`, okRows === 30, `${okRows}/30 ${bad.slice(0, 3).join('; ')}`);
+    check(`${f}, ${mode}: je Zeile Kind, EB 1 (und EB 2) je eine Person (gleicher Buchstabe im Paar, verschiedene Personen)`, okRows === TRUTH.rows.length, `${okRows}/${TRUTH.rows.length} ${bad.slice(0, 3).join('; ')}`);
   }
 }
 
@@ -365,7 +407,7 @@ log(`Schlüsseldatei (Excel): Format-Version ${keyX.formatVersion}, ${keyX.platz
 check('Schlüsseldatei mit den neuen Arten hat Format-Version 3', keyX.formatVersion === 3);
 const anonX = await xlsxGrid(fs.readFileSync(revX.outPath));
 const geb = [...anonX.entries()].filter(([k]) => k.endsWith('|4') && !k.startsWith('0|')).map(([, c]) => c);
-check('Anonymisiert: Datumszellen sind Text-Platzhalter mit unverändertem Format (Stil)', geb.length === 30 && geb.every((c) => c.t === 'inlineStr' && /^\[DATUM-\d+\]$/.test(c.text) && c.s === '1'), geb.slice(0, 2).map((c) => `${c.t} ${c.text} s=${c.s}`).join('; '));
+check('Anonymisiert: Datumszellen sind Text-Platzhalter mit unverändertem Format (Stil)', geb.length === TRUTH.rows.length && geb.every((c) => c.t === 'inlineStr' && /^\[DATUM-\d+\]$/.test(c.text) && c.s === '1'), geb.slice(0, 2).map((c) => `${c.t} ${c.text} s=${c.s}`).join('; '));
 const sharedLeft = await (async () => { const z = await JSZip.loadAsync(fs.readFileSync(revX.outPath)); const ss = await z.file('xl/sharedStrings.xml').async('string'); return ['Öztürk', 'Asthma', 'Gaziantep', 'Lindenweg', 'Notfallspray'].filter((w) => ss.includes(w)); })();
 check('Anonymisiert: kein Originalwert der ersetzten Spalten in der gemeinsamen Textliste (sharedStrings)', !sharedLeft.length, sharedLeft.join(', '));
 const rx = await restore(revX.outPath, revX.keyPath);
@@ -418,13 +460,13 @@ for (const [label, rev, orig] of [['Excel', revX, null], ['CSV', revC, origC]]) 
   const exact = orig ? !!r3.bytes && noBom(r3.bytes).equals(orig) : !!r3.bytes && !cellsEqual(origX, await xlsxGrid(r3.bytes)).length;
   check(`${label}: nach Korrektur wie vorgeschlagen Rückbau exakt (auch Zelltyp und Format)`, exact, r3.plan && r3.plan.verdict);
 }
-// alte Schlüsseldatei aus 2.9.0 baut mit der neuen Version exakt zurück (gleiche Testdatei, in main anonymisiert)
+// alte Schlüsseldatei aus main (2.10.0) baut mit der neuen Version exakt zurück (gleiche Testdatei, in main anonymisiert)
 for (const [f, label] of [['stammdaten.csv', 'CSV'], ['stammdaten.xlsx', 'Excel']]) {
   const m = await anonymize(path.join(FXW, f), 'reversible', { html: MAIN });
   const k = JSON.parse(fs.readFileSync(m.keyPath, 'utf8').replace(/^﻿/, ''));
   const r = await restore(m.outPath, m.keyPath);
   const exact = f.endsWith('.csv') ? !!r.bytes && noBom(r.bytes).equals(origC) : !!r.bytes && !cellsEqual(origX, await xlsxGrid(r.bytes)).length;
-  check(`${label}: Schlüsseldatei aus 2.9.0 (Format-Version ${k.formatVersion}) baut mit 2.10.0 exakt zurück`, exact, r.plan && r.plan.verdict);
+  check(`${label}: Schlüsseldatei aus 2.10.0 (Format-Version ${k.formatVersion}) baut mit 2.11.0 exakt zurück`, exact, r.plan && r.plan.verdict);
 }
 // Kollisions-Schutz: „[DATUM-1]“/„[ANGABE-2]“ schon im Original -> das Tool vergibt die nächste freie Nummer, Rückbau exakt
 {
@@ -440,15 +482,8 @@ for (const [f, label] of [['stammdaten.csv', 'CSV'], ['stammdaten.xlsx', 'Excel'
 {
   const a = await anonymize(path.join(FXW, 'komma.csv'), 'person');
   const rows = csvRows(fs.readFileSync(a.outPath, 'utf8').replace(/^\uFEFF/, ''));
-  // Guardian-Lauf 2, Fund 1: in „Wunschpartner“ ist das Komma eine Aufzählung (zwei Personen, jeweils wie in der Zeile)
-  const P = (r) => rows[r] && rows[r][0];
-  check('„Wunschpartner“: „Hauke, Ole“ sind zwei Personen (dieselben wie Hauke Quandt und Ole Wiesel), „Tilda, Ole“ ebenso', rows[1] && rows[1][3] === `${P(2)}, ${P(3)}` && rows[2][3] === `${P(1)}, ${P(3)}` && rows[3][3] === P(2), rows.slice(1, 4).map((r) => r.join(';')).join(' | '));
-  check('„Berger, Tilda“ (Spalte „Name“) und „Tilda Berger“ (Spalte „wie bisher“) sind eine Person', rows[1] && rows[1][0] === rows[1][1] && /^Person [A-Z]$/.test(rows[1][0]) && rows[2][0] === rows[2][1] && rows[1][0] !== rows[2][0], rows.slice(1, 3).map((r) => r.join(';')).join(' | '));
-}
-// neue Schlüsseldatei (Version 3) in 2.9.0: klar abgelehnt, nichts still stehen lassen
-{
-  const r = await restore(revC.outPath, revC.keyPath, MAIN);
-  check('Schlüsseldatei aus 2.10.0 (Version 3) wird von 2.9.0 klar abgelehnt', /Unbekannte Version der Schlüsseldatei \(3\)/.test(r.keyStatus), r.keyStatus);
+  // Version 2.11.0: dieselbe Person steht in der Titelzeile (Text wie bisher), die Tabelle ist eine Personen-Tabelle
+  check('„Berger, Tilda“ und „Quandt, Hauke“ (Spalte „Name“) sind dieselben Personen wie „Tilda Berger“ und „Hauke Quandt“ in der Titelzeile', rows[0] && rows[0][0] === `Liste für ${rows[2][0]} und ${rows[3][0]}` && /^Person [A-Z]$/.test(rows[2][0]) && rows[2][0] !== rows[3][0], rows.slice(0, 4).map((r) => r.join(';')).join(' | '));
 }
 
 // ---------- 5. Weg-Gleichheit ----------
@@ -476,15 +511,45 @@ for (const f of ['stammdaten.xlsx', 'stammdaten.csv']) {
     await page.click('#col-ok');
   });
   check(`${f}: „Erläuterung“ auf „wie bisher“, „Nachname“ auf „ganz ersetzen“ und beide zurück = nie umgestellt (byte-gleich)`, never.equals(back));
-  // alle Spalten „wie bisher“ = Ausgabe von main (2.9.0)
-  const allOld = await bytesOf(path.join(FXW, f), 'person', async (page) => {
+  // Version 2.11.0: Schalter „Seltene Werte“ aus und wieder an = nie umgeschaltet
+  const rareBack = await bytesOf(path.join(FXW, f), 'person', async (page) => {
     if (await page.isVisible('#col-change')) await page.click('#col-change');
-    await page.evaluate(async () => { const A = window.__anon; for (const c of A.app.result.colPlan) A.app.state.colTreat[c.id] = 'bisher'; await A.applyColumns(); });
+    for (const on of [false, true]) {
+      await page.click('#col-rare');
+      await page.waitForFunction((x) => window.__anon.app.state.colRare === x && document.querySelector('#col-ok') && document.querySelector('#col-rare').checked === x, on);
+    }
     await page.click('#col-ok');
   });
-  const main = await bytesOf(path.join(FXW, f), 'person', null, MAIN);
-  const same = f.endsWith('.csv') ? allOld.equals(main) : JSON.stringify([...(await xlsxGrid(allOld))]) === JSON.stringify([...(await xlsxGrid(main))]);
-  check(`${f}: alle Spalten „wie bisher“ = Ausgabe von main (${f.endsWith('.csv') ? 'byte-gleich' : 'jede Zelle gleich'})`, same);
+  check(`${f}: Schalter „Seltene Werte“ aus und wieder an = nie umgeschaltet (byte-gleich)`, never.equals(rareBack));
+  const rareOff = await bytesOf(path.join(FXW, f), 'person', async (page) => {
+    if (await page.isVisible('#col-change')) await page.click('#col-change');
+    await page.click('#col-rare');
+    await page.waitForFunction(() => window.__anon.app.state.colRare === false && document.querySelector('#col-ok'));
+    await page.click('#col-ok');
+  });
+  const ro = await outRows(await (async () => { const q = path.join(outDir, `rare-off-${f}`); fs.writeFileSync(q, rareOff); return q; })());
+  const ixD = HEADERS.indexOf('Geschlecht');
+  check(`${f}: Schalter „Seltene Werte“ aus: der seltene Wert „d“ (Geschlecht) bleibt lesbar`, ro.some((r) => r[ixD] === 'd'));
+  // alle Spalten „wie bisher“ und Schalter „Seltene Werte“ aus = Ausgabe von main (2.10.0); Unterschiede nur in der
+  // Kopfzeile (reine Kopf-Zellen, seit 2.11.0 nie ersetzt) wären begründet (hier: keine erwartet)
+  const allOld = await bytesOf(path.join(FXW, f), 'person', async (page) => {
+    if (await page.isVisible('#col-change')) await page.click('#col-change');
+    await page.evaluate(async () => { const A = window.__anon; A.app.state.colRare = false; for (const c of A.app.result.colPlan) A.app.state.colTreat[c.id] = 'bisher'; await A.applyColumns(); });
+    await page.click('#col-ok');
+  });
+  const main = await bytesOf(path.join(FXW, f), 'person', async (page) => {
+    await page.evaluate(async () => { const A = window.__anon; for (const c of A.app.result.colPlan) A.app.state.colTreat[c.id] = 'bisher'; await A.applyColumns(); });
+    if (await page.$('#col-ok')) await page.click('#col-ok');
+  }, MAIN);
+  // Unterschied nur erlaubt: Kopfzeile (seit 2.11.0 nie ersetzt; main ersetzt „Grundschule“ in einer Überschrift) und die
+  // dadurch verschobenen Buchstaben der Platzhalter. Vergleich ohne Kopfzeile, Buchstaben nach erstem Auftreten neu gezählt.
+  const canon = (cells) => { const m = new Map(); return cells.map((t) => String(t).replace(/(Person|Einrichtung|Vorname|Nachname|Name|Initiale) ([A-Z]{1,3})(\d*)/g, (x, a, l, d) => { const k = a.startsWith('Einr') ? 'E' + l : 'P' + l; if (!m.has(k)) m.set(k, m.size); return `${a} #${m.get(k)}${d}`; })); };
+  const body = async (buf) => { const q = path.join(outDir, `cmp-${++seq}-${f}`); fs.writeFileSync(q, buf); return (await outRows(q)).slice(1).flat(); };
+  const bo = await body(allOld);
+  const bm = await body(main);
+  const headOld = (await outRows(await (async () => { const q = path.join(outDir, `cmph-${++seq}-${f}`); fs.writeFileSync(q, allOld); return q; })()))[0];
+  const same = JSON.stringify(canon(bo)) === JSON.stringify(canon(bm));
+  check(`${f}: alle Spalten „wie bisher“, „Seltene Werte“ aus = main mit allen Spalten „wie bisher“ (ohne Kopfzeile, Buchstaben neu gezählt), Kopfzeile unverändert`, same && headOld.join('|') === HEADERS.join('|'));
 }
 
 // ---------- 6. Kein stilles Speichern; Formel und verbundene Zellen ----------
@@ -503,7 +568,16 @@ log('## 6. Kein stilles Speichern, Formeln und verbundene Zellen');
   pts = await savePoints(o.page);
   check('Bestätigt: kein Punkt „Spalten“ mehr', !pts.some((p) => /Spalten sind noch nicht geprüft/.test(p)));
   const th = await o.page.evaluate(() => { window.__anon.show('a2'); return { rep: document.querySelectorAll('#docview th.colrep').length, td: document.querySelectorAll('#docview td.colrep').length, badge: document.querySelector('#docview th.colrep .colbadge') && document.querySelector('#docview th.colrep .colbadge').textContent }; });
-  check('Tabellen-Ansicht zeigt ersetzte Spalten sichtbar als ersetzt (Kopf und Zellen)', th.rep === 33 && th.td > 800, `${th.rep} Köpfe, ${th.td} Zellen, „${th.badge}“`);
+  const nRep = HEADERS.filter((hd) => EXPECT[hd] !== 'bisher').length;
+  check('Tabellen-Ansicht zeigt ersetzte Spalten sichtbar als ersetzt (Kopf und Zellen)', th.rep === nRep && th.td > 1500, `${th.rep} Köpfe, ${th.td} Zellen, „${th.badge}“`);
+  // Version 2.11.0: Punkt „Diese Spalten bleiben lesbar“ nennt genau die lesbaren Spalten (mit ihren Werten)
+  await goTo(o.page, 'a3');
+  pts = await savePoints(o.page);
+  const lp = pts.find((p) => /Diese Spalten bleiben lesbar/.test(p)) || '';
+  const named = [...lp.matchAll(/„([^“]+)“/g)].map((m) => m[1]);
+  const want = HEADERS.filter((hd) => EXPECT[hd] === 'bisher');
+  check('Punkt „Diese Spalten bleiben lesbar: …“ nennt genau die lesbaren Spalten, mit „Ansehen“ und ihren Werten', JSON.stringify(named) === JSON.stringify(want) && /Ansehen/.test(lp) && /Bus \d+/.test(lp), lp.slice(0, 300));
+  log(`  - ${lp}`);
   const txt = await o.page.evaluate(() => document.body.innerText);
   check('Kein Text „null“ oder „undefined“ (Prüfen, Übersicht)', !/\bnull\b|\bundefined\b/.test(txt));
   await o.ctx.close();
@@ -520,6 +594,26 @@ log('## 6. Kein stilles Speichern, Formeln und verbundene Zellen');
   const txt = await o.page.evaluate(() => document.body.innerText);
   check('Kein Text „null“ oder „undefined“ (Speichern)', !/\bnull\b|\bundefined\b/.test(txt));
   await o.ctx.close();
+}
+
+// ---------- Version 2.11.0: Gegenprobe ohne Namensspalte, kleine Personen-Tabelle ----------
+log('');
+log('## Gegenprobe „plan“ (ohne Namensspalte) und kleine Personen-Tabelle (10 Zeilen)');
+{
+  const pl = path.join(FXW, 'plan.xlsx');
+  const n = await planOf(pl);
+  const m = await (async () => { const o = await openFile(pl, 'person', { confirm: false, html: MAIN }); const p = await o.page.evaluate(() => window.__anon.app.result.colPlan.map((c) => `${c.header}=${c.treat}`)); await o.ctx.close(); return p; })();
+  const nn = n.p.map((c) => `${c.header}=${c.treat}`);
+  check('plan.xlsx: keine Personen-Tabelle, Vorschläge wie 2.10.0 (keine Spalte nur wegen der neuen Regeln ersetzt)', n.p.every((c) => !c.person) && JSON.stringify(nn) === JSON.stringify(m), nn.join(', ') + ' / main ' + m.join(', '));
+  const a = await bytesOf(pl, 'person');
+  const b = await bytesOf(pl, 'person', null, MAIN);
+  check('plan.xlsx: Ausgabe gleich wie main (jede Zelle)', JSON.stringify([...(await xlsxGrid(a))]) === JSON.stringify([...(await xlsxGrid(b))]));
+  const kl = path.join(FXW, 'klein.csv');
+  const o = await openFile(kl, 'person', { confirm: false });
+  const r = await o.page.evaluate(() => ({ plan: window.__anon.app.result.colPlan.map((c) => `${c.header}=${c.treat}${c.rareRows ? '+selten' : ''}`), small: (document.querySelector('#qcard .colsmall') || {}).textContent || '' }));
+  await o.ctx.close();
+  check('klein.csv (10 Zeilen): Regel „seltene Werte“ aus, Hinweis sichtbar', !r.plan.some((x) => /\+selten/.test(x)) && /weniger als 20 Zeilen/.test(r.small), r.small);
+  check('klein.csv: Teil 2 gilt (Name, Klasse/Ganztag lesbar, Bemerkung ganz ersetzt)', r.plan.join(',') === 'Nachname=name,Vorname=name,Klasse=bisher,Ganztag=bisher,Bemerkung=ganz', r.plan.join(', '));
 }
 
 // ---------- Sammelfrage, Schlusscheck ----------
@@ -539,6 +633,97 @@ log('## Sammelfrage und Schlusscheck');
   const leaks = await o.page.$$eval('#points > li.bad', (els) => els.map((e) => e.innerText.replace(/\s+/g, ' ')));
   check('Schlusscheck: kein Fund (ersetzte Zellen sind ersetzt)', !leaks.length, leaks.slice(0, 3).join(' | '));
   await o.ctx.close();
+}
+
+// Version 2.11.0: echter Name in einer Kopfzeile (mitarbeiter.xlsx, Blatt „Yılmaz“: „Notizen zu Mehmet Yılmaz“). Das
+// Blatt hat nur eine Spalte, die Kopfzeile ist also nicht sicher (Guardian-Fund): der Name wird ersetzt wie bisher.
+{
+  const a = await anonymize(path.join(here, 'fixtures', 'mitarbeiter.xlsx'), 'person', { unsure: false });
+  const z = await JSZip.loadAsync(fs.readFileSync(a.outPath));
+  let txt = '';
+  for (const n of Object.keys(z.files)) if (n.endsWith('.xml')) txt += (await z.file(n).async('string')).replace(/<[^>]+>/g, ' ');
+  check('Name in einer unsicheren Kopfzeile (eine Spalte), „Unsichere Treffer“ aus: ersetzt', !/Mehmet|Yılmaz/.test(txt));
+}
+
+// Version 2.11.0 (Entscheidung Easy zu den Guardian-Fällen p1, p2, p5, a, b, c): Schutz der Kopfzeile nur je Zelle, die
+// ausschließlich aus üblichen Spaltenkopf-Wörtern besteht. Maßstab: nirgends schwächer als main; „Name“, „Nachname“,
+// „Vorname“ bleiben stehen; Rückbau im Modus „rückbaufähig“ ergibt das Original.
+log('');
+log('## Guardian-Fälle zur Kopfzeile (CSV und XLSX, „Person A“ und „rückbaufähig“)');
+{
+  const textOf = async (p) => {
+    if (!p.endsWith('.xlsx')) return fs.readFileSync(p, 'utf8').replace(/^\uFEFF/, '');
+    const z = await JSZip.loadAsync(fs.readFileSync(p));
+    let t = '';
+    for (const n of Object.keys(z.files).sort()) if (/^xl\/(sharedStrings|worksheets\/sheet\d+)\.xml$/.test(n)) t += dec((await z.file(n).async('string')).replace(/<[^>]+>/g, ' ')) + ' ';
+    return t;
+  };
+  const ws = (t) => new Set(t.split(/[^\p{L}\p{N}]+/u).filter(Boolean));
+  const PH = /^(Person|Vorname|Nachname|Name|Initiale|Einrichtung|DATUM|ANGABE|ADRESSE|TELEFON|E|MAIL|[A-Z]{1,3}\d*|\d+)$/;
+  const HEADS = ['Name', 'Nachname', 'Vorname'];
+  for (const name of Object.keys(GUARDIAN_CASES)) {
+    for (const ext of ['csv', 'xlsx']) {
+      const f = path.join(FXW, `${name}.${ext}`);
+      const orig = GUARDIAN_CASES[name];
+      for (const [mode, unsure] of [['person', true], ['person', false], ['reversible', true]]) {
+        const a = await anonymize(f, mode, { unsure });
+        const m = await anonymize(f, mode, { unsure, html: MAIN });
+        const tn = await textOf(a.outPath);
+        const tm = await textOf(m.outPath);
+        const old = ws(tm);
+        const weaker = [...ws(tn)].filter((w) => !old.has(w) && !PH.test(w));
+        const lbl = `${name}.${ext}, ${mode}${unsure ? '' : ', „Unsichere Treffer“ aus'}`;
+        check(`${lbl}: nirgends schwächer als main`, !weaker.length, weaker.join(', '));
+        const heads = orig.flatMap((l) => l.split(';')).filter((x) => HEADS.includes(x));
+        if (heads.length) {
+          const cellsN = ext === 'csv' ? tn.split(/\r?\n/).flatMap((l) => l.split(';')) : [...ws(tn)];
+          check(`${lbl}: Überschriften ${heads.join(', ')} bleiben stehen`, heads.every((h) => cellsN.includes(h)));
+        }
+        if (ext === 'csv' && mode === 'person' && unsure) {
+          const ln = tn.split(/\r?\n/);
+          const lm = tm.split(/\r?\n/);
+          const diff = orig.map((_, i) => i).filter((i) => i === 0 || ln[i] !== lm[i]);
+          log(`- ${name}.csv, Person A: ${diff.map((i) => `Zeile ${i + 1}${ln[i] === lm[i] ? ' gleich' : ''}: main „${lm[i]}“ / jetzt „${ln[i]}“`).join('; ')}`);
+        }
+        if (mode === 'reversible') {
+          const r = await restore(a.outPath, a.keyPath);
+          const ok = ext === 'csv' ? r.bytes && noBom(r.bytes).toString('utf8') === fs.readFileSync(f, 'utf8')
+            : r.bytes && JSON.stringify([...(await xlsxGrid(r.bytes))].map(([k, c]) => [k, c.text])) === JSON.stringify([...(await xlsxGrid(fs.readFileSync(f)))].map(([k, c]) => [k, c.text]));
+          check(`${lbl}: Rückbau ergibt das Original`, !!ok, r.plan ? r.plan.verdict : 'kein Plan');
+        }
+      }
+    }
+  }
+}
+// Zahl der ersetzten Kopf-Zellen in allen Tabellen-Testdateien (Ziel 0): Zellen der Kopfzeile, die sich im Modus „Person A“
+// gegenüber dem Original ändern, je Datei mit Begründung (nur Zellen, die nicht nur aus Spaltenkopf-Wörtern bestehen)
+log('');
+log('## Ersetzte Kopf-Zellen (Modus „Person A“)');
+{
+  const files = [...fs.readdirSync(FXW).filter((x) => /\.(csv|xlsx)$/.test(x)).map((x) => path.join(FXW, x)),
+    ...['mitarbeiter.xlsx', 'mitarbeiter.csv', 'a2-risiko.csv', 'a2-uebertragung.csv', 'vertausch-1.csv', 'vertausch-2.csv', 'einrichtung.csv'].map((x) => path.join(here, 'fixtures', x)),
+    ...fs.readdirSync(path.join(here, 'fixtures-spalten')).filter((x) => /\.(csv|xlsx)$/.test(x)).map((x) => path.join(here, 'fixtures-spalten', x))];
+  let total = 0;
+  const pureHit = [];
+  for (const f of files) {
+    const o = await openFile(f, 'person', { confirm: true });
+    const heads = await o.page.evaluate(() => {
+      const A = window.__anon;
+      const r = A.app.result;
+      const out = [];
+      for (const c of r.colPlan || []) out.push(c.headerRow);
+      const units = A.app.doc.units;
+      const hu = new Set();
+      for (const h of r.hits) if (h.on !== false && units[h.unit] && units[h.unit].tcells && units[h.unit].tcells.some((tc) => (r.colPlan || []).some((c) => c.t === tc.t && c.headerRow === tc.r))) hu.add(h.unit);
+      return [...hu].map((ui) => units[ui].text);
+    });
+    await o.ctx.close();
+    total += heads.length;
+    for (const x of heads) if (isPureHeaderCell(x)) pureHit.push(`${path.basename(f)}: „${x}“`);
+    if (heads.length) log(`- ${path.relative(here, f)}: ${heads.length} Kopf-Zelle(n) geprüft und ersetzt: ${heads.map((x) => `„${x}“`).join(', ')}`);
+  }
+  log(`- Summe: ${total} ersetzte Kopf-Zellen in ${files.length} Dateien`);
+  check('Kopf-Zellen: keine Zelle aus reinen Spaltenkopf-Wörtern wird ersetzt (jede ersetzte Kopf-Zelle steht oben einzeln)', !pureHit.length, pureHit.join('; '));
 }
 
 // ---------- Merkliste ----------
@@ -566,7 +751,7 @@ log('## Merkliste: Wahl je Überschrift');
 
 // ---------- 7. Vorhandene Tabellen-Testdateien ----------
 log('');
-log('## 7. Vorhandene Tabellen-Testdateien: Vorschläge je Spalte (nur Spalten mit Behandlung „Name“ oder „ganz ersetzen“)');
+log('## 7. Vorhandene Tabellen-Testdateien: Personen-Tabelle ja/nein, Vorschlag je Spalte main → jetzt, nie schwächer');
 const OLD_FX = ['fixtures-spaltenwahl/stammdaten-formel.xlsx', 'fixtures-spalten/liste.xlsx', 'fixtures-spalten/tabellen.xlsx', 'fixtures-spalten/tabellen-stark.csv', 'fixtures-spalten/tabellen-schwach.csv', 'fixtures-spalten/tabellen-zweikopf.csv',
   'fixtures-spalten/tabellen-einezelle.csv', 'fixtures-spalten/tabellen-teilwort.csv', 'fixtures-spalten/tabellen-anrede.csv', 'fixtures-spalten/tabellen-ohnekopf.csv',
   'fixtures/mitarbeiter.xlsx', 'fixtures/mitarbeiter.csv', 'fixtures/meta-tabelle.xlsx', 'fixtures/bilder-excel.xlsx', 'fixtures/ziffern.xlsx', 'fixtures/ziffern.csv',
@@ -581,16 +766,31 @@ const OLD_FX = ['fixtures-spaltenwahl/stammdaten-formel.xlsx', 'fixtures-spalten
   const page = await ctx.newPage();
   page.on('request', (r) => requests.push(r.url()));
   await page.goto('file://' + NEW);
+  const mpage = await ctx.newPage();
+  mpage.on('request', (r) => requests.push(r.url()));
+  await mpage.goto('file://' + MAIN);
   for (const f of OLD_FX) {
     const p = path.join(here, f);
     if (!fs.existsSync(p)) { log(`- ${f}: fehlt`); continue; }
     await page.evaluate(() => { document.querySelector('#load-status').textContent = ''; });
     await page.setInputFiles('#file', p);
     await page.waitForFunction(() => /Gelesen|nicht|Fehler/.test(document.querySelector('#load-status').textContent), null, { timeout: 120000 });
-    const plan = await page.evaluate(() => (window.__anon.app.result && window.__anon.app.result.colPlan ? window.__anon.app.result.colPlan : []).map((c) => `${(c.t.startsWith('x|') ? c.t.slice(2) + ': ' : '')}„${c.header}“ ${c.treat === 'ganz' ? 'ganz ersetzen (' + c.kind + ')' : c.treat === 'name' ? 'Name' : 'wie bisher'}`));
-    const rep = plan.filter((x) => !/wie bisher$/.test(x));
-    log(`- ${f}: ${plan.length ? `${plan.length} Spalten mit Kopfzeile, ersetzt: ${rep.join('; ') || 'keine'}` : 'keine Tabelle mit Kopfzeile'}`);
+    const lab = (c) => (c.treat === 'ganz' ? 'ganz (' + c.kind + ')' : c.treat === 'name' ? 'Name' : 'lesbar');
+    const planOfPage = (pg) => pg.evaluate(() => (window.__anon.app.result && window.__anon.app.result.colPlan ? window.__anon.app.result.colPlan : []).map((c) => ({ t: c.t, c: c.c, header: c.header, treat: c.treat, kind: c.kind, person: !!c.person, headerRow: c.headerRow })));
+    const full = await planOfPage(page);
+    await mpage.evaluate(() => { document.querySelector('#load-status').textContent = ''; });
+    await mpage.setInputFiles('#file', p);
+    await mpage.waitForFunction(() => /Gelesen|nicht|Fehler/.test(document.querySelector('#load-status').textContent), null, { timeout: 120000 });
+    const mfull = await planOfPage(mpage);
+    const rep = full.filter((c) => c.treat !== 'bisher');
+    const person = [...new Set(full.filter((c) => c.person).map((c) => c.t))];
+    log(`- ${f}: ${full.length ? `${full.length} Spalten mit Kopfzeile; Personen-Tabelle: ${person.length ? 'ja' + (person.some((t) => t.startsWith('x|')) ? ' (' + person.map((t) => t.slice(2)).join(', ') + ')' : '') : 'nein'}; Vorschlag main → jetzt: ${full.map((c) => { const m = mfull.find((x) => x.t === c.t && x.c === c.c); const a = m ? lab(m) : '–'; const b = lab(c); return `„${c.header}“ ${a === b ? b : a + ' → ' + b}`; }).join('; ')}` : 'keine Tabelle mit Kopfzeile'}`);
     if (!rep.length) continue;
+    // nie schwächer als main (2.10.0): kein Wort, das main ersetzt, steht jetzt noch da (Kopfzeile ausgenommen: sie wird
+    // seit 2.11.0 nie ersetzt)
+    const packJs = async (pg) => pg.evaluate(async () => { const A = window.__anon; const o = await A.buildOutput(A.app.doc.kind); return o.text !== undefined ? o.text : btoa(Array.from(o.bytes, (b) => String.fromCharCode(b)).join('')); });
+    const nowDef = await packJs(page);
+    const mainDef = await packJs(mpage);
     // nie schwächer: kein Wort, das „wie bisher“ (= 2.9.0 mit Namensspalten-Regel) ersetzt, steht mit den Vorschlägen noch da
     const outs = await page.evaluate(async () => {
       const A = window.__anon;
@@ -614,6 +814,18 @@ const OLD_FX = ['fixtures-spaltenwahl/stammdaten-formel.xlsx', 'fixtures-spalten
       for (const w of ws) if (keptD.has(w) && !keptO.has(w)) weaker.push(`${k} „${w}“`);
     }
     check(`${f}: mit den Vorschlägen nie schwächer als „wie bisher“ (kein Wort, das „wie bisher“ ersetzt, bleibt stehen)`, !weaker.length, weaker.slice(0, 5).join('; '));
+    const sheets = outs.fmt === 'csv' ? [] : await sheetFiles(fs.readFileSync(p));
+    const headKeys = new Set(full.map((c) => (outs.fmt === 'csv' ? `${c.headerRow}|${c.c}` : `${sheets[c.t.slice(2)]}|${colL(c.c)}${c.headerRow + 1}`)));
+    const cn = await cellsOf(nowDef);
+    const cm = await cellsOf(mainDef);
+    const weakerMain = [];
+    for (const [k, t] of orig) {
+      if (headKeys.has(k)) continue;
+      const keptN = words(cn.get(k) || '');
+      const keptM = words(cm.get(k) || '');
+      for (const w of words(t)) if (keptN.has(w) && !keptM.has(w)) weakerMain.push(`${k} „${w}“`);
+    }
+    check(`${f}: nie schwächer als main 2.10.0 (kein Wort, das main ersetzt, bleibt stehen; ohne Kopfzeile)`, !weakerMain.length, weakerMain.slice(0, 5).join('; '));
   }
   await ctx.close();
 }

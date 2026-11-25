@@ -240,42 +240,59 @@ function segBoundsOf(u) {
 function treatMapOf(plan) {
   const m = new Map();
   for (const c of plan) {
-    if (c.treat === 'bisher' || !c.t.startsWith('x|')) continue;
+    if (!c.t.startsWith('x|')) continue;
+    // Version 2.11.0: lesbare Spalte mit seltenen Werten -> nur diese Zellen
+    const rows = c.treat === 'bisher' ? (c.rareRows && c.rareRows.size ? c.rareRows : null) : null;
+    if (c.treat === 'bisher' && !rows) continue;
     const sh = c.t.slice(2);
     if (!m.has(sh)) m.set(sh, new Map());
-    m.get(sh).set(c.c, c.headerRow);
+    m.get(sh).set(c.c, { head: c.headerRow, rows });
   }
   return m.size ? m : null;
 }
-function treatKeyOf(m) { return m ? JSON.stringify([...m].map(([k, v]) => [k, [...v]])) : ''; }
-function currentPlan(units) { return columnPlan(units || app.doc.units, app.state.colTreat || {}, app.state.colMemory || {}); }
-// Excel: neu lesen, wenn sich die behandelten Spalten geändert haben (gleiche Datei, andere Abschnitte)
+function treatKeyOf(m) { return m ? JSON.stringify([...m].map(([k, v]) => [k, [...v].map(([c, x]) => [c, x.head, x.rows ? [...x.rows].sort((a, b) => a - b) : null])])) : ''; }
+// Version 2.11.0: Excel-Zellen ohne Abschnitt (Zahl, Datum) für den Vorschlag je Spalte und die Übersicht
+function valueCellsOf(doc) {
+  if (!doc || doc.kind !== 'xlsx' || !doc.raw.view) return [];
+  const out = [];
+  for (const sv of doc.raw.view) {
+    for (const cell of sv.cells) {
+      if (cell.u !== undefined) continue;
+      const m = /^([A-Z]+)(\d+)$/.exec(cell.ref || '');
+      if (m) out.push({ t: 'x|' + sv.name, r: Number(m[2]) - 1, c: colNum(m[1]) - 1, value: cell.value, date: !!cell.date, display: cell.display || cell.value });
+    }
+  }
+  return out;
+}
+function planOf(doc, overrides) { return columnPlan(doc.units, overrides, app.state.colMemory || {}, { valueCells: valueCellsOf(doc), rare: app.state.colRare !== false }); }
+function currentPlan(doc) { return planOf(doc || app.doc, app.state.colTreat || {}); }
+// Excel: neu lesen, wenn sich die behandelten Spalten geändert haben (gleiche Datei, andere Abschnitte). Höchstens dreimal,
+// bis die Spalten zum gelesenen Stand passen.
 async function rereadXlsx(doc) {
-  const map = treatMapOf(currentPlan(doc.units));
-  if (treatKeyOf(map) === doc.treatKey) return doc;
-  const nd = await loadBytes(doc.bytes, doc.name, map);
-  nd.name = doc.name;
-  return nd;
+  let d = doc;
+  for (let i = 0; i < 3; i++) {
+    const map = treatMapOf(currentPlan(d));
+    if (treatKeyOf(map) === d.treatKey) return d;
+    const nd = await loadBytes(d.bytes, d.name, map);
+    nd.name = d.name;
+    d = nd;
+  }
+  return d;
 }
 // Spalten in der Übersicht (je Blatt): Überschrift, gefüllte Zellen (auch Zahl- und Datumszellen), Vorschlag, Wahl
 function columnRows() {
   const r = app.result;
-  if (!r || !r.colPlan) return [];
-  const d = app.doc;
-  return r.colPlan.map((c) => {
-    let filled = 0;
-    if (c.t.startsWith('x|') && d.raw.view) {
-      const sv = d.raw.view.find((v) => 'x|' + v.name === c.t);
-      for (const cell of sv ? sv.cells : []) {
-        const m = /^([A-Z]+)(\d+)$/.exec(cell.ref || '');
-        if (!m || colNum(m[1]) - 1 !== c.c || Number(m[2]) - 1 <= c.headerRow) continue;
-        const txt = cell.u !== undefined ? d.units[cell.u].text : cell.value;
-        if (String(txt || '').trim()) filled++;
-      }
-    } else filled = c.rows.length;
-    return { ...c, filled };
-  });
+  return r && r.colPlan ? r.colPlan : [];
 }
+// Version 2.11.0: Werte einer lesbaren Spalte mit Häufigkeit, häufigste zuerst (höchstens 12, dann „und n weitere“)
+function valuesText(c, max = 12) {
+  const vs = c.values || [];
+  if (!vs.length) return 'keine Werte';
+  const shown = vs.slice(0, max).map(([v, n]) => `${v.replace(/\s+/g, ' ')} ${n}`).join(', ');
+  return shown + (vs.length > max ? `, und ${vs.length - max} weitere` : '');
+}
+// lesbare Spalten einer Personen-Tabelle
+function readableColumns(t) { return columnRows().filter((c) => c.person && c.treat === 'bisher' && (!t || c.t === t)); }
 function needsColumns() { return !!(app.result && app.result.colPlan && app.result.colPlan.length); }
 const TREAT_LABEL = { name: 'Name', ganz: 'ganz ersetzen', bisher: 'wie bisher' };
 function kindText(c) {
@@ -314,21 +331,39 @@ function renderColumns() {
   const rows = columnRows();
   const box = $('#qcard');
   const tables = [...new Set(rows.map((c) => c.t))];
-  const rowEl = (c) => h('li', { class: 'colrow' + (c.treat !== 'bisher' ? ' rep' : ''), 'data-col': c.id },
-    h('span', { class: 'colh' }, h('strong', {}, c.header.replace(/\s+/g, ' ')), h('small', {}, `${c.filled} ${c.filled === 1 ? 'Zelle' : 'Zellen'} gefüllt${c.fromMemory ? ' · gemerkte Wahl' : ''}`)),
+  const rowEl = (c) => h('li', { class: 'colrow' + (c.treat !== 'bisher' ? ' rep' : '') + (c.person && c.treat === 'bisher' ? ' lesbar' : ''), 'data-col': c.id },
+    h('span', { class: 'colh' }, h('strong', {}, c.header.replace(/\s+/g, ' ')), h('small', {}, `${c.filled} ${c.filled === 1 ? 'Zelle' : 'Zellen'} gefüllt${c.fromMemory ? ' · gemerkte Wahl' : ''}`),
+      // Version 2.11.0: lesbare Spalte einer Personen-Tabelle – ihre Werte und die ersetzten seltenen Werte
+      c.person && c.treat === 'bisher' ? h('small', { class: 'colvals' }, 'Bleibt lesbar: ' + valuesText(c)) : null,
+      c.person && c.treat === 'bisher' && c.rareValues ? h('small', { class: 'colrare' }, `${c.rareValues === 1 ? 'Ein seltener Wert wird' : c.rareValues + ' seltene Werte werden'} ersetzt.`) : null),
     h('span', { class: 'colsel' },
       h('select', { 'data-col': c.id, 'aria-label': `Behandlung der Spalte ${c.header}`, onchange: (e) => setColumn(c.id, e.target.value) },
         ...['name', 'ganz', 'bisher'].map((v) => { const o = h('option', { value: v }, TREAT_LABEL[v]); if (v === c.treat) o.selected = true; return o; })),
       h('small', { class: 'colkind' }, kindText(c))));
   const kids = [h('p', { class: 'qcount' }, 'Spalten'), h('p', { class: 'qask' }, 'So behandelt das Tool die Spalten.'),
     h('p', { class: 'hint' }, '„Name“: Jede Zelle wird als Person ersetzt. „ganz ersetzen“: Jede Zelle wird ganz durch einen Platzhalter ersetzt. „wie bisher“: Das Tool sucht Namen im Text der Zelle.')];
+  const anyPerson = rows.some((c) => c.person);
+  if (anyPerson) {
+    // Version 2.11.0: Schalter „Seltene Werte“ (Standard an)
+    const cb = h('input', { type: 'checkbox', id: 'col-rare', onchange: (e) => { app.state.colRare = e.target.checked; applyColumns(); } });
+    cb.checked = app.state.colRare !== false;
+    kids.push(h('label', { class: 'check colrareopt' }, cb, ' Seltene Werte (weniger als 3-mal) ersetzen'));
+  }
   for (const t of tables) {
     const own = rows.filter((c) => c.t === t);
+    const person = own.some((c) => c.person);
     const rep = own.filter((c) => c.treat !== 'bisher');
     const rest = own.filter((c) => c.treat === 'bisher');
-    if (tables.length > 1 || t.startsWith('x|')) kids.push(h('p', { class: 'grouph' }, t.startsWith('x|') ? `Blatt „${t.slice(2)}“` : 'Tabelle'));
+    if (tables.length > 1 || t.startsWith('x|') || person) kids.push(h('p', { class: 'grouph' }, (t.startsWith('x|') ? `Blatt „${t.slice(2)}“` : 'Tabelle') + (person ? ' – Personen-Tabelle' : '')));
+    if (person) {
+      kids.push(h('p', { class: 'hint' }, 'In einer Tabelle mit Namen ersetzt das Tool im Zweifel. Lesbar bleiben nur Spalten mit wenigen, sich wiederholenden Werten. Prüfe sie unten.'));
+      if (own[0].smallTable && app.state.colRare !== false) kids.push(h('p', { class: 'hint colsmall' }, 'Diese Tabelle hat weniger als 20 Zeilen. Hier ersetzt das Tool seltene Werte nicht, weil die Regel dort nicht trägt. Bitte prüfe die lesbaren Spalten selbst.'));
+    }
     kids.push(h('ul', { class: 'collist' }, ...(rep.length ? rep.map(rowEl) : [h('li', { class: 'muted' }, 'Keine Spalte wird ersetzt.')])));
-    if (rest.length) {
+    if (rest.length && person) {
+      // Version 2.11.0: lesbare Spalten einer Personen-Tabelle sind nicht eingeklappt
+      kids.push(h('p', { class: 'grouph' }, `Diese ${rest.length === 1 ? 'Spalte bleibt' : rest.length + ' Spalten bleiben'} lesbar`), h('ul', { class: 'collist lesbar' }, ...rest.map(rowEl)));
+    } else if (rest.length) {
       // aufgeklappt bleibt aufgeklappt (auch nach einer Änderung)
       const d = h('details', { class: 'colrest', open: !!app.colRestOpen, ontoggle: (e) => { app.colRestOpen = e.target.open; } },
         h('summary', {}, `${rest.length === 1 ? 'Eine Spalte' : rest.length + ' Spalten'} wie bisher`), h('ul', { class: 'collist' }, ...rest.map(rowEl)));
@@ -359,7 +394,7 @@ function focusA2() {
 function runAnalysis() {
   if (!app.doc) return;
   const qBefore = app.result && !app.inAnswer ? new Set(questions().map((q) => q.id)) : null;
-  app.result = analyze(app.doc.units, app.state, { linkTexts: app.doc.linkTexts });
+  app.result = analyze(app.doc.units, app.state, { linkTexts: app.doc.linkTexts, valueCells: valueCellsOf(app.doc) });
   // Version 2.6.1 (Entscheidung Easy): Liste geändert (Eigene Namen, Einrichtungen, Ausnahmen) -> Antworten bleiben gültig;
   // ein über „Ja“ bei Dateiangaben übernommener und wieder entfernter Eintrag gilt als „Nein“; Antworten zu Fragen, die
   // dadurch wegfallen, werden verworfen (samt ihrer Wirkung)
@@ -473,7 +508,9 @@ async function finalCheck(out) {
   for (const l of unitLeaks) inUnits.set(keyOf(l), (inUnits.get(keyOf(l)) || 0) + 1);
   const seen = new Map();
   const extra = fileLeaks.filter((l) => { const k = keyOf(l); const n = (seen.get(k) || 0) + 1; seen.set(k, n); return n > (inUnits.get(k) || 0); });
-  const leaks = [...withoutDecided(unitLeaks), ...extra];
+  // Version 2.11.0: Zellen der Kopfzeile aus reinen Spaltenkopf-Wörtern ersetzt das Tool nie; ein Wort darin ist kein Fund
+  const head = (app.result && app.result.headOnly) || new Set();
+  const leaks = [...withoutDecided(unitLeaks.filter((l) => !head.has(l.unit))), ...extra];
   // Version 2.3: jede Einrichtung aus der Liste im Originaltext; nicht vollständig ersetzte Fundstellen melden
   const org = orgCheckLeaks();
   if (!org.length) return leaks;
@@ -1637,6 +1674,16 @@ function savePoints() {
     pts.push({ id: 'spalten', text: 'Die Spalten sind noch nicht geprüft.', small: 'Im Moment gilt die Auswahl in der Übersicht „Spalten“.',
       acts: [['Ansehen', () => { app.colConfirmed = false; show('a2'); }, 'btn-cols']] });
   }
+  // Version 2.11.0: je Personen-Tabelle die Spalten, die lesbar bleiben (läuft über das eine Häkchen)
+  for (const t of [...new Set(columnRows().filter((c) => c.person).map((c) => c.t))]) {
+    const rc = readableColumns(t);
+    const where = t.startsWith('x|') ? `Blatt „${t.slice(2)}“: ` : '';
+    pts.push({ id: 'lesbar:' + t + ':' + rc.map((c) => c.id + '=' + (c.values || []).length + '/' + (c.rareValues || 0)).join('|'),
+      text: rc.length ? `${where}Diese Spalten bleiben lesbar: ${rc.map((c) => '„' + c.header.replace(/\s+/g, ' ') + '“').join(', ')}.` : `${where}Keine Spalte bleibt lesbar.`,
+      small: rc.length ? 'Prüfe, ob darin etwas über eine Person steht.' : null,
+      items: rc.slice(0, 20).map((c) => ({ text: `${c.header.replace(/\s+/g, ' ')}: ${valuesText(c, 8)}` })),
+      acts: [['Ansehen', () => { app.colConfirmed = false; show('a2'); }, null]] });
+  }
   // Version 2.10.0: Formeln und verbundene Zellen in einer ersetzten Spalte – nicht raten, melden
   const ci = app.doc.raw && app.doc.raw.colIssues;
   const refItems = (list) => [...list.slice(0, 10).map((x) => ({ text: `Blatt „${x.sheet}“, Zelle ${x.ref}` })), ...(list.length > 10 ? [{ text: `und ${list.length - 10} weitere` }] : [])];
@@ -2100,10 +2147,12 @@ function resetDoc() {
 }
 async function openBytes(bytes, name) {
   let doc = await loadBytes(bytes, name);
+  doc.name = name;
   // Version 2.10.0: Excel mit behandelten Spalten neu lesen (eigene Abschnitte je Zelle dieser Spalten)
   if (doc.kind === 'xlsx') {
-    const map = treatMapOf(columnPlan(doc.units, {}, app.state.colMemory || {}));
-    if (map) { doc = await loadBytes(bytes, name, map); }
+    const keep = app.state.colTreat;
+    app.state.colTreat = {};
+    try { doc = await rereadXlsx(doc); } finally { app.state.colTreat = keep; }
   }
   resetDoc();
   app.doc = doc;

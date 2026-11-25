@@ -1030,21 +1030,7 @@ Gezählt wird nur bei bestätigten Namen (mindestens ein eingeschalteter Treffer
 - OK: Ersetzer außerhalb der Prüfansicht (reversible): „MÜLLERS“ ersetzt oder gemeldet
 
 ## Schlusscheck-Vergleich über alle Testdokumente (Modus „Person A“ und „rückbaufähig“; Ausgabe im eigenen Format)
-- 87 Dokumente, je zwei Modi: Meldungen vorher 298, nachher 46; neu 46, entfallen 298
-  - neu: a2-risiko.csv (reversible): „Name“ in Zeile 2, Spalte 2 – „Name B“
-  - neu: a2-risiko.csv (reversible): „Name“ in Zeile 3, Spalte 2 – „Name C“
-  - neu: a2-risiko.csv (reversible): „Name“ in Zeile 6, Spalte 2 – „Name D“
-  - neu: a2-risiko.csv (reversible): „Name“ in Zeile 7, Spalte 2 – „Name E“
-  - neu: a2-risiko.csv (reversible): „Name“ in Zeile 11, Spalte 2 – „Name I“
-  - neu: a2-risiko.csv (reversible): „Name“ in Zeile 12, Spalte 2 – „Name J“
-  - neu: a2-risiko.csv (reversible): „Name“ in Zeile 13, Spalte 2 – „Name K“
-  - neu: a2-risiko.csv (reversible): „Name“ in Zeile 14, Spalte 2 – „Name L“
-  - neu: a2-uebertragung.csv (reversible): „Name“ in Zeile 2, Spalte 2 – „Name B“
-  - neu: a2-uebertragung.csv (reversible): „Name“ in Zeile 3, Spalte 2 – „Name C“
-  - neu: a2-uebertragung.csv (reversible): „Name“ in Zeile 6, Spalte 2 – „Name F“
-  - neu: a2-uebertragung.csv (reversible): „Name“ in Zeile 7, Spalte 2 – „Name G“
-  - neu: a2-uebertragung.csv (reversible): „Name“ in Zeile 8, Spalte 2 – „Name H“
-  - neu: a2-uebertragung.csv (reversible): „Name“ in Zeile 11, Spalte 2 – „Name B2“
+- 87 Dokumente, je zwei Modi: Meldungen vorher 298, nachher 32; neu 32, entfallen 298
   - neu: einrichtung-absatz-text.docx (person): „Musikschule am
 Stadtpark“ in Text – im Original – „Musikschule am Stadtpark Rundbrief an alle Eltern. Die“
   - neu: einrichtung-absatz-text.docx (reversible): „Musikschule am

@@ -20,6 +20,7 @@ import { fileURLToPath } from 'node:url';
 import { makeAll } from './make-traeger.mjs';
 import { SECTIONS } from './korpus/korpus-quelle.mjs';
 import { cached, fileSha, flush, refNote } from './referenz.mjs';
+import { isPureHeaderCell } from '../src/core/detect.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..');
@@ -89,7 +90,15 @@ async function covered(html, file, how) {
         nOrg = marked;
       }
       const r = A.app.result;
-      return { text: r.fullText, spans: r.hits.filter((h) => h.on).map((h) => [h.s, h.e, h.type]), nOrg };
+      // Version 2.11.0: geschützte Kopf-Zellen (nur aus Spaltenkopf-Wörtern) mit Lage im Gesamttext und Zelle
+      const colL = (c) => { let x = ''; c++; while (c > 0) { const m = (c - 1) % 26; x = String.fromCharCode(65 + m) + x; c = Math.floor((c - 1) / 26); } return x; };
+      const head = [...(r.headOnly || [])].map((ui) => {
+        const u = A.app.doc.units[ui];
+        const tc = (u.tcells || [])[0] || {};
+        const sheet = tc.t && tc.t.startsWith('x|') ? 'Blatt ' + tc.t.slice(2) + ', ' : '';
+        return { s: r.unitStarts[ui], e: r.unitStarts[ui] + u.text.length, text: u.text, place: sheet + 'Zelle ' + colL(tc.c || 0) + ((tc.r || 0) + 1) };
+      });
+      return { text: r.fullText, spans: r.hits.filter((h) => h.on).map((h) => [h.s, h.e, h.type]), nOrg, head };
     }, [[...fs.readFileSync(file)], path.basename(file), how]);
   } catch (e) { return { err: e.message.slice(0, 100) }; } finally { await ctx.close(); }
 }
@@ -109,7 +118,17 @@ const ausnahmen = [];
 let nPrev = 0;
 const HOW = { keine: 'ohne Antwort', nein: 'nach „Nein“', janein: 'nach „Ja“ → „Nein“', aus: '„Unsichere“ aus', ausnein: '„Unsichere“ aus, dann „Nein“', listemark: 'Liste aus, dann markiert' };
 // Guardian-Lauf 5, Fund 3 (Entscheidung Easy): keine Ausnahme mehr; wie vor 2.8.1 zählt jedes nicht ersetzte Zeichen,
-// das kein Leerraum ist (auch Satzzeichen)
+// das kein Leerraum ist (auch Satzzeichen).
+// Version 2.11.0 (Entscheidung Easy): genau eine Ausnahme – eine Stelle, deren offene Zeichen alle in einer Kopf-Zelle
+// liegen, die nach Regel 1 nur aus Spaltenkopf-Wörtern besteht (das Tool ersetzt sie nie). Jede Stelle steht einzeln im
+// Bericht (Datei, Zelle, Text); jede andere Abweichung bleibt ein Fehler.
+function headCell(text, s, e, cov, head) {
+  const open = [];
+  for (let i = s; i < e; i++) if (!cov[i] && /\S/.test(text[i])) open.push(i);
+  if (!open.length) return null;
+  const h = (head || []).find((x) => open.every((i) => i >= x.s && i < x.e));
+  return h && isPureHeaderCell(h.text) ? h : null;
+}
 function openToks(text, s, e, cov) {
   const out = [];
   for (let i = s; i < e; i++) if (!cov[i] && /\S/.test(text[i])) { out.push({ s: i, t: text.slice(s, e) }); break; }
@@ -134,7 +153,8 @@ for (const f of files) {
     for (const [s, e] of ref) {
       const open = openToks(o.text, s, e, cov);
       if (!open.length) continue;
-      // Version 2.8.1, Teil 4: nur Zusatz + Kopfwort offen (2.7.0 hatte es als Teil eines Namens ersetzt) -> Ausnahme
+      const hc = headCell(o.text, s, e, cov, res[how].head);
+      if (hc) { ausnahmen.push(`${rel}, ${HOW[how]}: ${hc.place}, „${hc.text}“ (Stelle „${o.text.slice(s, e)}“)`); continue; }
       miss.push(o.text.slice(s, e));
     }
     if (miss.length) { bad++; fails.push(`${rel}, ${HOW[how]}: ${[...new Set(miss)].join(', ')}`); }
@@ -153,6 +173,8 @@ for (const f of files) {
       for (const [s, e] of ps) {
         const open = openToks(o.text, s, e, cov);
         if (!open.length) continue;
+        const hc = headCell(o.text, s, e, cov, res.keine.head);
+        if (hc) { ausnahmen.push(`${rel}, gegen 2.8.0: ${hc.place}, „${hc.text}“ (Stelle „${o.text.slice(s, e)}“)`); continue; }
         pm.push(o.text.slice(s, e));
       }
       if (pm.length) { bad++; fails.push(`${rel}, gegen 2.8.0: ${[...new Set(pm)].join(', ')}`); }
@@ -168,7 +190,7 @@ log(refNote());
 log(`Geprüft: ${nFiles} Dateien (Testdateien und ${Object.keys(SECTIONS).length} Korpus-Abschnitte), ${nSpans} Stellen der Vorversion, je sechs Abläufe${PREV ? `; zweiter Maßstab: ${nPrev} Stellen von 2.8.0 (ohne Antwort)` : ''}.`);
 if (fails.length) { log(''); log('Fehlende Stellen:'); for (const x of fails) log('- ' + x); }
 log('');
-log(`Ausnahmen: ${ausnahmen.length} (seit Guardian-Lauf 5 keine Ausnahme mehr erlaubt)`);
+log(`Ausnahmen: ${ausnahmen.length} (seit Guardian-Lauf 5 keine Ausnahme mehr erlaubt; seit 2.11.0 genau eine Art: Kopf-Zellen nur aus Spaltenkopf-Wörtern, Regel 1)`);
 for (const x of ausnahmen) log('- ' + x);
 log(`- ${requests.length ? 'FEHLER' : 'OK'}: 0 Anfragen ins Netz (${requests.length})`);
 log(`- ${errors.length ? 'FEHLER' : 'OK'}: 0 Fehler in der Seite (${errors.length})`);

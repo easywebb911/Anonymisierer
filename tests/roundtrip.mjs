@@ -58,13 +58,15 @@ async function download(page, clickSel, statusSel, okRe) {
 }
 // Version 2.6.0: cols = Spalte von Hand ({Spalten-Kennung: true/false}), z. B. Namensspalte ausschalten
 const setCols = (page, cols) => page.evaluate((c) => { Object.assign(window.__anon.app.state.nameColumns, c); window.__anon.runAnalysis(); }, cols);
-async function anonymize(file, manual = [], cols = null, bisher = false) {
+async function anonymize(file, manual = [], cols = null, bisher = false, lesbar = []) {
   const { page, ctx, errors } = await newPage();
   await setMode(page, 'reversible');
   await loadFile(page, file);
   // Version 2.10.0: bisher = alle Spalten „wie bisher“ (wie im Übertragungs-Test, siehe dort)
   if (bisher) await page.evaluate(async () => { const A = window.__anon; for (const c of A.app.result.colPlan || []) A.app.state.colTreat[c.id] = 'bisher'; await A.applyColumns(); });
   if (cols) await setCols(page, cols);
+  // Version 2.11.0: diese Spalten (Überschrift) bleiben lesbar („wie bisher“)
+  if (lesbar.length) await page.evaluate(async (hs) => { const A = window.__anon; for (const c of A.app.result.colPlan || []) if (hs.includes(c.header)) A.app.state.colTreat[c.id] = 'bisher'; await A.applyColumns(); }, lesbar);
   for (const m of manual) await page.evaluate((x) => window.__anon.addManual(x), m);
   await ack(page);
   // Version 2: erst „1 Schlüssel speichern“, dann „2 Datei speichern“ (die Datei ist vorher gesperrt)
@@ -219,7 +221,9 @@ const summary = [];
   const E = phFor(a.key, 'anna.mueller@beispiel-firma.de');
   const edit = (t, n, v, e) => {
     const lines = t.split('\r\n');
-    lines[1] = lines[1].replace('Leitung', 'Geschäftsleitung');
+    // Version 2.11.0: Die Spalte „Abteilung“ ist in der Personen-Tabelle ganz ersetzt ([ANGABE-…]); die „KI“ hängt deshalb
+    // an das Feld an (statt „Leitung“ zu „Geschäftsleitung“ zu ändern)
+    lines[1] = lines[1].split(';').map((x, i) => (i === 2 ? x + ' (Bereich Nord)' : x)).join(';');
     const tmp = lines[3]; lines[3] = lines[4]; lines[4] = tmp; // Zeilen tauschen
     lines.splice(lines.length - 1, 0, `${v};${n};Neu;${e};"eingefügt; ${n}s Vertretung"`);
     return lines.join('\r\n');
@@ -233,6 +237,38 @@ const summary = [];
   log('## CSV (mitarbeiter.csv)');
   log(`- Schlüsseldatei: ${a.key.platzhalter.length} Platzhalter (E-Mail-Platzhalter: ${a.key.platzhalter.filter((x) => x.kategorie === 'E-Mail').map((x) => x.platzhalter).join(', ')})`);
   log(`- Korrektur: Zelle geändert, zwei Zeilen getauscht, neue Zeile mit ${V} ${N}, ${E}, „${N}s“ eingefügt`);
+  log(`- Rückbau: ${r.plan.totalFound} Platzhalter ersetzt; abweichende Zeilen: ${dev.length}`);
+  for (const d of dev) log(`  - erwartet „${d.erwartet}“ / erhalten „${d.ergebnis}“`);
+  log(`- JS-Fehler: ${[...a.errors, ...r.errors].join(' | ') || 'keine'}`);
+  log('');
+}
+
+// ---------- CSV, Wort im Klartext geändert (Version 2.11.0: an einer lesbaren Spalte) ----------
+// Die Spalte „Abteilung“ bleibt lesbar (Wahl „wie bisher“); die KI ändert darin „Leitung“ zu „Geschäftsleitung“.
+{
+  const orig = fs.readFileSync(path.join(fx, 'mitarbeiter.csv'), 'utf8');
+  const a = await anonymize(path.join(fx, 'mitarbeiter.csv'), [], null, false, ['Abteilung']);
+  const anon = decodeTxt(a.anon);
+  const N = phFor(a.key, 'Müller', 'Nachname');
+  const V = phFor(a.key, 'Anna', 'Vorname');
+  const E = phFor(a.key, 'anna.mueller@beispiel-firma.de');
+  const edit = (t, n, v, e) => {
+    const lines = t.split('\r\n');
+    lines[1] = lines[1].replace('Leitung', 'Geschäftsleitung');
+    const tmp = lines[3]; lines[3] = lines[4]; lines[4] = tmp; // Zeilen tauschen
+    lines.splice(lines.length - 1, 0, `${v};${n};Neu;${e};"eingefügt; ${n}s Vertretung"`);
+    return lines.join('\r\n');
+  };
+  const corrected = edit(anon, N, V, E);
+  const expected = edit(orig, 'Müller', 'Anna', 'anna.mueller@beispiel-firma.de');
+  const changed = corrected.split('\r\n')[1].includes('Geschäftsleitung');
+  const r = await restore(Buffer.from('\uFEFF' + corrected), 'korrigiert-lesbar.csv', a.keyPath);
+  const got = decodeTxt(r.bytes);
+  const dev = diffLists(got.split('\r\n'), expected.split('\r\n'));
+  if (!changed) dev.push({ erwartet: '„Leitung“ steht lesbar in Zeile 2', ergebnis: corrected.split('\r\n')[1] });
+  summary.push(['CSV (Wort im Klartext)', r.plan.totalFound, r.plan.totalFound - dev.length, dev]);
+  log('## CSV (mitarbeiter.csv), Spalte „Abteilung“ lesbar');
+  log(`- Korrektur: „Leitung“ → „Geschäftsleitung“ (lesbare Spalte), zwei Zeilen getauscht, neue Zeile mit ${V} ${N}, ${E}`);
   log(`- Rückbau: ${r.plan.totalFound} Platzhalter ersetzt; abweichende Zeilen: ${dev.length}`);
   for (const d of dev) log(`  - erwartet „${d.erwartet}“ / erhalten „${d.ergebnis}“`);
   log(`- JS-Fehler: ${[...a.errors, ...r.errors].join(' | ') || 'keine'}`);
@@ -300,6 +336,8 @@ const summary = [];
     // Version 2.10.0: In der anonymisierten Datei steht „Elternzeit“ (Spalte „Bemerkung“, ganz ersetzt) als Platzhalter in
     // der Zelle D4; die KI hängt dort „ (verlängert)“ an (im Original: in der gemeinsamen Textliste, wie bisher)
     sh = sh.replace(/(<c r="D4"[^>]*t="inlineStr"[^>]*><is>(?:<r>)?<t(?:\s[^>]*)?>)([^<]*)(<\/t>)/, (m, x, t, y) => x + t + ' (verlängert)' + y);
+    // Version 2.11.0: „Vertrieb“ (Spalte „Abteilung“) ist in der Personen-Tabelle ganz ersetzt und steht in der Zelle C4
+    sh = sh.replace(/(<c r="C4"[^>]*t="inlineStr"[^>]*><is>(?:<r>)?<t(?:\s[^>]*)?>)([^<]*)(<\/t>)/, (m, x, t, y) => x + t + `, Ansprechpartner ${v} ${n}s Team` + y);
     // Zeilen 3 und 4 (Spalten A, B) tauschen. Version 2.10.0: ganze Zelle (Zelltyp und Inhalt) tauschen – in Spalten mit
     // Behandlung „Name“ steht der Text seit 2.10.0 in der Zelle (inlineStr) statt in der gemeinsamen Liste
     const cellRe = (ref) => new RegExp(`<c r="${ref}"((?:\\s[^>]*)?)>([\\s\\S]*?)</c>`);
