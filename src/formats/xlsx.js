@@ -159,7 +159,12 @@ async function open(bytes) {
   return { zip, idx, wbPart };
 }
 
-export async function readXlsx(bytes) {
+// Version 2.10.0: opts.treat = Map(Blattname -> Map(Spalte (ab 0) -> Kopfzeile (ab 0))): Zellen unterhalb der Kopfzeile in
+// Spalten mit Behandlung „Name“ oder „ganz ersetzen“ werden eigene Abschnitte (Text in der Zelle statt in der gemeinsamen
+// Liste, damit gleiche Texte verschiedener Zellen verschieden ersetzt werden können); Zahl-, Datums- und Wahrheitszellen
+// werden Text mit ihrem angezeigten Wert (Zelltyp und Wert stehen am Abschnitt, cellOrig, für den Schlüssel). Formeln und
+// verbundene Zellen in diesen Spalten bleiben unverändert und werden gemeldet (colIssues).
+export async function readXlsx(bytes, opts = {}) {
   const { zip, idx, wbPart } = await open(bytes);
   const names = Object.keys(zip.files).filter((n) => !zip.files[n].dir);
   const docs = new Map();
@@ -180,6 +185,22 @@ export async function readXlsx(bytes) {
   const units = [];
   const owned = new Set();
   const siDone = new Set();
+  const treat = opts.treat || null;
+  const colIssues = { formulas: [], merged: [] };
+  const fmt = treat ? cellFormats(docs, wb, wbRels) : null;
+  // Verweise je gemeinsamem Text (alle Blätter) und wie viele davon zu eigenen Abschnitten werden
+  const siRefs = new Map();
+  const siSplit = new Map();
+  if (treat) {
+    for (const sh of sheets) {
+      const sdoc = sh.part ? docs.get(sh.part) : null;
+      if (!sdoc) continue;
+      for (const c of allElements(sdoc).filter((e) => isS(e) && e.localName === 'c' && e.getAttribute('t') === 's')) {
+        const v = childEls(c, 'v')[0];
+        if (v) { const k = parseInt(v.textContent, 10); siRefs.set(k, (siRefs.get(k) || 0) + 1); }
+      }
+    }
+  }
   const push = (u, extra, part) => { if (u) { Object.assign(u, extra || {}); if (part) u.part = part; units.push(u); } };
 
   // Version 2.5.0: Tabellenansicht für die Prüfansicht (nur Anzeige): je Blatt die Zellen mit Abschnitt bzw. Wert
@@ -194,24 +215,51 @@ export async function readXlsx(bytes) {
     push(makeUnit([nameSeg], 'Blattname' + hidden), { kind: 'sheetname', sheet: sh, seg: nameSeg }, wbPart);
     const sdoc = sh.part ? docs.get(sh.part) : null;
     if (!sdoc) continue;
+    const tcols = treat ? treat.get(sh.name) : null;
     for (const c of allElements(sdoc).filter((e) => isS(e) && e.localName === 'c')) {
       const ref = c.getAttribute('r') || '';
-      const t = c.getAttribute('t');
+      let t = c.getAttribute('t');
       const lab = `${sh.name}!${ref}`;
-      const v = childEls(c, 'v')[0];
+      let v = childEls(c, 'v')[0];
       const f = childEls(c, 'f')[0];
       const n0 = units.length;
+      // Version 2.10.0: Zelle in einer behandelten Spalte (unterhalb der Kopfzeile)?
+      let cellOrig = null;
+      const rm = tcols ? /^([A-Z]+)(\d+)$/.exec(ref) : null;
+      if (rm && tcols.has(colIndex(rm[1])) && Number(rm[2]) - 1 > tcols.get(colIndex(rm[1]))) {
+        if (f || t === 'str') { if (f || (v && v.textContent.trim())) colIssues.formulas.push({ sheet: sh.name, ref }); }
+        else if (t === 's' && v) {
+          const k = parseInt(v.textContent, 10);
+          if (siList[k]) {
+            c.replaceChild(inlineFrom(sdoc, siList[k]), v);
+            c.setAttribute('t', 'inlineStr');
+            t = 'inlineStr';
+            v = null;
+            siSplit.set(k, (siSplit.get(k) || 0) + 1);
+          }
+        } else if (v && v.textContent !== '' && t !== 'inlineStr') {
+          cellOrig = { t: t || null, v: v.textContent };
+          const is = sdoc.createElementNS(c.namespaceURI, 'is');
+          const te = sdoc.createElementNS(c.namespaceURI, 't');
+          te.textContent = cellDisplay(cellOrig, c.getAttribute('s'), fmt);
+          is.appendChild(te);
+          c.replaceChild(is, v);
+          c.setAttribute('t', 'inlineStr');
+          t = 'inlineStr';
+          v = null;
+        }
+      }
       if (t === 's' && v) {
         const idx = parseInt(v.textContent, 10);
         if (siList[idx] && !siDone.has(idx)) { siDone.add(idx); push(groupUnit(siList[idx], lab + hidden, owned), null, ssPart.target); if (units.length > n0) siUnit.set(idx, n0); }
         if (siUnit.has(idx)) sv.cells.push({ ref, u: siUnit.get(idx) });
       } else if (t === 'inlineStr') {
         const is = childEls(c, 'is')[0];
-        if (is) push(groupUnit(is, lab + hidden, owned), null, sh.part);
+        if (is) push(groupUnit(is, lab + hidden, owned), { cellEl: c, ...(cellOrig ? { cellOrig } : {}) }, sh.part);
         if (units.length > n0) sv.cells.push({ ref, u: n0 });
       } else if (t === 'str' && v && v.textContent.trim()) {
         owned.add(v);
-        push(makeUnit([textSegment(v, false)], lab + ' (Formelergebnis)' + hidden), null, sh.part);
+        push(makeUnit([textSegment(v, false)], lab + ' (Formelergebnis)' + hidden), { formula: true }, sh.part);
         sv.cells.push({ ref, u: n0 });
       } else if (v && v.textContent !== '') sv.cells.push({ ref, value: v.textContent });
       if (f && f.textContent.includes('"')) {
@@ -239,9 +287,16 @@ export async function readXlsx(bytes) {
     const sdoc = sh.part ? docs.get(sh.part) : null;
     if (!sv || !sdoc) continue;
     const span = new Map();
+    const tcols = treat ? treat.get(sh.name) : null;
     for (const mc of allElements(sdoc).filter((e) => isS(e) && e.localName === 'mergeCell')) {
       const m = /^([A-Z]+)(\d+):([A-Z]+)(\d+)$/.exec(mc.getAttribute('ref') || '');
       if (m) span.set((Number(m[2]) - 1) + '|' + (colIndex(m[1])), colIndex(m[3]));
+      // Version 2.10.0: verbundene Zellen, die eine behandelte Spalte unterhalb der Kopfzeile berühren -> melden
+      if (m && tcols) {
+        for (const [c, hr] of tcols) {
+          if (c >= colIndex(m[1]) && c <= colIndex(m[3]) && Number(m[4]) - 1 > hr) { colIssues.merged.push({ sheet: sh.name, ref: mc.getAttribute('ref') }); break; }
+        }
+      }
     }
     const at = new Map();
     for (const cell of sv.cells) {
@@ -261,6 +316,9 @@ export async function readXlsx(bytes) {
       if (left && left.u !== undefined) { const u = units[cell.u]; (u.leftUnits = u.leftUnits || []).push(left.u); }
     }
   }
+  // Version 2.10.0: gemeinsame Texte, deren Zellen alle zu eigenen Abschnitten wurden, werden geleert (sonst stünde der
+  // Originaltext unbenutzt in der Datei)
+  for (const [k, n] of siSplit) if (n >= (siRefs.get(k) || 0) && !siDone.has(k)) { blankSi(siList[k]); siDone.add(k); }
   siList.forEach((si, i) => { if (!siDone.has(i)) push(groupUnit(si, 'Gemeinsamer Text (nicht verwendet)', owned), null, ssPart.target); });
 
   // Definierte Namen mit Text
@@ -341,7 +399,70 @@ export async function readXlsx(bytes) {
   warnings.push(...await imageWarnings(zip));
   // Namen aus den Original-Metadaten (Autor, Bearbeiter, Manager, Firma, Kommentarautoren, SharePoint-Personen)
   const metaNames = await collectMetaNames(zip, docs);
-  return { kind: 'xlsx', zip, docs, vmlDocs, units, owned, ownedAttrs, sheets, names, warnings, ssDoc, siList, metaNames, imageCtx: { placeOf }, wbPart, embedded, view };
+  return { kind: 'xlsx', zip, docs, vmlDocs, units, owned, ownedAttrs, sheets, names, warnings, ssDoc, siList, metaNames, imageCtx: { placeOf }, wbPart, embedded, view, colIssues };
+}
+
+// ---------- Version 2.10.0: Zellen in behandelten Spalten ----------
+// Rückbau einer Zahl-, Datums- oder Wahrheitszelle: Text in der Zelle (is) -> gespeicherter Wert (v) mit Zelltyp
+function restoreCell(c, z) {
+  const is = childEls(c, 'is')[0];
+  if (!is) return;
+  const v = c.ownerDocument.createElementNS(c.namespaceURI, 'v');
+  v.textContent = z.v;
+  c.replaceChild(v, is);
+  if (z.t) c.setAttribute('t', z.t); else c.removeAttribute('t');
+}
+// Inhalt eines gemeinsamen Texts (si) als Text in der Zelle (is); Textläufe und ihre Formatierung bleiben
+function inlineFrom(sdoc, si) {
+  const is = sdoc.createElementNS(si.namespaceURI, 'is');
+  for (const ch of Array.from(si.childNodes)) is.appendChild(sdoc.importNode(ch, true));
+  return is;
+}
+// Gemeinsamen Text leeren (nur, wenn ihn keine Zelle mehr benutzt)
+function blankSi(si) {
+  if (!si) return;
+  while (si.firstChild) si.removeChild(si.firstChild);
+  si.appendChild(si.ownerDocument.createElementNS(si.namespaceURI, 't'));
+}
+// Zahlenformate: Formatnummer je Zellstil (cellXfs) und eigene Formate (numFmts); Datumssystem 1904
+function cellFormats(docs, wb, wbRels) {
+  const st = [...wbRels.values()].find((r) => /\/styles$/.test(r.type));
+  const sdoc = st ? docs.get(st.target) : null;
+  const codes = new Map();
+  const xfs = [];
+  if (sdoc) {
+    for (const nf of allElements(sdoc).filter((e) => isS(e) && e.localName === 'numFmt')) codes.set(Number(nf.getAttribute('numFmtId')), nf.getAttribute('formatCode') || '');
+    const cx = allElements(sdoc).find((e) => isS(e) && e.localName === 'cellXfs');
+    if (cx) for (const xf of childEls(cx, 'xf')) xfs.push(Number(xf.getAttribute('numFmtId') || 0));
+  }
+  const pr = allElements(wb).find((e) => isS(e) && e.localName === 'workbookPr');
+  const d1904 = !!pr && /^(1|true)$/.test(pr.getAttribute('date1904') || '');
+  return { codes, xfs, d1904 };
+}
+const BUILTIN_DATE = new Set([14, 15, 16, 17, 18, 19, 20, 21, 22, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 45, 46, 47, 50, 51, 52, 53, 54, 55, 56, 57, 58]);
+function isDateFormat(id, code) {
+  if (BUILTIN_DATE.has(id)) return true;
+  if (!code) return false;
+  const c = code.replace(/"[^"]*"/g, '').replace(/\\./g, '').replace(/\[[^\]]*\]/g, '');
+  return /[dmyhs]/i.test(c) && !/^general$/i.test(c.trim());
+}
+const pad = (n) => String(n).padStart(2, '0');
+// Angezeigter Wert einer Zahl-, Datums- oder Wahrheitszelle (nur für Anzeige, Prüfansicht und Schlüssel; der Rückbau
+// schreibt Zelltyp und gespeicherten Wert zurück)
+function cellDisplay(orig, s, fmt) {
+  const { t, v } = orig;
+  if (t === 'b') return v === '1' ? 'WAHR' : 'FALSCH';
+  if (t && t !== 'n') return v;
+  const n = Number(v);
+  const id = fmt && s !== null && fmt.xfs[Number(s)] !== undefined ? fmt.xfs[Number(s)] : 0;
+  if (!Number.isFinite(n) || !fmt || !isDateFormat(id, fmt.codes.get(id))) return v;
+  // Tage seit 1970: Seriennummer minus 25569 (System 1900; unter 60 wegen des 29.02.1900 von Excel einen Tag mehr) bzw. 24107 (1904)
+  const ms = Math.round((n - (fmt.d1904 ? 24107 : 25569)) * 86400000) + (!fmt.d1904 && n < 60 ? 86400000 : 0);
+  const d = new Date(ms);
+  if (Number.isNaN(d.getTime())) return v;
+  const date = `${pad(d.getUTCDate())}.${pad(d.getUTCMonth() + 1)}.${d.getUTCFullYear()}`;
+  const time = n % 1 ? ` ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}` : '';
+  return n >= 1 ? date + time : time.trim() || date;
 }
 
 function cellString(sheetDoc, ref, siList) {
@@ -363,9 +484,12 @@ function colToNum(c) { let n = 0; for (const ch of c) n = n * 26 + (ch.charCodeA
 function numToCol(n) { let s = ''; while (n > 0) { const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); } return s; }
 
 // opts.clean (Standard true): Metadaten bereinigen (Anonymisieren). false: nur Texte, Blattnamen, Bezüge (Rückbau).
+// opts.treat (Version 2.10.0): dieselbe Spaltenbehandlung wie beim Lesen für die Prüfung (gleiche Abschnitte).
+// opts.restoreCells (Rückbau, Version 2.10.0): Map(Platzhalter -> {t, v}); eine Zelle, die genau diesen Platzhalter
+// enthält, bekommt Zelltyp und gespeicherten Wert zurück (Zahl, Datum, Wahrheitswert); ihr Format (Stil) blieb ohnehin.
 export async function writeXlsx(bytes, repsPerUnit, generic, opts = {}) {
   const clean = opts.clean !== false;
-  const d = await readXlsx(bytes);
+  const d = await readXlsx(bytes, { treat: opts.treat || null });
   const changed = new Set();
   // Versteckte Angaben: SharePoint-Felder (vor dem Ersetzen, damit Werte mit Namen erkannt werden),
   // Dateieigenschaften (über ihre Verweise gefunden), Vorschaubild
@@ -383,6 +507,8 @@ export async function writeXlsx(bytes, repsPerUnit, generic, opts = {}) {
       if (u.commit) u.commit();
       if (u.vml) vmlChanged.add(u.part);
     }
+    const z = opts.restoreCells && u.cellEl ? opts.restoreCells.get(u.text.trim()) : null;
+    if (z) restoreCell(u.cellEl, z);
   });
   // Blattnamen umbenennen
   const used = new Set(d.sheets.map((s) => s.name.toLowerCase()));

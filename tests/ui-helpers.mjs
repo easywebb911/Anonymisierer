@@ -137,3 +137,17 @@ export async function rbConfirm(page, confirm = true) {
   if (confirm && await page.$('#rb-ack')) await page.check('#rb-ack');
   return info;
 }
+// Version 2.10.0: Spalten-Übersicht (Excel/CSV mit Kopfzeile). Für Läufe, die das Verhalten bis 2.9.0 prüfen: alle
+// Spalten auf „wie bisher“ stellen (wie ein Mensch, je Spalte die Auswahl) und „So übernehmen“ klicken. Ohne Übersicht
+// (andere Dateien, ältere Versionen) passiert nichts.
+export async function columnsAsBefore(page) {
+  if (!(await page.$('#col-ok'))) return false;
+  for (const id of await page.$$eval('#qcard select[data-col]', (els) => els.filter((e) => e.value !== 'bisher').map((e) => e.dataset.col))) {
+    await page.selectOption(`#qcard select[data-col="${id}"]`, 'bisher');
+    await page.waitForFunction((c) => { const x = window.__anon.app.result.colPlan.find((y) => y.id === c); return x && x.treat === 'bisher' && document.querySelector('#col-ok'); }, id);
+  }
+  await page.click('#col-ok');
+  return true;
+}
+// Dasselbe ohne Oberfläche (für Läufe, die über window.__anon laden): alle Spalten „wie bisher“, Übersicht bestätigt
+export const COLUMNS_AS_BEFORE_JS = 'async () => { const A = window.__anon; if (!A.applyColumns || !A.app.result || !(A.app.result.colPlan || []).length) return; for (const c of A.app.result.colPlan) A.app.state.colTreat[c.id] = "bisher"; await A.applyColumns(); A.app.colConfirmed = true; A.runAnalysis(); }';

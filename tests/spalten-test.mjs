@@ -39,11 +39,18 @@ const NEW = await newPage(path.join(root, 'index.html'));
 const OLD = ALT ? await newPage(ALT) : null;
 
 // Datei laden und Ergebnis lesen (über die Testschnittstelle der Seite)
+// Version 2.10.0: Dieser Lauf prüft die Namensspalten-Regel aus 2.6.0. Sie gilt seit 2.10.0 für Spalten mit der
+// Behandlung „wie bisher“; deshalb stehen hier alle Spalten auf „wie bisher“ (wie ein Klick je Spalte in der Übersicht).
+// Die Vorschläge („Name“, „ganz ersetzen“) prüft tests/spaltenwahl-test.mjs, auch dass sie nie schwächer ersetzen.
 async function analyzeIn(pg, bytes, name, mode = 'person', cols = null) {
   return pg.page.evaluate(async ([arr, nm, md, cl]) => {
     const A = window.__anon;
     A.app.state.settings.mode = md;
     await A.openBytes(new Uint8Array(arr), nm);
+    if (A.applyColumns && A.app.result.colPlan && A.app.result.colPlan.length) {
+      for (const c of A.app.result.colPlan) A.app.state.colTreat[c.id] = 'bisher';
+      await A.applyColumns();
+    }
     if (cl) { Object.assign(A.app.state.nameColumns, cl); A.runAnalysis(); }
     const R = A.app.result;
     const ents = R.entities;
@@ -280,9 +287,15 @@ log('## 4. Spalte von Hand');
   await page.locator('input[data-col="csv|0"]').uncheck();
   const s2 = await state();
   check('Ausschalten: Treffer wie ohne Regel', JSON.stringify(s2.hits) === JSON.stringify(s0.hits), s2.hits.join(', '));
-  // erkannte Namensspalte ausschalten (Fall „stark“, Spalte Nachname)
+  // erkannte Namensspalte ausschalten (Fall „stark“, Spalte Nachname). Version 2.10.0: der Schalter „Namen“ gilt für
+  // Spalten „wie bisher“; alle Spalten in der Übersicht auf „wie bisher“ stellen (wie ein Mensch) und übernehmen
   await loadIn(page, path.join(FXS, 'tabellen-stark.csv'));
   await goTo(page, 'a2');
+  for (const id of await page.$$eval('#qcard select[data-col]', (els) => els.filter((e) => e.value !== 'bisher').map((e) => e.dataset.col))) {
+    await page.selectOption(`#qcard select[data-col="${id}"]`, 'bisher');
+    await page.waitForFunction((c) => window.__anon.app.result.colPlan.find((x) => x.id === c).treat === 'bisher', id);
+  }
+  if (await page.$('#col-ok')) await page.click('#col-ok');
   const n0 = await state();
   const auto = page.locator('input[data-col="csv|2"]');
   check('Erkannte Namensspalte „Nachname“ angehakt', await auto.isChecked());

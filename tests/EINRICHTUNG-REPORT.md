@@ -98,26 +98,26 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 
 ### einrichtung.csv
 - OK: Gruppe „Einrichtungen“ mit eigenen Zeilen (Schalter, Name, Zahl, drei Punkte); Personen getrennt – Einrichtungen: Familienzentrum Sonnenblume Einrichtung A 5/5 | Lindenauer Bürgerverein Einrichtung B 2/2 | Astrid-Lindgren-Schule Einrichtung C 1/1; Personen: Petra Hollmann, Astrid Lindgren
-- OK: Speichern: „2 Personen und 3 Einrichtungen sind ersetzt“ – 2 Personen und 3 Einrichtungen sind ersetzt.
+- OK: Speichern: „2 Personen und 3 Einrichtungen sind ersetzt“ – 2 Personen und 3 Einrichtungen sind ersetzt. Ein Punkt bitte noch ansehen:
 - OK: Schlüsseldatei: Einrichtungen als eigene Art (kategorie „Einrichtung“, Liste „einrichtungen“), Format-Version 2 – Einrichtung A = „Familienzentrum Sonnenblume“ (1×); Einrichtung A2 = „Familienzentrums Sonnenblume“ (1×); Einrichtung A3 = „FZS“ (1×); Einrichtung B = „Lindenauer Bürgerverein“ (2×); Einrichtung A4 = „FAMILIENZENTRUM SONNENBLUME“ (1×); Einrichtung C = „Astrid-Lindgren-Schule“ (1×); Einrichtung A5 = „Familienzentrum⏎Sonnenblume“ (1×)
 
 | Fall | ersetzt | Platzhalter / Ausgabe | Rückbau exakt |
 |---|---|---|---|
-| Text, mehrteilig | ja | „"Bericht aus dem Einrichtung A";Raum 1“ | ja |
+| Text, mehrteilig | ja | „"Bericht aus dem Einrichtung A";[ADRESSE-1]“ | ja |
 - OK: csv: Text, mehrteilig: ersetzt und Rückbau exakt
-| Genitiv mit Endung im Inneren | ja | „"Die Leiterin des Einrichtung A2, Frau Vorname A Nachname A, berichtet.";Raum 2“ | ja |
+| Genitiv mit Endung im Inneren | ja | „"Die Leiterin des Einrichtung A2, Frau Vorname A Nachname A, berichtet.";[ADRESSE-2]“ | ja |
 - OK: csv: Genitiv mit Endung im Inneren: ersetzt und Rückbau exakt
-| Abkürzung (zusammengeführt) | ja | „"Das Einrichtung A3 plant gemeinsam mit dem Einrichtung B ein Fest.";Raum 3“ | ja |
+| Abkürzung (zusammengeführt) | ja | „"Das Einrichtung A3 plant gemeinsam mit dem Einrichtung B ein Fest.";[ADRESSE-3]“ | ja |
 - OK: csv: Abkürzung (zusammengeführt): ersetzt und Rückbau exakt
-| zweite Einrichtung | ja | „"Das Einrichtung A3 plant gemeinsam mit dem Einrichtung B ein Fest.";Raum 3“ | ja |
+| zweite Einrichtung | ja | „"Das Einrichtung A3 plant gemeinsam mit dem Einrichtung B ein Fest.";[ADRESSE-3]“ | ja |
 - OK: csv: zweite Einrichtung: ersetzt und Rückbau exakt
-| Genitiv mit Endung am Schluss | ja | „"Der Vorstand des Einrichtung Bs stimmt zu.";Raum 4“ | ja |
+| Genitiv mit Endung am Schluss | ja | „"Der Vorstand des Einrichtung Bs stimmt zu.";[ADRESSE-4]“ | ja |
 - OK: csv: Genitiv mit Endung am Schluss: ersetzt und Rückbau exakt
-| GROSSSCHREIBUNG | ja | „"AUSHANG: Einrichtung A4 LÄDT EIN";Raum 5“ | ja |
+| GROSSSCHREIBUNG | ja | „"AUSHANG: Einrichtung A4 LÄDT EIN";[ADRESSE-5]“ | ja |
 - OK: csv: GROSSSCHREIBUNG: ersetzt und Rückbau exakt
-| Personenname in der Einrichtung (Vorrang) | ja | „"Auch die Einrichtung C macht mit. Frau Vorname B Nachname B liest vor.";Raum 6“ | ja |
+| Personenname in der Einrichtung (Vorrang) | ja | „"Auch die Einrichtung C macht mit. Frau Vorname B Nachname B liest vor.";[ADRESSE-6]“ | ja |
 - OK: csv: Personenname in der Einrichtung (Vorrang): ersetzt und Rückbau exakt
-| Zeilenumbruch im Namen | ja | „"Treffpunkt im Einrichtung A5, Saal 2.";Raum 7“ | ja |
+| Zeilenumbruch im Namen | ja | „"Treffpunkt im Einrichtung A5, Saal 2.";[ADRESSE-7]“ | ja |
 - OK: csv: Zeilenumbruch im Namen: ersetzt und Rückbau exakt
 - OK: csv: Rückbau insgesamt exakt (alle 9 Abschnitte) – Bericht: Einrichtung A: 1/1, Einrichtung A2: 1/1, Einrichtung A3: 1/1, Einrichtung B: 2/2, Einrichtung A4: 1/1, Einrichtung C: 1/1, Einrichtung A5: 1/1
 - Wortbestandteile in ALLEN Teilen der Ausgabe: Familienzentrum 0, Sonnenblume 0, FZS 0, Lindenauer 0, Bürgerverein 0, Astrid 0, Lindgren 0, Hollmann 0, Petra 0
@@ -127,8 +127,8 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 - OK: „Astrid-Lindgren-Schule“ = ein Platzhalter; „Astrid Lindgren“ an anderer Stelle bleibt Person – Auch die Einrichtung C macht mit. Frau Vorname B Nachname B liest vor.
 
 ## Art-Wechsel: Einrichtung → Person → Einrichtung (rückbaufähig)
-- OK: „ist eine Person“: Platzhalter, Zählung und Kennung folgen; Schlüssel muss neu gespeichert werden – vorher: 2 Personen/3 Einrichtung, „Das FZS plant gemeinsam mit dem Einrichtung B ein Fest.“; nachher: 3/2, „Das FZS plant gemeinsam mit dem Vorname B Nachname B ein Fest.“, Kennung E2A6 → E7P4
-- OK: „ist eine Einrichtung“ zurück: wieder „Einrichtung A“, Zählung und Kennung folgen – „Das FZS plant gemeinsam mit dem Einrichtung B ein Fest.“, Kennung E7P4 → 9A2M
+- OK: „ist eine Person“: Platzhalter, Zählung und Kennung folgen; Schlüssel muss neu gespeichert werden – vorher: 2 Personen/3 Einrichtung, „Das FZS plant gemeinsam mit dem Einrichtung B ein Fest.“; nachher: 3/2, „Das FZS plant gemeinsam mit dem Vorname B Nachname B ein Fest.“, Kennung C578 → 4783
+- OK: „ist eine Einrichtung“ zurück: wieder „Einrichtung A“, Zählung und Kennung folgen – „Das FZS plant gemeinsam mit dem Einrichtung B ein Fest.“, Kennung 4783 → 329J
 
 ## Merkliste mit Art
 - OK: Neue Merkliste mit Art wird richtig gelesen (Person und Einrichtung, Art an jedem Eintrag sichtbar) – Hollmann · Person | Familienzentrum Sonnenblume · Einrichtung
@@ -384,7 +384,7 @@ Einrichtungen: „Familienzentrum Sonnenblume“ (mit Abkürzung „FZS“), „
 - OK: einrichtung.docx: zwei Läufe byte-gleich – 2198e39ca61779b2
 - OK: einrichtung.xlsx: zwei Läufe byte-gleich – f83dd1a0bc705367
 - OK: einrichtung.txt: zwei Läufe byte-gleich – 75e61bf617952334
-- OK: einrichtung.csv: zwei Läufe byte-gleich – 1fb2f829a54e086c
+- OK: einrichtung.csv: zwei Läufe byte-gleich – 865b55dba7676553
 
 Prüfungen: 153 von 153 bestanden.
 Netzwerkanfragen außer lokalen Dateien: 0.

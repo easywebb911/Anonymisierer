@@ -12,13 +12,16 @@ const CONTACT_RE = /\[(?:E-MAIL|TELEFON|IBAN|ADRESSE)-\d+\]/g;
 // Version 2.7.0: mit Webadressen und Konten. Nur für Schlüssel MIT diesen Arten verwendet, damit ältere Schlüssel genau
 // wie bisher arbeiten (wie bei den Einrichtungen seit 2.3)
 const CONTACT_WEB_RE = /\[(?:E-MAIL|TELEFON|IBAN|ADRESSE|WEBADRESSE|KONTO)-\d+\]/g;
-const contactRe = (key) => (key.hasWeb ? CONTACT_WEB_RE : CONTACT_RE);
+// Version 2.10.0: mit Datum und Angabe. Nur für Schlüssel MIT diesen Arten (Format-Version 3)
+const CONTACT_COL_RE = /\[(?:E-MAIL|TELEFON|IBAN|ADRESSE|WEBADRESSE|KONTO|DATUM|ANGABE)-\d+\]/g;
+const contactRe = (key) => (key.hasCol ? CONTACT_COL_RE : key.hasWeb ? CONTACT_WEB_RE : CONTACT_RE);
 // Veränderte Formen (Kleinschreibung, Genitiv, Bindestrich, ohne Leerzeichen, Zeilenumbruch dazwischen)
 const LOOSE_NAME_RE = /(^|[^\p{L}\p{N}])(vorname|nachname|initiale|name)(ns|s|n)?([\s -]*)([a-z]{1,3})(\d*)(?![\p{L}\p{N}])/giu;
 const LOOSE_NAME_ORG_RE = /(^|[^\p{L}\p{N}])(vorname|nachname|initiale|name|einrichtung)(ns|s|n|en)?([\s -]*)([a-z]{1,3})(\d*)(?![\p{L}\p{N}])/giu;
 const nameRe = (key) => (key.hasOrg ? NAME_ORG_RE : NAME_RE);
 const LOOSE_CONTACT_RE = /\[?\s*(e-?mail|telefon|iban|adresse)\s*[-–_ ]?\s*(\d+)\s*\]?/giu;
 const LOOSE_CONTACT_WEB_RE = /\[?\s*(e-?mail|telefon|iban|webadresse|web-adresse|adresse|konto)\s*[-–_ ]?\s*(\d+)\s*\]?/giu;
+const LOOSE_CONTACT_COL_RE = /\[?\s*(e-?mail|telefon|iban|webadresse|web-adresse|adresse|konto|datum|angabe)\s*[-–_ ]?\s*(\d+)\s*\]?/giu;
 
 // Schlüsseldatei lesen. Liefert {ok:true, key} oder {ok:false, error}
 export function parseKeyFile(text) {
@@ -33,22 +36,26 @@ export function parseKeyFile(text) {
     if (data && Array.isArray(data.names)) return { ok: false, error: 'Das ist eine Merkliste („Eigene Namen“), keine Rückbau-Schlüsseldatei.' };
     return { ok: false, error: 'Die Datei ist keine Rückbau-Schlüsseldatei des Anonymisierers.' };
   }
-  if (data.formatVersion !== 1 && data.formatVersion !== 2) return { ok: false, error: `Unbekannte Version der Schlüsseldatei (${data.formatVersion}). Bitte eine neuere Version des Tools verwenden.` };
+  if (data.formatVersion !== 1 && data.formatVersion !== 2 && data.formatVersion !== 3) return { ok: false, error: `Unbekannte Version der Schlüsseldatei (${data.formatVersion}). Bitte eine neuere Version des Tools verwenden.` };
   const entries = new Map();
   for (const e of data.platzhalter || []) {
     if (!e || typeof e.platzhalter !== 'string' || typeof e.wert !== 'string') return { ok: false, error: 'Die Schlüsseldatei ist beschädigt (Eintrag ohne Platzhalter oder Wert).' };
     if (entries.has(e.platzhalter)) return { ok: false, error: `Die Schlüsseldatei ist beschädigt (Platzhalter „${e.platzhalter}“ doppelt).` };
-    entries.set(e.platzhalter, { wert: e.wert, anzahl: Number(e.anzahl) || 0, kategorie: e.kategorie || '' });
+    // Version 2.10.0: Zelltyp und Wert einer Zahl- oder Datumszelle (Excel)
+    const zelle = e.zelle && typeof e.zelle === 'object' && typeof e.zelle.v === 'string' ? { t: typeof e.zelle.t === 'string' ? e.zelle.t : null, v: e.zelle.v } : null;
+    entries.set(e.platzhalter, { wert: e.wert, anzahl: Number(e.anzahl) || 0, kategorie: e.kategorie || '', ...(zelle ? { zelle } : {}) });
   }
   if (!entries.size) return { ok: false, error: 'Die Schlüsseldatei enthält keine Platzhalter.' };
   const hasOrg = [...entries.keys()].some((ph) => /^Einrichtung [A-Z]{1,3}\d*$/.test(ph));
   const hasWeb = [...entries.keys()].some((ph) => /^\[(?:WEBADRESSE|KONTO)-\d+\]$/.test(ph));
+  // Version 2.10.0: Datum und Angabe (Format-Version 3)
+  const hasCol = data.formatVersion === 3 || [...entries.keys()].some((ph) => /^\[(?:DATUM|ANGABE)-\d+\]$/.test(ph));
   // Version 2.3.4 (Zusatzfeld): Wörter, die schon im Original wie ein Platzhalter aussahen -> bleiben unberührt
   const original = new Map();
   for (const x of Array.isArray(data.imOriginal) ? data.imOriginal : []) {
     if (x && typeof x.text === 'string' && !entries.has(x.text)) original.set(x.text, Number(x.anzahl) || 0);
   }
-  return { ok: true, key: { entries, hasOrg, hasWeb, original, toolVersion: data.toolVersion || '?', kind: data.quelle && data.quelle.dateityp } };
+  return { ok: true, key: { entries, hasOrg, hasWeb: hasWeb || hasCol, hasCol, original, toolVersion: data.toolVersion || '?', kind: data.quelle && data.quelle.dateityp } };
 }
 
 const ctx = (text, s, e) => text.slice(Math.max(0, s - 25), Math.min(text.length, e + 25)).replace(/\s+/g, ' ');
@@ -92,11 +99,11 @@ export function scanUnit(text, key, where) {
     issues.push({ art, text: m[0].slice(m[1].length), vermutlich: guess, where, kontext: ctx(text, s, e) });
     taken.push([s, e]);
   }
-  for (const m of text.matchAll(key.hasWeb ? LOOSE_CONTACT_WEB_RE : LOOSE_CONTACT_RE)) {
+  for (const m of text.matchAll(key.hasCol ? LOOSE_CONTACT_COL_RE : key.hasWeb ? LOOSE_CONTACT_WEB_RE : LOOSE_CONTACT_RE)) {
     const s = m.index;
     const e = s + m[0].length;
     if (!free(s, e)) continue;
-    const base = { 'e-mail': 'E-MAIL', email: 'E-MAIL', telefon: 'TELEFON', iban: 'IBAN', adresse: 'ADRESSE', webadresse: 'WEBADRESSE', 'web-adresse': 'WEBADRESSE', konto: 'KONTO' }[m[1].toLowerCase()];
+    const base = { 'e-mail': 'E-MAIL', email: 'E-MAIL', telefon: 'TELEFON', iban: 'IBAN', adresse: 'ADRESSE', webadresse: 'WEBADRESSE', 'web-adresse': 'WEBADRESSE', konto: 'KONTO', datum: 'DATUM', angabe: 'ANGABE' }[m[1].toLowerCase()];
     const guess = `[${base}-${m[2]}]`;
     // Version 2.7.0: die neuen Arten auch ohne Klammer, wenn Bindestrich/Unterstrich direkt vor der Nummer steht
     // („Konto-1“, „Webadresse_2“) und das Wort allein steht (nicht „Bankkonto-1“)

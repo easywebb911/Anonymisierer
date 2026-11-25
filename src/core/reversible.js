@@ -5,14 +5,15 @@ import * as lex from './lexicon.js';
 import { findContacts } from './patterns.js';
 
 export const MODE_REVERSIBLE = 'reversible';
-export const CONTACT_BASE = { email: 'E-MAIL', phone: 'TELEFON', iban: 'IBAN', address: 'ADRESSE', web: 'WEBADRESSE', account: 'KONTO' };
-export const CONTACT_NAMES = { email: 'E-Mail', phone: 'Telefon', iban: 'IBAN', address: 'Adresse', web: 'Webadresse', account: 'Konto' };
+// Version 2.10.0: Datum und Angabe (nur aus der Behandlung „ganz ersetzen“ von Tabellenspalten)
+export const CONTACT_BASE = { email: 'E-MAIL', phone: 'TELEFON', iban: 'IBAN', address: 'ADRESSE', web: 'WEBADRESSE', account: 'KONTO', date: 'DATUM', info: 'ANGABE' };
+export const CONTACT_NAMES = { email: 'E-Mail', phone: 'Telefon', iban: 'IBAN', address: 'Adresse', web: 'Webadresse', account: 'Konto', date: 'Datum', info: 'Angabe' };
 export const KEY_FORMAT = 'anonymisierer-rueckbau-schluessel';
 export const KEY_WARNING = 'Enthält echte Namen. Nie weitergeben, nie an eine KI.';
 
 // Erkennt Platzhalter dieses Modus in beliebigem Text (für Kollisionsprüfung und Rückbau)
 export const NAME_PH_RE = /(^|[^\p{L}\p{N}])((?:Vorname|Nachname|Initiale|Name) [A-Z]{1,3}\d*)(?=(?:'s|’s|'|’|s|es|ns|n)?(?![\p{L}\p{N}]))/gu;
-export const CONTACT_PH_RE = /\[(?:E-MAIL|TELEFON|IBAN|ADRESSE|WEBADRESSE|KONTO)-\d+\]/g;
+export const CONTACT_PH_RE = /\[(?:E-MAIL|TELEFON|IBAN|ADRESSE|WEBADRESSE|KONTO|DATUM|ANGABE)-\d+\]/g;
 // Einrichtungen (Version 2.3): der ganze Name als EIN Platzhalter, weitere Schreibweisen mit Nummer
 export const ORG_PH_RE = /(^|[^\p{L}\p{N}])(Einrichtung [A-Z]{1,3}\d*)(?=(?:'s|’s|'|’|s|es|ns|n)?(?![\p{L}\p{N}]))/gu;
 
@@ -21,7 +22,7 @@ export const ORG_PH_RE = /(^|[^\p{L}\p{N}])(Einrichtung [A-Z]{1,3}\d*)(?=(?:'s|�
 // Großbuchstaben, danach weitere Großbuchstaben oder Ziffern und höchstens eine Endung der Liste; dazu Platzhalter in
 // eckigen Klammern („[E-MAIL-1]“, „[NAME]“, „[EINRICHTUNG]“).
 const LIKE_NAME_RE = /(^|[^\p{L}\p{N}])((?:Vorname|Nachname|Initiale|Name|Person|Einrichtung)[ \u00a0][A-Z][A-Z\d]*(?:'s|’s|'|’|s|es|ns|n)?)(?![\p{L}\p{N}])/gu;
-const LIKE_BRACKET_RE = /\[(?:E-MAIL|TELEFON|IBAN|ADRESSE|WEBADRESSE|KONTO|NAME|EINRICHTUNG)(?:-[\p{L}\p{N}]*)?\][\p{L}\p{N}]*/gu;
+const LIKE_BRACKET_RE = /\[(?:E-MAIL|TELEFON|IBAN|ADRESSE|WEBADRESSE|KONTO|DATUM|ANGABE|NAME|EINRICHTUNG)(?:-[\p{L}\p{N}]*)?\][\p{L}\p{N}]*/gu;
 export function findPlaceholderLike(text) {
   const out = [];
   for (const m of text.matchAll(LIKE_NAME_RE)) { const s = m.index + m[1].length; out.push({ text: m[2], s, e: s + m[2].length }); }
@@ -167,12 +168,14 @@ export function assignReversible(result) {
       h.label = h.parts.map((p) => p.text).join(' … ');
     } else {
       const value = fullText.slice(h.s, h.e);
-      const ck = h.type + '|' + value;
+      // Version 2.10.0: Zahl- und Datumszellen (Excel) mit Zelltyp und Wert: eigener Platzhalter je Zelltyp und Wert, damit
+      // der Rückbau Typ und Wert exakt zurückschreibt (Text „12“ und Zahl 12 bekommen verschiedene Platzhalter)
+      const ck = h.type + '|' + value + (h.cellOrig ? '|' + JSON.stringify(h.cellOrig) : '');
       if (!contactNums.has(ck)) {
         let ph;
         do { contactCount[h.type] = (contactCount[h.type] || 0) + 1; ph = `[${CONTACT_BASE[h.type]}-${contactCount[h.type]}]`; } while (reserved.has(ph));
         contactNums.set(ck, ph);
-        placeholderInfo.set(ph, { wert: value, kategorie: CONTACT_NAMES[h.type] });
+        placeholderInfo.set(ph, { wert: value, kategorie: CONTACT_NAMES[h.type], ...(h.cellOrig ? { zelle: h.cellOrig } : {}) });
       }
       h.label = contactNums.get(ck);
     }
@@ -218,7 +221,8 @@ export function buildRestoreKey(result, meta) {
   for (const [ph, info] of result.reversible.placeholderInfo) {
     if (!counts.has(ph) && !info.nurVerweis) continue;
     eintraege.push({ platzhalter: ph, kategorie: info.kategorie, ...(info.rolle ? { rolle: info.rolle, person: info.person } : {}),
-      ...(info.einrichtung ? { einrichtung: info.einrichtung } : {}), wert: info.wert, anzahl: counts.get(ph) || 0 });
+      ...(info.einrichtung ? { einrichtung: info.einrichtung } : {}), wert: info.wert, anzahl: counts.get(ph) || 0,
+      ...(info.zelle ? { zelle: info.zelle } : {}) });
   }
   const personen = [];
   for (const en of result.entities.values()) {
@@ -239,7 +243,10 @@ export function buildRestoreKey(result, meta) {
     format: KEY_FORMAT,
     // Version 2 (Entscheidung Easy): NUR Schlüssel mit mindestens einer Einrichtung. Ältere Versionen (2.2) lehnen sie
     // dann klar ab, statt Einrichtungen still als Platzhalter stehen zu lassen. Ohne Einrichtung bleibt es Version 1.
-    formatVersion: einrichtungen.length ? 2 : 1,
+    // Version 3 (2.10.0): NUR Schlüssel mit den neuen Arten Datum/Angabe oder mit Zelltyp (Zahl- und Datumszellen). Ältere
+    // Versionen lehnen sie klar ab, statt „[DATUM-1]“ still stehen zu lassen oder eine Zahl als Text zurückzuschreiben.
+    // Alle übrigen Schlüssel bleiben genau wie bisher (Version 1 oder 2).
+    formatVersion: eintraege.some((x) => x.zelle || x.kategorie === CONTACT_NAMES.date || x.kategorie === CONTACT_NAMES.info) ? 3 : einrichtungen.length ? 2 : 1,
     warnung: KEY_WARNING,
     hinweis: 'Rückbau-Schlüsseldatei des Anonymisierers. Ohne diese Datei ist kein Rückbau möglich.',
     toolVersion: meta.version,

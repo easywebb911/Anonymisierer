@@ -217,25 +217,28 @@ log('');
 // ---------- 3. Ohne Bedienung byte-gleich ----------
 log('## 3. Ohne Bedienung byte-gleich zu Version 2.4.1 (alle Testdokumente, alle Modi, alle Formate, Schlüsseldatei)');
 const FORMATS = { txt: ['txt', 'docx'], csv: ['csv', 'txt', 'docx'], docx: ['docx', 'txt'], xlsx: ['xlsx', 'txt'], pdf: ['txt', 'docx'] };
-async function outputs(html, file, mode, manual, groups = null) {
+async function outputs(html, file, mode, manual, groups = null, allBisher = false) {
   const { page, ctx } = await newPage(html);
   // Version 2.8.0 (Nachweis): gefundene Einrichtungen der neuen Version als von Hand markiert vorgeben, ihre Schreibweisen
   // zusammenführen (Regel c)
   const merges = {};
   for (const g of groups || []) for (const t of g.slice(1)) merges[orgTermTokens(t).key] = orgTermTokens(g[0]).key;
-  const res = await page.evaluate(async ([b, n, m, man, F, terms, mg]) => {
+  const res = await page.evaluate(async ([b, n, m, man, F, terms, mg, ab]) => {
     const A = window.__anon;
     A.app.state.settings.mode = m;
     A.app.state.manualTerms = man;
     if (terms.length) A.app.state.orgTerms = terms;
     try { await A.openBytes(new Uint8Array(b), n); } catch (e) { return { err: e.message }; }
+    // Version 2.10.0 (Nachweis): alle Spalten „wie bisher“; cols = Spalten mit Behandlung „Name“/„ganz ersetzen“
+    const cols = ((A.app.result && A.app.result.colPlan) || []).filter((c) => c.treat !== 'bisher').map((c) => c.header);
+    if (ab && cols.length) { for (const c of A.app.result.colPlan) A.app.state.colTreat[c.id] = 'bisher'; await A.applyColumns(); }
     if (Object.keys(mg).length) { Object.assign(A.app.state.merges, mg); A.runAnalysis(); }
     const groups = A.app.result.orgs ? [...A.app.result.orgs.values()].filter((o) => o.auto).map((o) => [...o.forms.keys()]) : [];
     A.app.kennung = 'TST1'; // feste Kennung (sonst Zufall)
     const o = {};
     for (const f of F[A.app.doc.kind]) { const x = await A.buildOutput(f); o[f] = x.zip ? Array.from(x.bytes) : x.text; }
-    return { o, kind: A.app.doc.kind, groups };
-  }, [[...fs.readFileSync(file)], path.basename(file), mode, manual, FORMATS, (groups || []).flat(), merges]);
+    return { o, kind: A.app.doc.kind, groups, cols };
+  }, [[...fs.readFileSync(file)], path.basename(file), mode, manual, FORMATS, (groups || []).flat(), merges, allBisher]);
   let key = null;
   if (mode === 'reversible' && !res.err) {
     await page.evaluate(() => window.__anon.show('a3'));
@@ -254,6 +257,8 @@ async function outputs(html, file, mode, manual, groups = null) {
 let nOut = 0;
 const diffs = [];
 const v28 = []; // Version 2.8.0: Änderung allein durch selbst gefundene Einrichtungen (nachgewiesen)
+const v210 = []; // Version 2.10.0: Änderung allein durch die Spalten-Behandlung (nachgewiesen: alle Spalten „wie bisher“ = Vorversion)
+const v210cols = new Map();
 for (const [file, manual] of allFiles) {
   for (const mode of ['person', 'name', 'reversible']) {
     const a = await outputs(oldHtml, file, mode, manual);
@@ -262,17 +267,30 @@ for (const [file, manual] of allFiles) {
     // Nachweis 2.8.0: die alte Version mit den gefundenen Einrichtungen als von Hand markiert (zusammengeführt)
     let c = null;
     const ref = async () => { if (!c) c = await outputs(oldHtml, file, mode, manual, b.groups); return c; };
+    let cb = null;
+    const bisher = async () => { if (!cb) cb = await outputs(newHtml, file, mode, manual, null, true); return cb; };
+    // beides zusammen (gefundene Einrichtungen 2.8.0 und Spalten-Behandlung 2.10.0): alle Spalten „wie bisher“ = Vorversion
+    // mit den dann gefundenen Einrichtungen als von Hand markiert
+    let cr = null;
+    const both = async () => { if (!cr) { const bb = await bisher(); cr = bb.groups.length ? await outputs(oldHtml, file, mode, manual, bb.groups) : { o: {}, key: null }; } return cr; };
     const label = `${path.basename(file)}${manual.length ? ' (mit eigenen Namen)' : ''}`;
     for (const f of Object.keys(a.o)) {
       nOut++;
       const same = JSON.stringify(a.o[f]) === JSON.stringify(b.o[f]);
       if (same) continue;
       if (b.groups.length && JSON.stringify((await ref()).o[f]) === JSON.stringify(b.o[f])) { v28.push(`${label}, ${mode}, .${f}`); continue; }
+      if (b.cols && b.cols.length && JSON.stringify((await bisher()).o[f]) === JSON.stringify(a.o[f])) { v210.push(`${label}, ${mode}, .${f}`); v210cols.set(label, b.cols); continue; }
+      if (b.cols && b.cols.length && (await bisher()).groups.length && JSON.stringify((await bisher()).o[f]) === JSON.stringify((await both()).o[f])) { v210.push(`${label}, ${mode}, .${f} (dazu 2.8.0)`); v210cols.set(label, b.cols); continue; }
       diffs.push(`${label}, ${mode}, .${f}`);
     }
     if (mode === 'reversible') {
       nOut++;
-      if (a.key !== b.key) { if (b.groups.length && (await ref()).key === b.key) v28.push(`${label}, Schlüsseldatei`); else diffs.push(`${label}, Schlüsseldatei`); }
+      if (a.key !== b.key) {
+        if (b.groups.length && (await ref()).key === b.key) v28.push(`${label}, Schlüsseldatei`);
+        else if (b.cols && b.cols.length && (await bisher()).key === a.key) v210.push(`${label}, Schlüsseldatei`);
+        else if (b.cols && b.cols.length && (await bisher()).groups.length && (await bisher()).key === (await both()).key) v210.push(`${label}, Schlüsseldatei (dazu 2.8.0)`);
+        else diffs.push(`${label}, Schlüsseldatei`);
+      }
     }
   }
 }
@@ -297,7 +315,9 @@ for (const [doc, why] of Object.entries(CHANGED_260)) {
   log(`  - ${doc}: ${n} Ausgabe(n) geändert – Grund (Version 2.6.0): ${why}`);
 }
 log(`- Version 2.8.0: ${v28.length} Ausgabe(n) geändert allein durch selbst gefundene Einrichtungen (nachgewiesen: gleich der Vorversion mit diesen Einrichtungen als von Hand markiert, Schreibweisen zusammengeführt)${v28.length ? ': ' + v28.join('; ') : ''}`);
-check('Ohne Bedienung byte-gleich zur Vorversion (Kennung fest), außer den Dokumenten mit Grund aus Version 2.6.0 und den nachgewiesenen Änderungen durch gefundene Einrichtungen (2.8.0)', unexplained.length === 0, unexplained.join('; '));
+log(`- Version 2.10.0: ${v210.length} Ausgabe(n) geändert allein durch die Spalten-Behandlung (nachgewiesen: mit allen Spalten „wie bisher“ gleich der Vorversion; „dazu 2.8.0“: gleich der Vorversion mit den dann gefundenen Einrichtungen als von Hand markiert)${v210.length ? ': ' + v210.join('; ') : ''}`);
+for (const [doc, cols] of v210cols) log(`  - ${doc}: Spalten mit Behandlung „Name“/„ganz ersetzen“: ${cols.map((x) => '„' + x + '“').join(', ')}`);
+check('Ohne Bedienung byte-gleich zur Vorversion (Kennung fest), außer den Dokumenten mit Grund aus Version 2.6.0 und den nachgewiesenen Änderungen durch gefundene Einrichtungen (2.8.0) und durch die Spalten-Behandlung (2.10.0)', unexplained.length === 0, unexplained.join('; '));
 log('');
 
 // ---------- 4. Sperren, Eigene Namen, 1366×768 ----------

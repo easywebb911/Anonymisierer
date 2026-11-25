@@ -1030,7 +1030,21 @@ Gezählt wird nur bei bestätigten Namen (mindestens ein eingeschalteter Treffer
 - OK: Ersetzer außerhalb der Prüfansicht (reversible): „MÜLLERS“ ersetzt oder gemeldet
 
 ## Schlusscheck-Vergleich über alle Testdokumente (Modus „Person A“ und „rückbaufähig“; Ausgabe im eigenen Format)
-- 87 Dokumente, je zwei Modi: Meldungen vorher 298, nachher 36; neu 36, entfallen 298
+- 87 Dokumente, je zwei Modi: Meldungen vorher 298, nachher 46; neu 46, entfallen 298
+  - neu: a2-risiko.csv (reversible): „Name“ in Zeile 2, Spalte 2 – „Name B“
+  - neu: a2-risiko.csv (reversible): „Name“ in Zeile 3, Spalte 2 – „Name C“
+  - neu: a2-risiko.csv (reversible): „Name“ in Zeile 6, Spalte 2 – „Name D“
+  - neu: a2-risiko.csv (reversible): „Name“ in Zeile 7, Spalte 2 – „Name E“
+  - neu: a2-risiko.csv (reversible): „Name“ in Zeile 11, Spalte 2 – „Name I“
+  - neu: a2-risiko.csv (reversible): „Name“ in Zeile 12, Spalte 2 – „Name J“
+  - neu: a2-risiko.csv (reversible): „Name“ in Zeile 13, Spalte 2 – „Name K“
+  - neu: a2-risiko.csv (reversible): „Name“ in Zeile 14, Spalte 2 – „Name L“
+  - neu: a2-uebertragung.csv (reversible): „Name“ in Zeile 2, Spalte 2 – „Name B“
+  - neu: a2-uebertragung.csv (reversible): „Name“ in Zeile 3, Spalte 2 – „Name C“
+  - neu: a2-uebertragung.csv (reversible): „Name“ in Zeile 6, Spalte 2 – „Name F“
+  - neu: a2-uebertragung.csv (reversible): „Name“ in Zeile 7, Spalte 2 – „Name G“
+  - neu: a2-uebertragung.csv (reversible): „Name“ in Zeile 8, Spalte 2 – „Name H“
+  - neu: a2-uebertragung.csv (reversible): „Name“ in Zeile 11, Spalte 2 – „Name B2“
   - neu: einrichtung-absatz-text.docx (person): „Musikschule am
 Stadtpark“ in Text – im Original – „Musikschule am Stadtpark Rundbrief an alle Eltern. Die“
   - neu: einrichtung-absatz-text.docx (reversible): „Musikschule am
@@ -1067,10 +1081,6 @@ Sonnenblume“ in Text – „Treffpunkt im Familienzentrum Sonnenblume, Saal 2.
   - neu: meta-falle.docx (person): „Spähmann“ in Bild (versteckte Bildangaben) – „;    �          Rüdiger Spähmann  �   �   ����“
   - neu: meta-falle.docx (reversible): „Rüdiger“ in Bild (versteckte Bildangaben) – „      ;    �          Rüdiger Spähmann  �   �   ����“
   - neu: meta-falle.docx (reversible): „Spähmann“ in Bild (versteckte Bildangaben) – „;    �          Rüdiger Spähmann  �   �   ����“
-  - neu: mitarbeiter.csv (person): „Mai“ in Zeile 4, Spalte 5 – „Elternzeit ab Mai“
-  - neu: mitarbeiter.csv (reversible): „Mai“ in Zeile 4, Spalte 5 – „Elternzeit ab Mai“
-  - neu: mitarbeiter.xlsx (person): „Mai“ in Blatt Yılmaz (ausgeblendet), Zelle A2 – „Gespräch mit Person O am 3. Mai“
-  - neu: mitarbeiter.xlsx (reversible): „Mai“ in Blatt Yılmaz (ausgeblendet), Zelle A2 – „it Vorname O Nachname O am 3. Mai“
   - neu: protokoll.docx (person): „Mai“ in Text – „(Leitung: Person U) bietet ab Mai wieder Suppe an. Auf dem Tisc“
   - neu: protokoll.docx (reversible): „Mai“ in Text – „rname U Nachname U) bietet ab Mai wieder Suppe an. Auf dem Tisc“
   - neu: protokoll.pdf (person): „Mai“ in Seite 1 – „(Leitung: Person U) bietet ab Mai wieder Suppe an. Auf dem Tisc“

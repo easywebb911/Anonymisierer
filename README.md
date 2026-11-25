@@ -155,6 +155,38 @@ In Excel, CSV und Word-Tabellen schaut das Tool auf die **Überschrift einer Spa
 - **Spalte von Hand:** Im Schritt „Prüfen“ steht an jeder Spaltenüberschrift der Tabelle ein Schalter **„Namen“** (bei Word-Tabellen „Spalte 1“, „Spalte 2“ …). Eine erkannte Namensspalte ist angehakt und farbig. Anhaken wirkt wie ein starkes Kopfwort (auch bei Tabellen ohne Kopfzeile: dann alle Zeilen); Abhaken schaltet die Regel für diese Spalte aus. Das gilt als Änderung der Treffer: Das Häkchen beim Speichern muss neu gesetzt werden, und wurde schon eine Schlüsseldatei gespeichert, gibt es eine neue Kennung.
 - **Anrede in der Nachbarzelle (Excel):** Steht in einer Zelle nur „Frau“ oder „Herr“, gilt die rechte Nachbarzelle wie in Word und CSV als Name (Regel „Anrede allein“). Ist die Spalte eine Namensspalte, gilt die Namensspalte.
 
+### Tabellen: Spalten behandeln (seit Version 2.10)
+Bei **Excel- und CSV-Tabellen mit Kopfzeile** entscheidest du **je Spalte**, was mit ihr passiert. Das Tool schlägt es anhand der Überschrift vor.
+
+**Drei Möglichkeiten je Spalte:**
+- **Name:** Jede gefüllte Zelle wird als Person ersetzt, auch unbekannte, klein geschriebene und mehrteilige Namen („Thi Lan“, „van der Meulen“). Stehen mehrere Namen in einer Zelle (getrennt durch `|`, `;`, `/` oder „und“), wird jeder einzeln ersetzt („lena | ben“ → „Person D | Person E“). Füllwerte wie „keine“, „N.N.“ oder „–“ bleiben stehen.
+- **ganz ersetzen:** Jede gefüllte Zelle wird als Ganzes durch einen Platzhalter ersetzt, egal ob Text, Zahl oder Datum. Gleicher Wert = gleicher Platzhalter. Platzhalter je nach Überschrift: **[ADRESSE]**, **[TELEFON]**, **[E-MAIL]**, **[DATUM]** (neu), **Einrichtung A** und **[ANGABE]** (neu, für alles andere). Im Modus „rückbaufähig“ mit Nummer: [DATUM-1], [ANGABE-1] …
+- **wie bisher:** Das Tool sucht Namen im Text der Zelle wie in Version 2.9 (dazu gehört die Namensspalten-Regel aus 2.6 mit dem Schalter „Namen“ an der Spalte).
+
+**Wichtig:** Ersetzte Spalten kann eine KI danach **nicht mehr inhaltlich prüfen**. Sie sieht nur noch „[ANGABE]“ statt der Diagnose oder „[DATUM]“ statt des Geburtsdatums. Stell eine Spalte auf „wie bisher“, wenn die KI ihren Inhalt braucht und darin kein Name steht.
+
+**Vorschlag anhand der Überschrift.** Es genügt, dass ein Schlüsselwort als ganzes Wort irgendwo in der Überschrift steht. Groß- und Kleinschreibung, Umlaute (auch „ae“, „oe“, „ue“) und ss/ß sind egal; Zusätze wie „1.“ oder „Erziehungsberechtigte/r“ stören nicht. Teile eines Wortes zählen nicht („Dateiname“, „Ortsangabe“).
+- **Name:** Nachname, Vorname, Vornamen, Rufname, Familienname, Geburtsname, Name, Ansprechpartner, Wunschpartner, Erziehungsberechtigte(r). „Erziehungsberechtigte“ zählt nur, wenn sonst kein anderes Wort folgt (außer Nummer und „/r“): „1. Erziehungsberechtigte/r akad. Titel“ bleibt „wie bisher“. „Name“ zählt nicht in „Name der Schule/Einrichtung/Firma“ (dort gilt die Einrichtung).
+- **ganz ersetzen als [ADRESSE]:** Strasse, Straße, Hausnummer, Hausnr, PLZ, Postleitzahl, Ort, Wohnort, Ortsteil, Stadt, Gemeinde, Anschrift, Adresse.
+- **ganz ersetzen als [TELEFON]:** Telefon, Handy, Mobil, Fax, Notfallnummer. **Als [E-MAIL]:** E-Mail, Mail.
+- **ganz ersetzen als [DATUM]:** Geburtsdatum, geboren, Geb.-Datum, Zuzugsdatum.
+- **ganz ersetzen als Einrichtung:** Schule, Grundschule, Übertritt von, Kita, Kindergarten, Arbeitgeber, Firma, Einrichtung.
+- **ganz ersetzen als [ANGABE]:** Erläuterung, Bemerkung, Notiz, Notizen, Anmerkung, Hinweis, Kommentar, Sonstiges, Diagnose, Gesundheit, gesundheitlich, Krankheit, Allergie, Medikament, Beeinträchtigung, Störung, Inklusion, Sorgerecht, Religion, Konfession, Staatsangehörigkeit, Muttersprache, Sprache, Geburtsort, Geburtsland, Zuzug, Schulnummer, GKZ, Kennzahl, Wunsch.
+- **Mehrere Gruppen:** Die strengere gilt: „ganz ersetzen“ vor „Name“ vor „wie bisher“. Unter den Platzhaltern gewinnt [ANGABE]; Adresse, Telefon, E-Mail und Datum gehen vor Einrichtung; zwei verschiedene davon ergeben [ANGABE] („1. Bemerkung Notfallnummer“ → [ANGABE], „Notizen der Schule“ → [ANGABE]).
+- Alles andere: **wie bisher**.
+
+**Eine Person je Zeile:** Stehen Vorname(n) und Nachname mit demselben Vorspann in einer Zeile (z. B. beide beginnen mit „1. Erziehungsberechtigte/r“), sind sie **eine** Person. Kind, 1. und 2. Erziehungsberechtigte/r sind so je Zeile drei Personen, auch wenn sie denselben Nachnamen haben. Gibt es zwei Vornamen-Spalten (Rufname und Vornamen laut Geburtsurkunde), gehören beide zur selben Person.
+
+**So sieht es aus:** Im Schritt „Prüfen“ kommt zuerst die Übersicht **„Spalten“** (je Blatt): je Spalte die Überschrift, die Zahl der gefüllten Zellen und die Auswahl „Name“, „ganz ersetzen“ oder „wie bisher“. Spalten, die ersetzt werden, stehen oben; die übrigen darunter zum Aufklappen. Mit **„So übernehmen“** geht es zu den Fragen. Über „Ändern“ oberhalb der Fragen kommst du zurück. In der Tabelle sind ersetzte Spalten farbig und tragen „ersetzt: Name“ bzw. „ganz ersetzt“.
+- Auch bevor du „So übernehmen“ klickst, gilt die Auswahl in der Übersicht (am Anfang die Vorschläge). Auf „Speichern“ steht dann der Punkt **„Die Spalten sind noch nicht geprüft.“** mit „Ansehen“ (kein stilles Speichern).
+- Eine andere Wahl gilt wie eine Einstellung: Antworten und Umschaltungen fallen weg, die Fragen sind wieder offen.
+- **Formeln und verbundene Zellen** in einer ersetzten Spalte ersetzt das Tool nicht. Es meldet sie auf „Speichern“ mit Zelle („In einer ersetzten Spalte steht eine Formel …“, „… gibt es verbundene Zellen“).
+- **Merkliste an:** Das Tool merkt sich deine Wahl je Überschrift (nur die Überschrift, nie Inhalte) und schlägt sie beim nächsten Dokument vor („gemerkte Wahl“).
+
+**Rückbau:** Zahl- und Datumszellen stehen in der Ausgabe als Text-Platzhalter in der Zelle; ihr Format bleibt. Der Rückbau schreibt Wert, Zelltyp (Zahl, Datum, Wahrheitswert) und Format exakt zurück. Im Modus „rückbaufähig“ bekommt Text mit gemischter Formatierung in einer ganz ersetzten Zelle je Textlauf einen Platzhalter und kommt exakt zurück. Schlüsseldateien mit [DATUM-…]/[ANGABE-…] oder Zelltyp haben die Format-Version 3; ältere Versionen des Tools lehnen sie klar ab („Unbekannte Version“). Alle übrigen Schlüsseldateien bleiben wie bisher (Version 1 oder 2), und alte Schlüsseldateien bauen weiter exakt zurück.
+
+**Gilt für Excel und CSV.** Tabellen in Word und PDF: wie bisher.
+
 ### Webadressen und Konten (seit Version 2.7)
 Zwei neue Arten wie E-Mail und Telefon. Schalter **„Webadressen und Konten“** bei den anderen Kontakt-Schaltern, Standard: an.
 - **Webadresse:** alles mit `http://`, `https://` oder `www.` am Anfang, und Adressen ohne `www` mit einer bekannten Endung, z. B. `kita-sonne.de/kontakt`. Der Pfad gehört dazu. Platzhalter: **[WEBADRESSE]**, im Modus „rückbaufähig“ **[WEBADRESSE-1]**, [WEBADRESSE-2] … (gleiche Adresse = gleiche Nummer).
@@ -229,6 +261,7 @@ Bevor gespeichert wird, zeigt das Tool **eine kurze Liste** mit Wörtern, die **
 - **Wörter im Original, die wie Platzhalter aussehen** („Nachname A“, „Person A“, „Einrichtung A“, „[NAME]“, „[E-MAIL-1]“ …, seit 2.3.4): Das Tool vergibt diese Platzhalter nicht. Es nimmt die nächste freie Nummer („Nachname A2“) bzw. im Modus „Person A“ den nächsten freien Buchstaben („Person B“). Die Wörter bleiben im Text stehen und werden mit Anzahl in der Schlüsseldatei vermerkt (Zusatzfeld „imOriginal“, Format-Version unverändert). Beim Rückbau bleiben sie unberührt und erscheinen als neutrale Zeile „stand schon im Original (n×)“ unter „Details“, bei abweichender Anzahl als offener Punkt.
 - Einrichtungen (seit 2.3): „Einrichtung A“ für den ganzen Namen, weitere Schreibweisen „Einrichtung A2“ … Sie stehen als eigene Art in der Schlüsseldatei. Schlüsseldateien aus früheren Versionen funktionieren unverändert.
 - Eine Schlüsseldatei **mit** Einrichtung hat die Format-Version 2. Ältere Versionen des Tools (2.2) lehnen sie klar ab („Unbekannte Version der Schlüsseldatei (2) …“). Schlüsseldateien **ohne** Einrichtung bleiben Version 1 und funktionieren auch mit 2.2.
+- Seit 2.10 (Tabellen: Spalten behandeln): [DATUM-1] und [ANGABE-1] werden nummeriert wie die Kontaktdaten, auch locker umgeschrieben erkannt („[Datum 1]“, „[Angabe-1]“) und gemeldet, nicht geraten. Für Zahl- und Datumszellen steht in der Schlüsseldatei zusätzlich der Zelltyp mit dem gespeicherten Wert („zelle“); der Rückbau schreibt beides zurück. Eine Schlüsseldatei mit diesen Arten oder mit Zelltyp hat die Format-Version 3 (ältere Versionen des Tools lehnen sie klar ab); alle anderen bleiben Version 1 oder 2.
 
 **Kennung (seit Version 2.1)**
 - Jede rückbaufähige Anonymisierung bekommt eine **Kennung** aus 4 Zeichen, z. B. **K7F3**. Die Dateien heißen dann `anonymisiert_K7F3.docx` und `schluessel_K7F3.json`. So siehst du sofort, was zusammengehört.
@@ -345,6 +378,17 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 ---
 
 ## Grenzen (bitte lesen)
+
+**Seit Version 2.10 (Tabellen: Spalten behandeln):**
+- **Nur Excel und CSV.** Tabellen in Word und PDF haben keine Übersicht „Spalten“; dort gilt alles wie bisher (auch die Namensspalten-Regel aus 2.6).
+- **Kopfzeile:** Es gilt dieselbe Erkennung wie seit 2.6 (erste ausreichend gefüllte Zeile mit einem üblichen Spaltenkopf). Wird keine Kopfzeile erkannt (Tabelle ohne Kopf, Kopf unter mehreren Titelzeilen ohne übliches Kopfwort), gibt es keine Übersicht.
+- **Schlüsselwort nicht in der Liste** (z. B. „Kind wohnt“, „Geschlecht“, „Gewünschter Zweig“, „akad. Titel“): Die Spalte bleibt „wie bisher“. Bitte in der Übersicht prüfen und bei Bedarf auf „ganz ersetzen“ stellen.
+- **Ganz ersetzte Spalten sind für die KI leer:** Sie kann darin nichts mehr prüfen oder zählen. Wörter darin stehen auch nicht in der Frage „Diese Wörter bleiben stehen“.
+- **Formeln und verbundene Zellen** in einer ersetzten Spalte werden nicht ersetzt, nur gemeldet. Ein Formelergebnis in einer solchen Spalte läuft wie bisher durch die Erkennung.
+- **Ziffern und Zeichen neben einem Namen** in einer Spalte „Name“ bleiben stehen („Lena (3b)“ → „Person A (3b)“). Eine Zelle nur aus Ziffern wird [ANGABE].
+- **Namen in einer Spalte „Name“** gelten als bestätigt: Sie werden auch an anderen Stellen ersetzt, und der Schlusscheck sucht nach ihnen. Steht in einer Namensspalte ein Sachwort, wird es wie ein Name behandelt.
+- **Gemischte Formatierung:** Nur im Modus „rückbaufähig“ und nur bei „ganz ersetzen“ bekommt jeder Textlauf einen eigenen Platzhalter. In einer Spalte „Name“ gilt wie bisher: Geht ein Name über zwei unterschiedlich formatierte Teile, bekommt er nach dem Rückbau die Formatierung des ersten Teils.
+- **Excel: Zellen ersetzter Spalten** stehen in der Ausgabe als Text in der Zelle (nicht mehr in der gemeinsamen Textliste von Excel). Nach dem Rückbau ist das so geblieben: Wert, Zelltyp „Text“ und Format sind gleich, nur der Speicherort in der Datei ist ein anderer. (In Excel selbst nicht geprüft.)
 
 **Seit Version 2.8 (Einrichtungen selbst finden):**
 - **Kürzel und Namensteile allein** („GYMTH“, „Tannhofen“ allein, „lernundspiel“) findet das Tool noch nicht. Bitte von Hand markieren. Seit 2.9 stehen solche Wörter in der Frage „Diese Wörter bleiben stehen“ (wenn sie nicht in der Wortliste stehen), ein Klick auf „Einrichtung“ ersetzt sie.
@@ -488,12 +532,12 @@ Die Datei muss in einem Browser geöffnet werden (z. B. über „Teilen → in S
 
 ## Version und Prüfsumme
 
-Version **2.9.0**, Stand 2026-11-22 (steht auch im Fußbereich des Tools).
+Version **2.10.0**, Stand 2026-11-25 (steht auch im Fußbereich des Tools).
 
 SHA-256 der `index.html` dieser Version:
 
 ```
-c8117f37c68689cf68f3589e3ffca5a7157d34205b5216e0d6998f5e81a75ec5
+f6e9546bf17ad947f5e43c0e19d911cfdb9148437b173ffdc864a0571188b24c
 ```
 
 Seit 2.9.0 ist die Datei rund 8 MB groß (vorher 3,7 MB): Sie enthält die gepackte Wortliste für „Diese Wörter bleiben stehen“.

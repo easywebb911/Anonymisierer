@@ -130,7 +130,9 @@ for (const [lbl, html] of [['vorher', oldHtml], ['nachher', newHtml]]) {
   const a = await anonUI(browser, html, path.join(FX, 'pfade-phase0.xlsx'), 'person');
   const comment = a.units.filter((u) => /^Kommentar/.test(u.label));
   const parts = await namesPerPart(a.ap, P0);
-  const tann = a.hits.find((h) => h.t === 'TANNHÄUSERS');
+  // Version 2.10.0: „TANNHÄUSERS Neffe“ steht in der Spalte „Vorname“ (Behandlung „Name“): die ganze Zelle ist EIN Treffer,
+  // der „TANNHÄUSERS“ enthält (vorher Treffer genau auf dem Wort). Erwartung unverändert: sicher, an.
+  const tann = a.hits.find((h) => h.t === 'TANNHÄUSERS') || a.hits.find((h) => h.t.split(/\s+/).includes('TANNHÄUSERS'));
   log(`- ${lbl}: Kommentar in der Prüfansicht: ${comment.map((u) => `„${u.text}“`).join(', ') || 'fehlt'}; „TANNHÄUSERS“: ${tann ? `${tann.cert}, ${tann.on ? 'an' : 'aus'}` : 'kein Treffer'}; Schlusscheck: ${a.blocked.length ? a.blocked.join(' | ') : 'ohne Fund'}; Namen in der Ausgabe: ${fmtParts(parts)}`);
   if (lbl === 'nachher') {
     check('Phase 0: Kommentar unter xl/comments/comment1.xml erscheint in der Prüfansicht', comment.length === 1 && /Jonas Wiesenthal/.test(comment[0].text));
@@ -399,7 +401,7 @@ let ff = null;
 try { ff = await pw.firefox.launch(); } catch (e) { ff = null; log(`- Firefox: nicht startbar (${String(e.message).split('\n')[0].slice(0, 140)}). Firefox-Läufe ungeprüft.`); }
 if (ff) {
   const a = await anonUI(ff, newHtml, path.join(FX, 'pfade-phase0.xlsx'), 'person');
-  const tann = a.hits.find((h) => h.t === 'TANNHÄUSERS');
+  const tann = a.hits.find((h) => h.t === 'TANNHÄUSERS') || a.hits.find((h) => h.t.split(/\s+/).includes('TANNHÄUSERS'));
   log(`- Firefox, Phase-0-Datei: „TANNHÄUSERS“ ${tann ? `${tann.cert}, ${tann.on ? 'an' : 'aus'}` : 'kein Treffer'}; Namen in der Ausgabe: ${fmtParts(await namesPerPart(a.ap, P0))}`);
   await ff.close();
 }

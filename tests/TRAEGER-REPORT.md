@@ -127,10 +127,12 @@ einrichtung-person.txt: Einrichtungen Gymnasium Tannhofen; Firma Holzbau Lehmann
 einrichtung-person.csv: Einrichtungen Kita Sonnenblume; Gymnasium Tannhofen
 - OK: einrichtung-person.csv: keine Einrichtung enthält eine Anrede oder einen Titel – Kita Sonnenblume; Gymnasium Tannhofen
 - OK: einrichtung-person.csv: ohne Antwort ist jede Person ersetzt
+  - Spalte „ganz ersetzen“ (Einrichtung, ohne Frage): Kita Sonnenblume; Gymnasium Tannhofen
 - OK: einrichtung-person.csv: nach „Nein“ auf alle Einrichtungs-Fragen ist jede Person ersetzt, die 2.7.0 ersetzt –  (2.7.0 lässt stehen: –)
 einrichtung-person.xlsx: Einrichtungen Kita Sonnenblume; Gymnasium Tannhofen
 - OK: einrichtung-person.xlsx: keine Einrichtung enthält eine Anrede oder einen Titel – Kita Sonnenblume; Gymnasium Tannhofen
 - OK: einrichtung-person.xlsx: ohne Antwort ist jede Person ersetzt
+  - Spalte „ganz ersetzen“ (Einrichtung, ohne Frage): Kita Sonnenblume; Gymnasium Tannhofen
 - OK: einrichtung-person.xlsx: nach „Nein“ auf alle Einrichtungs-Fragen ist jede Person ersetzt, die 2.7.0 ersetzt –  (2.7.0 lässt stehen: –)
 
 ## 4. Rückbau (Modus rückbaufähig)

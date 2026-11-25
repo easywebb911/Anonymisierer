@@ -9,7 +9,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import JSZip from 'jszip';
 import { makeAll as makeAnzeige, FXA } from './make-anzeige.mjs';
-import { startAnon, loadIn, goTo, rbConfirm } from './ui-helpers.mjs';
+import { startAnon, loadIn, goTo, rbConfirm, columnsAsBefore, COLUMNS_AS_BEFORE_JS } from './ui-helpers.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..');
@@ -58,6 +58,9 @@ async function openUI(file, mode = 'person', opts) {
   await startAnon(pg.page, mode);
   await loadIn(pg.page, file);
   await goTo(pg.page, 'a2');
+  // Version 2.10.0: Dieser Lauf prüft die Anzeige der Fragen (Verhalten bis 2.9.0); Tabellen mit Kopfzeile: alle Spalten
+  // „wie bisher“ und „So übernehmen“ (die Behandlung je Spalte prüft tests/spaltenwahl-test.mjs)
+  await columnsAsBefore(pg.page);
   await pg.page.waitForTimeout(80);
   return pg;
 }
@@ -282,6 +285,7 @@ async function run(file, mode, steps, { preset = null, settings = null } = {}) {
     if (set) Object.assign(A.app.state.settings, set);
   }, [mode, preset, settings]);
   await page.evaluate(async ([arr, nm]) => { await window.__anon.openBytes(new Uint8Array(arr), nm); window.__anon.show('a2'); }, [[...fs.readFileSync(file)], path.basename(file)]);
+  await page.evaluate(`(${COLUMNS_AS_BEFORE_JS})()`); // Version 2.10.0: alle Spalten „wie bisher“ (siehe openUI)
   for (const st of steps) {
     if (st.a === 'ans') {
       await page.evaluate(([kind, w, yes]) => {
@@ -492,6 +496,7 @@ for (const [file, kind, steps] of RB) {
   // anonymisieren mit geänderten Antworten, Schlüssel und Datei speichern
   const { page, ctx } = await newPage();
   await page.evaluate(async ([arr, nm]) => { const X = window.__anon; X.app.state.settings.mode = 'reversible'; await X.openBytes(new Uint8Array(arr), nm); X.show('a2'); }, [[...fs.readFileSync(file)], path.basename(file)]);
+  await page.evaluate(`(${COLUMNS_AS_BEFORE_JS})()`); // Version 2.10.0: alle Spalten „wie bisher“ (siehe openUI)
   for (const st of steps) {
     await page.evaluate(([k, w, yes]) => { const X = window.__anon; const ft = X.app.result.fullText; const q = X.questions().find((x) => x.kind === k && (x.word === w || x.name === w || (x.hit && ft.slice(x.hit.s, x.hit.e) === w))); if (!q) throw new Error('Frage fehlt ' + w); X.answer(q, yes); }, [st.kind, st.w, st.yes]);
   }

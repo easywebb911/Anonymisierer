@@ -1,6 +1,6 @@
 # Testbericht Anonymisierer
 
-Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.html (SHA-256 c8117f37c68689cf…). Alle Testpersonen sind erfunden.
+Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.html (SHA-256 f6e9546bf17ad947…). Alle Testpersonen sind erfunden.
 
 ## protokoll.txt
 - Laden: Gelesen: protokoll.txt (TXT, 22 Textabschnitte).
@@ -24,10 +24,9 @@ Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.h
 - **Erkannt (automatisch): 16 von 16 Personen vollständig**; Namens-Vorkommen: 35 von 35
 - Nicht (vollständig) erkannt: keine
 - Fehltreffer (aktiv, kein Name bzw. Falle): 0
-- Fallen im Text: 3, davon als unsicher markiert aber AUS (richtig stehen gelassen): 3
-- Personen in der Prüfansicht: 17; Treffer gesamt: 32 (sicher 29, unsicher 3)
-- Schlusscheck vor Nacharbeit hat den Export BLOCKIERT („Schlusscheck-Funde mit dem Häkchen bestätigt“). Fundstellen: „Mai“ steht noch in: Zeile 4, Spalte 5 bestätigter Name · „…Elternzeit ab Mai…“ Ersetzen. Nach Bestätigung exportiert.
-- Export (.csv) vor Nacharbeit: Status „Gespeichert: anonymisiert_tabelle.csv – mit bestätigten Restfunden.“
+- Fallen im Text: 3, davon als unsicher markiert aber AUS (richtig stehen gelassen): 0
+- Personen in der Prüfansicht: 10; Treffer gesamt: 32 (sicher 32, unsicher 0)
+- Export (.csv) vor Nacharbeit: Status „Gespeichert: anonymisiert_tabelle.csv – Schlusscheck ohne Fund.“
   - Unabhängige Nachprüfung der Ausgabedatei: 0 Klarnamen-Vorkommen übrig
   - Zusätzlich .txt-Export: Klarnamen übrig: 0
 - JavaScript-Fehler auf der Seite: keine
@@ -55,11 +54,10 @@ Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.h
 - Laden: Gelesen: mitarbeiter.xlsx (XLSX, 52 Textabschnitte).
 - **Erkannt (automatisch): 17 von 17 Personen vollständig**; Namens-Vorkommen: 47 von 47
 - Nicht (vollständig) erkannt: keine
-- Fehltreffer (aktiv, kein Name bzw. Falle): 0
-- Fallen im Text: 5, davon als unsicher markiert aber AUS (richtig stehen gelassen): 5
-- Personen in der Prüfansicht: 19; Treffer gesamt: 39 (sicher 34, unsicher 5)
-- Schlusscheck vor Nacharbeit hat den Export BLOCKIERT („Schlusscheck-Funde mit dem Häkchen bestätigt“). Fundstellen: „Mai“ steht noch in: Blatt Yılmaz (ausgeblendet), Zelle A2 bestätigter Name · „…Gespräch mit Person O am 3. Mai…“ Ersetzen. Nach Bestätigung exportiert.
-- Export (.xlsx) vor Nacharbeit: Status „Gespeichert: anonymisiert_tabelle.xlsx – mit bestätigten Restfunden.“
+- Fehltreffer (aktiv, kein Name bzw. Falle): 1 – Leitung
+- Fallen im Text: 5, davon als unsicher markiert aber AUS (richtig stehen gelassen): 2
+- Personen in der Prüfansicht: 15; Treffer gesamt: 40 (sicher 38, unsicher 2)
+- Export (.xlsx) vor Nacharbeit: Status „Gespeichert: anonymisiert_tabelle.xlsx – Schlusscheck ohne Fund.“
   - Unabhängige Nachprüfung der Ausgabedatei: 0 Klarnamen-Vorkommen übrig
   - LibreOffice öffnet die Ausgabe: ja; Klarnamen im LibreOffice-Text: 0
   - Zusätzlich .txt-Export: Klarnamen übrig: 0
@@ -105,17 +103,17 @@ Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.h
 | Teil | vorher | nachher |
 |---|---|---|
 | docProps/core.xml | <dc:creator>Gisela Prüferin</dc:creator> <cp:lastModifiedBy>Bernd Bearbeiter</cp:lastModifiedBy> | (leer) |
-| docProps/app.xml | <Company>Beispiel GmbH</Company> <vt:lpstr>Mitarbeiter</vt:lpstr> <vt:lpstr>Yılmaz</vt:lpstr> <vt:lpstr>Notizen</vt:lpstr> | <vt:lpstr>Mitarbeiter</vt:lpstr> <vt:lpstr>Person C</vt:lpstr> <vt:lpstr>Notizen</vt:lpstr> |
-| xl/comments1.xml | <author>Gisela Prüferin</author> <t xml:space="preserve">Gisela Prüferin: Prüfen mit Ngozi Eze</t> | <author>Autor</author> <t xml:space="preserve">Person R: Prüfen mit Person S</t> |
-| xl/workbook.xml | <sheet name="Mitarbeiter" <sheet name="Yılmaz" <sheet name="Notizen" <definedName name="NotizBlatt">'Yılmaz'!$A$1</definedName> | <sheet name="Mitarbeiter" <sheet name="Person C" <sheet name="Notizen" <definedName name="NotizBlatt">'Person C'!$A$1</definedName> |
-| xl/worksheets/sheet1.xml | <f>"Ansprechpartner: "&amp;"Herr Kowalczyk"</f> <f>'Yılmaz'!A1</f> <f>LEN(B4)</f> <oddHeader>&amp;LListe von Anna Müller&amp;RSeite &amp;P</oddHeader> <oddFooter>&amp;CErstellt: Fatima Haddad</oddFooter> | <f>"Ansprechpartner: "&amp;"Herr Person B"</f> <f>'Person C'!A1</f> <f>LEN(B4)</f> <oddHeader>&amp;LListe von Person A&amp;RSeite &amp;P</oddHeader> <oddFooter>&amp;CErstellt: Person J</oddFooter> |
+| docProps/app.xml | <Company>Beispiel GmbH</Company> <vt:lpstr>Mitarbeiter</vt:lpstr> <vt:lpstr>Yılmaz</vt:lpstr> <vt:lpstr>Notizen</vt:lpstr> | <vt:lpstr>Mitarbeiter</vt:lpstr> <vt:lpstr>Person D</vt:lpstr> <vt:lpstr>Notizen</vt:lpstr> |
+| xl/comments1.xml | <author>Gisela Prüferin</author> <t xml:space="preserve">Gisela Prüferin: Prüfen mit Ngozi Eze</t> | <author>Autor</author> <t xml:space="preserve">Person N: Prüfen mit Person O</t> |
+| xl/workbook.xml | <sheet name="Mitarbeiter" <sheet name="Yılmaz" <sheet name="Notizen" <definedName name="NotizBlatt">'Yılmaz'!$A$1</definedName> | <sheet name="Mitarbeiter" <sheet name="Person D" <sheet name="Notizen" <definedName name="NotizBlatt">'Person D'!$A$1</definedName> |
+| xl/worksheets/sheet1.xml | <f>"Ansprechpartner: "&amp;"Herr Kowalczyk"</f> <f>'Yılmaz'!A1</f> <f>LEN(B4)</f> <oddHeader>&amp;LListe von Anna Müller&amp;RSeite &amp;P</oddHeader> <oddFooter>&amp;CErstellt: Fatima Haddad</oddFooter> | <f>"Ansprechpartner: "&amp;"Herr Person C"</f> <f>'Person D'!A1</f> <f>LEN(B4)</f> <oddHeader>&amp;LListe von Person A&amp;RSeite &amp;P</oddHeader> <oddFooter>&amp;CErstellt: Person H</oddFooter> |
 - Vorschaubild/Thumbnail vorhanden nachher: nein
 
 ## Determinismus (Doppellauf)
 - protokoll.txt: Lauf 1 a29844c8bb3ee675 / Lauf 2 a29844c8bb3ee675; Pseudonym-Zuordnung 0e36160d38ce70ac / 0e36160d38ce70ac → identisch
-- mitarbeiter.csv: Lauf 1 44b3e4b748d34dbd / Lauf 2 44b3e4b748d34dbd; Pseudonym-Zuordnung 326b38db990fe99c / 326b38db990fe99c → identisch
+- mitarbeiter.csv: Lauf 1 0a5a1fe524e43b77 / Lauf 2 0a5a1fe524e43b77; Pseudonym-Zuordnung 607baaa1ff5d80b4 / 607baaa1ff5d80b4 → identisch
 - protokoll.docx: Lauf 1 93b6f8c7c9a57aa1 / Lauf 2 93b6f8c7c9a57aa1; Pseudonym-Zuordnung e86fa7d93e8f4d7a / e86fa7d93e8f4d7a → identisch
-- mitarbeiter.xlsx: Lauf 1 ac4f3a36a00c8be6 / Lauf 2 ac4f3a36a00c8be6; Pseudonym-Zuordnung 13a16e26ee4e1c67 / 13a16e26ee4e1c67 → identisch
+- mitarbeiter.xlsx: Lauf 1 62b187782cb34030 / Lauf 2 62b187782cb34030; Pseudonym-Zuordnung a70bd08410fd9507 / a70bd08410fd9507 → identisch
 - protokoll.pdf: Lauf 1 3a3977dfea99ec6d / Lauf 2 3a3977dfea99ec6d; Pseudonym-Zuordnung 074aa110b73adf3a / 074aa110b73adf3a → identisch
 
 ## Nicht unterstützte Dateien (müssen klar abgelehnt werden)
@@ -137,10 +135,10 @@ Erzeugt mit tests/run-tests.mjs in Chromium (Playwright, headless) gegen index.h
 - Nach „Merkliste löschen“: localStorage 0 Einträge
 
 ## Größe/Geschwindigkeit (Desktop-Chromium, headless)
-- TXT 1 MB: Laden+Analyse 2.5 s, Export+Schlusscheck 4.1 s, JS-Speicher ca. 93 MB – Gelesen: gross.txt (TXT, 13289 Textabschnitte).
-- TXT 5 MB: Laden+Analyse 9.4 s, Export+Schlusscheck 18.7 s, JS-Speicher ca. 215 MB – Gelesen: gross.txt (TXT, 66419 Textabschnitte).
-- TXT 10 MB: Laden+Analyse 16.6 s, Export+Schlusscheck 54.9 s, JS-Speicher ca. 497 MB – Gelesen: gross.txt (TXT, 132815 Textabschnitte).
-- XLSX mit 20 000 Zeilen × 4 Spalten (0.5 MB gepackt): Laden+Analyse 5.1 s, Export+Schlusscheck 6.2 s, JS-Speicher ca. 290 MB – Gelesen: gross.xlsx (XLSX, 60052 Textabschnitte).
+- TXT 1 MB: Laden+Analyse 3.0 s, Export+Schlusscheck 3.5 s, JS-Speicher ca. 93 MB – Gelesen: gross.txt (TXT, 13289 Textabschnitte).
+- TXT 5 MB: Laden+Analyse 9.0 s, Export+Schlusscheck 27.9 s, JS-Speicher ca. 242 MB – Gelesen: gross.txt (TXT, 66419 Textabschnitte).
+- TXT 10 MB: Laden+Analyse 20.2 s, Export+Schlusscheck 66.8 s, JS-Speicher ca. 527 MB – Gelesen: gross.txt (TXT, 132815 Textabschnitte).
+- XLSX mit 20 000 Zeilen × 4 Spalten (0.5 MB gepackt): Laden+Analyse 10.9 s, Export+Schlusscheck 8.4 s, JS-Speicher ca. 125 MB – Gelesen: gross.xlsx (XLSX, 60052 Textabschnitte).
 
 ## Netzwerkzugriffe während aller Tests
 - Anfragen gesamt: 23; davon nicht lokal (http/https/ws …): 0
