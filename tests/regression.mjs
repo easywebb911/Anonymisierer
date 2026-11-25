@@ -170,7 +170,18 @@ for (const [file, formats] of FIXTURES) {
       if (!ok && b.cols && b.cols.length) {
         if (!b.v210ref) b.v210ref = await outputs(newHtml, file, mode, formats, null, true);
         const c = b.v210ref[f];
-        const v210 = c.sha === a[f].sha || (mode === 'reversible' && sameParts(c.parts, a[f].parts));
+        let v210 = c.sha === a[f].sha || (mode === 'reversible' && sameParts(c.parts, a[f].parts));
+        // nie schwächer (Guardian-Lauf 1, Fund 4): in der neuen Text-Ausgabe kein Wort, das main nicht auch stehen lässt
+        // (außer Wörtern der Platzhalter)
+        let weaker = [];
+        if (v210 && b[f].text !== null && a[f].text !== null) {
+          const ws = (t) => new Set(t.split(/[^\p{L}\p{N}]+/u).filter(Boolean));
+          const PH = /^(Person|Vorname|Nachname|Name|Initiale|Einrichtung|DATUM|ANGABE|ADRESSE|TELEFON|E|MAIL|IBAN|WEBADRESSE|KONTO|NAME|EINRICHTUNG|[A-Z]{1,3}\d*|\d+)$/;
+          const old = ws(a[f].text);
+          weaker = [...ws(b[f].text)].filter((w) => !old.has(w) && !PH.test(w));
+          if (weaker.length) v210 = false;
+        }
+        if (weaker.length) reasons.push(`- ${file}, Modus ${mode}, Ausgabe .${f}: SCHWÄCHER als main, neu im Klartext: ${weaker.slice(0, 10).join(', ')}`);
         if (v210) {
           v210Changed++;
           const label = `${file}, Modus ${({ person: '„Person A“', name: '„[NAME]“', reversible: '„rückbaufähig“' })[mode]}, Ausgabe .${f}`;

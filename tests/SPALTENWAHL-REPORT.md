@@ -138,6 +138,7 @@ Schlüsseldatei (Excel): Format-Version 3, 502 Platzhalter (Name 186, Datum 30, 
 - OK: Excel: Schlüsseldatei aus 2.9.0 (Format-Version 2) baut mit 2.10.0 exakt zurück – passend
 - OK: Kollisions-Schutz: „[DATUM-1]“ und „[ANGABE-2]“ aus dem Original nicht vergeben, im Schlüssel als „imOriginal“ – [DATUM-2], [ANGABE-1], [DATUM-3], [ANGABE-3], Nachname A
 - OK: Kollisions-Schutz: Rückbau exakt (die Wörter aus dem Original bleiben) – passend
+- OK: „Berger, Tilda“ (Spalte „Name“) und „Tilda Berger“ (Spalte „wie bisher“) sind eine Person – Person B;Person B;5c | Person C;Person C;5a
 - OK: Schlüsseldatei aus 2.10.0 (Version 3) wird von 2.9.0 klar abgelehnt – Unbekannte Version der Schlüsseldatei (3). Bitte eine neuere Version des Tools verwenden.
 
 ## 5. Weg-Gleichheit
@@ -153,7 +154,8 @@ Schlüsseldatei (Excel): Format-Version 3, 502 Platzhalter (Name 186, Datum 30, 
 - OK: Bestätigt: kein Punkt „Spalten“ mehr
 - OK: Tabellen-Ansicht zeigt ersetzte Spalten sichtbar als ersetzt (Kopf und Zellen) – 33 Köpfe, 861 Zellen, „ersetzt: Name“
 - OK: Kein Text „null“ oder „undefined“ (Prüfen, Übersicht)
-- OK: Formel in einer ersetzten Spalte: eigener Punkt mit Zelle – In einer ersetzten Spalte steht eine Formel. Das Tool ersetzt sie nicht. Bitte prüfe diese Zellen in Excel und lösche die Formel, wenn darin ein Name oder eine Angabe steht. Blatt „Schüler“, Zelle S4
+- OK: Formel in einer ersetzten Spalte: eigener Punkt mit Zelle – In einer ersetzten Spalte stehen 2 Formeln. Das Tool ersetzt sie nicht. Bitte prüfe diese Zellen in Excel und lösche die Formel, wenn darin ein Name oder eine Angabe steht. Blatt „Schüler“, Zelle A4 Blatt „Schüler“, Zelle S4
+- OK: Formelergebnis mit Namen in einer Spalte „Name“ wird wie in 2.9.0 ersetzt (Namensspalten-Regel), aber gemeldet – [Schüler!A4 (Formelergebnis)] Person I
 - OK: Verbundene Zellen in einer ersetzten Spalte: eigener Punkt mit Bereich – In einer ersetzten Spalte gibt es verbundene Zellen. Bitte prüfe, ob alles ersetzt ist. Blatt „Schüler“, Zelle R5:S5
 - OK: Kein Text „null“ oder „undefined“ (Speichern)
 
@@ -167,6 +169,8 @@ Schlüsseldatei (Excel): Format-Version 3, 502 Platzhalter (Name 186, Datum 30, 
 - OK: Merkliste aus: nichts gemerkt (neues Fenster wie vorher)
 
 ## 7. Vorhandene Tabellen-Testdateien: Vorschläge je Spalte (nur Spalten mit Behandlung „Name“ oder „ganz ersetzen“)
+- fixtures-spaltenwahl/stammdaten-formel.xlsx: 40 Spalten mit Kopfzeile, ersetzt: Schüler: „Nachname“ Name; Schüler: „Rufname“ Name; Schüler: „Vornamen laut Geburtsurkunde“ Name; Schüler: „Geburtsdatum“ ganz ersetzen (date); Schüler: „Geburtsort“ ganz ersetzen (info); Schüler: „Muttersprache“ ganz ersetzen (info); Schüler: „Staatsangehörigkeit“ ganz ersetzen (info); Schüler: „Religion“ ganz ersetzen (info); Schüler: „Gesundheitliche Beeinträchtigung“ ganz ersetzen (info); Schüler: „Erläuterung“ ganz ersetzen (info); Schüler: „1. Erziehungsberechtigte/r Nachname“ Name; Schüler: „1. Erziehungsberechtigte/r Vorname“ Name; Schüler: „1. Strasse“ ganz ersetzen (address); Schüler: „1. Hausnummer“ ganz ersetzen (address); Schüler: „1. PLZ“ ganz ersetzen (address); Schüler: „1. Ort“ ganz ersetzen (address); Schüler: „1. GKZ“ ganz ersetzen (info); Schüler: „1. Telefon“ ganz ersetzen (phone); Schüler: „1. E-Mail“ ganz ersetzen (email); Schüler: „1. Handy“ ganz ersetzen (phone); Schüler: „1. Telefon für Notfälle“ ganz ersetzen (phone); Schüler: „1. Bemerkung Notfallnummer“ ganz ersetzen (info); Schüler: „2. Erziehungsberechtigte/r Nachname“ Name; Schüler: „2. Erziehungsberechtigte/r Vorname“ Name; Schüler: „2. Strasse“ ganz ersetzen (address); Schüler: „2. Hausnummer“ ganz ersetzen (address); Schüler: „2. PLZ“ ganz ersetzen (address); Schüler: „2. Ort“ ganz ersetzen (address); Schüler: „Sorgerecht“ ganz ersetzen (info); Schüler: „Übertritt von“ ganz ersetzen (org); Schüler: „Schulnummer“ ganz ersetzen (info); Schüler: „Wunschpartner in der Klasse“ Name; Schüler: „Notizen der Schule“ ganz ersetzen (info)
+- OK: fixtures-spaltenwahl/stammdaten-formel.xlsx: mit den Vorschlägen nie schwächer als „wie bisher“ (kein Wort, das „wie bisher“ ersetzt, bleibt stehen)
 - fixtures-spalten/liste.xlsx: 9 Spalten mit Kopfzeile, ersetzt: Teilnehmer: „Nachname“ Name; Teilnehmer: „Vorname“ Name; Teilnehmer: „E-Mail“ ganz ersetzen (email); Teilnehmer: „Telefon“ ganz ersetzen (phone); Teilnehmer: „Bemerkung“ ganz ersetzen (info)
 - OK: fixtures-spalten/liste.xlsx: mit den Vorschlägen nie schwächer als „wie bisher“ (kein Wort, das „wie bisher“ ersetzt, bleibt stehen)
 - fixtures-spalten/tabellen.xlsx: 23 Spalten mit Kopfzeile, ersetzt: stark: „Nachname“ Name; stark: „Vorname“ Name; stark: „Bemerkung“ ganz ersetzen (info); anrede: „Ort“ ganz ersetzen (address); zweikopf: „Teilnehmer / Nachname“ Name; zweikopf: „Teilnehmer / Vorname“ Name; zweikopf: „Kontakt / Telefon“ ganz ersetzen (phone); zweikopf: „Kontakt / E-Mail“ ganz ersetzen (email); einezelle: „Name“ Name; teilwort: „Name der Schule“ ganz ersetzen (org)
@@ -240,4 +244,4 @@ Schlüsseldatei (Excel): Format-Version 3, 502 Platzhalter (Name 186, Datum 30, 
 
 - OK: 0 Anfragen nach außen (alle Seiten dieses Laufs)
 
-Ergebnis: 85 von 85 Prüfungen bestanden
+Ergebnis: 88 von 88 Prüfungen bestanden

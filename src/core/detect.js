@@ -360,11 +360,12 @@ export function analyze(units, state, extra = {}) {
   // Version 2.10.0: Behandlung je Spalte (Excel, CSV). „Name“ zuerst (vor der Namensspalten-Regel), „ganz ersetzen“ am
   // Ende der Erkennung (columnWholeHits). Ohne Tabelle mit Kopfzeile oder mit „wie bisher“ überall: wie 2.9.0.
   const colPlan = columnPlan(units, st.colTreat || {}, st.colMemory || {});
-  const ganzUnits = columnTreatRule(units, unitToks, unitStarts, covered, tokHit, hits, mentions, exceptions, colPlan);
+  const nameUnits = new Set();
+  const ganzUnits = columnTreatRule(units, unitToks, unitStarts, covered, tokHit, hits, mentions, exceptions, colPlan, nameUnits);
   // Version 2.6.0: Namensspalten in Tabellen (Excel, CSV, Word) – vor allen übrigen Regeln (Vorrang vor „mehrdeutig“,
   // Regel b2 und Regel a2)
   const columns = nameColumnRule(units, unitToks, covered, tokHit, hits, mentions, exceptions, fullText, st.nameColumns || {},
-    new Set(colPlan.filter((c) => c.treat === 'name').map((c) => c.id)));
+    nameUnits);
 
   // 1c) Version 2.8.0: Einrichtungen selbst finden (orgauto.js). Nach Kontaktdaten, von Hand markierten Einrichtungen und
   // Namensspalten (die haben Vorrang), vor der Personen-Erkennung (ein Personenname in einer Einrichtung gehört zu ihr).
@@ -1389,7 +1390,9 @@ export function findTables(units) {
   }
   return out;
 }
-function nameColumnRule(units, unitToks, covered, tokHit, hits, mentions, exceptions, fullText, manual, skipCols = new Set()) {
+// skipUnits (Version 2.10.0): Abschnitte, die die Behandlung „Name“ schon ersetzt (Formelergebnisse gehören nicht dazu:
+// für sie gilt die Regel wie bisher)
+function nameColumnRule(units, unitToks, covered, tokHit, hits, mentions, exceptions, fullText, manual, skipUnits = new Set()) {
   const columns = [];
   const plan = new Map(); // ui -> {kind, roles:Set, rows:[{t,r}]}
   for (const { t, tb, rnums, head, headUnits, lastHead, allCols } of findTables(units)) {
@@ -1399,13 +1402,13 @@ function nameColumnRule(units, unitToks, covered, tokHit, hits, mentions, except
       const man = manual[id];
       const kind = man === true ? 'hand' : man === false ? null : hd.kind;
       columns.push({ id, t, c, header: hd.text, auto: hd.kind, role: hd.role, manual: man === true ? true : man === false ? false : undefined, kind, headerRow: lastHead });
-      if (!kind || skipCols.has(id)) continue;
+      if (!kind) continue;
       for (const r of rnums) {
         if (r <= lastHead) continue;
         const cell = tb.get(r).get(c);
         if (!cell) continue;
         for (const ui of cell.units) {
-          if (headUnits.has(ui)) continue;
+          if (headUnits.has(ui) || skipUnits.has(ui)) continue;
           const p = plan.get(ui) || { kind: null, roles: new Set(), rows: [], col: id };
           if (kind === 'hand' || kind === 'stark' || !p.kind) { if (!p.kind || p.kind === 'schwach') { p.kind = kind; p.col = id; } }
           p.roles.add(hd.role || '');
@@ -1612,7 +1615,7 @@ function nameCellSegments(toks, covered) {
 }
 // Treffer für die Spalten mit Behandlung „Name“ (vor allen übrigen Regeln, wie die Namensspalten). Liefert die Abschnitte
 // mit Behandlung „ganz ersetzen“ (deren Treffer entstehen am Ende, siehe columnWholeHits).
-function columnTreatRule(units, unitToks, unitStarts, covered, tokHit, hits, mentions, exceptions, plan) {
+function columnTreatRule(units, unitToks, unitStarts, covered, tokHit, hits, mentions, exceptions, plan, nameUnits = new Set()) {
   const byUnit = new Map(); // ui -> {treat, kind, col, cells}
   const tabs = new Map(findTables(units).map((x) => [x.t, x]));
   for (const col of plan) {
@@ -1636,6 +1639,7 @@ function columnTreatRule(units, unitToks, unitStarts, covered, tokHit, hits, men
   const named = [];
   for (const [ui, p] of byUnit) {
     if (p.treat === 'ganz') { ganz.set(ui, p); continue; }
+    nameUnits.add(ui);
     const toks = unitToks[ui];
     const segs = nameCellSegments(toks, covered[ui]);
     const made = [];
@@ -1656,15 +1660,27 @@ function columnTreatRule(units, unitToks, unitStarts, covered, tokHit, hits, men
         return { type: 'W', s: tk.s, e: tk.e, stemEnd: tk.e, suffix: '', key: fold(tk.t), F: inf.F, L: inf.L, A: inf.A, known: inf.known, shaped: inf.shaped, allcaps: tk.allcaps, tokIdx: k };
       });
       if (!comps.some((x) => x.type === 'W')) comps[comps.length - 1].type = 'W';
+      // „Nachname, Vorname“ (genau ein Komma zwischen zwei Wortgruppen) wie bei der Namensspalten-Regel: Nachname vorn
+      const commas = seg.filter((k) => toks[k].t === ',' && toks[k].s > comps[0].s && toks[k].e < comps[comps.length - 1].e);
+      if (commas.length === 1) {
+        const c = toks[commas[0]];
+        const sur = comps.filter((x) => x.e <= c.s);
+        const giv = comps.filter((x) => x.s >= c.e);
+        if (sur.some((x) => x.type === 'W') && giv.some((x) => x.type === 'W')) {
+          made.push({ s, e, comps: [...sur, { type: 'SEP', s: c.s, e: c.e }, ...giv], seg,
+            mk: { full: true, given: giv.filter((x) => x.type === 'W').map((x) => x.key).join(' '), sur: sur.map((x) => x.key).join(' ') } });
+          continue;
+        }
+      }
       made.push({ s, e, comps, seg });
     }
-    const role = made.length === 1 && p.cells.length === 1 ? p.col.role : null;
+    const role = made.length === 1 && p.cells.length === 1 && !made[0].mk ? p.col.role : null;
     for (const m of made) {
       if (m.info) {
         hits.push({ s: m.s, e: m.e, type: 'info', cert: 'sicher', origin: 'auto', unit: ui, colHit: true, column: p.col.id });
       } else {
         const W = m.comps.filter((x) => x.type === 'W');
-        const mk = role ? { full: false, single: m.comps.map((x) => x.key).join(' ') } : W.length === 1 && m.comps.length === 1 ? { full: false, single: W[0].key } : mentionKey(m.comps, null);
+        const mk = m.mk ? m.mk : role ? { full: false, single: m.comps.map((x) => x.key).join(' ') } : W.length === 1 && m.comps.length === 1 ? { full: false, single: W[0].key } : mentionKey(m.comps, null);
         const h = { s: m.comps[0].s, e: m.comps[m.comps.length - 1].e, type: 'person', cert: 'sicher', origin: 'auto', unit: ui, suffix: '', comps: m.comps, mk,
           titled: false, defaultOff: false, column: p.col.id, columnKind: 'spalte', colName: true };
         if (role) h.role = role;

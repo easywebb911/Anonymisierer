@@ -436,6 +436,12 @@ for (const [f, label] of [['stammdaten.csv', 'CSV'], ['stammdaten.xlsx', 'Excel'
   check('Kollisions-Schutz: „[DATUM-1]“ und „[ANGABE-2]“ aus dem Original nicht vergeben, im Schlüssel als „imOriginal“', !phs.includes('[DATUM-1]') && !phs.includes('[ANGABE-2]') && phs.includes('[DATUM-2]') && (k.imOriginal || []).some((x) => x.text === '[DATUM-1]'), phs.join(', '));
   check('Kollisions-Schutz: Rückbau exakt (die Wörter aus dem Original bleiben)', !!r.bytes && noBom(r.bytes).equals(fs.readFileSync(f)), r.plan && r.plan.verdict);
 }
+// „Nachname, Vorname“ in einer Spalte „Name“ = dieselbe Person wie „Vorname Nachname“ daneben (Guardian-Lauf 1, Fund 2)
+{
+  const a = await anonymize(path.join(FXW, 'komma.csv'), 'person');
+  const rows = csvRows(fs.readFileSync(a.outPath, 'utf8').replace(/^\uFEFF/, ''));
+  check('„Berger, Tilda“ (Spalte „Name“) und „Tilda Berger“ (Spalte „wie bisher“) sind eine Person', rows[1] && rows[1][0] === rows[1][1] && /^Person [A-Z]$/.test(rows[1][0]) && rows[2][0] === rows[2][1] && rows[1][0] !== rows[2][0], rows.slice(1, 3).map((r) => r.join(';')).join(' | '));
+}
 // neue Schlüsseldatei (Version 3) in 2.9.0: klar abgelehnt, nichts still stehen lassen
 {
   const r = await restore(revC.outPath, revC.keyPath, MAIN);
@@ -504,6 +510,9 @@ log('## 6. Kein stilles Speichern, Formeln und verbundene Zellen');
   await goTo(o.page, 'a3');
   const pts = await savePoints(o.page);
   check('Formel in einer ersetzten Spalte: eigener Punkt mit Zelle', pts.some((p) => /Formel/.test(p) && /Zelle S4/.test(p)), pts.find((p) => /Formel/.test(p)) || '');
+  // Guardian-Lauf 1, Fund 1: Formelergebnis in einer Namensspalte wird wie bisher (Namensspalten-Regel 2.6.0) ersetzt
+  const out = await o.page.evaluate(async () => (await window.__anon.buildOutput('txt')).text);
+  check('Formelergebnis mit Namen in einer Spalte „Name“ wird wie in 2.9.0 ersetzt (Namensspalten-Regel), aber gemeldet', !/Pawlitzki/.test(out) && pts.some((p) => /Zelle A4/.test(p)), (out.match(/.*Schüler!A4.*/g) || []).join(' | '));
   check('Verbundene Zellen in einer ersetzten Spalte: eigener Punkt mit Bereich', pts.some((p) => /verbundene Zellen/.test(p) && /R5:S5/.test(p)), pts.find((p) => /verbunden/.test(p)) || '');
   const txt = await o.page.evaluate(() => document.body.innerText);
   check('Kein Text „null“ oder „undefined“ (Speichern)', !/\bnull\b|\bundefined\b/.test(txt));
@@ -555,7 +564,7 @@ log('## Merkliste: Wahl je Überschrift');
 // ---------- 7. Vorhandene Tabellen-Testdateien ----------
 log('');
 log('## 7. Vorhandene Tabellen-Testdateien: Vorschläge je Spalte (nur Spalten mit Behandlung „Name“ oder „ganz ersetzen“)');
-const OLD_FX = ['fixtures-spalten/liste.xlsx', 'fixtures-spalten/tabellen.xlsx', 'fixtures-spalten/tabellen-stark.csv', 'fixtures-spalten/tabellen-schwach.csv', 'fixtures-spalten/tabellen-zweikopf.csv',
+const OLD_FX = ['fixtures-spaltenwahl/stammdaten-formel.xlsx', 'fixtures-spalten/liste.xlsx', 'fixtures-spalten/tabellen.xlsx', 'fixtures-spalten/tabellen-stark.csv', 'fixtures-spalten/tabellen-schwach.csv', 'fixtures-spalten/tabellen-zweikopf.csv',
   'fixtures-spalten/tabellen-einezelle.csv', 'fixtures-spalten/tabellen-teilwort.csv', 'fixtures-spalten/tabellen-anrede.csv', 'fixtures-spalten/tabellen-ohnekopf.csv',
   'fixtures/mitarbeiter.xlsx', 'fixtures/mitarbeiter.csv', 'fixtures/meta-tabelle.xlsx', 'fixtures/bilder-excel.xlsx', 'fixtures/ziffern.xlsx', 'fixtures/ziffern.csv',
   'fixtures/einrichtung.xlsx', 'fixtures/einrichtung.csv', 'fixtures/a2-risiko.csv', 'fixtures/a2-uebertragung.csv', 'fixtures/vertausch-1.csv', 'fixtures/vertausch-1.xlsx',

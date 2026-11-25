@@ -131,7 +131,8 @@ async function xlsx(file, data, extra = {}) {
   const all = [HEADERS.map((hd) => ({ v: hd, typ: 's' })), ...data];
   const body = all.map((r, ri) => `<row r="${ri + 1}">${r.map((c, ci) => {
     const ref = colL(ci) + (ri + 1);
-    if (extra.formula && extra.formula.r === ri && extra.formula.c === ci) return `<c r="${ref}" t="str"><f>${esc(extra.formula.f)}</f><v>${esc(extra.formula.v)}</v></c>`;
+    const fo = (extra.formulas || []).find((x) => x.r === ri && x.c === ci);
+    if (fo) return `<c r="${ref}" t="str"><f>${esc(fo.f)}</f><v>${esc(fo.v)}</v></c>`;
     if (c.v === '' || c.v === undefined) return '';
     if (c.typ === 'd') return `<c r="${ref}" s="1"><v>${c.v}</v></c>`;
     if (c.typ === 'n') return `<c r="${ref}"><v>${c.v}</v></c>`;
@@ -165,9 +166,13 @@ export async function makeAll() {
   csv('stammdaten.csv', data);
   const small = rows(5);
   // Formel in „1. Ort“ (Zeile 3) und verbundene Zellen über „1. PLZ“ und „1. Ort“ (Zeile 5)
-  await xlsx('stammdaten-formel.xlsx', small, { formula: { r: 3, c: HEADERS.indexOf('1. Ort'), f: 'CONCATENATE("Tann","hofen")', v: 'Tannhofen' },
+  // Guardian-Lauf 1, Fund 1: Formelergebnis mit Namen in einer Namensspalte (Nachname, Zeile 4)
+  await xlsx('stammdaten-formel.xlsx', small, { formulas: [{ r: 3, c: HEADERS.indexOf('1. Ort'), f: 'CONCATENATE("Tann","hofen")', v: 'Tannhofen' },
+    { r: 3, c: HEADERS.indexOf('Nachname'), f: 'AQ9', v: 'Pawlitzki' }],
     merge: `${colL(HEADERS.indexOf('1. PLZ'))}5:${colL(HEADERS.indexOf('1. Ort'))}5` });
   // Kollisions-Schutz: „[DATUM-1]“ und „[ANGABE-2]“ stehen schon im Original (Spalte „wie bisher“)
+  // „Nachname, Vorname“ in einer Spalte „Name“ und dieselbe Person in einer Spalte „wie bisher“ (Guardian-Lauf 1, Fund 2)
+  fs.writeFileSync(path.join(FXW, 'komma.csv'), ['Name;Kontakt;Klasse', 'Berger, Tilda;Tilda Berger;5c', 'Quandt, Hauke;Hauke Quandt;5a', ''].join('\r\n'));
   fs.writeFileSync(path.join(FXW, 'kollision-datum.csv'), ['Geburtsdatum;Religion;Text', '14.03.2015;rk;siehe [DATUM-1] und [ANGABE-2]', '02.07.2015;ev;Feld [ANGABE-2] bleibt', ''].join('\r\n'));
   const truth = { headers: HEADERS, expect: EXPECT, rows: data.map((r) => r.map(cellText)), types: data.map((r) => r.map((c) => c.typ)) };
   fs.writeFileSync(path.join(FXW, 'stammdaten-wahrheit.json'), JSON.stringify(truth, null, 1));
