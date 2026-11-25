@@ -194,17 +194,18 @@ log('## B. Gegenprobe: alle Word-/Excel-Testdateien, Modus „Person A“');
   let diffs = 0;
   let notJustified = 0;
   let nFiles = 0;
+  const skipped = [];
   for (const file of files) {
     let m;
     let b;
-    try { m = await open(file, 'person', OLD); } catch { continue; }
+    try { m = await open(file, 'person', OLD); } catch (e) { skipped.push(`${path.relative(here, file)} (lädt nicht: ${String(e.message).slice(0, 60)})`); continue; }
     const lm = await leaksOf(m.page).catch(() => null);
     await m.ctx.close();
     b = await open(file, 'person');
     const lb = await leaksOf(b.page).catch(() => null);
     const lw = await leaksOf(b.page, { opt: { pixelSkip: false } }).catch(() => null);
     await b.ctx.close();
-    if (!lm || !lb) continue;
+    if (!lm || !lb) { skipped.push(`${path.relative(here, file)} (Schlusscheck ohne Ergebnis)`); continue; }
     nFiles++;
     const cm = count(lm);
     const cb = count(lb);
@@ -222,7 +223,7 @@ log('## B. Gegenprobe: alle Word-/Excel-Testdateien, Modus „Person A“');
     }
     for (const a of added) { notJustified++; log(`- ${path.relative(here, file)}: neu gemeldet „${a}“ – NICHT BEGRÜNDET`); }
   }
-  log(`- ${nFiles} Dateien verglichen, ${diffs} Funde fallen weg`);
+  log(`- ${nFiles} Dateien verglichen, ${diffs} Funde fallen weg; nicht verglichen: ${skipped.length ? skipped.join('; ') : 'keine'}`);
   check('Gegenprobe: jeder wegfallende Fund ist ein Zufallstreffer in reinen Bilddaten; sonst keine Abweichung', notJustified === 0, String(notJustified));
 }
 

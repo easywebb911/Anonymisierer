@@ -561,12 +561,12 @@ Die Datei muss in einem Browser geöffnet werden (z. B. über „Teilen → in S
 
 ## Version und Prüfsumme
 
-Version **2.11.1**, Stand 2026-11-25 (steht auch im Fußbereich des Tools).
+Version **2.11.2**, Stand 2026-11-25 (steht auch im Fußbereich des Tools).
 
 SHA-256 der `index.html` dieser Version:
 
 ```
-e6da1f81267284a3b182c9ed02568b42e61acc8e7afd3cdc34bc0c49d53e874a
+3bd747ff9c752d60c6f2925e2b3827966db3d03d8321eb3b003e7d02c6eb7631
 ```
 
 Seit 2.9.0 ist die Datei rund 8 MB groß (vorher 3,7 MB): Sie enthält die gepackte Wortliste für „Diese Wörter bleiben stehen“.

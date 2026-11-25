@@ -3,7 +3,7 @@
 ## A. Häkchen gesperrt wegen ungesehener Bilder
 - OK: Datei mit Bildern: Häkchen gesperrt, Satz „Sieh dir zuerst die Bilder an.“ und Knopf „Bilder ansehen“ sichtbar – {"disabled":true,"row":true,"text":"Sieh dir zuerst die Bilder an.\nBilder ansehen"}
 - OK: Knopf mit der Tastatur erreichbar und mit Enter auslösbar
-- OK: Nach dem Knopf: Bilderliste offen und im sichtbaren Bereich, Häkchen wählbar, Satz und Knopf weg – {"disabled":false,"row":false,"visible":true,"focus":"ack-all"}
+- OK: Nach dem Knopf: Bilderliste offen und im sichtbaren Bereich, Häkchen wählbar, Satz und Knopf weg – {"disabled":false,"row":false,"visible":true,"focus":"btn-ack-images"}
 - OK: Häkchen lässt sich setzen; nach einer Änderung fällt es zurück wie auf main – neu {"checked":false,"disabled":false,"row":false} / main {"checked":false,"disabled":false,"row":false}
 - OK: Sperre wie auf main (vorher gesperrt, nach dem Öffnen frei)
 - OK: Kein „null“/„undefined“ im Satz – Sieh dir zuerst die Bilder an.
@@ -75,7 +75,7 @@ Bilder ansehen
 - OK: lesbar.xlsx, Alt-Text: kurzer und langer Name gemeldet wie auf main – main {"kurz":true,"lang":true} / neu {"kurz":true,"lang":true}
 
 ## B. Gegenprobe: alle Word-/Excel-Testdateien, Modus „Person A“
-- 77 Dateien verglichen, 0 Funde fallen weg
+- 77 Dateien verglichen, 0 Funde fallen weg; nicht verglichen: keine
 - OK: Gegenprobe: jeder wegfallende Fund ist ein Zufallstreffer in reinen Bilddaten; sonst keine Abweichung – 0
 
 - OK: Keine JS-Fehler

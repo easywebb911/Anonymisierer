@@ -1,9 +1,9 @@
 # Rückbau: Kreislauf-Beweis und Fallen
 
-Chromium headless gegen index.html (SHA-256 e6da1f81267284a3…). Alle Namen sind erfunden.
+Chromium headless gegen index.html (SHA-256 3bd747ff9c752d60…). Alle Namen sind erfunden.
 
 ## TXT (protokoll.txt)
-- Anonymisiert (rückbaufähig): 57 Platzhalter in der Schlüsseldatei; Status „Gespeichert: anonymisiert_V62Z.txt – mit bestätigten Restfunden.“
+- Anonymisiert (rückbaufähig): 57 Platzhalter in der Schlüsseldatei; Status „Gespeichert: anonymisiert_8V43.txt – mit bestätigten Restfunden.“
 - Simulierte Korrektur: Wort geändert, Satz mit Nachname A, Vorname A, [E-MAIL-1] und Endung „Nachname As“ eingefügt, Abschnitt TOP 3 vor TOP 2 verschoben
 - Rückbau: 76 Platzhalter ersetzt; abweichende Zeilen gegenüber Erwartung: 0
 - Bericht meldete: Vorname A 2→3, Nachname A 4→7, [E-MAIL-1] 1→2; Auffälligkeiten 0
@@ -95,11 +95,11 @@ Hartung und Tannheim stehen nach allein stehender Anrede und später im Text (au
 - OK: Ergebnis entspricht exakt der Erwartung (alle exakten Platzhalter zurück, Auffälliges unverändert)
 - Rückbau-Bericht: 79 ersetzt; Auffälligkeiten: verändert: nachname ac | unbekannt: Nachname ZZ | gebeugt: Nachnamens A | verändert: [E-Mail-1] | getrennt: Nachname | A
 - OK: falsche Schlüsseldatei (vom Protokoll) erkannt – Urteil: zweifelhaft; Meldung: Wahrscheinlich die falsche Schlüsseldatei: 47 von 57 Platzhaltern gefunden, nur bei 33 stimmt die Anzahl, 28 unbekannte Platzhalter in der Datei.
-- OK: Datei ohne passende Platzhalter: kein Ergebnis – Rückbau nicht möglich.Im Dokument steht keine Kennung. Der Schlüssel hat die Kennung 3W76. Prüfe, ob beide zusammengehör
+- OK: Datei ohne passende Platzhalter: kein Ergebnis – Rückbau nicht möglich.Im Dokument steht keine Kennung. Der Schlüssel hat die Kennung 5C3U. Prüfe, ob beide zusammengehör
 - OK: alte Zuordnungstabelle (CSV) wird abgelehnt – Das ist die alte Zuordnungstabelle (zuordnung_VERTRAULICH.csv). Sie reicht für einen Rückbau NICHT: Sie enthäl
 - OK: Rückbau deterministisch (Doppellauf byte-gleich) – ac385ab26ac6aaf2 / ac385ab26ac6aaf2
 - OK: Anonymisierung rückbaufähig deterministisch (Datei und Schlüssel ohne Kennung) – 6e6b33171283923f / 6e6b33171283923f
-- OK: Kennungen zweier Läufe verschieden (Zufall) – 3W76 / B798
+- OK: Kennungen zweier Läufe verschieden (Zufall) – 5C3U / W33Y
 
 ## Namensspalten und Anrede am Zeilenende (Version 2.6.0, tests/fixtures-spalten)
 - protokoll.txt: Sonnleitner → Nachname D; 9 Platzhalter; bearbeitet (Zeile mit dem Platzhalter angefügt); 15 zurückgebaut, Abweichungen: 0
