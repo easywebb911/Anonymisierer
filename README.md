@@ -160,7 +160,7 @@ Bei **Excel- und CSV-Tabellen mit Kopfzeile** entscheidest du **je Spalte**, was
 
 **Drei Möglichkeiten je Spalte:**
 - **Name:** Jede gefüllte Zelle wird als Person ersetzt, auch unbekannte, klein geschriebene und mehrteilige Namen. Mehrere Namen in einer Zelle (getrennt durch `|`, `;`, `/` oder „und“) werden einzeln ersetzt. Füllwerte wie „keine“, „N.N.“ oder „–“ bleiben stehen.
-- **ganz ersetzen:** Jede gefüllte Zelle wird als Ganzes durch einen Platzhalter ersetzt, egal ob Text, Zahl oder Datum. Gleicher Wert = gleicher Platzhalter. Platzhalter: **[ADRESSE]**, **[TELEFON]**, **[E-MAIL]**, **[DATUM]**, **Einrichtung A** und **[ANGABE]** (für alles andere). Im Modus „rückbaufähig“ mit Nummer: [DATUM-1], [ANGABE-1] …
+- **ganz ersetzen:** Jede gefüllte Zelle wird als Ganzes durch einen Platzhalter ersetzt, egal ob Text, Zahl oder Datum. Gleicher Wert = gleicher Platzhalter. Platzhalter: **[ADRESSE]**, **[TELEFON]**, **[E-MAIL]**, **[DATUM]**, **Einrichtung A** und **[ANGABE]** (für alles andere). Im Modus „rückbaufähig“ mit Nummer: [DATUM-1], [ANGABE-1] … (Ausnahme seit 2.11.1: heikle Spalten, siehe unten)
 - **wie bisher (lesbar):** Das Tool sucht Namen im Text der Zelle. Die Spalte bleibt sonst lesbar.
 
 **Wichtig:** Ersetzte Spalten kann eine KI danach **nicht mehr inhaltlich prüfen**. Stell eine Spalte auf „wie bisher“, wenn die KI ihren Inhalt braucht und darin nichts über eine Person steht.
@@ -200,6 +200,8 @@ Bei **Excel- und CSV-Tabellen mit Kopfzeile** entscheidest du **je Spalte**, was
 **Rückbau:** Zahl- und Datumszellen stehen in der Ausgabe als Text-Platzhalter in der Zelle; ihr Format bleibt. Der Rückbau schreibt Wert, Zelltyp (Zahl, Datum, Wahrheitswert) und Format exakt zurück. Im Modus „rückbaufähig“ bekommt Text mit gemischter Formatierung in einer ganz ersetzten Zelle je Textlauf einen Platzhalter und kommt exakt zurück. Schlüsseldateien mit [DATUM-…]/[ANGABE-…] oder Zelltyp haben die Format-Version 3; ältere Versionen des Tools lehnen sie klar ab („Unbekannte Version“). Alle übrigen Schlüsseldateien bleiben wie bisher (Version 1 oder 2), und alte Schlüsseldateien bauen weiter exakt zurück.
 
 Seltene Werte kommen beim Rückbau ebenso exakt zurück (eigener Platzhalter [ANGABE-…], Zahl- und Datumszellen mit Zelltyp).
+
+**Heikle Spalten: eigene Nummer je Zelle (seit 2.11.1, nur Modus „rückbaufähig“).** In einer Spalte, die das Tool wegen eines heiklen Wortstamms im Spaltenkopf ganz als [ANGABE] ersetzt (Liste unter „Personen-Tabelle“, z. B. Religion, Staatsangehörigkeit, Sorgerecht), bekommt jede gefüllte Zelle eine eigene Nummer, auch wenn der Inhalt gleich ist. Sonst verriete die Häufigkeit einer Nummer den Inhalt (z. B. „[ANGABE-3]“ 40-mal = die häufigste Religion). Die Nummern folgen der Reihenfolge im Dokument; derselbe Lauf ergibt dieselbe Ausgabe. Die übrigen Angaben werden fortlaufend weiter gezählt, ihre Nummern können sich gegenüber 2.11.0 dadurch verschieben. Die Spalten-Übersicht zeigt bei diesen Spalten „Eigene Nummer je Zelle“, und der Hinweis für die KI sagt, dass verschiedene Nummern dort nichts über gleiche oder verschiedene Inhalte sagen. Die Schlüsseldatei hat dasselbe Format wie bisher (Format-Version 3), nur mehr Einträge; Schlüsseldateien aus 2.11.0 bauen weiter exakt zurück. Eine Excel-Zelle mit mehreren formatierten Teilen hat wie bisher einen Platzhalter je Teil, jeder mit eigener Nummer. In den Modi „Person A“ und „[NAME]“ ändert sich nichts.
 
 **Gilt für Excel und CSV.** Tabellen in Word und PDF: wie bisher.
 
@@ -395,6 +397,10 @@ gescannte PDFs ohne Textebene („PDF enthält keinen Text, evtl. gescannt“), 
 
 ## Grenzen (bitte lesen)
 
+**Seit Version 2.11.1 (heikle Spalten, eigene Nummer je Zelle):**
+- **Leere Zellen** in heiklen Spalten bleiben leer. Wer einen Eintrag hat (z. B. eine Erläuterung oder eine Zuzugsart), ist damit weiter zu sehen; nur der Inhalt ist ersetzt.
+- **Nur heikle Wortstämme:** Spalten, die aus einem anderen Grund ganz ersetzt sind (z. B. von Hand auf „ganz ersetzen“ gestellt ohne heiklen Kopf), behalten „gleicher Wert = gleiche Nummer“.
+
 **Seit Version 2.11 (Personen-Tabellen):**
 - **Lesbar bleiben Auswahl-Spalten** einer Personen-Tabelle (wenige, sich wiederholende Werte, z. B. Geschlecht, Schulweg, Ganztag). Ein Wert, der mindestens 3-mal vorkommt, bleibt lesbar, auch wenn er zusammen mit anderen lesbaren Spalten eine Person erkennbar machen kann (z. B. die einzige Kombination aus zwei häufigen Werten). Prüfe die Liste „Diese Spalten bleiben lesbar“.
 - **Kleine Tabellen (weniger als 20 Zeilen):** Die Regel „seltene Werte“ ist dort aus; ein Wert, der nur einmal vorkommt, bleibt lesbar.
@@ -554,7 +560,7 @@ Die Datei muss in einem Browser geöffnet werden (z. B. über „Teilen → in S
 
 ## Version und Prüfsumme
 
-Version **2.11.0**, Stand 2026-11-25 (steht auch im Fußbereich des Tools).
+Version **2.11.1**, Stand 2026-11-25 (steht auch im Fußbereich des Tools).
 
 SHA-256 der `index.html` dieser Version:
 

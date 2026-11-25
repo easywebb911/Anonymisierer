@@ -170,7 +170,9 @@ export function assignReversible(result) {
       const value = fullText.slice(h.s, h.e);
       // Version 2.10.0: Zahl- und Datumszellen (Excel) mit Zelltyp und Wert: eigener Platzhalter je Zelltyp und Wert, damit
       // der Rückbau Typ und Wert exakt zurückschreibt (Text „12“ und Zahl 12 bekommen verschiedene Platzhalter)
-      const ck = h.type + '|' + value + (h.cellOrig ? '|' + JSON.stringify(h.cellOrig) : '');
+      // Version 2.11.1: in heiklen Spalten eigene Nummer je Zelle (Stelle im Gesamttext; Nummern in der Reihenfolge des
+      // Dokuments). Der Schlüssel hat dann mehrere Platzhalter mit demselben Wert (gleiches Format wie bisher).
+      const ck = h.type + '|' + value + (h.cellOrig ? '|' + JSON.stringify(h.cellOrig) : '') + (h.perCell ? '|@' + h.s : '');
       if (!contactNums.has(ck)) {
         let ph;
         do { contactCount[h.type] = (contactCount[h.type] || 0) + 1; ph = `[${CONTACT_BASE[h.type]}-${contactCount[h.type]}]`; } while (reserved.has(ph));

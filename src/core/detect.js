@@ -1603,6 +1603,12 @@ export function sensitiveStem(header) {
   }
   return null;
 }
+// Version 2.11.1: Spalte, die wegen eines heiklen Wortstamms im Spaltenkopf ganz als [ANGABE] ersetzt wird. Im Modus
+// „rückbaufähig“ bekommt dort jede gefüllte Zelle eine eigene Nummer (gleiche Inhalte, verschiedene Nummern), damit die
+// Häufigkeit nichts über den Inhalt verrät. Von Hand auf „Name“ oder „wie bisher“ gestellt: nicht betroffen.
+export function isPerCellColumn(col) {
+  return !!col && col.treat === 'ganz' && (col.kind || 'info') === 'info' && !!sensitiveStem(col.header);
+}
 // Namenswörter für die Behandlung „Name“ in einer Personen-Tabelle
 const NAME_HEAD_WORDS = new Set(['nachname', 'nachnamen', 'vorname', 'vornamen', 'rufname', 'rufnamen', 'familienname', 'geburtsname', 'name', 'namen']);
 const DATE_TEXT = /^(\d{1,2}\.\d{1,2}\.(\d{2}|\d{4})|\d{4}-\d{2}-\d{2})$/;
@@ -1908,6 +1914,8 @@ function columnWholeHits(units, unitStarts, hits, ganz, reversible) {
     }
     for (const [a, b] of pieces) {
       const h = { s: base + a, e: base + b, type: p.kind === 'org' ? 'org' : p.kind, cert: 'sicher', origin: 'auto', unit: ui, colHit: true, column: p.col.id, suffix: '' };
+      // Version 2.11.1: heikle Spalte – im Modus „rückbaufähig“ eigene Nummer je Zelle (siehe assignReversible)
+      if (p.kind === 'info' && p.treat === 'ganz' && isPerCellColumn(p.col)) h.perCell = true;
       if (u.cellOrig && pieces.length === 1) h.cellOrig = u.cellOrig;
       if (p.kind === 'org') {
         const value = u.text.slice(a, b);

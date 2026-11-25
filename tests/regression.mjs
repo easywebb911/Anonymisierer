@@ -77,7 +77,10 @@ async function outputs(html, file, mode, formats, orgTerms = null, treatFrom = n
     }, f);
     const raw = res[f];
     res[f] = { sha: sha(typeof raw === 'string' ? raw : Buffer.from(raw)), parts: typeof raw === 'string' ? null : await normalizedParts(Buffer.from(raw)),
-      noDesc: typeof raw === 'string' ? null : await normalizedParts(Buffer.from(raw), true), nsOrder: typeof raw === 'string' ? null : await nsOrder(Buffer.from(raw)), descs: typeof raw === 'string' ? null : await descValues(Buffer.from(raw)),
+      noDesc: typeof raw === 'string' ? null : await normalizedParts(Buffer.from(raw), true),
+      partsAng: typeof raw === 'string' ? null : await normalizedParts(Buffer.from(raw), false, true),
+      angabe: [...new Set((typeof raw === 'string' ? raw : await allXml(Buffer.from(raw))).match(ANG_RE) || [])].length,
+      angabeAll: ((typeof raw === 'string' ? raw : await allXml(Buffer.from(raw))).match(ANG_RE) || []).length, nsOrder: typeof raw === 'string' ? null : await nsOrder(Buffer.from(raw)), descs: typeof raw === 'string' ? null : await descValues(Buffer.from(raw)),
       text: typeof raw === 'string' ? raw : null };
   }
   await ctx.close();
@@ -94,7 +97,8 @@ const oldOutputs = (file, mode, formats, orgTerms = null) => cached('regression'
 // Nur für den Vergleich „gleich bis auf die Kennung“; byte-gleich wird weiterhin streng gezählt.
 // noDesc: zusätzlich die Werte der Bildbeschreibungen (descr, title, VML alt/o:title) leeren
 const DESC_ATTR = /\b(descr|title|alt|o:title)="[^"]*"/g;
-async function normalizedParts(bytes, noDesc = false) {
+const ANG_RE = /\[ANGABE-\d+\]/g;
+async function normalizedParts(bytes, noDesc = false, angabe = false) {
   const z = await JSZip.loadAsync(bytes);
   const parts = {};
   // Ein für die Kennung neu geschriebener Teil verliert nur den Zeilenumbruch nach der XML-Kopfzeile: nicht als Unterschied zählen
@@ -103,6 +107,8 @@ async function normalizedParts(bytes, noDesc = false) {
     // Ein Teil, dessen Bildbeschreibung sich ändert, wird neu geschrieben; dabei kann sich nur die Reihenfolge der
     // Namensraum-Angaben ändern (Inhalt gleich). Für diesen Vergleich werden sie entfernt.
     if (noDesc && /\.(xml|vml)$/i.test(n)) parts[n] = parts[n].replace(DESC_ATTR, '$1=""').replace(/\sxmlns(?::[\w.-]+)?="[^"]*"/g, '');
+    // Version 2.11.1: Nummern der Angaben gleich gesetzt (Nachweis „nur Nummern geändert“)
+    if (angabe && typeof parts[n] === 'string') parts[n] = parts[n].replace(ANG_RE, '[ANGABE-#]');
   }
   for (const n of Object.keys(parts)) {
     if (typeof parts[n] !== 'string' || !parts[n].includes('name="AnonymisiererKennung"')) continue;
@@ -115,6 +121,13 @@ async function normalizedParts(bytes, noDesc = false) {
     }
   }
   return Object.fromEntries(Object.entries(parts).map(([k, v]) => [k, typeof v === 'string' ? sha(v) : v]));
+}
+// Version 2.11.1: aller XML-Text einer Word-/Excel-Ausgabe (Zahl der Platzhalter [ANGABE-n])
+async function allXml(bytes) {
+  const z = await JSZip.loadAsync(bytes);
+  let t = '';
+  for (const n of Object.keys(z.files).filter((x) => !z.files[x].dir && /\.xml$/i.test(x)).sort()) t += await z.file(n).async('string');
+  return t;
 }
 // Werte aller Bildbeschreibungen einer Ausgabe (für die Begründung im Bericht)
 async function descValues(bytes) {
@@ -150,6 +163,9 @@ let altChanged = 0;
 let v26Changed = 0;
 let v28Changed = 0;
 let v210Changed = 0;
+let v2111Changed = 0;
+// Version 2.11.1: Vergleich mit 2.11.0 streng (siehe unten)
+const STRICT = path.basename(oldHtml) === 'index-2.11.0.html';
 // Version 2.6.0 (Namensspalten, Anrede am Zeilenende, „von“): Diese Dokumente dürfen sich ändern, alle übrigen nicht
 const CHANGED_260 = {
   'a2-risiko.txt': 'Anrede am Zeilenende: „Liebe Frau⏎Vielen Dank …“ und „Gesprächspartner: Herr⏎Schulleitung“ jetzt ersetzt (unsicher, an); Buchstaben danach verschoben.',
@@ -166,6 +182,24 @@ for (const [file, formats] of FIXTURES) {
     for (const f of formats) {
       total++;
       const ok = a[f].sha === b[f].sha;
+      // Version 2.11.1 (Vergleich mit 2.11.0): streng. Erlaubt sind nur byte-gleich, gleich bis auf die Kennung (Modus
+      // rückbaufähig, Word/Excel) und – nur im Modus rückbaufähig – Unterschiede allein in den Nummern der Platzhalter
+      // [ANGABE-n] (eigene Nummer je Zelle in heiklen Spalten). Die Gründe früherer Versionen gelten hier nicht.
+      if (STRICT) {
+        const label = `${file}, Modus ${({ person: '„Person A“', name: '„[NAME]“', reversible: '„rückbaufähig“' })[mode]}, Ausgabe .${f}`;
+        const kOnly = !ok && mode === 'reversible' && sameParts(a[f].parts, b[f].parts);
+        let ang = false;
+        if (!ok && !kOnly && mode === 'reversible') {
+          ang = b[f].text !== null && a[f].text !== null ? a[f].text.replace(ANG_RE, '[ANGABE-#]') === b[f].text.replace(ANG_RE, '[ANGABE-#]') : sameParts(a[f].partsAng, b[f].partsAng);
+          ang = ang && a[f].angabeAll === b[f].angabeAll;
+        }
+        if (ok) same++;
+        if (kOnly) onlyKennung++;
+        if (ang) v2111Changed++;
+        lines.push(`- ${label}: ${ok ? 'identisch' : kOnly ? 'gleich bis auf die Kennung (Eigenschaft)' : ang ? 'geändert nur in den Nummern der Angaben (Grund unten)' : 'UNTERSCHIEDLICH'} (${a[f].sha.slice(0, 12)} / ${b[f].sha.slice(0, 12)})`);
+        if (ang) reasons.push(`- ${label}: nur Nummern der Platzhalter [ANGABE-n] geändert (gleich viele Stellen: ${b[f].angabeAll}); verschiedene Platzhalter vorher ${a[f].angabe}, nachher ${b[f].angabe}. Grund (Version 2.11.1): in heiklen Spalten eigene Nummer je Zelle; die übrigen Angaben werden fortlaufend weiter gezählt, ihre Nummern verschieben sich dadurch.`);
+        continue;
+      }
       // Version 2.11.0: Tabellen – Spalten behandeln, Personen-Tabellen. Nachweis je Ausgabe: Mit jeder Spalte in der
       // Behandlung von main (2.10.0) und ohne „seltene Werte“ liefert die neue Version GENAU die Ausgabe von main (bis auf
       // die Kennung). Dann stammt jede Änderung allein von den neuen Vorschlägen je Spalte und den seltenen Werten.
@@ -309,8 +343,8 @@ for (const [file, formats] of FIXTURES) {
   }
 }
 await browser.close();
-const bad = total - same - onlyKennung - altChanged - endingChanged - capsChanged - lowerChanged - v26Changed - v28Changed - v210Changed;
-const out = [`Regression: ${same} von ${total} Ausgaben byte-identisch, ${onlyKennung} gleich bis auf die Kennung, ${altChanged} nur in Bildbeschreibungen geändert, ${endingChanged} nur durch die Endungsprüfung geändert, ${capsChanged} nur durch GROSS-Formen mit Endung geändert, ${lowerChanged} nur durch kleine Endung hinter dem Platzhalter geändert, ${v26Changed} durch die Regeln von Version 2.6.0 geändert, ${v28Changed} durch die Regeln von Version 2.8.0 geändert, ${v210Changed} durch die Spalten-Behandlung von Version 2.11.0 geändert, ${bad} unterschiedlich (Referenz ${sha(fs.readFileSync(oldHtml)).slice(0, 16)}…, neu ${sha(fs.readFileSync(newHtml)).slice(0, 16)}…)`,
+const bad = total - same - onlyKennung - altChanged - endingChanged - capsChanged - lowerChanged - v26Changed - v28Changed - v210Changed - v2111Changed;
+const out = [`Regression: ${same} von ${total} Ausgaben byte-identisch, ${onlyKennung} gleich bis auf die Kennung, ${altChanged} nur in Bildbeschreibungen geändert, ${endingChanged} nur durch die Endungsprüfung geändert, ${capsChanged} nur durch GROSS-Formen mit Endung geändert, ${lowerChanged} nur durch kleine Endung hinter dem Platzhalter geändert, ${v26Changed} durch die Regeln von Version 2.6.0 geändert, ${v28Changed} durch die Regeln von Version 2.8.0 geändert, ${v210Changed} durch die Spalten-Behandlung von Version 2.11.0 geändert, ${v2111Changed} nur durch eigene Nummern je Zelle in heiklen Spalten (2.11.1) geändert, ${bad} unterschiedlich (Referenz ${sha(fs.readFileSync(oldHtml)).slice(0, 16)}…, neu ${sha(fs.readFileSync(newHtml)).slice(0, 16)}…)`,
   ...lines, '', reasons.length ? '## Geänderte Ausgaben einzeln mit Grund' : '', ...reasons].join('\n');
 flush();
 console.log(out);

@@ -181,7 +181,7 @@ Summe über alle 6 Läufe (ersetzte Spalten: Zellen mit Originalwert; lesbare Sp
 
 ## 4. Rückbau (Excel: Wert, Zelltyp, Format; CSV: byte-gleich)
 Original (Excel): 416 Zahl- und Datumszellen, davon 60 mit Datumsformat.
-Schlüsseldatei (Excel): Format-Version 3, 910 Platzhalter (Name 369, Datum 55, Angabe 182, Adresse 90, Telefon 150, E-Mail 60, Einrichtung 4), davon mit Zelltyp: 119
+Schlüsseldatei (Excel): Format-Version 3, 1607 Platzhalter (Name 369, Datum 55, Angabe 879, Adresse 90, Telefon 150, E-Mail 60, Einrichtung 4), davon mit Zelltyp: 119
 - OK: Schlüsseldatei mit den neuen Arten hat Format-Version 3
 - OK: Anonymisiert: Datumszellen sind Text-Platzhalter mit unverändertem Format (Stil) – inlineStr [DATUM-1] s=1; inlineStr [DATUM-2] s=1
 - OK: Anonymisiert: kein Originalwert der ersetzten Spalten in der gemeinsamen Textliste (sharedStrings)

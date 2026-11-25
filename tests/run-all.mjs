@@ -38,6 +38,7 @@ const OLD = {
   '2.8.1': ['cccf13c16473a6c1999e45427d4649bf12a009ed', '51b039c10a514d2a'],
   '2.9.0': ['fc3d7e172b1c72f3e0560f45edd80fb6f0ee0d9e', 'c8117f37c68689cf'],
   '2.10.0': ['c6d74d8cfd24c5fa041f5f8d3de3a88f5224f1dc', 'f6e9546bf17ad947'],
+  '2.11.0': ['a9f6b1696e08a9ba8ee7f76a08cfaac9426ee7a0', '89e519fd9cf15896'],
 };
 const SRC_234 = '479aa0af98ff3d82723c6cc7e9715a4cafa5f349'; // src/ von Version 2.3.4 (wortliste-test)
 const alt = (v) => path.join(ALT, `index-${v}.html`);
@@ -61,15 +62,16 @@ const TESTS = [
   ['pfade', 'pfade-test.mjs', [alt('2.4.0')]],
   ['bedienung', 'bedienung-test.mjs', [alt('2.4.1')]],
   ['anzeige', 'anzeige-test.mjs', []],
-  ['regression', 'regression.mjs', [alt('2.10.0')]], // Version 2.11.0: Regression gegen main (2.10.0)
+  ['regression', 'regression.mjs', [alt('2.11.0')]], // Version 2.11.1: Regression gegen main (2.11.0)
   ['traeger', 'traeger-test.mjs', [alt('2.7.0')]],
   ['massstab', 'massstab-test.mjs', [alt('2.7.0'), alt('2.8.0')]],
   ['nachbarn', 'nachbarn-test.mjs', [alt('2.7.0'), alt('2.8.0')]],
   ['restwoerter', 'restwoerter-test.mjs', []],
+  ['nummern', 'nummern-test.mjs', [alt('2.11.0')]], // Version 2.11.1: heikle Spalten, eigene Nummer je Zelle
   ['spaltenwahl', 'spaltenwahl-test.mjs', [alt('2.10.0')]], // Version 2.10.0/2.11.0: Spalten behandeln (Gegenprobe gegen main 2.10.0)
 ];
 // Längste zuerst (aus der Messung), damit die Gesamtzeit nicht vom Letzten abhängt
-const ORDER = ['nachbarn', 'massstab', 'bedienung', 'spaltenwahl', 'restwoerter', 'gross', 'run-tests', 'anzeige', 'regression', 'einrichtung', 'pfade', 'traeger', 'roundtrip', 'kollision', 'platzhalter', 'kennung', 'ui-flow', 'bilder', 'endungen', 'meta-proof', 'spalten', 'wortliste', 'korpus'];
+const ORDER = ['nachbarn', 'massstab', 'bedienung', 'spaltenwahl', 'nummern', 'restwoerter', 'gross', 'run-tests', 'anzeige', 'regression', 'einrichtung', 'pfade', 'traeger', 'roundtrip', 'kollision', 'platzhalter', 'kennung', 'ui-flow', 'bilder', 'endungen', 'meta-proof', 'spalten', 'wortliste', 'korpus'];
 
 const sha = (p) => crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex');
 function prepareOld() {
@@ -101,7 +103,8 @@ function score(name, log) {
     || (m = pick(/Ergebnis: (\d+)\/(\d+) bestanden/g)) || (m = pick(/Fallen-Prüfungen: (\d+) von (\d+) bestanden/g))) return `${m[1]}/${m[2]}`;
   if (name === 'regression' && (m = pick(/Regression: (\d+) von (\d+) Ausgaben byte-identisch, (\d+) gleich bis auf die Kennung.*?, (\d+) unterschiedlich/g))) {
     const v = (log.match(/(\d+) durch die Spalten-Behandlung von Version 2\.11\.0 geändert/) || [])[1];
-    return `${Number(m[2]) - Number(m[4])}/${m[2]} (${m[1]} byte-gleich, ${m[3]} nur Kennung${v !== undefined ? `, ${v} Spalten-Behandlung` : ''})`;
+    const pc = (log.match(/(\d+) nur durch eigene Nummern je Zelle in heiklen Spalten/) || [])[1];
+    return `${Number(m[2]) - Number(m[4])}/${m[2]} (${m[1]} byte-gleich, ${m[3]} nur Kennung${v !== undefined && v !== '0' ? `, ${v} Spalten-Behandlung` : ''}${pc !== undefined ? `, ${pc} eigene Nummer je Zelle` : ''})`;
   }
   if (name === 'massstab' && (m = pick(/Geprüft: (\d+) Dateien.*?, (\d+) Stellen der Vorversion.*?(?:: (\d+) Stellen von 2\.8\.0)?/g))) {
     const a = pick(/\((\d+) Abweichung\(en\)\)/g);
