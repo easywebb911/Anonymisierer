@@ -634,15 +634,35 @@ log('## Sammelfrage und Schlusscheck');
   await o.ctx.close();
 }
 
-// Version 2.11.0: echter Name in einer Kopfzeile (mitarbeiter.xlsx, Blatt „Yılmaz“: „Notizen zu Mehmet Yılmaz“) – die
-// Kopfzeile wird nie ersetzt, der Schlusscheck meldet den Namen mit Hinweis
+// Version 2.11.0: echter Name in einer Kopfzeile (mitarbeiter.xlsx, Blatt „Yılmaz“: „Notizen zu Mehmet Yılmaz“). Das
+// Blatt hat nur eine Spalte, die Kopfzeile ist also nicht sicher (Guardian-Fund): der Name wird ersetzt wie bisher.
 {
-  const o = await openFile(path.join(here, 'fixtures', 'mitarbeiter.xlsx'), 'person');
-  await goTo(o.page, 'a3');
-  await waitCheck(o.page);
-  const leaks = await o.page.$$eval('#points > li.bad', (els) => els.map((e) => e.innerText.replace(/\s+/g, ' ')));
-  check('Name in einer Kopfzeile: bleibt stehen, Schlusscheck meldet ihn mit Hinweis „Kopfzeile … selbst ändern“', leaks.some((l) => /Mehmet/.test(l) && /Kopfzeile einer Tabelle/.test(l)), leaks.slice(0, 2).join(' | '));
-  await o.ctx.close();
+  const a = await anonymize(path.join(here, 'fixtures', 'mitarbeiter.xlsx'), 'person', { unsure: false });
+  const z = await JSZip.loadAsync(fs.readFileSync(a.outPath));
+  let txt = '';
+  for (const n of Object.keys(z.files)) if (n.endsWith('.xml')) txt += (await z.file(n).async('string')).replace(/<[^>]+>/g, ' ');
+  check('Name in einer unsicheren Kopfzeile (eine Spalte), „Unsichere Treffer“ aus: ersetzt', !/Mehmet|Yılmaz/.test(txt));
+}
+
+// Version 2.11.0 (Guardian-Fund): Nur eine sichere Kopfzeile bleibt stehen. Eine Titelzeile mit einer Zelle oder eine
+// Datenzeile ohne Kopfzeile darüber wird wie bisher geprüft (Namen dort werden ersetzt), auch mit „Unsichere Treffer“ aus.
+{
+  const cases = [
+    ['titelzeile.csv', 'Klasse 5a, Klassenleitung Frau Ruckdäschel;\nNachname;Vorname\nKowalczyk;Bernd\nBrandauer;Hilde\nLiebknecht;Ottmar\nSchwarzkopf;Ilse\nWendling;Gerd\nAmmermann;Rosi\n', ['Ruckdäschel', 'Kowalczyk', 'Brandauer']],
+    ['ohnekopf.csv', 'Kowalczyk;Bernd;Raum 12;Termin 3\nBrandauer;Hilde;Raum 14;Termin 4\nLiebknecht;Ottmar;Raum 15;Termin 5\n', ['Kowalczyk;Bernd']],
+    ['namekopf.csv', 'Stunde;Frau Kowalczyk;Herr Brandauer\n1;Mathe 5a;Deutsch 6b\n2;Mathe 6a;Deutsch 5b\n3;Mathe 7a;Deutsch 7b\n4;Mathe 8a;Deutsch 8b\n5;Mathe 9a;Deutsch 9b\n6;Mathe 5b;Deutsch 6a\n', ['Kowalczyk', 'Brandauer']],
+  ];
+  for (const [name, text, needles] of cases) {
+    const f = path.join(outDir, name);
+    fs.writeFileSync(f, text);
+    for (const unsure of [true, false]) {
+      const a = await anonymize(f, 'person', { unsure });
+      const out = fs.readFileSync(a.outPath, 'utf8');
+      const left = needles.filter((n) => out.includes(n));
+      check(`${name} (unsichere Kopfzeile), „Unsichere Treffer“ ${unsure ? 'an' : 'aus'}: Namen ersetzt`, !left.length, left.join(', '));
+    }
+  }
+  // Gegenprobe: eine sichere Kopfzeile (stammdaten.csv) bleibt byte-gleich – siehe oben „Kopfzeile byte-gleich“
 }
 
 // ---------- Merkliste ----------

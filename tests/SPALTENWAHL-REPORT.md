@@ -233,7 +233,13 @@ Schlüsseldatei (Excel): Format-Version 3, 910 Platzhalter (Name 369, Datum 55, 
 ## Sammelfrage und Schlusscheck
 - OK: Sammelfrage „Diese Wörter bleiben stehen“: kein Wort aus ersetzten Zellen
 - OK: Schlusscheck: kein Fund (ersetzte Zellen sind ersetzt)
-- OK: Name in einer Kopfzeile: bleibt stehen, Schlusscheck meldet ihn mit Hinweis „Kopfzeile … selbst ändern“ – „Mehmet“ steht noch in: Blatt Yılmaz (ausgeblendet), Zelle A1 bestätigter Name · „…Notizen zu Mehmet Yılmaz…“ Das steht in der Kopfzeile einer Tabelle. Überschriften ersetzt das Tool nie. Bitte ändere die Überschrift selbst in der Datei. | „Yılmaz“ steht noch in: Blatt Yılmaz (ausgeblendet), Zelle A1 bestätigter Name · „…Notizen zu Mehmet Yılmaz…“ Das steht in der Kopfzeile einer Tabelle. Überschriften ersetzt das Tool nie. Bitte ändere die Überschrift selbst in der Datei.
+- OK: Name in einer unsicheren Kopfzeile (eine Spalte), „Unsichere Treffer“ aus: ersetzt
+- OK: titelzeile.csv (unsichere Kopfzeile), „Unsichere Treffer“ an: Namen ersetzt
+- OK: titelzeile.csv (unsichere Kopfzeile), „Unsichere Treffer“ aus: Namen ersetzt
+- OK: ohnekopf.csv (unsichere Kopfzeile), „Unsichere Treffer“ an: Namen ersetzt
+- OK: ohnekopf.csv (unsichere Kopfzeile), „Unsichere Treffer“ aus: Namen ersetzt
+- OK: namekopf.csv (unsichere Kopfzeile), „Unsichere Treffer“ an: Namen ersetzt
+- OK: namekopf.csv (unsichere Kopfzeile), „Unsichere Treffer“ aus: Namen ersetzt
 
 ## Merkliste: Wahl je Überschrift
 - OK: Merkliste an: Wahl je Überschrift gemerkt und beim nächsten Dokument angewendet (auch in Excel) – {"geschlecht":"ganz"}
@@ -341,4 +347,4 @@ Schlüsseldatei (Excel): Format-Version 3, 910 Platzhalter (Name 369, Datum 55, 
 
 - OK: 0 Anfragen nach außen (alle Seiten dieses Laufs)
 
-Ergebnis: 135 von 135 Prüfungen bestanden
+Ergebnis: 141 von 141 Prüfungen bestanden

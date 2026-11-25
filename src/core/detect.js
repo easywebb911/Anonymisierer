@@ -1684,8 +1684,16 @@ export function columnPlan(units, overrides = {}, memory = {}, opts = {}) {
 // Datenzelle steht, gehört nicht dazu (sonst bliebe die Datenzelle stehen).
 export function headerOnlyUnits(units) {
   const out = new Set();
-  for (const { t, headRows, headUnits } of findTables(units)) {
+  for (const { t, tb, headRows, headUnits } of findTables(units)) {
     if (!headRows.length || !(t === 'csv' || t.startsWith('x|'))) continue;
+    // Nur eine sichere Kopfzeile bleibt stehen: mindestens zwei gefüllte Zellen, und entweder ein Namens-Spaltenkopf
+    // („Nachname“, „Name“ …) oder jede Zelle sieht wie ein Spaltenkopf aus. Eine Titelzeile mit einer einzigen Zelle oder
+    // eine Datenzeile (z. B. „Kowalczyk | Bernd | Raum 12“) gilt im Zweifel nicht als Kopfzeile und wird wie bisher geprüft.
+    const sure = headRows.every((r) => {
+      const cells = [...tb.get(r).values()].map((cell) => [...cell.units].map((ui) => units[ui].text).join(' ').trim()).filter(Boolean);
+      return cells.length >= 2 && (cells.some((tx) => hasNameHeader(tx)) || cells.every((tx) => isHeaderLike(tx)));
+    });
+    if (!sure) continue;
     for (const ui of headUnits) if ((units[ui].tcells || []).every((tc) => tc.t === t && headRows.includes(tc.r))) out.add(ui);
   }
   return out;
