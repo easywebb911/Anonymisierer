@@ -440,6 +440,9 @@ for (const [f, label] of [['stammdaten.csv', 'CSV'], ['stammdaten.xlsx', 'Excel'
 {
   const a = await anonymize(path.join(FXW, 'komma.csv'), 'person');
   const rows = csvRows(fs.readFileSync(a.outPath, 'utf8').replace(/^\uFEFF/, ''));
+  // Guardian-Lauf 2, Fund 1: in „Wunschpartner“ ist das Komma eine Aufzählung (zwei Personen, jeweils wie in der Zeile)
+  const P = (r) => rows[r] && rows[r][0];
+  check('„Wunschpartner“: „Hauke, Ole“ sind zwei Personen (dieselben wie Hauke Quandt und Ole Wiesel), „Tilda, Ole“ ebenso', rows[1] && rows[1][3] === `${P(2)}, ${P(3)}` && rows[2][3] === `${P(1)}, ${P(3)}` && rows[3][3] === P(2), rows.slice(1, 4).map((r) => r.join(';')).join(' | '));
   check('„Berger, Tilda“ (Spalte „Name“) und „Tilda Berger“ (Spalte „wie bisher“) sind eine Person', rows[1] && rows[1][0] === rows[1][1] && /^Person [A-Z]$/.test(rows[1][0]) && rows[2][0] === rows[2][1] && rows[1][0] !== rows[2][0], rows.slice(1, 3).map((r) => r.join(';')).join(' | '));
 }
 // neue Schlüsseldatei (Version 3) in 2.9.0: klar abgelehnt, nichts still stehen lassen

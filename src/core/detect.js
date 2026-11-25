@@ -1591,10 +1591,12 @@ export function columnPlan(units, overrides = {}, memory = {}) {
 export function columnKeyOf(header) { return colNorm(header); }
 
 // Behandlung „Name“: Teile einer Zelle (getrennt durch | ; / „und“), je Teil Folgen von Wörtern, die noch frei sind
-function nameCellSegments(toks, covered) {
+// commaList (Guardian-Lauf 2, Fund 1): in Spalten ohne Namenswort in der Überschrift (z. B. „Wunschpartner“) trennt auch
+// ein Komma Namen („Hauke, Ole“ = zwei Personen, wie die Erkennung bis 2.9.0)
+function nameCellSegments(toks, covered, commaList = false) {
   const parts = [[]];
   toks.forEach((tk, k) => {
-    if (!tk.word ? /^[|;/]$/.test(tk.t) : fold(tk.t) === 'und') { parts.push([]); return; }
+    if (!tk.word ? (commaList ? /^[|;/,]$/ : /^[|;/]$/).test(tk.t) : fold(tk.t) === 'und') { parts.push([]); return; }
     parts[parts.length - 1].push(k);
   });
   const segs = [];
@@ -1641,7 +1643,10 @@ function columnTreatRule(units, unitToks, unitStarts, covered, tokHit, hits, men
     if (p.treat === 'ganz') { ganz.set(ui, p); continue; }
     nameUnits.add(ui);
     const toks = unitToks[ui];
-    const segs = nameCellSegments(toks, covered[ui]);
+    // „Nachname, Vorname“ nur in Spalten mit Namenswort in der Überschrift (Name, Nachname, Vorname …); sonst ist das Komma
+    // eine Aufzählung
+    const commaForm = p.col.prefix !== null;
+    const segs = nameCellSegments(toks, covered[ui], !commaForm);
     const made = [];
     const isFill = (a, b) => FILLER_SET.has(fold(units[ui].text.slice(a - unitStarts[ui], b - unitStarts[ui])).replace(/\s+/g, ' ').trim());
     for (const seg of segs) {
@@ -1662,7 +1667,7 @@ function columnTreatRule(units, unitToks, unitStarts, covered, tokHit, hits, men
       if (!comps.some((x) => x.type === 'W')) comps[comps.length - 1].type = 'W';
       // „Nachname, Vorname“ (genau ein Komma zwischen zwei Wortgruppen) wie bei der Namensspalten-Regel: Nachname vorn
       const commas = seg.filter((k) => toks[k].t === ',' && toks[k].s > comps[0].s && toks[k].e < comps[comps.length - 1].e);
-      if (commas.length === 1) {
+      if (commaForm && commas.length === 1) {
         const c = toks[commas[0]];
         const sur = comps.filter((x) => x.e <= c.s);
         const giv = comps.filter((x) => x.s >= c.e);

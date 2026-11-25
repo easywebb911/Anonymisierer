@@ -172,7 +172,7 @@ export async function makeAll() {
     merge: `${colL(HEADERS.indexOf('1. PLZ'))}5:${colL(HEADERS.indexOf('1. Ort'))}5` });
   // Kollisions-Schutz: „[DATUM-1]“ und „[ANGABE-2]“ stehen schon im Original (Spalte „wie bisher“)
   // „Nachname, Vorname“ in einer Spalte „Name“ und dieselbe Person in einer Spalte „wie bisher“ (Guardian-Lauf 1, Fund 2)
-  fs.writeFileSync(path.join(FXW, 'komma.csv'), ['Name;Kontakt;Klasse', 'Berger, Tilda;Tilda Berger;5c', 'Quandt, Hauke;Hauke Quandt;5a', ''].join('\r\n'));
+  fs.writeFileSync(path.join(FXW, 'komma.csv'), ['Name;Kontakt;Klasse;Wunschpartner', 'Berger, Tilda;Tilda Berger;5c;Hauke, Ole', 'Quandt, Hauke;Hauke Quandt;5a;Tilda, Ole', 'Wiesel, Ole;Ole Wiesel;5b;Hauke', ''].join('\r\n'));
   fs.writeFileSync(path.join(FXW, 'kollision-datum.csv'), ['Geburtsdatum;Religion;Text', '14.03.2015;rk;siehe [DATUM-1] und [ANGABE-2]', '02.07.2015;ev;Feld [ANGABE-2] bleibt', ''].join('\r\n'));
   const truth = { headers: HEADERS, expect: EXPECT, rows: data.map((r) => r.map(cellText)), types: data.map((r) => r.map((c) => c.typ)) };
   fs.writeFileSync(path.join(FXW, 'stammdaten-wahrheit.json'), JSON.stringify(truth, null, 1));

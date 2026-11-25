@@ -138,7 +138,8 @@ Schlüsseldatei (Excel): Format-Version 3, 502 Platzhalter (Name 186, Datum 30, 
 - OK: Excel: Schlüsseldatei aus 2.9.0 (Format-Version 2) baut mit 2.10.0 exakt zurück – passend
 - OK: Kollisions-Schutz: „[DATUM-1]“ und „[ANGABE-2]“ aus dem Original nicht vergeben, im Schlüssel als „imOriginal“ – [DATUM-2], [ANGABE-1], [DATUM-3], [ANGABE-3], Nachname A
 - OK: Kollisions-Schutz: Rückbau exakt (die Wörter aus dem Original bleiben) – passend
-- OK: „Berger, Tilda“ (Spalte „Name“) und „Tilda Berger“ (Spalte „wie bisher“) sind eine Person – Person B;Person B;5c | Person C;Person C;5a
+- OK: „Wunschpartner“: „Hauke, Ole“ sind zwei Personen (dieselben wie Hauke Quandt und Ole Wiesel), „Tilda, Ole“ ebenso – Person B;Person B;5c;Person C, Person D | Person C;Person C;5a;Person B, Person D | Person D;Person D Person D;5b;Person C
+- OK: „Berger, Tilda“ (Spalte „Name“) und „Tilda Berger“ (Spalte „wie bisher“) sind eine Person – Person B;Person B;5c;Person C, Person D | Person C;Person C;5a;Person B, Person D
 - OK: Schlüsseldatei aus 2.10.0 (Version 3) wird von 2.9.0 klar abgelehnt – Unbekannte Version der Schlüsseldatei (3). Bitte eine neuere Version des Tools verwenden.
 
 ## 5. Weg-Gleichheit
@@ -244,4 +245,4 @@ Schlüsseldatei (Excel): Format-Version 3, 502 Platzhalter (Name 186, Datum 30, 
 
 - OK: 0 Anfragen nach außen (alle Seiten dieses Laufs)
 
-Ergebnis: 88 von 88 Prüfungen bestanden
+Ergebnis: 89 von 89 Prüfungen bestanden
