@@ -75,6 +75,18 @@
 - OK: Schlüsseldatei aus 2.11.0 (CSV) baut mit 2.11.1 byte-gleich zurück – passend
 - OK: Schlüsseldatei aus 2.11.0 (Excel) baut mit 2.11.1 exakt zurück (jede Zelle)
 
+## Gemeinsame Texte in Excel (sharedStrings)
+- Beispiel „Muttersprache“: 1|6 und 32|6 (gemeinsamer Text Nr. 58) → [ANGABE-48] und [ANGABE-479], zurück „Türkisch“ und „Türkisch“
+- Beispiel „Staatsangehörigkeit“: 2|7 und 34|7 (gemeinsamer Text Nr. 93) → [ANGABE-63] und [ANGABE-508], zurück „polnisch“ und „polnisch“
+- Beispiel „Religion“: 1|8 und 4|8 (gemeinsamer Text Nr. 60) → [ANGABE-50] und [ANGABE-92], zurück „islamisch“ und „islamisch“
+- OK: stammdaten.xlsx: in jeder heiklen Spalte mit gemeinsamem Text (15 Spalten) tragen zwei Zellen mit gleichem Text verschiedene Platzhalter und kommen Zelle für Zelle exakt zurück – 15/15
+
+## „Unsichere Treffer standardmäßig ersetzen“ aus
+- OK: stammdaten.csv, „Unsichere Treffer“ aus: jede gefüllte Zelle einer heiklen Spalte hat eigene Nummern, keine doppelt
+- OK: stammdaten.csv, „Unsichere Treffer“ aus: Rückbau exakt – passend
+- OK: stammdaten.xlsx, „Unsichere Treffer“ aus: jede gefüllte Zelle einer heiklen Spalte hat eigene Nummern, keine doppelt
+- OK: stammdaten.xlsx, „Unsichere Treffer“ aus: Rückbau exakt – passend
+
 ## Anzeige
 - OK: Spalten-Übersicht, Modus reversible: „eigene Nummer je Zelle“ bei 18 Spalte(n) – 18: Eigene Nummer je Zelle: Gleiche Inhalte tragen verschiedene Nummern.
 - OK: Hinweis für die KI, Modus reversible: Satz zu eigenen Nummern vorhanden; kein „null“/„undefined“ – nnst du nicht, bitte nicht raten und nicht verändern. In manchen Spalten hat jede Zelle eine eigene Nummer; verschiedene Nummern sagen dort nichts darüber, ob die Inhalte gleich oder verschieden sind.
@@ -85,4 +97,4 @@
 
 - OK: 0 Anfragen nach außen (alle Seiten dieses Laufs)
 
-Ergebnis: 29 von 29 Prüfungen bestanden
+Ergebnis: 34 von 34 Prüfungen bestanden

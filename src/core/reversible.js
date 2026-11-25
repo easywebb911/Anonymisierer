@@ -120,7 +120,9 @@ export function assignReversible(result) {
   const orgExact = new Map(); // "A|Schreibweise" -> Platzhalter (für Texte außerhalb der Prüfansicht)
   // Version 2.5.0: Treffer „GROSS-Form eines von Hand übernommenen Namens“ (standardmäßig aus) bekommen ihre Platzhalter
   // zuletzt, damit die Nummern aller übrigen Schreibweisen gleich bleiben
-  for (const h of [...hits.filter((x) => !x.capsManual), ...hits.filter((x) => x.capsManual)]) {
+  // Version 2.11.1: Zellen heikler Spalten (eigene Nummer je Zelle) ganz zuletzt, in der Reihenfolge im Dokument; die
+  // übrigen Angaben zählen davor ohne Lücken fortlaufend (gleicher Wert = gleiche Nummer)
+  for (const h of [...hits.filter((x) => !x.capsManual && !x.perCell), ...hits.filter((x) => x.capsManual && !x.perCell), ...hits.filter((x) => x.perCell)]) {
     if (h.type === 'org') {
       // Ganze Bezeichnung (ohne Endung am Schluss, die bleibt wie bei Personen im Text stehen) = ein Platzhalter
       const og = result.orgs.get(h.entity);

@@ -14,7 +14,7 @@ import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import JSZip from 'jszip';
-import { orgTermTokens, isPureHeaderCell } from '../src/core/detect.js';
+import { orgTermTokens, isPureHeaderCell, isPerCellColumn } from '../src/core/detect.js';
 import { cached, fileSha, flush, refNote } from './referenz.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -70,6 +70,18 @@ async function outputs(html, file, mode, formats, orgTerms = null, treatFrom = n
   // Version 2.8.0: selbst gefundene Einrichtungen (Schreibweisen) – nur die neue Version kennt sie
   res.orgGroups = await page.evaluate(() => [...window.__anon.app.result.orgs.values()].filter((o) => o.auto).map((o) => [...o.forms.keys()]));
   res.orgAuto = res.orgGroups.flat();
+  // Version 2.11.1: Angaben (Platzhalter [ANGABE-n]) in der Reihenfolge im Text, mit Spalte; heikle Spalten (Wortstamm im
+  // Spaltenkopf) nach der Regel von 2.11.1, auch für die alte Version (gleiche Spalten, gleiche Behandlung)
+  if (mode === 'reversible') {
+    const r0 = await page.evaluate(() => {
+      const r = window.__anon.app.result;
+      return { hits: r.hits.filter((h) => h.on && h.type === 'info').sort((a, b) => a.s - b.s).map((h) => [h.s, h.label, h.column || null]),
+        plan: (r.colPlan || []).map((c) => ({ id: c.id, header: c.header, treat: c.treat, kind: c.kind })) };
+    });
+    const heikel = new Set(r0.plan.filter((c) => isPerCellColumn(c)).map((c) => c.id));
+    res.angOther = r0.hits.filter((x) => !heikel.has(x[2])).map((x) => x[1]);
+    res.angHeikel = r0.hits.filter((x) => heikel.has(x[2])).map((x) => x[1]);
+  }
   for (const f of formats) {
     res[f] = await page.evaluate(async (fmt) => {
       const o = await window.__anon.buildOutput(fmt);
@@ -192,12 +204,21 @@ for (const [file, formats] of FIXTURES) {
         if (!ok && !kOnly && mode === 'reversible') {
           ang = b[f].text !== null && a[f].text !== null ? a[f].text.replace(ANG_RE, '[ANGABE-#]') === b[f].text.replace(ANG_RE, '[ANGABE-#]') : sameParts(a[f].partsAng, b[f].partsAng);
           ang = ang && a[f].angabeAll === b[f].angabeAll;
+          // strenger (Entscheidung Easy): die nicht heiklen Angaben, nach erstem Vorkommen neu nummeriert, genau gleich wie
+          // in 2.11.0; in heiklen Spalten jede Angabe nur einmal
+          const canon = (list) => { const m = new Map(); return list.map((x) => { if (!m.has(x)) m.set(x, m.size); return m.get(x); }).join(','); };
+          const otherSame = canon(a.angOther || []) === canon(b.angOther || []) && (a.angOther || []).length === (b.angOther || []).length;
+          const heikelUnique = new Set(b.angHeikel || []).size === (b.angHeikel || []).length;
+          const shifted = JSON.stringify(a.angOther || []) !== JSON.stringify(b.angOther || []);
+          if (ang && !(otherSame && heikelUnique)) reasons.push(`- ${label}: NICHT ERLAUBT – nicht heikle Angaben anders als in 2.11.0 (auch nach Umnummern) oder Nummer in heikler Spalte doppelt`);
+          if (ang && otherSame && heikelUnique && shifted) reasons.push(`- ${label}: Nummern nicht heikler Angaben verschoben (nach Umnummern gleich wie 2.11.0): vorher ${[...new Set(a.angOther)].slice(0, 6).join(', ')} … / nachher ${[...new Set(b.angOther)].slice(0, 6).join(', ')} …`);
+          ang = ang && otherSame && heikelUnique;
         }
         if (ok) same++;
         if (kOnly) onlyKennung++;
         if (ang) v2111Changed++;
         lines.push(`- ${label}: ${ok ? 'identisch' : kOnly ? 'gleich bis auf die Kennung (Eigenschaft)' : ang ? 'geändert nur in den Nummern der Angaben (Grund unten)' : 'UNTERSCHIEDLICH'} (${a[f].sha.slice(0, 12)} / ${b[f].sha.slice(0, 12)})`);
-        if (ang) reasons.push(`- ${label}: nur Nummern der Platzhalter [ANGABE-n] geändert (gleich viele Stellen: ${b[f].angabeAll}); verschiedene Platzhalter vorher ${a[f].angabe}, nachher ${b[f].angabe}. Grund (Version 2.11.1): in heiklen Spalten eigene Nummer je Zelle; die übrigen Angaben werden fortlaufend weiter gezählt, ihre Nummern verschieben sich dadurch.`);
+        if (ang) reasons.push(`- ${label}: nur Nummern der Platzhalter [ANGABE-n] geändert (gleich viele Stellen: ${b[f].angabeAll}); verschiedene Platzhalter vorher ${a[f].angabe}, nachher ${b[f].angabe}. Grund (Version 2.11.1): in heiklen Spalten eigene Nummer je Zelle (${(b.angHeikel || []).length} Zellen, alle verschieden, zuletzt vergeben); nicht heikle Angaben nach Umnummern gleich wie 2.11.0.`);
         continue;
       }
       // Version 2.11.0: Tabellen – Spalten behandeln, Personen-Tabellen. Nachweis je Ausgabe: Mit jeder Spalte in der

@@ -186,7 +186,7 @@ Schlüsseldatei (Excel): Format-Version 3, 1607 Platzhalter (Name 369, Datum 55,
 - OK: Anonymisiert: Datumszellen sind Text-Platzhalter mit unverändertem Format (Stil) – inlineStr [DATUM-1] s=1; inlineStr [DATUM-2] s=1
 - OK: Anonymisiert: kein Originalwert der ersetzten Spalten in der gemeinsamen Textliste (sharedStrings)
 - OK: Rückbau Excel exakt: jede Zelle mit Wert, Zelltyp, Format (Stil) und Textläufen – 0 Abweichungen ; Urteil passend
-- OK: LibreOffice öffnet die anonymisierte Datei (Datumsspalte zeigt den Platzhalter) – Nachname A,Vorname A,Vorname A2,w,[DATUM-1],[ANGABE-1],[ANGABE-2],[ANGABE-3],[ANGABE-4],naturwissenschaftlich,[ANGABE-5]
+- OK: LibreOffice öffnet die anonymisierte Datei (Datumsspalte zeigt den Platzhalter) – Nachname A,Vorname A,Vorname A2,w,[DATUM-1],[ANGABE-1],[ANGABE-48],[ANGABE-49],[ANGABE-50],naturwissenschaftlich,[ANGABE
 - OK: LibreOffice: Rückbau zeigt dieselben Werte wie das Original (auch Datum und Zahlen) – Öztürk,Ayşe,Ayşe Nur,w,03/14/2015,Gaziantep,Türkisch,"deutsch, türkisch",islamisch,naturwissenschaftlich,ja,"Asthma bron
 - OK: Rückbau Excel: Zelle mit gemischter Formatierung hat wieder zwei Textläufe (der zweite fett) – <t>Asthma bronchiale, </t> | <rPr><b/></rPr><t>Notfallspray im Ranzen</t>
 - OK: Rückbau CSV byte-gleich (nach der Byte-Order-Mark) – passend
@@ -196,7 +196,7 @@ Schlüsseldatei (Excel): Format-Version 3, 1607 Platzhalter (Name 369, Datum 55,
 - OK: CSV: nach Korrektur wie vorgeschlagen Rückbau exakt (auch Zelltyp und Format) – passend
 - OK: CSV: Schlüsseldatei aus 2.10.0 (Format-Version 3) baut mit 2.11.0 exakt zurück – passend
 - OK: Excel: Schlüsseldatei aus 2.10.0 (Format-Version 3) baut mit 2.11.0 exakt zurück – passend
-- OK: Kollisions-Schutz: „[DATUM-1]“ und „[ANGABE-2]“ aus dem Original nicht vergeben, im Schlüssel als „imOriginal“ – [DATUM-2], [ANGABE-1], [DATUM-3], [ANGABE-3], Nachname A
+- OK: Kollisions-Schutz: „[DATUM-1]“ und „[ANGABE-2]“ aus dem Original nicht vergeben, im Schlüssel als „imOriginal“ – [DATUM-2], [DATUM-3], Nachname A, [ANGABE-1], [ANGABE-3]
 - OK: Kollisions-Schutz: Rückbau exakt (die Wörter aus dem Original bleiben) – passend
 - OK: „Berger, Tilda“ und „Quandt, Hauke“ (Spalte „Name“) sind dieselben Personen wie „Tilda Berger“ und „Hauke Quandt“ in der Titelzeile – Liste für Person A und Person B;; | Name;Klasse;Ganztag | Person A;[ANGABE];[ANGABE] | Person B;[ANGABE];[ANGABE]
 

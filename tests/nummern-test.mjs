@@ -52,16 +52,20 @@ async function newPage(html = NEW) {
   await page.goto('file://' + html);
   return { page, ctx, errors };
 }
-async function openFile(file, mode, { html = NEW, confirm = true } = {}) {
+async function openFile(file, mode, { html = NEW, confirm = true, unsure = true } = {}) {
   const o = await newPage(html);
   await startAnon(o.page, mode);
+  if (!unsure) {
+    if (await o.page.isHidden('#advanced')) await o.page.click('#tgl-adv');
+    if (await o.page.isChecked('#opt-unsureOn')) await o.page.click('#opt-unsureOn');
+  }
   await loadIn(o.page, file);
   await goTo(o.page, 'a2');
   if (confirm && await o.page.$('#col-ok')) await o.page.click('#col-ok');
   return o;
 }
-async function anonymize(file, mode, html = NEW) {
-  const o = await openFile(file, mode, { html });
+async function anonymize(file, mode, html = NEW, unsure = true) {
+  const o = await openFile(file, mode, { html, unsure });
   const { page } = o;
   // heikle Spalten (eigene Nummer je Zelle): Spalten mit solchen Treffern
   const perCell = await page.evaluate(() => {
@@ -125,7 +129,7 @@ async function xlsxGrid(bytes) {
     const v = (inner.match(/<v>([^<]*)<\/v>/) || [])[1];
     let text;
     if (t === 's') text = textOf(si[Number(v)]); else if (t === 'inlineStr') text = textOf(inner); else text = dec(v || '');
-    grid.set((Number(m[2]) - 1) + '|' + (colNum(m[1]) - 1), { t: t === 'inlineStr' ? 's' : t, s, text });
+    grid.set((Number(m[2]) - 1) + '|' + (colNum(m[1]) - 1), { t: t === 'inlineStr' ? 's' : t, s, text, shared: t === 's' ? Number(v) : null });
   }
   return grid;
 }
@@ -305,6 +309,57 @@ log('## 3. Rückbau');
   const r0x = await restore(path.join(FXN, 'stammdaten-2.11.0-anonym.xlsx'), path.join(FXN, 'stammdaten-2.11.0-schluessel-xlsx.json'));
   const d0x = r0x.bytes ? gridDiff(origX, await xlsxGrid(r0x.bytes)) : ['keine Datei'];
   check('Schlüsseldatei aus 2.11.0 (Excel) baut mit 2.11.1 exakt zurück (jede Zelle)', !d0x.length, d0x.slice(0, 3).join('; '));
+}
+
+// ---------- gemeinsame Texte (Excel) ----------
+log('');
+log('## Gemeinsame Texte in Excel (sharedStrings)');
+{
+  const origB = fs.readFileSync(path.join(FXW, 'stammdaten.xlsx'));
+  const origX = await xlsxGrid(origB);
+  const outX = await xlsxGrid(fs.readFileSync(runs.xlsx.outPath));
+  const rx = await restore(runs.xlsx.outPath, runs.xlsx.keyPath);
+  const back = rx.bytes ? await xlsxGrid(rx.bytes) : new Map();
+  const shown = [];
+  let pairs = 0;
+  let okPairs = 0;
+  for (const c of runs.xlsx.perCell) {
+    // zwei Zellen der Spalte, die im Original auf denselben gemeinsamen Text zeigen
+    const byShared = new Map();
+    for (const [k, x] of origX) if (Number(k.split('|')[1]) === c.c && Number(k.split('|')[0]) > 0 && x.shared !== null) { if (!byShared.has(x.shared)) byShared.set(x.shared, []); byShared.get(x.shared).push(k); }
+    const pair = [...byShared.values()].find((ks) => ks.length >= 2);
+    if (!pair) continue;
+    pairs++;
+    const [k1, k2] = pair;
+    const p1 = outX.get(k1).text;
+    const p2 = outX.get(k2).text;
+    const exact = [k1, k2].every((k) => back.get(k) && back.get(k).text === origX.get(k).text && back.get(k).t === origX.get(k).t && back.get(k).s === origX.get(k).s);
+    if (p1 !== p2 && /^\[ANGABE-\d+\]$/.test(p1) && /^\[ANGABE-\d+\]$/.test(p2) && exact) okPairs++;
+    if (shown.length < 3) shown.push(`„${c.header}“: ${k1} und ${k2} (gemeinsamer Text Nr. ${origX.get(k1).shared}) → ${p1} und ${p2}, zurück „${back.get(k1) && back.get(k1).text}“ und „${back.get(k2) && back.get(k2).text}“`);
+  }
+  for (const x of shown) log(`- Beispiel ${x}`);
+  check(`stammdaten.xlsx: in jeder heiklen Spalte mit gemeinsamem Text (${pairs} Spalten) tragen zwei Zellen mit gleichem Text verschiedene Platzhalter und kommen Zelle für Zelle exakt zurück`, pairs > 0 && okPairs === pairs, `${okPairs}/${pairs}`);
+}
+
+// ---------- „Unsichere Treffer“ aus (CLAUDE.md: jede neue Regel auch so) ----------
+log('');
+log('## „Unsichere Treffer standardmäßig ersetzen“ aus');
+for (const ext of ['csv', 'xlsx']) {
+  const f = path.join(FXW, `stammdaten.${ext}`);
+  const u = await anonymize(f, 'reversible', NEW, false);
+  const ru = await rowsOf(u.outPath);
+  const bad = [];
+  const all = [];
+  for (const c of u.perCell) {
+    const filled = TRUTH.rows.filter((r) => String(r[c.c]).trim() !== '').length;
+    const cellsPh = ru.slice(1).map((r) => (r[c.c] || '').match(PH) || []).filter((x) => x.length);
+    all.push(...cellsPh.flat());
+    if (cellsPh.length !== filled) bad.push(`${c.header}: ${cellsPh.length}/${filled}`);
+  }
+  check(`stammdaten.${ext}, „Unsichere Treffer“ aus: jede gefüllte Zelle einer heiklen Spalte hat eigene Nummern, keine doppelt`, u.perCell.length === runs[ext].perCell.length && !bad.length && new Set(all).size === all.length, bad.join('; '));
+  const r = await restore(u.outPath, u.keyPath);
+  const ok = ext === 'csv' ? !!r.bytes && noBom(r.bytes).equals(fs.readFileSync(f)) : !!r.bytes && !gridDiff(await xlsxGrid(fs.readFileSync(f)), await xlsxGrid(r.bytes)).length;
+  check(`stammdaten.${ext}, „Unsichere Treffer“ aus: Rückbau exakt`, ok, r.plan && r.plan.verdict);
 }
 
 // ---------- Anzeige ----------
