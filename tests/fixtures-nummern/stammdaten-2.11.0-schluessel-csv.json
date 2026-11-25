@@ -1,0 +1,7553 @@
+﻿{
+  "format": "anonymisierer-rueckbau-schluessel",
+  "formatVersion": 3,
+  "warnung": "Enthält echte Namen. Nie weitergeben, nie an eine KI.",
+  "hinweis": "Rückbau-Schlüsseldatei des Anonymisierers. Ohne diese Datei ist kein Rückbau möglich.",
+  "toolVersion": "2.11.0",
+  "modus": "rückbaufähig",
+  "quelle": {
+    "dateityp": "csv"
+  },
+  "kennung": "L28L",
+  "platzhalter": [
+    {
+      "platzhalter": "Nachname A",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "A",
+      "wert": "Öztürk",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname A",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "A",
+      "wert": "Ayşe",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname A2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "A",
+      "wert": "Ayşe Nur",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-1]",
+      "kategorie": "Datum",
+      "wert": "14.03.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-1]",
+      "kategorie": "Angabe",
+      "wert": "Gaziantep",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-2]",
+      "kategorie": "Angabe",
+      "wert": "Türkisch",
+      "anzahl": 9
+    },
+    {
+      "platzhalter": "[ANGABE-3]",
+      "kategorie": "Angabe",
+      "wert": "deutsch, türkisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-4]",
+      "kategorie": "Angabe",
+      "wert": "islamisch",
+      "anzahl": 10
+    },
+    {
+      "platzhalter": "[ANGABE-5]",
+      "kategorie": "Angabe",
+      "wert": "ja",
+      "anzahl": 25
+    },
+    {
+      "platzhalter": "[ANGABE-6]",
+      "kategorie": "Angabe",
+      "wert": "Asthma bronchiale, Notfallspray im Ranzen",
+      "anzahl": 4
+    },
+    {
+      "platzhalter": "Nachname B",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "B",
+      "wert": "Öztürk",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname B",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "B",
+      "wert": "Mehmet",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-1]",
+      "kategorie": "Adresse",
+      "wert": "Lindenweg",
+      "anzahl": 9
+    },
+    {
+      "platzhalter": "[ADRESSE-2]",
+      "kategorie": "Adresse",
+      "wert": "2",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-3]",
+      "kategorie": "Adresse",
+      "wert": "84512",
+      "anzahl": 36
+    },
+    {
+      "platzhalter": "[ADRESSE-4]",
+      "kategorie": "Adresse",
+      "wert": "Tannhofen",
+      "anzahl": 36
+    },
+    {
+      "platzhalter": "[ANGABE-7]",
+      "kategorie": "Angabe",
+      "wert": "9183117",
+      "anzahl": 20
+    },
+    {
+      "platzhalter": "[TELEFON-1]",
+      "kategorie": "Telefon",
+      "wert": "0861 44000",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-1]",
+      "kategorie": "E-Mail",
+      "wert": "mehmet.ozturk@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-2]",
+      "kategorie": "Telefon",
+      "wert": "0151 2000000",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname C",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "C",
+      "wert": "Öztürk",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname C",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "C",
+      "wert": "Emine",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-5]",
+      "kategorie": "Adresse",
+      "wert": "Kastanienstraße",
+      "anzahl": 10
+    },
+    {
+      "platzhalter": "[ADRESSE-6]",
+      "kategorie": "Adresse",
+      "wert": "7",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-7]",
+      "kategorie": "Adresse",
+      "wert": "84513",
+      "anzahl": 26
+    },
+    {
+      "platzhalter": "[ADRESSE-8]",
+      "kategorie": "Adresse",
+      "wert": "Lindenau-Süd",
+      "anzahl": 26
+    },
+    {
+      "platzhalter": "[ANGABE-8]",
+      "kategorie": "Angabe",
+      "wert": "gemeinsam",
+      "anzahl": 38
+    },
+    {
+      "platzhalter": "[ANGABE-9]",
+      "kategorie": "Angabe",
+      "wert": "bei beiden",
+      "anzahl": 38
+    },
+    {
+      "platzhalter": "Einrichtung A",
+      "kategorie": "Einrichtung",
+      "einrichtung": "A",
+      "wert": "Grundschule am Lindenhof, Birkenweg 3",
+      "anzahl": 15
+    },
+    {
+      "platzhalter": "[ANGABE-10]",
+      "kategorie": "Angabe",
+      "wert": "912000",
+      "anzahl": 15
+    },
+    {
+      "platzhalter": "[ANGABE-11]",
+      "kategorie": "Angabe",
+      "wert": "lena | ben",
+      "anzahl": 4
+    },
+    {
+      "platzhalter": "[ANGABE-12]",
+      "kategorie": "Angabe",
+      "wert": "Rücksprache mit Frau Wennemann am 12.09.",
+      "anzahl": 10
+    },
+    {
+      "platzhalter": "[ANGABE-13]",
+      "kategorie": "Angabe",
+      "wert": "Ethik",
+      "anzahl": 30
+    },
+    {
+      "platzhalter": "[ANGABE-14]",
+      "kategorie": "Angabe",
+      "wert": "nein",
+      "anzahl": 211
+    },
+    {
+      "platzhalter": "[ANGABE-15]",
+      "kategorie": "Angabe",
+      "wert": "Nein",
+      "anzahl": 59
+    },
+    {
+      "platzhalter": "Nachname D",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "D",
+      "wert": "Kowalczyk-Brandt",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname D",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "D",
+      "wert": "Mateusz",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname D2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "D",
+      "wert": "Mateusz Jan",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-2]",
+      "kategorie": "Datum",
+      "wert": "02.07.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-16]",
+      "kategorie": "Angabe",
+      "wert": "Wrocław",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-17]",
+      "kategorie": "Angabe",
+      "wert": "Polnisch",
+      "anzahl": 9
+    },
+    {
+      "platzhalter": "[ANGABE-18]",
+      "kategorie": "Angabe",
+      "wert": "polnisch",
+      "anzahl": 8
+    },
+    {
+      "platzhalter": "[ANGABE-19]",
+      "kategorie": "Angabe",
+      "wert": "rk",
+      "anzahl": 19
+    },
+    {
+      "platzhalter": "Nachname E",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "E",
+      "wert": "Kowalczyk",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname E",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "E",
+      "wert": "Agnieszka",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-9]",
+      "kategorie": "Adresse",
+      "wert": "Am Mühlbach",
+      "anzahl": 10
+    },
+    {
+      "platzhalter": "[ADRESSE-10]",
+      "kategorie": "Adresse",
+      "wert": "3a",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-20]",
+      "kategorie": "Angabe",
+      "wert": "9183118",
+      "anzahl": 20
+    },
+    {
+      "platzhalter": "[TELEFON-3]",
+      "kategorie": "Telefon",
+      "wert": "0861 44011",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-2]",
+      "kategorie": "E-Mail",
+      "wert": "agnieszka.kowalczyk@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-4]",
+      "kategorie": "Telefon",
+      "wert": "0151 2007919",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-5]",
+      "kategorie": "Telefon",
+      "wert": "0861 9101",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-21]",
+      "kategorie": "Angabe",
+      "wert": "Oma Gerlinde Kowalczyk-Brandt, erreichbar ab 14 Uhr",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname F",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "F",
+      "wert": "Brandt",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname F",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "F",
+      "wert": "Torsten",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-11]",
+      "kategorie": "Adresse",
+      "wert": "Ulmenring",
+      "anzahl": 10
+    },
+    {
+      "platzhalter": "[ADRESSE-12]",
+      "kategorie": "Adresse",
+      "wert": "8",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "[ADRESSE-13]",
+      "kategorie": "Adresse",
+      "wert": "84520",
+      "anzahl": 36
+    },
+    {
+      "platzhalter": "[ADRESSE-14]",
+      "kategorie": "Adresse",
+      "wert": "Kirchberg am See",
+      "anzahl": 36
+    },
+    {
+      "platzhalter": "Einrichtung B",
+      "kategorie": "Einrichtung",
+      "einrichtung": "B",
+      "wert": "Grundschule Tannhofen-Nord, Am Anger 12",
+      "anzahl": 15
+    },
+    {
+      "platzhalter": "[ANGABE-22]",
+      "kategorie": "Angabe",
+      "wert": "912007",
+      "anzahl": 15
+    },
+    {
+      "platzhalter": "[ANGABE-23]",
+      "kategorie": "Angabe",
+      "wert": "Mateusz; Ayşe",
+      "anzahl": 4
+    },
+    {
+      "platzhalter": "[ANGABE-24]",
+      "kategorie": "Angabe",
+      "wert": "Mutter spricht wenig Deutsch, Dolmetscherin Frau Szabó-Kertész",
+      "anzahl": 10
+    },
+    {
+      "platzhalter": "[ANGABE-25]",
+      "kategorie": "Angabe",
+      "wert": "römisch-katholisch",
+      "anzahl": 15
+    },
+    {
+      "platzhalter": "Nachname G",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "G",
+      "wert": "Nguyen",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname G",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "G",
+      "wert": "Thi Lan",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "[DATUM-3]",
+      "kategorie": "Datum",
+      "wert": "23.11.2014",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-26]",
+      "kategorie": "Angabe",
+      "wert": "Hải Phòng",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-27]",
+      "kategorie": "Angabe",
+      "wert": "Vietnamesisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-28]",
+      "kategorie": "Angabe",
+      "wert": "vietnamesisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-29]",
+      "kategorie": "Angabe",
+      "wert": "ohne",
+      "anzahl": 11
+    },
+    {
+      "platzhalter": "Nachname H",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "H",
+      "wert": "Nguyen",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname H",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "H",
+      "wert": "Văn Minh",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-15]",
+      "kategorie": "Adresse",
+      "wert": "Birkenallee",
+      "anzahl": 11
+    },
+    {
+      "platzhalter": "[ADRESSE-16]",
+      "kategorie": "Adresse",
+      "wert": "4",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-30]",
+      "kategorie": "Angabe",
+      "wert": "9183121",
+      "anzahl": 20
+    },
+    {
+      "platzhalter": "[TELEFON-6]",
+      "kategorie": "Telefon",
+      "wert": "0861 44022",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-3]",
+      "kategorie": "E-Mail",
+      "wert": "vanminh.nguyen@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-7]",
+      "kategorie": "Telefon",
+      "wert": "0151 2015838",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-31]",
+      "kategorie": "Angabe",
+      "wert": "Mutter",
+      "anzahl": 22
+    },
+    {
+      "platzhalter": "[ANGABE-32]",
+      "kategorie": "Angabe",
+      "wert": "bei Mutter",
+      "anzahl": 22
+    },
+    {
+      "platzhalter": "Einrichtung C",
+      "kategorie": "Einrichtung",
+      "einrichtung": "C",
+      "wert": "Montessori-Grundschule Kirchberg, Seestraße 40a",
+      "anzahl": 15
+    },
+    {
+      "platzhalter": "[ANGABE-33]",
+      "kategorie": "Angabe",
+      "wert": "912014",
+      "anzahl": 15
+    },
+    {
+      "platzhalter": "[ANGABE-34]",
+      "kategorie": "Angabe",
+      "wert": "keine",
+      "anzahl": 4
+    },
+    {
+      "platzhalter": "[ANGABE-35]",
+      "kategorie": "Angabe",
+      "wert": "Bruder in Klasse 7b",
+      "anzahl": 10
+    },
+    {
+      "platzhalter": "[ANGABE-36]",
+      "kategorie": "Angabe",
+      "wert": "Gymnasium am Wendelstein, da der Bruder dort ist",
+      "anzahl": 3
+    },
+    {
+      "platzhalter": "Nachname I",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "I",
+      "wert": "Abdi",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname I",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "I",
+      "wert": "Hodan",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname I2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "I",
+      "wert": "Hodan Faisa",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-4]",
+      "kategorie": "Datum",
+      "wert": "09.01.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-37]",
+      "kategorie": "Angabe",
+      "wert": "Mogadischu",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-38]",
+      "kategorie": "Angabe",
+      "wert": "Somali",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-39]",
+      "kategorie": "Angabe",
+      "wert": "somalisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname J",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "J",
+      "wert": "Abdi",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname J",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "J",
+      "wert": "Faisa",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-17]",
+      "kategorie": "Adresse",
+      "wert": "5",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-8]",
+      "kategorie": "Telefon",
+      "wert": "0861 44033",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-4]",
+      "kategorie": "E-Mail",
+      "wert": "faisa.abdi@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-9]",
+      "kategorie": "Telefon",
+      "wert": "0151 2023757",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-10]",
+      "kategorie": "Telefon",
+      "wert": "0861 9103",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-40]",
+      "kategorie": "Angabe",
+      "wert": "Oma Hildegard Abdi, erreichbar ab 14 Uhr",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Einrichtung D",
+      "kategorie": "Einrichtung",
+      "einrichtung": "D",
+      "wert": "Grundschule St. Ulrich, Kirchplatz 1",
+      "anzahl": 15
+    },
+    {
+      "platzhalter": "[ANGABE-41]",
+      "kategorie": "Angabe",
+      "wert": "912021",
+      "anzahl": 15
+    },
+    {
+      "platzhalter": "[ANGABE-42]",
+      "kategorie": "Angabe",
+      "wert": "–",
+      "anzahl": 4
+    },
+    {
+      "platzhalter": "[ANGABE-43]",
+      "kategorie": "Angabe",
+      "wert": "Abholung nur durch die Großmutter Hildegard Quaas",
+      "anzahl": 10
+    },
+    {
+      "platzhalter": "[ANGABE-44]",
+      "kategorie": "Angabe",
+      "wert": "evangelisch",
+      "anzahl": 15
+    },
+    {
+      "platzhalter": "[ANGABE-45]",
+      "kategorie": "Angabe",
+      "wert": "ja, Notenschutz",
+      "anzahl": 4
+    },
+    {
+      "platzhalter": "Nachname K",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "K",
+      "wert": "van der Meulen",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname K",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "K",
+      "wert": "Joris",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname K2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "K",
+      "wert": "Joris Pieter",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-5]",
+      "kategorie": "Datum",
+      "wert": "30.05.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-46]",
+      "kategorie": "Angabe",
+      "wert": "Utrecht",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-47]",
+      "kategorie": "Angabe",
+      "wert": "Niederländisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-48]",
+      "kategorie": "Angabe",
+      "wert": "niederländisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-49]",
+      "kategorie": "Angabe",
+      "wert": "ev",
+      "anzahl": 16
+    },
+    {
+      "platzhalter": "Nachname L",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "L",
+      "wert": "van der Meulen",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname L",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "L",
+      "wert": "Sanne",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-18]",
+      "kategorie": "Adresse",
+      "wert": "6",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-11]",
+      "kategorie": "Telefon",
+      "wert": "0861 44044",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-5]",
+      "kategorie": "E-Mail",
+      "wert": "sanne.vandermeulen@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-12]",
+      "kategorie": "Telefon",
+      "wert": "0151 2031676",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname M",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "M",
+      "wert": "van der Meulen",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname M",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "M",
+      "wert": "Bram",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-19]",
+      "kategorie": "Adresse",
+      "wert": "Ahornplatz",
+      "anzahl": 9
+    },
+    {
+      "platzhalter": "[ADRESSE-20]",
+      "kategorie": "Adresse",
+      "wert": "11",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-50]",
+      "kategorie": "Angabe",
+      "wert": "aylin und jonas",
+      "anzahl": 4
+    },
+    {
+      "platzhalter": "Nachname N",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "N",
+      "wert": "Okonkwo",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname N",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "N",
+      "wert": "Chidera",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname N2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "N",
+      "wert": "Chidera Blessing",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-6]",
+      "kategorie": "Datum",
+      "wert": "17.12.2014",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-51]",
+      "kategorie": "Angabe",
+      "wert": "Enugu",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-52]",
+      "kategorie": "Angabe",
+      "wert": "Igbo",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "[ANGABE-53]",
+      "kategorie": "Angabe",
+      "wert": "nigerianisch",
+      "anzahl": 9
+    },
+    {
+      "platzhalter": "Nachname O",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "O",
+      "wert": "Okonkwo",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname O",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "O",
+      "wert": "Ngozi",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-21]",
+      "kategorie": "Adresse",
+      "wert": "Fliederweg",
+      "anzahl": 8
+    },
+    {
+      "platzhalter": "[ADRESSE-22]",
+      "kategorie": "Adresse",
+      "wert": "7a",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-13]",
+      "kategorie": "Telefon",
+      "wert": "0861 44055",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-6]",
+      "kategorie": "E-Mail",
+      "wert": "ngozi.okonkwo@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-14]",
+      "kategorie": "Telefon",
+      "wert": "0151 2039595",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-15]",
+      "kategorie": "Telefon",
+      "wert": "0861 9105",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-54]",
+      "kategorie": "Angabe",
+      "wert": "Oma Waltraud Okonkwo, erreichbar ab 14 Uhr",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname P",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "P",
+      "wert": "Okonkwo",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname P",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "P",
+      "wert": "Emeka",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-23]",
+      "kategorie": "Adresse",
+      "wert": "Eschenstraße",
+      "anzahl": 11
+    },
+    {
+      "platzhalter": "[ADRESSE-24]",
+      "kategorie": "Adresse",
+      "wert": "12",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "[ANGABE-55]",
+      "kategorie": "Angabe",
+      "wert": "Joris / Lasse",
+      "anzahl": 4
+    },
+    {
+      "platzhalter": "[ANGABE-56]",
+      "kategorie": "Angabe",
+      "wert": "Kontakt zum Jugendamt, Sachbearbeiter Herr Brinkhoff",
+      "anzahl": 10
+    },
+    {
+      "platzhalter": "Nachname Q",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "Q",
+      "wert": "Wennemann",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname Q",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "Q",
+      "wert": "Lasse",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname Q2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "Q",
+      "wert": "Lasse Hinrich",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-7]",
+      "kategorie": "Datum",
+      "wert": "26.02.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-57]",
+      "kategorie": "Angabe",
+      "wert": "Quakenbrück",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-58]",
+      "kategorie": "Angabe",
+      "wert": "Deutsch",
+      "anzahl": 12
+    },
+    {
+      "platzhalter": "[ANGABE-59]",
+      "kategorie": "Angabe",
+      "wert": "deutsch",
+      "anzahl": 12
+    },
+    {
+      "platzhalter": "[ANGABE-60]",
+      "kategorie": "Angabe",
+      "wert": "Legasthenie",
+      "anzahl": 3
+    },
+    {
+      "platzhalter": "Nachname R",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "R",
+      "wert": "Wennemann",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname R",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "R",
+      "wert": "Gesche",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-25]",
+      "kategorie": "Adresse",
+      "wert": "Rosenhang",
+      "anzahl": 10
+    },
+    {
+      "platzhalter": "[TELEFON-16]",
+      "kategorie": "Telefon",
+      "wert": "0861 44066",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-7]",
+      "kategorie": "E-Mail",
+      "wert": "gesche.wennemann@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-17]",
+      "kategorie": "Telefon",
+      "wert": "0151 2047514",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname S",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "S",
+      "wert": "Wennemann",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname S",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "S",
+      "wert": "Hauke",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-26]",
+      "kategorie": "Adresse",
+      "wert": "Hollerweg",
+      "anzahl": 10
+    },
+    {
+      "platzhalter": "[ADRESSE-27]",
+      "kategorie": "Adresse",
+      "wert": "13",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "[ANGABE-61]",
+      "kategorie": "Angabe",
+      "wert": "chidera",
+      "anzahl": 4
+    },
+    {
+      "platzhalter": "Nachname T",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "T",
+      "wert": "Szabó",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname T",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "T",
+      "wert": "Réka",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname T2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "T",
+      "wert": "Réka Anna",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-8]",
+      "kategorie": "Datum",
+      "wert": "11.08.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-62]",
+      "kategorie": "Angabe",
+      "wert": "Szeged",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-63]",
+      "kategorie": "Angabe",
+      "wert": "Ungarisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-64]",
+      "kategorie": "Angabe",
+      "wert": "ungarisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname U",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "U",
+      "wert": "Szabó",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname U",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "U",
+      "wert": "Bence",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-28]",
+      "kategorie": "Adresse",
+      "wert": "9",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-18]",
+      "kategorie": "Telefon",
+      "wert": "0861 44077",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-8]",
+      "kategorie": "E-Mail",
+      "wert": "bence.szabo@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-19]",
+      "kategorie": "Telefon",
+      "wert": "0151 2055433",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-20]",
+      "kategorie": "Telefon",
+      "wert": "0861 9107",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-65]",
+      "kategorie": "Angabe",
+      "wert": "Oma Gerlinde Szabó, erreichbar ab 14 Uhr",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-66]",
+      "kategorie": "Angabe",
+      "wert": "Elin",
+      "anzahl": 4
+    },
+    {
+      "platzhalter": "[ANGABE-67]",
+      "kategorie": "Angabe",
+      "wert": "Asyl",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname V",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "V",
+      "wert": "Lindqvist",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname V",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "V",
+      "wert": "Elin",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname V2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "V",
+      "wert": "Elin Maja",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-9]",
+      "kategorie": "Datum",
+      "wert": "04.04.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-68]",
+      "kategorie": "Angabe",
+      "wert": "Umeå",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-69]",
+      "kategorie": "Angabe",
+      "wert": "Schwedisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-70]",
+      "kategorie": "Angabe",
+      "wert": "schwedisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname W",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "W",
+      "wert": "Lindqvist",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname W",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "W",
+      "wert": "Karin",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-29]",
+      "kategorie": "Adresse",
+      "wert": "10",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-21]",
+      "kategorie": "Telefon",
+      "wert": "0861 44088",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-9]",
+      "kategorie": "E-Mail",
+      "wert": "karin.lindqvist@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-22]",
+      "kategorie": "Telefon",
+      "wert": "0151 2063352",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname X",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "X",
+      "wert": "Lindqvist",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname X",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "X",
+      "wert": "Per",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-30]",
+      "kategorie": "Adresse",
+      "wert": "15",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-71]",
+      "kategorie": "Angabe",
+      "wert": "Lessing-Gymnasium Kirchberg; Frieda braucht kurze Wege wegen ihrer Diabetes",
+      "anzahl": 3
+    },
+    {
+      "platzhalter": "Nachname Y",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "Y",
+      "wert": "Al-Rashid",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname Y",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "Y",
+      "wert": "Yusuf",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname Y2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "Y",
+      "wert": "Yusuf Karim",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-10]",
+      "kategorie": "Datum",
+      "wert": "19.10.2014",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-72]",
+      "kategorie": "Angabe",
+      "wert": "Homs",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-73]",
+      "kategorie": "Angabe",
+      "wert": "Arabisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-74]",
+      "kategorie": "Angabe",
+      "wert": "syrisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-75]",
+      "kategorie": "Angabe",
+      "wert": "Laktoseintoleranz",
+      "anzahl": 3
+    },
+    {
+      "platzhalter": "[ANGABE-76]",
+      "kategorie": "Angabe",
+      "wert": "Dr. med.",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "Nachname Z",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "Z",
+      "wert": "Al-Rashid",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname Z",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "Z",
+      "wert": "Rania",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-31]",
+      "kategorie": "Adresse",
+      "wert": "11a",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-23]",
+      "kategorie": "Telefon",
+      "wert": "0861 44099",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-10]",
+      "kategorie": "E-Mail",
+      "wert": "rania.alrashid@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-24]",
+      "kategorie": "Telefon",
+      "wert": "0151 2071271",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-25]",
+      "kategorie": "Telefon",
+      "wert": "0861 9109",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-77]",
+      "kategorie": "Angabe",
+      "wert": "Oma Hildegard Al-Rashid, erreichbar ab 14 Uhr",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname AA",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "AA",
+      "wert": "Al-Rashid",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AA",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AA",
+      "wert": "Omar",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-32]",
+      "kategorie": "Adresse",
+      "wert": "16",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "[ANGABE-78]",
+      "kategorie": "Angabe",
+      "wert": "yusuf | luka",
+      "anzahl": 4
+    },
+    {
+      "platzhalter": "Nachname AB",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "AB",
+      "wert": "Papadopoulou",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AB",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AB",
+      "wert": "Eleni",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AB2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AB",
+      "wert": "Eleni Sofia",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-11]",
+      "kategorie": "Datum",
+      "wert": "08.06.2015",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "[ANGABE-79]",
+      "kategorie": "Angabe",
+      "wert": "Larisa",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-80]",
+      "kategorie": "Angabe",
+      "wert": "Griechisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-81]",
+      "kategorie": "Angabe",
+      "wert": "griechisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-82]",
+      "kategorie": "Angabe",
+      "wert": "orthodox",
+      "anzahl": 3
+    },
+    {
+      "platzhalter": "Nachname AC",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "AC",
+      "wert": "Papadopoulos",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AC",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AC",
+      "wert": "Nikos",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-26]",
+      "kategorie": "Telefon",
+      "wert": "0861 44100",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-11]",
+      "kategorie": "E-Mail",
+      "wert": "nikos.papadopoulos@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-27]",
+      "kategorie": "Telefon",
+      "wert": "0151 2079190",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname AD",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "AD",
+      "wert": "Papadopoulou",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AD",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AD",
+      "wert": "Maria",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-33]",
+      "kategorie": "Adresse",
+      "wert": "17",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "[ANGABE-83]",
+      "kategorie": "Angabe",
+      "wert": "Réka und Eleni",
+      "anzahl": 4
+    },
+    {
+      "platzhalter": "Nachname AE",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "AE",
+      "wert": "Hrnčíř",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AE",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AE",
+      "wert": "Vojtěch",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "[DATUM-12]",
+      "kategorie": "Datum",
+      "wert": "01.09.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-84]",
+      "kategorie": "Angabe",
+      "wert": "Plzeň",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-85]",
+      "kategorie": "Angabe",
+      "wert": "Tschechisch",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "[ANGABE-86]",
+      "kategorie": "Angabe",
+      "wert": "tschechisch",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "Nachname AF",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "AF",
+      "wert": "Hrnčířová",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AF",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AF",
+      "wert": "Lenka",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-28]",
+      "kategorie": "Telefon",
+      "wert": "0861 44111",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-12]",
+      "kategorie": "E-Mail",
+      "wert": "lenka.hrncirova@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-29]",
+      "kategorie": "Telefon",
+      "wert": "0151 2087109",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-30]",
+      "kategorie": "Telefon",
+      "wert": "0861 9111",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-87]",
+      "kategorie": "Angabe",
+      "wert": "Oma Waltraud Hrnčíř, erreichbar ab 14 Uhr",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-88]",
+      "kategorie": "Angabe",
+      "wert": "n.n.",
+      "anzahl": 4
+    },
+    {
+      "platzhalter": "[ANGABE-89]",
+      "kategorie": "Angabe",
+      "wert": "keins",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "Nachname AG",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "AG",
+      "wert": "Mbatha",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AG",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AG",
+      "wert": "Sipho",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AG2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AG",
+      "wert": "Sipho Thandeka",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-13]",
+      "kategorie": "Datum",
+      "wert": "28.09.2014",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-90]",
+      "kategorie": "Angabe",
+      "wert": "Durban",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-91]",
+      "kategorie": "Angabe",
+      "wert": "Zulu",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-92]",
+      "kategorie": "Angabe",
+      "wert": "südafrikanisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-93]",
+      "kategorie": "Angabe",
+      "wert": "Diabetes Typ 1, Insulinpumpe",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "Nachname AH",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "AH",
+      "wert": "Mbatha",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AH",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AH",
+      "wert": "Nomvula",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-34]",
+      "kategorie": "Adresse",
+      "wert": "14",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-31]",
+      "kategorie": "Telefon",
+      "wert": "0861 44122",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-13]",
+      "kategorie": "E-Mail",
+      "wert": "nomvula.mbatha@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-32]",
+      "kategorie": "Telefon",
+      "wert": "0151 2095028",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-94]",
+      "kategorie": "Angabe",
+      "wert": "Am liebsten neben Smilla, die kennt sie aus dem Fußballverein",
+      "anzahl": 4
+    },
+    {
+      "platzhalter": "[ANGABE-95]",
+      "kategorie": "Angabe",
+      "wert": "Ja",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-96]",
+      "kategorie": "Angabe",
+      "wert": "Frau Holtkamp-Ebner, MSD Tannhofen, 0861 7712",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname AI",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "AI",
+      "wert": "de Oliveira",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AI",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AI",
+      "wert": "Bruna",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AI2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AI",
+      "wert": "Bruna Letícia",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-14]",
+      "kategorie": "Datum",
+      "wert": "27.03.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-97]",
+      "kategorie": "Angabe",
+      "wert": "Recife",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-98]",
+      "kategorie": "Angabe",
+      "wert": "Portugiesisch",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "[ANGABE-99]",
+      "kategorie": "Angabe",
+      "wert": "brasilianisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname AJ",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "AJ",
+      "wert": "Oliveira Santos",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AJ",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AJ",
+      "wert": "Rafael",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-35]",
+      "kategorie": "Adresse",
+      "wert": "15a",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-33]",
+      "kategorie": "Telefon",
+      "wert": "0861 44133",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-14]",
+      "kategorie": "E-Mail",
+      "wert": "rafael.oliveirasantos@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-34]",
+      "kategorie": "Telefon",
+      "wert": "0151 2102947",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-35]",
+      "kategorie": "Telefon",
+      "wert": "0861 9113",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-100]",
+      "kategorie": "Angabe",
+      "wert": "Oma Gerlinde de Oliveira, erreichbar ab 14 Uhr",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname AK",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "AK",
+      "wert": "de Oliveira",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AK",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AK",
+      "wert": "Camila",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-36]",
+      "kategorie": "Adresse",
+      "wert": "20",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "[ANGABE-101]",
+      "kategorie": "Angabe",
+      "wert": "Aus der Grundschule kennt er Bent und Oskar",
+      "anzahl": 4
+    },
+    {
+      "platzhalter": "Nachname AL",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "AL",
+      "wert": "Tesfaye",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AL",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AL",
+      "wert": "Meron",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "[DATUM-15]",
+      "kategorie": "Datum",
+      "wert": "21.07.2015",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "[ANGABE-102]",
+      "kategorie": "Angabe",
+      "wert": "Gondar",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-103]",
+      "kategorie": "Angabe",
+      "wert": "Amharisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-104]",
+      "kategorie": "Angabe",
+      "wert": "äthiopisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname AM",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "AM",
+      "wert": "Tesfaye",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AM",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AM",
+      "wert": "Selamawit",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-36]",
+      "kategorie": "Telefon",
+      "wert": "0861 44144",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-15]",
+      "kategorie": "E-Mail",
+      "wert": "selamawit.tesfaye@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-37]",
+      "kategorie": "Telefon",
+      "wert": "0151 2110866",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-105]",
+      "kategorie": "Angabe",
+      "wert": "Bitte nicht mit Kaspar in eine Klasse",
+      "anzahl": 4
+    },
+    {
+      "platzhalter": "[ANGABE-106]",
+      "kategorie": "Angabe",
+      "wert": "Gymnasium Tannhofen",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "Nachname AN",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "AN",
+      "wert": "Quaas",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AN",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AN",
+      "wert": "Fiete",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AN2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AN",
+      "wert": "Fiete Ole",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-16]",
+      "kategorie": "Datum",
+      "wert": "31.01.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-107]",
+      "kategorie": "Angabe",
+      "wert": "Husum",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-108]",
+      "kategorie": "Angabe",
+      "wert": "Hörgerät links",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "Nachname AO",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "AO",
+      "wert": "Quaas",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AO",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AO",
+      "wert": "Imke",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-38]",
+      "kategorie": "Telefon",
+      "wert": "0861 44155",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-16]",
+      "kategorie": "E-Mail",
+      "wert": "imke.quaas@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-39]",
+      "kategorie": "Telefon",
+      "wert": "0151 2118785",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-40]",
+      "kategorie": "Telefon",
+      "wert": "0861 9115",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-109]",
+      "kategorie": "Angabe",
+      "wert": "Oma Hildegard Quaas, erreichbar ab 14 Uhr",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname AP",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "AP",
+      "wert": "Quaas",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AP",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AP",
+      "wert": "Jörn",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-37]",
+      "kategorie": "Adresse",
+      "wert": "22",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "Nachname AQ",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "AQ",
+      "wert": "Ylönen",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AQ",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AQ",
+      "wert": "Aino",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AQ2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AQ",
+      "wert": "Aino Kaisa",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-17]",
+      "kategorie": "Datum",
+      "wert": "05.11.2014",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-110]",
+      "kategorie": "Angabe",
+      "wert": "Kuopio",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-111]",
+      "kategorie": "Angabe",
+      "wert": "Finnisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-112]",
+      "kategorie": "Angabe",
+      "wert": "finnisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname AR",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "AR",
+      "wert": "Ylönen",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AR",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AR",
+      "wert": "Mikko",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-38]",
+      "kategorie": "Adresse",
+      "wert": "18",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-41]",
+      "kategorie": "Telefon",
+      "wert": "0861 44166",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-17]",
+      "kategorie": "E-Mail",
+      "wert": "mikko.ylonen@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-42]",
+      "kategorie": "Telefon",
+      "wert": "0151 2126704",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname AS",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "AS",
+      "wert": "Dragović",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AS",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AS",
+      "wert": "Luka",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "[ANGABE-113]",
+      "kategorie": "Angabe",
+      "wert": "d",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-18]",
+      "kategorie": "Datum",
+      "wert": "14.02.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-114]",
+      "kategorie": "Angabe",
+      "wert": "Kragujevac",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-115]",
+      "kategorie": "Angabe",
+      "wert": "Serbisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-116]",
+      "kategorie": "Angabe",
+      "wert": "serbisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname AT",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "AT",
+      "wert": "Dragović",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AT",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AT",
+      "wert": "Jelena",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-39]",
+      "kategorie": "Adresse",
+      "wert": "19a",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-43]",
+      "kategorie": "Telefon",
+      "wert": "0861 44177",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-18]",
+      "kategorie": "E-Mail",
+      "wert": "jelena.dragovic@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-44]",
+      "kategorie": "Telefon",
+      "wert": "0151 2134623",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-45]",
+      "kategorie": "Telefon",
+      "wert": "0861 9117",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-117]",
+      "kategorie": "Angabe",
+      "wert": "Oma Waltraud Dragović, erreichbar ab 14 Uhr",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname AU",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "AU",
+      "wert": "Dragović",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AU",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AU",
+      "wert": "Marko",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-40]",
+      "kategorie": "Adresse",
+      "wert": "24b",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname AV",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "AV",
+      "wert": "Kühnreich",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AV",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AV",
+      "wert": "Henrike",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AV2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AV",
+      "wert": "Henrike Sophie",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-19]",
+      "kategorie": "Datum",
+      "wert": "12.10.2015",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "[ANGABE-118]",
+      "kategorie": "Angabe",
+      "wert": "Bad Tölz",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-119]",
+      "kategorie": "Angabe",
+      "wert": "ADHS – Nachteilsausgleich beantragt",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "Nachname AW",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "AW",
+      "wert": "Kühnreich",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AW",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AW",
+      "wert": "Ansgar",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-46]",
+      "kategorie": "Telefon",
+      "wert": "0861 44188",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-19]",
+      "kategorie": "E-Mail",
+      "wert": "ansgar.kuhnreich@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-47]",
+      "kategorie": "Telefon",
+      "wert": "0151 2142542",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname AX",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "AX",
+      "wert": "Kühnreich-Albers",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AX",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AX",
+      "wert": "Dorothee",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-41]",
+      "kategorie": "Adresse",
+      "wert": "25",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "Nachname AY",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "AY",
+      "wert": "Ferreira-Lopes",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AY",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AY",
+      "wert": "Tiago",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AY2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AY",
+      "wert": "Tiago Miguel",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-20]",
+      "kategorie": "Datum",
+      "wert": "18.04.2015",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "[ANGABE-120]",
+      "kategorie": "Angabe",
+      "wert": "Braga",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-121]",
+      "kategorie": "Angabe",
+      "wert": "portugiesisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname AZ",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "AZ",
+      "wert": "Lopes",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname AZ",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "AZ",
+      "wert": "Inês",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-42]",
+      "kategorie": "Adresse",
+      "wert": "21",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-48]",
+      "kategorie": "Telefon",
+      "wert": "0861 44199",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-20]",
+      "kategorie": "E-Mail",
+      "wert": "ines.lopes@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-49]",
+      "kategorie": "Telefon",
+      "wert": "0151 2150461",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-50]",
+      "kategorie": "Telefon",
+      "wert": "0861 9119",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-122]",
+      "kategorie": "Angabe",
+      "wert": "Oma Gerlinde Ferreira-Lopes, erreichbar ab 14 Uhr",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname BA",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "BA",
+      "wert": "Ferreira",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BA",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BA",
+      "wert": "João",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-43]",
+      "kategorie": "Adresse",
+      "wert": "26",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "[ANGABE-123]",
+      "kategorie": "Angabe",
+      "wert": "Duldung",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname BB",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "BB",
+      "wert": "Ngata",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BB",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BB",
+      "wert": "Aroha",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "[DATUM-21]",
+      "kategorie": "Datum",
+      "wert": "29.06.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-124]",
+      "kategorie": "Angabe",
+      "wert": "Rotorua",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-125]",
+      "kategorie": "Angabe",
+      "wert": "Englisch",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "[ANGABE-126]",
+      "kategorie": "Angabe",
+      "wert": "neuseeländisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname BC",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "BC",
+      "wert": "Ngata",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BC",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BC",
+      "wert": "Wiremu",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-51]",
+      "kategorie": "Telefon",
+      "wert": "0861 44200",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-21]",
+      "kategorie": "E-Mail",
+      "wert": "wiremu.ngata@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-52]",
+      "kategorie": "Telefon",
+      "wert": "0151 2158380",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-127]",
+      "kategorie": "Angabe",
+      "wert": "egal, Hauptsache mit Ganztag",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "Nachname BD",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "BD",
+      "wert": "Zahradník",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BD",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BD",
+      "wert": "Tomáš",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BD2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BD",
+      "wert": "Tomáš Karel",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-22]",
+      "kategorie": "Datum",
+      "wert": "03.12.2014",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-128]",
+      "kategorie": "Angabe",
+      "wert": "Brno",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-129]",
+      "kategorie": "Angabe",
+      "wert": "Epilepsie, Medikament Levetiracetam",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "Nachname BE",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "BE",
+      "wert": "Zahradníková",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BE",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BE",
+      "wert": "Petra",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-44]",
+      "kategorie": "Adresse",
+      "wert": "23a",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-53]",
+      "kategorie": "Telefon",
+      "wert": "0861 44211",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-22]",
+      "kategorie": "E-Mail",
+      "wert": "petra.zahradnikova@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-54]",
+      "kategorie": "Telefon",
+      "wert": "0151 2166299",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-55]",
+      "kategorie": "Telefon",
+      "wert": "0861 9121",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-130]",
+      "kategorie": "Angabe",
+      "wert": "Oma Hildegard Zahradník, erreichbar ab 14 Uhr",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname BF",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "BF",
+      "wert": "Zahradník",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BF",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BF",
+      "wert": "Jiří",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-45]",
+      "kategorie": "Adresse",
+      "wert": "28",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "Nachname BG",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "BG",
+      "wert": "Bjørnstad",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BG",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BG",
+      "wert": "Sigrid",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BG2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BG",
+      "wert": "Sigrid Ingrid",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-23]",
+      "kategorie": "Datum",
+      "wert": "24.08.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-131]",
+      "kategorie": "Angabe",
+      "wert": "Tromsø",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-132]",
+      "kategorie": "Angabe",
+      "wert": "Norwegisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-133]",
+      "kategorie": "Angabe",
+      "wert": "norwegisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname BH",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "BH",
+      "wert": "Bjørnstad",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BH",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BH",
+      "wert": "Håkon",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-46]",
+      "kategorie": "Adresse",
+      "wert": "24",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-56]",
+      "kategorie": "Telefon",
+      "wert": "0861 44222",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-23]",
+      "kategorie": "E-Mail",
+      "wert": "hakon.bjrnstad@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-57]",
+      "kategorie": "Telefon",
+      "wert": "0151 2174218",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname BI",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "BI",
+      "wert": "Achterkamp",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BI",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BI",
+      "wert": "Jannes",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BI2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BI",
+      "wert": "Jannes Hauke",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-24]",
+      "kategorie": "Datum",
+      "wert": "07.05.2015",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "[ANGABE-134]",
+      "kategorie": "Angabe",
+      "wert": "Papenburg",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname BJ",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "BJ",
+      "wert": "Achterkamp",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BJ",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BJ",
+      "wert": "Wiebke",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-58]",
+      "kategorie": "Telefon",
+      "wert": "0861 44233",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-24]",
+      "kategorie": "E-Mail",
+      "wert": "wiebke.achterkamp@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-59]",
+      "kategorie": "Telefon",
+      "wert": "0151 2182137",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-60]",
+      "kategorie": "Telefon",
+      "wert": "0861 9123",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-135]",
+      "kategorie": "Angabe",
+      "wert": "Oma Waltraud Achterkamp, erreichbar ab 14 Uhr",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname BK",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "BK",
+      "wert": "Achterkamp",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BK",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BK",
+      "wert": "Hinnerk",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-47]",
+      "kategorie": "Adresse",
+      "wert": "30",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "[ANGABE-136]",
+      "kategorie": "Angabe",
+      "wert": "3,00",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname BL",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "BL",
+      "wert": "Iwu",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BL",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BL",
+      "wert": "Obinna",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "[DATUM-25]",
+      "kategorie": "Datum",
+      "wert": "03.03.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-137]",
+      "kategorie": "Angabe",
+      "wert": "Owerri",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname BM",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "BM",
+      "wert": "Iwu",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BM",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BM",
+      "wert": "Chiamaka",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-61]",
+      "kategorie": "Telefon",
+      "wert": "0861 44244",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-25]",
+      "kategorie": "E-Mail",
+      "wert": "chiamaka.iwu@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-62]",
+      "kategorie": "Telefon",
+      "wert": "0151 2190056",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname BN",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "BN",
+      "wert": "Laskowski",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BN",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BN",
+      "wert": "Zofia",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BN2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BN",
+      "wert": "Zofia Maria",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-26]",
+      "kategorie": "Datum",
+      "wert": "15.09.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-138]",
+      "kategorie": "Angabe",
+      "wert": "Lublin",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-139]",
+      "kategorie": "Angabe",
+      "wert": "deutsch, polnisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname BO",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "BO",
+      "wert": "Laskowska",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BO",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BO",
+      "wert": "Ewa",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-48]",
+      "kategorie": "Adresse",
+      "wert": "27a",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-63]",
+      "kategorie": "Telefon",
+      "wert": "0861 44255",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-26]",
+      "kategorie": "E-Mail",
+      "wert": "ewa.laskowska@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-64]",
+      "kategorie": "Telefon",
+      "wert": "0151 2197975",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-65]",
+      "kategorie": "Telefon",
+      "wert": "0861 9125",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-140]",
+      "kategorie": "Angabe",
+      "wert": "Oma Gerlinde Laskowski, erreichbar ab 14 Uhr",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname BP",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "BP",
+      "wert": "Laskowski",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BP",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BP",
+      "wert": "Piotr",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-49]",
+      "kategorie": "Adresse",
+      "wert": "32",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "Nachname BQ",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "BQ",
+      "wert": "Ramanathan",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BQ",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BQ",
+      "wert": "Kavya",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "[DATUM-27]",
+      "kategorie": "Datum",
+      "wert": "30.10.2014",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-141]",
+      "kategorie": "Angabe",
+      "wert": "Madurai",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-142]",
+      "kategorie": "Angabe",
+      "wert": "Tamil",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-143]",
+      "kategorie": "Angabe",
+      "wert": "indisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-144]",
+      "kategorie": "Angabe",
+      "wert": "hinduistisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname BR",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "BR",
+      "wert": "Ramanathan",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BR",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BR",
+      "wert": "Priya",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-66]",
+      "kategorie": "Telefon",
+      "wert": "0861 44266",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-27]",
+      "kategorie": "E-Mail",
+      "wert": "priya.ramanathan@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-67]",
+      "kategorie": "Telefon",
+      "wert": "0151 2205894",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname BS",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "BS",
+      "wert": "Ramanathan",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BS",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BS",
+      "wert": "Arjun",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-50]",
+      "kategorie": "Adresse",
+      "wert": "33",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "Nachname BT",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "BT",
+      "wert": "Tchouameni",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BT",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BT",
+      "wert": "Ange",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BT2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BT",
+      "wert": "Ange Désiré",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-28]",
+      "kategorie": "Datum",
+      "wert": "27.07.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-145]",
+      "kategorie": "Angabe",
+      "wert": "Douala",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-146]",
+      "kategorie": "Angabe",
+      "wert": "Französisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-147]",
+      "kategorie": "Angabe",
+      "wert": "kamerunisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-148]",
+      "kategorie": "Angabe",
+      "wert": "Erdnussallergie, Adrenalin-Pen im Sekretariat",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "Nachname BU",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "BU",
+      "wert": "Tchouameni",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BU",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BU",
+      "wert": "Clarisse",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-51]",
+      "kategorie": "Adresse",
+      "wert": "29",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-68]",
+      "kategorie": "Telefon",
+      "wert": "0861 44277",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-28]",
+      "kategorie": "E-Mail",
+      "wert": "clarisse.tchouameni@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-69]",
+      "kategorie": "Telefon",
+      "wert": "0151 2213813",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-70]",
+      "kategorie": "Telefon",
+      "wert": "0861 9127",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-149]",
+      "kategorie": "Angabe",
+      "wert": "Oma Hildegard Tchouameni, erreichbar ab 14 Uhr",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname BV",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "BV",
+      "wert": "Heppenstall",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BV",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BV",
+      "wert": "Wilbur",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BV2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BV",
+      "wert": "Wilbur James",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-29]",
+      "kategorie": "Datum",
+      "wert": "08.02.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-150]",
+      "kategorie": "Angabe",
+      "wert": "Leeds",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-151]",
+      "kategorie": "Angabe",
+      "wert": "britisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname BW",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "BW",
+      "wert": "Heppenstall",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BW",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BW",
+      "wert": "Rosalind",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-71]",
+      "kategorie": "Telefon",
+      "wert": "0861 44288",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-29]",
+      "kategorie": "E-Mail",
+      "wert": "rosalind.heppenstall@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-72]",
+      "kategorie": "Telefon",
+      "wert": "0151 2221732",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname BX",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "BX",
+      "wert": "Ó Briain",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BX",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BX",
+      "wert": "Saoirse",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BX2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BX",
+      "wert": "Saoirse Áine",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-30]",
+      "kategorie": "Datum",
+      "wert": "20.11.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-152]",
+      "kategorie": "Angabe",
+      "wert": "Galway",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-153]",
+      "kategorie": "Angabe",
+      "wert": "Irisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-154]",
+      "kategorie": "Angabe",
+      "wert": "irisch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname BY",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "BY",
+      "wert": "Ó Briain",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BY",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BY",
+      "wert": "Niamh",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-52]",
+      "kategorie": "Adresse",
+      "wert": "31a",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-73]",
+      "kategorie": "Telefon",
+      "wert": "0861 44299",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-30]",
+      "kategorie": "E-Mail",
+      "wert": "niamh.obriain@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-74]",
+      "kategorie": "Telefon",
+      "wert": "0151 2229651",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-75]",
+      "kategorie": "Telefon",
+      "wert": "0861 9129",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-155]",
+      "kategorie": "Angabe",
+      "wert": "Oma Waltraud Ó Briain, erreichbar ab 14 Uhr",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname BZ",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "BZ",
+      "wert": "Ó Briain",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname BZ",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "BZ",
+      "wert": "Cathal",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-53]",
+      "kategorie": "Adresse",
+      "wert": "36",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "Nachname CA",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "CA",
+      "wert": "Brockhusen",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CA",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CA",
+      "wert": "Matteo",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CA2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CA",
+      "wert": "Matteo Elif",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-31]",
+      "kategorie": "Datum",
+      "wert": "03.01.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-156]",
+      "kategorie": "Angabe",
+      "wert": "Rostock",
+      "anzahl": 5
+    },
+    {
+      "platzhalter": "Nachname CB",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "CB",
+      "wert": "Brockhusen",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CB",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CB",
+      "wert": "Silke",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-76]",
+      "kategorie": "Telefon",
+      "wert": "0861 44300",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-31]",
+      "kategorie": "E-Mail",
+      "wert": "silke.brockhusen@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-77]",
+      "kategorie": "Telefon",
+      "wert": "0151 2237570",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname CC",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "CC",
+      "wert": "Tjaden",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CC",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CC",
+      "wert": "Smilla",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CC2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CC",
+      "wert": "Smilla Lio",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-32]",
+      "kategorie": "Datum",
+      "wert": "04.02.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-157]",
+      "kategorie": "Angabe",
+      "wert": "Ankara",
+      "anzahl": 5
+    },
+    {
+      "platzhalter": "[ANGABE-158]",
+      "kategorie": "Angabe",
+      "wert": "türkisch",
+      "anzahl": 8
+    },
+    {
+      "platzhalter": "Nachname CD",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "CD",
+      "wert": "Tjaden",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CD",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CD",
+      "wert": "Murat",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-78]",
+      "kategorie": "Telefon",
+      "wert": "0861 44311",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-32]",
+      "kategorie": "E-Mail",
+      "wert": "murat.tjaden@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-79]",
+      "kategorie": "Telefon",
+      "wert": "0151 2245489",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-80]",
+      "kategorie": "Telefon",
+      "wert": "0861 9131",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-159]",
+      "kategorie": "Angabe",
+      "wert": "Oma Gerlinde Tjaden, erreichbar ab 14 Uhr",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname CE",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "CE",
+      "wert": "Tjaden",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CE",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CE",
+      "wert": "Ayla",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-54]",
+      "kategorie": "Adresse",
+      "wert": "38",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "Nachname CF",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "CF",
+      "wert": "Okafor",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CF",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CF",
+      "wert": "Chukwudi",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CF2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CF",
+      "wert": "Chukwudi Onni",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-33]",
+      "kategorie": "Datum",
+      "wert": "05.03.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-160]",
+      "kategorie": "Angabe",
+      "wert": "Lagos",
+      "anzahl": 5
+    },
+    {
+      "platzhalter": "[ANGABE-161]",
+      "kategorie": "Angabe",
+      "wert": "Yoruba",
+      "anzahl": 7
+    },
+    {
+      "platzhalter": "Nachname CG",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "CG",
+      "wert": "Okafor",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CG",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CG",
+      "wert": "Ada",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-55]",
+      "kategorie": "Adresse",
+      "wert": "34",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-81]",
+      "kategorie": "Telefon",
+      "wert": "0861 44322",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-33]",
+      "kategorie": "E-Mail",
+      "wert": "ada.okafor@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-82]",
+      "kategorie": "Telefon",
+      "wert": "0151 2253408",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname CH",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "CH",
+      "wert": "Okafor",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CH",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CH",
+      "wert": "Kemi",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-56]",
+      "kategorie": "Adresse",
+      "wert": "39b",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname CI",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "CI",
+      "wert": "Wiśniewska",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CI",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CI",
+      "wert": "Zuzanna",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CI2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CI",
+      "wert": "Zuzanna Tolu",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-34]",
+      "kategorie": "Datum",
+      "wert": "06.04.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-162]",
+      "kategorie": "Angabe",
+      "wert": "Gdańsk",
+      "anzahl": 5
+    },
+    {
+      "platzhalter": "Nachname CJ",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "CJ",
+      "wert": "Wiśniewska",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CJ",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CJ",
+      "wert": "Jan",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-57]",
+      "kategorie": "Adresse",
+      "wert": "35a",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-83]",
+      "kategorie": "Telefon",
+      "wert": "0861 44333",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-34]",
+      "kategorie": "E-Mail",
+      "wert": "jan.wisniewska@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-84]",
+      "kategorie": "Telefon",
+      "wert": "0151 2261327",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-85]",
+      "kategorie": "Telefon",
+      "wert": "0861 9133",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-163]",
+      "kategorie": "Angabe",
+      "wert": "Oma Hildegard Wiśniewska, erreichbar ab 14 Uhr",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-164]",
+      "kategorie": "Angabe",
+      "wert": "Aufenthaltserlaubnis",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname CK",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "CK",
+      "wert": "Haverkamp",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CK",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CK",
+      "wert": "Frieda",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CK2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CK",
+      "wert": "Frieda Ida",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-165]",
+      "kategorie": "Angabe",
+      "wert": "Bremen",
+      "anzahl": 5
+    },
+    {
+      "platzhalter": "Nachname CL",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "CL",
+      "wert": "Haverkamp",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CL",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CL",
+      "wert": "Heike",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-86]",
+      "kategorie": "Telefon",
+      "wert": "0861 44344",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-35]",
+      "kategorie": "E-Mail",
+      "wert": "heike.haverkamp@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-87]",
+      "kategorie": "Telefon",
+      "wert": "0151 2269246",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname CM",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "CM",
+      "wert": "Haverkamp",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CM",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CM",
+      "wert": "Thorsten",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-58]",
+      "kategorie": "Adresse",
+      "wert": "41",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "Nachname CN",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "CN",
+      "wert": "Ndiaye",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CN",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CN",
+      "wert": "Awa",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CN2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CN",
+      "wert": "Awa Oskar",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-166]",
+      "kategorie": "Angabe",
+      "wert": "Dakar",
+      "anzahl": 5
+    },
+    {
+      "platzhalter": "Nachname CO",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "CO",
+      "wert": "Ndiaye",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CO",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CO",
+      "wert": "Moussa",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-59]",
+      "kategorie": "Adresse",
+      "wert": "37",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-88]",
+      "kategorie": "Telefon",
+      "wert": "0861 44355",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-36]",
+      "kategorie": "E-Mail",
+      "wert": "moussa.ndiaye@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-89]",
+      "kategorie": "Telefon",
+      "wert": "0151 2277165",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-90]",
+      "kategorie": "Telefon",
+      "wert": "0861 9135",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-167]",
+      "kategorie": "Angabe",
+      "wert": "Oma Waltraud Ndiaye, erreichbar ab 14 Uhr",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname CP",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "CP",
+      "wert": "Ndiaye",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CP",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CP",
+      "wert": "Ayla",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-60]",
+      "kategorie": "Adresse",
+      "wert": "42",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "Nachname CQ",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "CQ",
+      "wert": "Ruhland",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CQ",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CQ",
+      "wert": "Bent",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CQ2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CQ",
+      "wert": "Bent Merle",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-35]",
+      "kategorie": "Datum",
+      "wert": "09.07.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname CR",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "CR",
+      "wert": "Ruhland",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CR",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CR",
+      "wert": "Silke",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-91]",
+      "kategorie": "Telefon",
+      "wert": "0861 44366",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-37]",
+      "kategorie": "E-Mail",
+      "wert": "silke.ruhland@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-92]",
+      "kategorie": "Telefon",
+      "wert": "0151 2285084",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname CS",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "CS",
+      "wert": "Kaya",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CS",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CS",
+      "wert": "Elif",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CS2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CS",
+      "wert": "Elif Giulia",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-36]",
+      "kategorie": "Datum",
+      "wert": "10.08.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname CT",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "CT",
+      "wert": "Kaya",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CT",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CT",
+      "wert": "Murat",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-61]",
+      "kategorie": "Adresse",
+      "wert": "39a",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-93]",
+      "kategorie": "Telefon",
+      "wert": "0861 44377",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-38]",
+      "kategorie": "E-Mail",
+      "wert": "murat.kaya@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-94]",
+      "kategorie": "Telefon",
+      "wert": "0151 2293003",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-95]",
+      "kategorie": "Telefon",
+      "wert": "0861 9137",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-168]",
+      "kategorie": "Angabe",
+      "wert": "Oma Gerlinde Kaya, erreichbar ab 14 Uhr",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname CU",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "CU",
+      "wert": "Kaya",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CU",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CU",
+      "wert": "Ewa",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-62]",
+      "kategorie": "Adresse",
+      "wert": "44b",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname CV",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "CV",
+      "wert": "Strebel",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CV",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CV",
+      "wert": "Lio",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CV2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CV",
+      "wert": "Lio Kaspar",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-37]",
+      "kategorie": "Datum",
+      "wert": "11.09.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname CW",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "CW",
+      "wert": "Strebel",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CW",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CW",
+      "wert": "Ada",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-63]",
+      "kategorie": "Adresse",
+      "wert": "40",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-96]",
+      "kategorie": "Telefon",
+      "wert": "0861 44388",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-39]",
+      "kategorie": "E-Mail",
+      "wert": "ada.strebel@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-97]",
+      "kategorie": "Telefon",
+      "wert": "0151 2300922",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname CX",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "CX",
+      "wert": "Strebel",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CX",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CX",
+      "wert": "Thorsten",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-64]",
+      "kategorie": "Adresse",
+      "wert": "45",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "Nachname CY",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "CY",
+      "wert": "Mäkinen",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CY",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CY",
+      "wert": "Onni",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CY2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CY",
+      "wert": "Onni Dimitra",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname CZ",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "CZ",
+      "wert": "Mäkinen",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname CZ",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "CZ",
+      "wert": "Jan",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-98]",
+      "kategorie": "Telefon",
+      "wert": "0861 44399",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-40]",
+      "kategorie": "E-Mail",
+      "wert": "jan.makinen@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-99]",
+      "kategorie": "Telefon",
+      "wert": "0151 2308841",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-100]",
+      "kategorie": "Telefon",
+      "wert": "0861 9139",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-169]",
+      "kategorie": "Angabe",
+      "wert": "Oma Hildegard Mäkinen, erreichbar ab 14 Uhr",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname DA",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "DA",
+      "wert": "Oyelaran",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DA",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DA",
+      "wert": "Tolu",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DA2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DA",
+      "wert": "Tolu Valentin",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-38]",
+      "kategorie": "Datum",
+      "wert": "13.11.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname DB",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "DB",
+      "wert": "Oyelaran",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DB",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DB",
+      "wert": "Heike",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-101]",
+      "kategorie": "Telefon",
+      "wert": "0861 44400",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-41]",
+      "kategorie": "E-Mail",
+      "wert": "heike.oyelaran@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-102]",
+      "kategorie": "Telefon",
+      "wert": "0151 2316760",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname DC",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "DC",
+      "wert": "Oyelaran",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DC",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DC",
+      "wert": "Kemi",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-65]",
+      "kategorie": "Adresse",
+      "wert": "47",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname DD",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "DD",
+      "wert": "Pfannkuch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DD",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DD",
+      "wert": "Ida",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DD2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DD",
+      "wert": "Ida Wanjiru",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-39]",
+      "kategorie": "Datum",
+      "wert": "14.12.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname DE",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "DE",
+      "wert": "Pfannkuch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DE",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DE",
+      "wert": "Moussa",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-66]",
+      "kategorie": "Adresse",
+      "wert": "43a",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-103]",
+      "kategorie": "Telefon",
+      "wert": "0861 44411",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-42]",
+      "kategorie": "E-Mail",
+      "wert": "moussa.pfannkuch@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-104]",
+      "kategorie": "Telefon",
+      "wert": "0151 2324679",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-105]",
+      "kategorie": "Telefon",
+      "wert": "0861 9141",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-170]",
+      "kategorie": "Angabe",
+      "wert": "Oma Waltraud Pfannkuch, erreichbar ab 14 Uhr",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname DF",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "DF",
+      "wert": "Pfannkuch",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DF",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DF",
+      "wert": "Ewa",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-67]",
+      "kategorie": "Adresse",
+      "wert": "48",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "Nachname DG",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "DG",
+      "wert": "Zaremba",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DG",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DG",
+      "wert": "Oskar",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DG2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DG",
+      "wert": "Oskar Lotta",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-40]",
+      "kategorie": "Datum",
+      "wert": "15.01.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname DH",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "DH",
+      "wert": "Zaremba",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DH",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DH",
+      "wert": "Silke",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-68]",
+      "kategorie": "Adresse",
+      "wert": "44",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-106]",
+      "kategorie": "Telefon",
+      "wert": "0861 44422",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-43]",
+      "kategorie": "E-Mail",
+      "wert": "silke.zaremba@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-107]",
+      "kategorie": "Telefon",
+      "wert": "0151 2332598",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname DI",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "DI",
+      "wert": "Lindhorst",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DI",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DI",
+      "wert": "Merle",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DI2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DI",
+      "wert": "Merle Magnus",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-41]",
+      "kategorie": "Datum",
+      "wert": "16.02.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname DJ",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "DJ",
+      "wert": "Lindhorst",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DJ",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DJ",
+      "wert": "Murat",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-108]",
+      "kategorie": "Telefon",
+      "wert": "0861 44433",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-44]",
+      "kategorie": "E-Mail",
+      "wert": "murat.lindhorst@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-109]",
+      "kategorie": "Telefon",
+      "wert": "0151 2340517",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-110]",
+      "kategorie": "Telefon",
+      "wert": "0861 9143",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-171]",
+      "kategorie": "Angabe",
+      "wert": "Oma Gerlinde Lindhorst, erreichbar ab 14 Uhr",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname DK",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "DK",
+      "wert": "Lindhorst",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DK",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DK",
+      "wert": "Ayla",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-69]",
+      "kategorie": "Adresse",
+      "wert": "50",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "Nachname DL",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "DL",
+      "wert": "Esposito",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DL",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DL",
+      "wert": "Giulia",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DL2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DL",
+      "wert": "Giulia Jule",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-42]",
+      "kategorie": "Datum",
+      "wert": "17.03.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname DM",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "DM",
+      "wert": "Esposito",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DM",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DM",
+      "wert": "Ada",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-70]",
+      "kategorie": "Adresse",
+      "wert": "46",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-111]",
+      "kategorie": "Telefon",
+      "wert": "0861 44444",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-45]",
+      "kategorie": "E-Mail",
+      "wert": "ada.esposito@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-112]",
+      "kategorie": "Telefon",
+      "wert": "0151 2348436",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname DN",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "DN",
+      "wert": "Esposito",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DN",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DN",
+      "wert": "Kemi",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-71]",
+      "kategorie": "Adresse",
+      "wert": "51",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname DO",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "DO",
+      "wert": "Grünewald",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DO",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DO",
+      "wert": "Kaspar",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DO2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DO",
+      "wert": "Kaspar Emir",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname DP",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "DP",
+      "wert": "Grünewald",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DP",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DP",
+      "wert": "Jan",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-72]",
+      "kategorie": "Adresse",
+      "wert": "47a",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-113]",
+      "kategorie": "Telefon",
+      "wert": "0861 44455",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-46]",
+      "kategorie": "E-Mail",
+      "wert": "jan.grunewald@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-114]",
+      "kategorie": "Telefon",
+      "wert": "0151 2356355",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-115]",
+      "kategorie": "Telefon",
+      "wert": "0861 9145",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-172]",
+      "kategorie": "Angabe",
+      "wert": "Oma Hildegard Grünewald, erreichbar ab 14 Uhr",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname DQ",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "DQ",
+      "wert": "Antonopoulos",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DQ",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DQ",
+      "wert": "Dimitra",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DQ2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DQ",
+      "wert": "Dimitra Sjoerd",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-43]",
+      "kategorie": "Datum",
+      "wert": "19.05.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname DR",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "DR",
+      "wert": "Antonopoulos",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DR",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DR",
+      "wert": "Heike",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-116]",
+      "kategorie": "Telefon",
+      "wert": "0861 44466",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-47]",
+      "kategorie": "E-Mail",
+      "wert": "heike.antonopoulos@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-117]",
+      "kategorie": "Telefon",
+      "wert": "0151 2364274",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname DS",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "DS",
+      "wert": "Antonopoulos",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DS",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DS",
+      "wert": "Thorsten",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-73]",
+      "kategorie": "Adresse",
+      "wert": "53",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "Nachname DT",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "DT",
+      "wert": "Huber-Sedlak",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DT",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DT",
+      "wert": "Valentin",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DT2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DT",
+      "wert": "Valentin Lucía",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-44]",
+      "kategorie": "Datum",
+      "wert": "20.06.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname DU",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "DU",
+      "wert": "Huber-Sedlak",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DU",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DU",
+      "wert": "Moussa",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-74]",
+      "kategorie": "Adresse",
+      "wert": "49",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-118]",
+      "kategorie": "Telefon",
+      "wert": "0861 44477",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-48]",
+      "kategorie": "E-Mail",
+      "wert": "moussa.hubersedlak@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-119]",
+      "kategorie": "Telefon",
+      "wert": "0151 2372193",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-120]",
+      "kategorie": "Telefon",
+      "wert": "0861 9147",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-173]",
+      "kategorie": "Angabe",
+      "wert": "Oma Waltraud Huber-Sedlak, erreichbar ab 14 Uhr",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname DV",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "DV",
+      "wert": "Huber-Sedlak",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DV",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DV",
+      "wert": "Ayla",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-75]",
+      "kategorie": "Adresse",
+      "wert": "54b",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname DW",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "DW",
+      "wert": "Mwangi",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DW",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DW",
+      "wert": "Wanjiru",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DW2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DW",
+      "wert": "Wanjiru Thees",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname DX",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "DX",
+      "wert": "Mwangi",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DX",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DX",
+      "wert": "Silke",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-121]",
+      "kategorie": "Telefon",
+      "wert": "0861 44488",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-49]",
+      "kategorie": "E-Mail",
+      "wert": "silke.mwangi@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-122]",
+      "kategorie": "Telefon",
+      "wert": "0151 2380112",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-174]",
+      "kategorie": "Angabe",
+      "wert": "Asyl (Folgeantrag)",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname DY",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "DY",
+      "wert": "Teichert",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DY",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DY",
+      "wert": "Lotta",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DY2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DY",
+      "wert": "Lotta Ifeoma",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-45]",
+      "kategorie": "Datum",
+      "wert": "22.08.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname DZ",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "DZ",
+      "wert": "Teichert",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname DZ",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "DZ",
+      "wert": "Murat",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-76]",
+      "kategorie": "Adresse",
+      "wert": "51a",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-123]",
+      "kategorie": "Telefon",
+      "wert": "0861 44499",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-50]",
+      "kategorie": "E-Mail",
+      "wert": "murat.teichert@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-124]",
+      "kategorie": "Telefon",
+      "wert": "0151 2388031",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-125]",
+      "kategorie": "Telefon",
+      "wert": "0861 9149",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-175]",
+      "kategorie": "Angabe",
+      "wert": "Oma Gerlinde Teichert, erreichbar ab 14 Uhr",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname EA",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "EA",
+      "wert": "Teichert",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname EA",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "EA",
+      "wert": "Ewa",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-77]",
+      "kategorie": "Adresse",
+      "wert": "56",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "Nachname EB",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "EB",
+      "wert": "Rasmussen",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname EB",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "EB",
+      "wert": "Magnus",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname EB2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "EB",
+      "wert": "Magnus Mira",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-46]",
+      "kategorie": "Datum",
+      "wert": "23.09.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname EC",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "EC",
+      "wert": "Rasmussen",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname EC",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "EC",
+      "wert": "Ada",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-78]",
+      "kategorie": "Adresse",
+      "wert": "52",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-126]",
+      "kategorie": "Telefon",
+      "wert": "0861 44500",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-51]",
+      "kategorie": "E-Mail",
+      "wert": "ada.rasmussen@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-127]",
+      "kategorie": "Telefon",
+      "wert": "0151 2395950",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname ED",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "ED",
+      "wert": "Rasmussen",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname ED",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "ED",
+      "wert": "Thorsten",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-79]",
+      "kategorie": "Adresse",
+      "wert": "57",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "Nachname EE",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "EE",
+      "wert": "Bauknecht",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname EE",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "EE",
+      "wert": "Jule",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname EE2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "EE",
+      "wert": "Jule Petar",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-47]",
+      "kategorie": "Datum",
+      "wert": "24.10.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname EF",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "EF",
+      "wert": "Bauknecht",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname EF",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "EF",
+      "wert": "Jan",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-128]",
+      "kategorie": "Telefon",
+      "wert": "0861 44511",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-52]",
+      "kategorie": "E-Mail",
+      "wert": "jan.bauknecht@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-129]",
+      "kategorie": "Telefon",
+      "wert": "0151 2403869",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-130]",
+      "kategorie": "Telefon",
+      "wert": "0861 9151",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-176]",
+      "kategorie": "Angabe",
+      "wert": "Oma Hildegard Bauknecht, erreichbar ab 14 Uhr",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname EG",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "EG",
+      "wert": "Yıldırım",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname EG",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "EG",
+      "wert": "Emir",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname EG2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "EG",
+      "wert": "Emir Ronja",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-48]",
+      "kategorie": "Datum",
+      "wert": "25.11.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname EH",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "EH",
+      "wert": "Yıldırım",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname EH",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "EH",
+      "wert": "Heike",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-80]",
+      "kategorie": "Adresse",
+      "wert": "54",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-131]",
+      "kategorie": "Telefon",
+      "wert": "0861 44522",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-53]",
+      "kategorie": "E-Mail",
+      "wert": "heike.yldrm@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-132]",
+      "kategorie": "Telefon",
+      "wert": "0151 2411788",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname EI",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "EI",
+      "wert": "Yıldırım",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname EI",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "EI",
+      "wert": "Kemi",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-81]",
+      "kategorie": "Adresse",
+      "wert": "59b",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname EJ",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "EJ",
+      "wert": "Fennema",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname EJ",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "EJ",
+      "wert": "Sjoerd",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname EJ2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "EJ",
+      "wert": "Sjoerd Matteo",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-49]",
+      "kategorie": "Datum",
+      "wert": "26.12.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname EK",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "EK",
+      "wert": "Fennema",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname EK",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "EK",
+      "wert": "Moussa",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-82]",
+      "kategorie": "Adresse",
+      "wert": "55a",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-133]",
+      "kategorie": "Telefon",
+      "wert": "0861 44533",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-54]",
+      "kategorie": "E-Mail",
+      "wert": "moussa.fennema@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-134]",
+      "kategorie": "Telefon",
+      "wert": "0151 2419707",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-135]",
+      "kategorie": "Telefon",
+      "wert": "0861 9153",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-177]",
+      "kategorie": "Angabe",
+      "wert": "Oma Waltraud Fennema, erreichbar ab 14 Uhr",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname EL",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "EL",
+      "wert": "Fennema",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname EL",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "EL",
+      "wert": "Ewa",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-83]",
+      "kategorie": "Adresse",
+      "wert": "60",
+      "anzahl": 2
+    },
+    {
+      "platzhalter": "Nachname EM",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "EM",
+      "wert": "Castellano",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname EM",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "EM",
+      "wert": "Lucía",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname EM2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "EM",
+      "wert": "Lucía Smilla",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-50]",
+      "kategorie": "Datum",
+      "wert": "27.01.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname EN",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "EN",
+      "wert": "Castellano",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname EN",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "EN",
+      "wert": "Silke",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-136]",
+      "kategorie": "Telefon",
+      "wert": "0861 44544",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-55]",
+      "kategorie": "E-Mail",
+      "wert": "silke.castellano@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-137]",
+      "kategorie": "Telefon",
+      "wert": "0151 2427626",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname EO",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "EO",
+      "wert": "Hölscher",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname EO",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "EO",
+      "wert": "Thees",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname EO2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "EO",
+      "wert": "Thees Chukwudi",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-51]",
+      "kategorie": "Datum",
+      "wert": "03.02.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname EP",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "EP",
+      "wert": "Hölscher",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname EP",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "EP",
+      "wert": "Murat",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-138]",
+      "kategorie": "Telefon",
+      "wert": "0861 44555",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-56]",
+      "kategorie": "E-Mail",
+      "wert": "murat.holscher@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-139]",
+      "kategorie": "Telefon",
+      "wert": "0151 2435545",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-140]",
+      "kategorie": "Telefon",
+      "wert": "0861 9155",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-178]",
+      "kategorie": "Angabe",
+      "wert": "Oma Gerlinde Hölscher, erreichbar ab 14 Uhr",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname EQ",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "EQ",
+      "wert": "Hölscher",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname EQ",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "EQ",
+      "wert": "Ayla",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-84]",
+      "kategorie": "Adresse",
+      "wert": "62",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname ER",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "ER",
+      "wert": "Adeyemi",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname ER",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "ER",
+      "wert": "Ifeoma",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname ER2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "ER",
+      "wert": "Ifeoma Zuzanna",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-52]",
+      "kategorie": "Datum",
+      "wert": "04.03.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname ES",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "ES",
+      "wert": "Adeyemi",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname ES",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "ES",
+      "wert": "Ada",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-85]",
+      "kategorie": "Adresse",
+      "wert": "58",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-141]",
+      "kategorie": "Telefon",
+      "wert": "0861 44566",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-57]",
+      "kategorie": "E-Mail",
+      "wert": "ada.adeyemi@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-142]",
+      "kategorie": "Telefon",
+      "wert": "0151 2443464",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname ET",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "ET",
+      "wert": "Adeyemi",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname ET",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "ET",
+      "wert": "Kemi",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-86]",
+      "kategorie": "Adresse",
+      "wert": "63",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname EU",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "EU",
+      "wert": "Wendrich",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname EU",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "EU",
+      "wert": "Mira",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname EU2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "EU",
+      "wert": "Mira Frieda",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-53]",
+      "kategorie": "Datum",
+      "wert": "05.04.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname EV",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "EV",
+      "wert": "Wendrich",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname EV",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "EV",
+      "wert": "Jan",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-87]",
+      "kategorie": "Adresse",
+      "wert": "59a",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-143]",
+      "kategorie": "Telefon",
+      "wert": "0861 44577",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-58]",
+      "kategorie": "E-Mail",
+      "wert": "jan.wendrich@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-144]",
+      "kategorie": "Telefon",
+      "wert": "0151 2451383",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-145]",
+      "kategorie": "Telefon",
+      "wert": "0861 9157",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-179]",
+      "kategorie": "Angabe",
+      "wert": "Oma Hildegard Wendrich, erreichbar ab 14 Uhr",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname EW",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "EW",
+      "wert": "Kovačević",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname EW",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "EW",
+      "wert": "Petar",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname EW2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "EW",
+      "wert": "Petar Awa",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-54]",
+      "kategorie": "Datum",
+      "wert": "06.05.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname EX",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "EX",
+      "wert": "Kovačević",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname EX",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "EX",
+      "wert": "Heike",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-146]",
+      "kategorie": "Telefon",
+      "wert": "0861 44588",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-59]",
+      "kategorie": "E-Mail",
+      "wert": "heike.kovacevic@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-147]",
+      "kategorie": "Telefon",
+      "wert": "0151 2459302",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname EY",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "EY",
+      "wert": "Kovačević",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname EY",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "EY",
+      "wert": "Thorsten",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-88]",
+      "kategorie": "Adresse",
+      "wert": "65",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname EZ",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "EZ",
+      "wert": "Sturmhövel",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname EZ",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "EZ",
+      "wert": "Ronja",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname EZ2",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "EZ",
+      "wert": "Ronja Bent",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[DATUM-55]",
+      "kategorie": "Datum",
+      "wert": "07.06.2015",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname FA",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "FA",
+      "wert": "Sturmhövel",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname FA",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "FA",
+      "wert": "Moussa",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-89]",
+      "kategorie": "Adresse",
+      "wert": "61",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-148]",
+      "kategorie": "Telefon",
+      "wert": "0861 44599",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[E-MAIL-60]",
+      "kategorie": "E-Mail",
+      "wert": "moussa.sturmhovel@example.org",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-149]",
+      "kategorie": "Telefon",
+      "wert": "0151 2467221",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[TELEFON-150]",
+      "kategorie": "Telefon",
+      "wert": "0861 9159",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ANGABE-180]",
+      "kategorie": "Angabe",
+      "wert": "Oma Waltraud Sturmhövel, erreichbar ab 14 Uhr",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Nachname FB",
+      "kategorie": "Name",
+      "rolle": "Nachname",
+      "person": "FB",
+      "wert": "Sturmhövel",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "Vorname FB",
+      "kategorie": "Name",
+      "rolle": "Vorname",
+      "person": "FB",
+      "wert": "Ayla",
+      "anzahl": 1
+    },
+    {
+      "platzhalter": "[ADRESSE-90]",
+      "kategorie": "Adresse",
+      "wert": "66",
+      "anzahl": 1
+    }
+  ],
+  "personen": [
+    {
+      "person": "A",
+      "anzeige": "Ayşe Nur",
+      "platzhalter": [
+        "Nachname A",
+        "Vorname A",
+        "Vorname A2"
+      ]
+    },
+    {
+      "person": "B",
+      "anzeige": "Mehmet",
+      "platzhalter": [
+        "Nachname B",
+        "Vorname B"
+      ]
+    },
+    {
+      "person": "C",
+      "anzeige": "Öztürk",
+      "platzhalter": [
+        "Nachname C",
+        "Vorname C"
+      ]
+    },
+    {
+      "person": "D",
+      "anzeige": "Kowalczyk-Brandt",
+      "platzhalter": [
+        "Nachname D",
+        "Vorname D",
+        "Vorname D2"
+      ]
+    },
+    {
+      "person": "E",
+      "anzeige": "Agnieszka",
+      "platzhalter": [
+        "Nachname E",
+        "Vorname E"
+      ]
+    },
+    {
+      "person": "F",
+      "anzeige": "Torsten",
+      "platzhalter": [
+        "Nachname F",
+        "Vorname F"
+      ]
+    },
+    {
+      "person": "G",
+      "anzeige": "Thi Lan",
+      "platzhalter": [
+        "Nachname G",
+        "Vorname G"
+      ]
+    },
+    {
+      "person": "H",
+      "anzeige": "Văn Minh",
+      "platzhalter": [
+        "Nachname H",
+        "Vorname H"
+      ]
+    },
+    {
+      "person": "I",
+      "anzeige": "Hodan Faisa",
+      "platzhalter": [
+        "Nachname I",
+        "Vorname I",
+        "Vorname I2"
+      ]
+    },
+    {
+      "person": "J",
+      "anzeige": "Faisa",
+      "platzhalter": [
+        "Nachname J",
+        "Vorname J"
+      ]
+    },
+    {
+      "person": "K",
+      "anzeige": "van der Meulen",
+      "platzhalter": [
+        "Nachname K",
+        "Vorname K",
+        "Vorname K2"
+      ]
+    },
+    {
+      "person": "L",
+      "anzeige": "van der Meulen",
+      "platzhalter": [
+        "Nachname L",
+        "Vorname L"
+      ]
+    },
+    {
+      "person": "M",
+      "anzeige": "van der Meulen",
+      "platzhalter": [
+        "Nachname M",
+        "Vorname M"
+      ]
+    },
+    {
+      "person": "N",
+      "anzeige": "Chidera Blessing",
+      "platzhalter": [
+        "Nachname N",
+        "Vorname N",
+        "Vorname N2"
+      ]
+    },
+    {
+      "person": "O",
+      "anzeige": "Okonkwo",
+      "platzhalter": [
+        "Nachname O",
+        "Vorname O"
+      ]
+    },
+    {
+      "person": "P",
+      "anzeige": "Okonkwo",
+      "platzhalter": [
+        "Nachname P",
+        "Vorname P"
+      ]
+    },
+    {
+      "person": "Q",
+      "anzeige": "Lasse Hinrich",
+      "platzhalter": [
+        "Nachname Q",
+        "Vorname Q",
+        "Vorname Q2"
+      ]
+    },
+    {
+      "person": "R",
+      "anzeige": "Wennemann",
+      "platzhalter": [
+        "Nachname R",
+        "Vorname R"
+      ]
+    },
+    {
+      "person": "S",
+      "anzeige": "Wennemann",
+      "platzhalter": [
+        "Nachname S",
+        "Vorname S"
+      ]
+    },
+    {
+      "person": "T",
+      "anzeige": "Réka Anna",
+      "platzhalter": [
+        "Nachname T",
+        "Vorname T",
+        "Vorname T2"
+      ]
+    },
+    {
+      "person": "U",
+      "anzeige": "Bence",
+      "platzhalter": [
+        "Nachname U",
+        "Vorname U"
+      ]
+    },
+    {
+      "person": "V",
+      "anzeige": "Elin Maja",
+      "platzhalter": [
+        "Nachname V",
+        "Vorname V",
+        "Vorname V2"
+      ]
+    },
+    {
+      "person": "W",
+      "anzeige": "Lindqvist",
+      "platzhalter": [
+        "Nachname W",
+        "Vorname W"
+      ]
+    },
+    {
+      "person": "X",
+      "anzeige": "Lindqvist",
+      "platzhalter": [
+        "Nachname X",
+        "Vorname X"
+      ]
+    },
+    {
+      "person": "Y",
+      "anzeige": "Yusuf Karim",
+      "platzhalter": [
+        "Nachname Y",
+        "Vorname Y",
+        "Vorname Y2"
+      ]
+    },
+    {
+      "person": "Z",
+      "anzeige": "Al-Rashid",
+      "platzhalter": [
+        "Nachname Z",
+        "Vorname Z"
+      ]
+    },
+    {
+      "person": "AA",
+      "anzeige": "Al-Rashid",
+      "platzhalter": [
+        "Nachname AA",
+        "Vorname AA"
+      ]
+    },
+    {
+      "person": "AB",
+      "anzeige": "Papadopoulou",
+      "platzhalter": [
+        "Nachname AB",
+        "Vorname AB",
+        "Vorname AB2"
+      ]
+    },
+    {
+      "person": "AC",
+      "anzeige": "Papadopoulos",
+      "platzhalter": [
+        "Nachname AC",
+        "Vorname AC"
+      ]
+    },
+    {
+      "person": "AD",
+      "anzeige": "Papadopoulou",
+      "platzhalter": [
+        "Nachname AD",
+        "Vorname AD"
+      ]
+    },
+    {
+      "person": "AE",
+      "anzeige": "Vojtěch",
+      "platzhalter": [
+        "Nachname AE",
+        "Vorname AE"
+      ]
+    },
+    {
+      "person": "AF",
+      "anzeige": "Hrnčířová",
+      "platzhalter": [
+        "Nachname AF",
+        "Vorname AF"
+      ]
+    },
+    {
+      "person": "AG",
+      "anzeige": "Sipho Thandeka",
+      "platzhalter": [
+        "Nachname AG",
+        "Vorname AG",
+        "Vorname AG2"
+      ]
+    },
+    {
+      "person": "AH",
+      "anzeige": "Nomvula",
+      "platzhalter": [
+        "Nachname AH",
+        "Vorname AH"
+      ]
+    },
+    {
+      "person": "AI",
+      "anzeige": "Bruna Letícia",
+      "platzhalter": [
+        "Nachname AI",
+        "Vorname AI",
+        "Vorname AI2"
+      ]
+    },
+    {
+      "person": "AJ",
+      "anzeige": "Oliveira Santos",
+      "platzhalter": [
+        "Nachname AJ",
+        "Vorname AJ"
+      ]
+    },
+    {
+      "person": "AK",
+      "anzeige": "de Oliveira",
+      "platzhalter": [
+        "Nachname AK",
+        "Vorname AK"
+      ]
+    },
+    {
+      "person": "AL",
+      "anzeige": "Meron",
+      "platzhalter": [
+        "Nachname AL",
+        "Vorname AL"
+      ]
+    },
+    {
+      "person": "AM",
+      "anzeige": "Selamawit",
+      "platzhalter": [
+        "Nachname AM",
+        "Vorname AM"
+      ]
+    },
+    {
+      "person": "AN",
+      "anzeige": "Fiete Ole",
+      "platzhalter": [
+        "Nachname AN",
+        "Vorname AN",
+        "Vorname AN2"
+      ]
+    },
+    {
+      "person": "AO",
+      "anzeige": "Quaas",
+      "platzhalter": [
+        "Nachname AO",
+        "Vorname AO"
+      ]
+    },
+    {
+      "person": "AP",
+      "anzeige": "Quaas",
+      "platzhalter": [
+        "Nachname AP",
+        "Vorname AP"
+      ]
+    },
+    {
+      "person": "AQ",
+      "anzeige": "Aino Kaisa",
+      "platzhalter": [
+        "Nachname AQ",
+        "Vorname AQ",
+        "Vorname AQ2"
+      ]
+    },
+    {
+      "person": "AR",
+      "anzeige": "Ylönen",
+      "platzhalter": [
+        "Nachname AR",
+        "Vorname AR"
+      ]
+    },
+    {
+      "person": "AS",
+      "anzeige": "Luka",
+      "platzhalter": [
+        "Nachname AS",
+        "Vorname AS"
+      ]
+    },
+    {
+      "person": "AT",
+      "anzeige": "Dragović",
+      "platzhalter": [
+        "Nachname AT",
+        "Vorname AT"
+      ]
+    },
+    {
+      "person": "AU",
+      "anzeige": "Dragović",
+      "platzhalter": [
+        "Nachname AU",
+        "Vorname AU"
+      ]
+    },
+    {
+      "person": "AV",
+      "anzeige": "Henrike Sophie",
+      "platzhalter": [
+        "Nachname AV",
+        "Vorname AV",
+        "Vorname AV2"
+      ]
+    },
+    {
+      "person": "AW",
+      "anzeige": "Kühnreich",
+      "platzhalter": [
+        "Nachname AW",
+        "Vorname AW"
+      ]
+    },
+    {
+      "person": "AX",
+      "anzeige": "Kühnreich-Albers",
+      "platzhalter": [
+        "Nachname AX",
+        "Vorname AX"
+      ]
+    },
+    {
+      "person": "AY",
+      "anzeige": "Ferreira-Lopes",
+      "platzhalter": [
+        "Nachname AY",
+        "Vorname AY",
+        "Vorname AY2"
+      ]
+    },
+    {
+      "person": "AZ",
+      "anzeige": "Lopes",
+      "platzhalter": [
+        "Nachname AZ",
+        "Vorname AZ"
+      ]
+    },
+    {
+      "person": "BA",
+      "anzeige": "Ferreira",
+      "platzhalter": [
+        "Nachname BA",
+        "Vorname BA"
+      ]
+    },
+    {
+      "person": "BB",
+      "anzeige": "Aroha",
+      "platzhalter": [
+        "Nachname BB",
+        "Vorname BB"
+      ]
+    },
+    {
+      "person": "BC",
+      "anzeige": "Wiremu",
+      "platzhalter": [
+        "Nachname BC",
+        "Vorname BC"
+      ]
+    },
+    {
+      "person": "BD",
+      "anzeige": "Tomáš Karel",
+      "platzhalter": [
+        "Nachname BD",
+        "Vorname BD",
+        "Vorname BD2"
+      ]
+    },
+    {
+      "person": "BE",
+      "anzeige": "Zahradníková",
+      "platzhalter": [
+        "Nachname BE",
+        "Vorname BE"
+      ]
+    },
+    {
+      "person": "BF",
+      "anzeige": "Zahradník",
+      "platzhalter": [
+        "Nachname BF",
+        "Vorname BF"
+      ]
+    },
+    {
+      "person": "BG",
+      "anzeige": "Sigrid Ingrid",
+      "platzhalter": [
+        "Nachname BG",
+        "Vorname BG",
+        "Vorname BG2"
+      ]
+    },
+    {
+      "person": "BH",
+      "anzeige": "Bjørnstad",
+      "platzhalter": [
+        "Nachname BH",
+        "Vorname BH"
+      ]
+    },
+    {
+      "person": "BI",
+      "anzeige": "Jannes Hauke",
+      "platzhalter": [
+        "Nachname BI",
+        "Vorname BI",
+        "Vorname BI2"
+      ]
+    },
+    {
+      "person": "BJ",
+      "anzeige": "Achterkamp",
+      "platzhalter": [
+        "Nachname BJ",
+        "Vorname BJ"
+      ]
+    },
+    {
+      "person": "BK",
+      "anzeige": "Achterkamp",
+      "platzhalter": [
+        "Nachname BK",
+        "Vorname BK"
+      ]
+    },
+    {
+      "person": "BL",
+      "anzeige": "Obinna",
+      "platzhalter": [
+        "Nachname BL",
+        "Vorname BL"
+      ]
+    },
+    {
+      "person": "BM",
+      "anzeige": "Chiamaka",
+      "platzhalter": [
+        "Nachname BM",
+        "Vorname BM"
+      ]
+    },
+    {
+      "person": "BN",
+      "anzeige": "Zofia Maria",
+      "platzhalter": [
+        "Nachname BN",
+        "Vorname BN",
+        "Vorname BN2"
+      ]
+    },
+    {
+      "person": "BO",
+      "anzeige": "Laskowska",
+      "platzhalter": [
+        "Nachname BO",
+        "Vorname BO"
+      ]
+    },
+    {
+      "person": "BP",
+      "anzeige": "Laskowski",
+      "platzhalter": [
+        "Nachname BP",
+        "Vorname BP"
+      ]
+    },
+    {
+      "person": "BQ",
+      "anzeige": "Kavya",
+      "platzhalter": [
+        "Nachname BQ",
+        "Vorname BQ"
+      ]
+    },
+    {
+      "person": "BR",
+      "anzeige": "Ramanathan",
+      "platzhalter": [
+        "Nachname BR",
+        "Vorname BR"
+      ]
+    },
+    {
+      "person": "BS",
+      "anzeige": "Ramanathan",
+      "platzhalter": [
+        "Nachname BS",
+        "Vorname BS"
+      ]
+    },
+    {
+      "person": "BT",
+      "anzeige": "Ange Désiré",
+      "platzhalter": [
+        "Nachname BT",
+        "Vorname BT",
+        "Vorname BT2"
+      ]
+    },
+    {
+      "person": "BU",
+      "anzeige": "Tchouameni",
+      "platzhalter": [
+        "Nachname BU",
+        "Vorname BU"
+      ]
+    },
+    {
+      "person": "BV",
+      "anzeige": "Wilbur James",
+      "platzhalter": [
+        "Nachname BV",
+        "Vorname BV",
+        "Vorname BV2"
+      ]
+    },
+    {
+      "person": "BW",
+      "anzeige": "Heppenstall",
+      "platzhalter": [
+        "Nachname BW",
+        "Vorname BW"
+      ]
+    },
+    {
+      "person": "BX",
+      "anzeige": "Saoirse Áine",
+      "platzhalter": [
+        "Nachname BX",
+        "Vorname BX",
+        "Vorname BX2"
+      ]
+    },
+    {
+      "person": "BY",
+      "anzeige": "Ó Briain",
+      "platzhalter": [
+        "Nachname BY",
+        "Vorname BY"
+      ]
+    },
+    {
+      "person": "BZ",
+      "anzeige": "Ó Briain",
+      "platzhalter": [
+        "Nachname BZ",
+        "Vorname BZ"
+      ]
+    },
+    {
+      "person": "CA",
+      "anzeige": "Matteo Elif",
+      "platzhalter": [
+        "Nachname CA",
+        "Vorname CA",
+        "Vorname CA2"
+      ]
+    },
+    {
+      "person": "CB",
+      "anzeige": "Brockhusen",
+      "platzhalter": [
+        "Nachname CB",
+        "Vorname CB"
+      ]
+    },
+    {
+      "person": "CC",
+      "anzeige": "Smilla Lio",
+      "platzhalter": [
+        "Nachname CC",
+        "Vorname CC",
+        "Vorname CC2"
+      ]
+    },
+    {
+      "person": "CD",
+      "anzeige": "Tjaden",
+      "platzhalter": [
+        "Nachname CD",
+        "Vorname CD"
+      ]
+    },
+    {
+      "person": "CE",
+      "anzeige": "Tjaden",
+      "platzhalter": [
+        "Nachname CE",
+        "Vorname CE"
+      ]
+    },
+    {
+      "person": "CF",
+      "anzeige": "Chukwudi Onni",
+      "platzhalter": [
+        "Nachname CF",
+        "Vorname CF",
+        "Vorname CF2"
+      ]
+    },
+    {
+      "person": "CG",
+      "anzeige": "Okafor",
+      "platzhalter": [
+        "Nachname CG",
+        "Vorname CG"
+      ]
+    },
+    {
+      "person": "CH",
+      "anzeige": "Okafor",
+      "platzhalter": [
+        "Nachname CH",
+        "Vorname CH"
+      ]
+    },
+    {
+      "person": "CI",
+      "anzeige": "Zuzanna Tolu",
+      "platzhalter": [
+        "Nachname CI",
+        "Vorname CI",
+        "Vorname CI2"
+      ]
+    },
+    {
+      "person": "CJ",
+      "anzeige": "Wiśniewska",
+      "platzhalter": [
+        "Nachname CJ",
+        "Vorname CJ"
+      ]
+    },
+    {
+      "person": "CK",
+      "anzeige": "Frieda Ida",
+      "platzhalter": [
+        "Nachname CK",
+        "Vorname CK",
+        "Vorname CK2"
+      ]
+    },
+    {
+      "person": "CL",
+      "anzeige": "Haverkamp",
+      "platzhalter": [
+        "Nachname CL",
+        "Vorname CL"
+      ]
+    },
+    {
+      "person": "CM",
+      "anzeige": "Haverkamp",
+      "platzhalter": [
+        "Nachname CM",
+        "Vorname CM"
+      ]
+    },
+    {
+      "person": "CN",
+      "anzeige": "Awa Oskar",
+      "platzhalter": [
+        "Nachname CN",
+        "Vorname CN",
+        "Vorname CN2"
+      ]
+    },
+    {
+      "person": "CO",
+      "anzeige": "Moussa",
+      "platzhalter": [
+        "Nachname CO",
+        "Vorname CO"
+      ]
+    },
+    {
+      "person": "CP",
+      "anzeige": "Ndiaye",
+      "platzhalter": [
+        "Nachname CP",
+        "Vorname CP"
+      ]
+    },
+    {
+      "person": "CQ",
+      "anzeige": "Bent Merle",
+      "platzhalter": [
+        "Nachname CQ",
+        "Vorname CQ",
+        "Vorname CQ2"
+      ]
+    },
+    {
+      "person": "CR",
+      "anzeige": "Ruhland",
+      "platzhalter": [
+        "Nachname CR",
+        "Vorname CR"
+      ]
+    },
+    {
+      "person": "CS",
+      "anzeige": "Elif Giulia",
+      "platzhalter": [
+        "Nachname CS",
+        "Vorname CS",
+        "Vorname CS2"
+      ]
+    },
+    {
+      "person": "CT",
+      "anzeige": "Murat",
+      "platzhalter": [
+        "Nachname CT",
+        "Vorname CT"
+      ]
+    },
+    {
+      "person": "CU",
+      "anzeige": "Kaya",
+      "platzhalter": [
+        "Nachname CU",
+        "Vorname CU"
+      ]
+    },
+    {
+      "person": "CV",
+      "anzeige": "Lio Kaspar",
+      "platzhalter": [
+        "Nachname CV",
+        "Vorname CV",
+        "Vorname CV2"
+      ]
+    },
+    {
+      "person": "CW",
+      "anzeige": "Strebel",
+      "platzhalter": [
+        "Nachname CW",
+        "Vorname CW"
+      ]
+    },
+    {
+      "person": "CX",
+      "anzeige": "Thorsten",
+      "platzhalter": [
+        "Nachname CX",
+        "Vorname CX"
+      ]
+    },
+    {
+      "person": "CY",
+      "anzeige": "Onni Dimitra",
+      "platzhalter": [
+        "Nachname CY",
+        "Vorname CY",
+        "Vorname CY2"
+      ]
+    },
+    {
+      "person": "CZ",
+      "anzeige": "Mäkinen",
+      "platzhalter": [
+        "Nachname CZ",
+        "Vorname CZ"
+      ]
+    },
+    {
+      "person": "DA",
+      "anzeige": "Tolu Valentin",
+      "platzhalter": [
+        "Nachname DA",
+        "Vorname DA",
+        "Vorname DA2"
+      ]
+    },
+    {
+      "person": "DB",
+      "anzeige": "Oyelaran",
+      "platzhalter": [
+        "Nachname DB",
+        "Vorname DB"
+      ]
+    },
+    {
+      "person": "DC",
+      "anzeige": "Oyelaran",
+      "platzhalter": [
+        "Nachname DC",
+        "Vorname DC"
+      ]
+    },
+    {
+      "person": "DD",
+      "anzeige": "Ida Wanjiru",
+      "platzhalter": [
+        "Nachname DD",
+        "Vorname DD",
+        "Vorname DD2"
+      ]
+    },
+    {
+      "person": "DE",
+      "anzeige": "Pfannkuch",
+      "platzhalter": [
+        "Nachname DE",
+        "Vorname DE"
+      ]
+    },
+    {
+      "person": "DF",
+      "anzeige": "Pfannkuch",
+      "platzhalter": [
+        "Nachname DF",
+        "Vorname DF"
+      ]
+    },
+    {
+      "person": "DG",
+      "anzeige": "Oskar Lotta",
+      "platzhalter": [
+        "Nachname DG",
+        "Vorname DG",
+        "Vorname DG2"
+      ]
+    },
+    {
+      "person": "DH",
+      "anzeige": "Zaremba",
+      "platzhalter": [
+        "Nachname DH",
+        "Vorname DH"
+      ]
+    },
+    {
+      "person": "DI",
+      "anzeige": "Merle Magnus",
+      "platzhalter": [
+        "Nachname DI",
+        "Vorname DI",
+        "Vorname DI2"
+      ]
+    },
+    {
+      "person": "DJ",
+      "anzeige": "Lindhorst",
+      "platzhalter": [
+        "Nachname DJ",
+        "Vorname DJ"
+      ]
+    },
+    {
+      "person": "DK",
+      "anzeige": "Lindhorst",
+      "platzhalter": [
+        "Nachname DK",
+        "Vorname DK"
+      ]
+    },
+    {
+      "person": "DL",
+      "anzeige": "Giulia Jule",
+      "platzhalter": [
+        "Nachname DL",
+        "Vorname DL",
+        "Vorname DL2"
+      ]
+    },
+    {
+      "person": "DM",
+      "anzeige": "Esposito",
+      "platzhalter": [
+        "Nachname DM",
+        "Vorname DM"
+      ]
+    },
+    {
+      "person": "DN",
+      "anzeige": "Esposito",
+      "platzhalter": [
+        "Nachname DN",
+        "Vorname DN"
+      ]
+    },
+    {
+      "person": "DO",
+      "anzeige": "Kaspar Emir",
+      "platzhalter": [
+        "Nachname DO",
+        "Vorname DO",
+        "Vorname DO2"
+      ]
+    },
+    {
+      "person": "DP",
+      "anzeige": "Grünewald",
+      "platzhalter": [
+        "Nachname DP",
+        "Vorname DP"
+      ]
+    },
+    {
+      "person": "DQ",
+      "anzeige": "Dimitra Sjoerd",
+      "platzhalter": [
+        "Nachname DQ",
+        "Vorname DQ",
+        "Vorname DQ2"
+      ]
+    },
+    {
+      "person": "DR",
+      "anzeige": "Antonopoulos",
+      "platzhalter": [
+        "Nachname DR",
+        "Vorname DR"
+      ]
+    },
+    {
+      "person": "DS",
+      "anzeige": "Antonopoulos",
+      "platzhalter": [
+        "Nachname DS",
+        "Vorname DS"
+      ]
+    },
+    {
+      "person": "DT",
+      "anzeige": "Valentin Lucía",
+      "platzhalter": [
+        "Nachname DT",
+        "Vorname DT",
+        "Vorname DT2"
+      ]
+    },
+    {
+      "person": "DU",
+      "anzeige": "Huber-Sedlak",
+      "platzhalter": [
+        "Nachname DU",
+        "Vorname DU"
+      ]
+    },
+    {
+      "person": "DV",
+      "anzeige": "Huber-Sedlak",
+      "platzhalter": [
+        "Nachname DV",
+        "Vorname DV"
+      ]
+    },
+    {
+      "person": "DW",
+      "anzeige": "Wanjiru Thees",
+      "platzhalter": [
+        "Nachname DW",
+        "Vorname DW",
+        "Vorname DW2"
+      ]
+    },
+    {
+      "person": "DX",
+      "anzeige": "Mwangi",
+      "platzhalter": [
+        "Nachname DX",
+        "Vorname DX"
+      ]
+    },
+    {
+      "person": "DY",
+      "anzeige": "Lotta Ifeoma",
+      "platzhalter": [
+        "Nachname DY",
+        "Vorname DY",
+        "Vorname DY2"
+      ]
+    },
+    {
+      "person": "DZ",
+      "anzeige": "Teichert",
+      "platzhalter": [
+        "Nachname DZ",
+        "Vorname DZ"
+      ]
+    },
+    {
+      "person": "EA",
+      "anzeige": "Teichert",
+      "platzhalter": [
+        "Nachname EA",
+        "Vorname EA"
+      ]
+    },
+    {
+      "person": "EB",
+      "anzeige": "Magnus Mira",
+      "platzhalter": [
+        "Nachname EB",
+        "Vorname EB",
+        "Vorname EB2"
+      ]
+    },
+    {
+      "person": "EC",
+      "anzeige": "Rasmussen",
+      "platzhalter": [
+        "Nachname EC",
+        "Vorname EC"
+      ]
+    },
+    {
+      "person": "ED",
+      "anzeige": "Rasmussen",
+      "platzhalter": [
+        "Nachname ED",
+        "Vorname ED"
+      ]
+    },
+    {
+      "person": "EE",
+      "anzeige": "Jule Petar",
+      "platzhalter": [
+        "Nachname EE",
+        "Vorname EE",
+        "Vorname EE2"
+      ]
+    },
+    {
+      "person": "EF",
+      "anzeige": "Bauknecht",
+      "platzhalter": [
+        "Nachname EF",
+        "Vorname EF"
+      ]
+    },
+    {
+      "person": "EG",
+      "anzeige": "Emir Ronja",
+      "platzhalter": [
+        "Nachname EG",
+        "Vorname EG",
+        "Vorname EG2"
+      ]
+    },
+    {
+      "person": "EH",
+      "anzeige": "Yıldırım",
+      "platzhalter": [
+        "Nachname EH",
+        "Vorname EH"
+      ]
+    },
+    {
+      "person": "EI",
+      "anzeige": "Yıldırım",
+      "platzhalter": [
+        "Nachname EI",
+        "Vorname EI"
+      ]
+    },
+    {
+      "person": "EJ",
+      "anzeige": "Sjoerd Matteo",
+      "platzhalter": [
+        "Nachname EJ",
+        "Vorname EJ",
+        "Vorname EJ2"
+      ]
+    },
+    {
+      "person": "EK",
+      "anzeige": "Fennema",
+      "platzhalter": [
+        "Nachname EK",
+        "Vorname EK"
+      ]
+    },
+    {
+      "person": "EL",
+      "anzeige": "Fennema",
+      "platzhalter": [
+        "Nachname EL",
+        "Vorname EL"
+      ]
+    },
+    {
+      "person": "EM",
+      "anzeige": "Lucía Smilla",
+      "platzhalter": [
+        "Nachname EM",
+        "Vorname EM",
+        "Vorname EM2"
+      ]
+    },
+    {
+      "person": "EN",
+      "anzeige": "Castellano",
+      "platzhalter": [
+        "Nachname EN",
+        "Vorname EN"
+      ]
+    },
+    {
+      "person": "EO",
+      "anzeige": "Thees Chukwudi",
+      "platzhalter": [
+        "Nachname EO",
+        "Vorname EO",
+        "Vorname EO2"
+      ]
+    },
+    {
+      "person": "EP",
+      "anzeige": "Hölscher",
+      "platzhalter": [
+        "Nachname EP",
+        "Vorname EP"
+      ]
+    },
+    {
+      "person": "EQ",
+      "anzeige": "Hölscher",
+      "platzhalter": [
+        "Nachname EQ",
+        "Vorname EQ"
+      ]
+    },
+    {
+      "person": "ER",
+      "anzeige": "Ifeoma Zuzanna",
+      "platzhalter": [
+        "Nachname ER",
+        "Vorname ER",
+        "Vorname ER2"
+      ]
+    },
+    {
+      "person": "ES",
+      "anzeige": "Adeyemi",
+      "platzhalter": [
+        "Nachname ES",
+        "Vorname ES"
+      ]
+    },
+    {
+      "person": "ET",
+      "anzeige": "Adeyemi",
+      "platzhalter": [
+        "Nachname ET",
+        "Vorname ET"
+      ]
+    },
+    {
+      "person": "EU",
+      "anzeige": "Mira Frieda",
+      "platzhalter": [
+        "Nachname EU",
+        "Vorname EU",
+        "Vorname EU2"
+      ]
+    },
+    {
+      "person": "EV",
+      "anzeige": "Wendrich",
+      "platzhalter": [
+        "Nachname EV",
+        "Vorname EV"
+      ]
+    },
+    {
+      "person": "EW",
+      "anzeige": "Kovačević",
+      "platzhalter": [
+        "Nachname EW",
+        "Vorname EW",
+        "Vorname EW2"
+      ]
+    },
+    {
+      "person": "EX",
+      "anzeige": "Kovačević",
+      "platzhalter": [
+        "Nachname EX",
+        "Vorname EX"
+      ]
+    },
+    {
+      "person": "EY",
+      "anzeige": "Kovačević",
+      "platzhalter": [
+        "Nachname EY",
+        "Vorname EY"
+      ]
+    },
+    {
+      "person": "EZ",
+      "anzeige": "Ronja Bent",
+      "platzhalter": [
+        "Nachname EZ",
+        "Vorname EZ",
+        "Vorname EZ2"
+      ]
+    },
+    {
+      "person": "FA",
+      "anzeige": "Sturmhövel",
+      "platzhalter": [
+        "Nachname FA",
+        "Vorname FA"
+      ]
+    },
+    {
+      "person": "FB",
+      "anzeige": "Sturmhövel",
+      "platzhalter": [
+        "Nachname FB",
+        "Vorname FB"
+      ]
+    }
+  ],
+  "einrichtungen": [
+    {
+      "einrichtung": "A",
+      "anzeige": "Grundschule am Lindenhof, Birkenweg 3",
+      "platzhalter": [
+        "Einrichtung A"
+      ]
+    },
+    {
+      "einrichtung": "B",
+      "anzeige": "Grundschule Tannhofen-Nord, Am Anger 12",
+      "platzhalter": [
+        "Einrichtung B"
+      ]
+    },
+    {
+      "einrichtung": "C",
+      "anzeige": "Montessori-Grundschule Kirchberg, Seestraße 40a",
+      "platzhalter": [
+        "Einrichtung C"
+      ]
+    },
+    {
+      "einrichtung": "D",
+      "anzeige": "Grundschule St. Ulrich, Kirchplatz 1",
+      "platzhalter": [
+        "Einrichtung D"
+      ]
+    }
+  ]
+}

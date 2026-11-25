@@ -97,6 +97,8 @@ Neue Version: Anonymisierer/index.html; Vorversion: index-2.7.0.html. Nur Chromi
 | fixtures-bedienung/bedienung.docx | 5 | 0 | alle | alle | alle | alle | alle | alle | 5: alle |
 | fixtures-bedienung/bedienung.txt | 5 | 0 | alle | alle | alle | alle | alle | alle | 5: alle |
 | fixtures-bedienung/bedienung.xlsx | 6 | 0 | alle | alle | alle | alle | alle | alle | 6: alle |
+| fixtures-nummern/stammdaten-2.11.0-anonym.csv | 108 | 0 | alle | alle | alle | alle | alle | alle | 110: alle |
+| fixtures-nummern/stammdaten-2.11.0-anonym.xlsx | 108 | 0 | alle | alle | alle | alle | alle | alle | 110: alle |
 | fixtures-pfade/pfade-gegenprobe.docx | 11 | 0 | alle | alle | alle | alle | alle | alle | 11: alle |
 | fixtures-pfade/pfade-gegenprobe.xlsx | 11 | 0 | alle | alle | alle | alle | alle | alle | 11: alle |
 | fixtures-pfade/pfade-hauptteil.docx | 6 | 0 | alle | alle | alle | alle | alle | alle | 6: alle |
@@ -144,10 +146,10 @@ Neue Version: Anonymisierer/index.html; Vorversion: index-2.7.0.html. Nur Chromi
 | out/massstab/korpus-kurse2.txt | 12 | 0 | alle | alle | alle | alle | alle | alle | 12: alle |
 | out/massstab/korpus-aushang.txt | 2 | 0 | alle | alle | alle | alle | alle | alle | 2: alle |
 
-Referenzen alter Versionen (tests/referenz/): gespeichert verwendet – 405 aus der Datei, 13 frisch gerechnet.
-Geprüft: 139 Dateien (Testdateien und 15 Korpus-Abschnitte), 1929 Stellen der Vorversion, je sechs Abläufe; zweiter Maßstab: 2068 Stellen von 2.8.0 (ohne Antwort).
+Referenzen alter Versionen (tests/referenz/): gespeichert verwendet – 405 aus der Datei, 19 frisch gerechnet.
+Geprüft: 141 Dateien (Testdateien und 15 Korpus-Abschnitte), 2145 Stellen der Vorversion, je sechs Abläufe; zweiter Maßstab: 2288 Stellen von 2.8.0 (ohne Antwort).
 
-Ausnahmen: 35 (seit Guardian-Lauf 5 keine Ausnahme mehr erlaubt; seit 2.11.0 genau eine Art: Kopf-Zellen nur aus Spaltenkopf-Wörtern, Regel 1)
+Ausnahmen: 37 (seit Guardian-Lauf 5 keine Ausnahme mehr erlaubt; seit 2.11.0 genau eine Art: Kopf-Zellen nur aus Spaltenkopf-Wörtern, Regel 1)
 - fixtures/a2-risiko.csv, gegen 2.8.0: Zelle B1, „Name“ (Stelle „Name“)
 - fixtures/a2-risiko.csv, ohne Antwort: Zelle B1, „Name“ (Stelle „Name“)
 - fixtures/a2-risiko.csv, nach „Nein“: Zelle B1, „Name“ (Stelle „Name“)
@@ -158,6 +160,8 @@ Ausnahmen: 35 (seit Guardian-Lauf 5 keine Ausnahme mehr erlaubt; seit 2.11.0 gen
 - fixtures/a2-uebertragung.csv, nach „Nein“: Zelle B1, „Name“ (Stelle „Name“)
 - fixtures/a2-uebertragung.csv, nach „Ja“ → „Nein“: Zelle B1, „Name“ (Stelle „Name“)
 - fixtures/a2-uebertragung.csv, Liste aus, dann markiert: Zelle B1, „Name“ (Stelle „Name“)
+- fixtures-nummern/stammdaten-2.11.0-anonym.csv, gegen 2.8.0: Zelle BA1, „Wurde in der Grundschule Nachteilsausgleich oder Notenschutz wegen LRS gewährt?“ (Stelle „Grundschule Nachteilsausgleich“)
+- fixtures-nummern/stammdaten-2.11.0-anonym.xlsx, gegen 2.8.0: Blatt Schüler, Zelle BA1, „Wurde in der Grundschule Nachteilsausgleich oder Notenschutz wegen LRS gewährt?“ (Stelle „Grundschule Nachteilsausgleich“)
 - fixtures-pfade/pfade-gegenprobe.xlsx, gegen 2.8.0: Blatt Teilnehmer, Zelle A1, „Name“ (Stelle „Name“)
 - fixtures-pfade/pfade-gegenprobe.xlsx, ohne Antwort: Blatt Teilnehmer, Zelle A1, „Name“ (Stelle „Name“)
 - fixtures-pfade/pfade-gegenprobe.xlsx, nach „Nein“: Blatt Teilnehmer, Zelle A1, „Name“ (Stelle „Name“)

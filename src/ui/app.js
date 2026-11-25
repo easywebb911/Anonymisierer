@@ -6,6 +6,7 @@ import JSZip from 'jszip';
 import {
   analyze, defaultState, replacementsByUnit, applyReplacements, leakForms, findLeaks, makeGenericReplacer,
   metaLeakForms, makeNameTest, orgLeakPhrases, orgTermTokens, orgCoverageLeaks, columnPlan, columnKeyOf, COL_KIND_LABEL,
+  isPerCellColumn,
 } from '../core/detect.js';
 import { fold } from '../core/fold.js';
 import { readTxt, writeTxt, readCsv, writeCsv, encodeText, encodeTextPlain } from '../formats/text.js';
@@ -46,6 +47,8 @@ const KI_HINT_COLS = {
   person: ' Ganze Tabellenzellen stehen als „[DATUM]“ oder „[ANGABE]“ da; ihren Inhalt kennst du nicht, bitte nicht raten.',
   name: ' Ganze Tabellenzellen stehen als „[DATUM]“ oder „[ANGABE]“ da; ihren Inhalt kennst du nicht, bitte nicht raten.',
 };
+// Version 2.11.1: Zusatz im Modus „rückbaufähig“, wenn eine heikle Spalte eigene Nummern je Zelle hat
+const KI_HINT_PERCELL = ' In manchen Spalten hat jede Zelle eine eigene Nummer; verschiedene Nummern sagen dort nichts darüber, ob die Inhalte gleich oder verschieden sind.';
 
 function h(tag, attrs, ...kids) {
   const el = document.createElement(tag);
@@ -335,7 +338,9 @@ function renderColumns() {
     h('span', { class: 'colh' }, h('strong', {}, c.header.replace(/\s+/g, ' ')), h('small', {}, `${c.filled} ${c.filled === 1 ? 'Zelle' : 'Zellen'} gefüllt${c.fromMemory ? ' · gemerkte Wahl' : ''}`),
       // Version 2.11.0: lesbare Spalte einer Personen-Tabelle – ihre Werte und die ersetzten seltenen Werte
       c.person && c.treat === 'bisher' ? h('small', { class: 'colvals' }, 'Bleibt lesbar: ' + valuesText(c)) : null,
-      c.person && c.treat === 'bisher' && c.rareValues ? h('small', { class: 'colrare' }, `${c.rareValues === 1 ? 'Ein seltener Wert wird' : c.rareValues + ' seltene Werte werden'} ersetzt.`) : null),
+      c.person && c.treat === 'bisher' && c.rareValues ? h('small', { class: 'colrare' }, `${c.rareValues === 1 ? 'Ein seltener Wert wird' : c.rareValues + ' seltene Werte werden'} ersetzt.`) : null,
+      // Version 2.11.1: heikle Spalte im Modus „rückbaufähig“
+      isReversible() && isPerCellColumn(c) ? h('small', { class: 'colpercell' }, 'Eigene Nummer je Zelle: Gleiche Inhalte tragen verschiedene Nummern.') : null),
     h('span', { class: 'colsel' },
       h('select', { 'data-col': c.id, 'aria-label': `Behandlung der Spalte ${c.header}`, onchange: (e) => setColumn(c.id, e.target.value) },
         ...['name', 'ganz', 'bisher'].map((v) => { const o = h('option', { value: v }, TREAT_LABEL[v]); if (v === c.treat) o.selected = true; return o; })),
@@ -2072,7 +2077,8 @@ async function copyKiHint() {
   const mode = KI_HINT[app.state.settings.mode] ? app.state.settings.mode : 'person';
   // Version 2.10.0: Zusatz nur, wenn ganze Tabellenzellen ersetzt sind (sonst genau der bisherige Satz)
   const cols = app.result && app.result.hits.some((x) => x.on && x.colHit);
-  const text = KI_HINT[mode] + (cols ? KI_HINT_COLS[mode] : '');
+  const perCell = mode === 'reversible' && app.result && app.result.hits.some((x) => x.on && x.perCell);
+  const text = KI_HINT[mode] + (cols ? KI_HINT_COLS[mode] : '') + (perCell ? KI_HINT_PERCELL : '');
   const ok = await copyText(text);
   const st = $('#kihint-status');
   const ta = $('#kihint-text');
@@ -2655,7 +2661,7 @@ function initRestore() {
 }
 
 // Für automatische Tests (nur lesend nutzbar, kein Netzwerk)
-window.__anon = { app, openBytes, imagesPending, buildOutput, applyColumns, finalCheck, addManual, addOrg, KI_HINT, runAnalysis, rb, rbLoadFile, rbLoadKey, rbCheck, show, questions, newKennung, answer, answerOf, savePoints,
+window.__anon = { app, openBytes, imagesPending, buildOutput, applyColumns, finalCheck, addManual, addOrg, KI_HINT, KI_HINT_PERCELL, runAnalysis, rb, rbLoadFile, rbLoadKey, rbCheck, show, questions, newKennung, answer, answerOf, savePoints,
   // Version 2.6.1 (Tests): gezeigte Frage, ihre Stellen, Fragenwechsel
   goQuestion, shownQuestion: () => { const r = shownQuestion(); return { ids: r.qs.map((q) => q.id), idx: r.idx }; },
   currentHits: () => currentHits().map((x) => x.id), showQ: (id) => { app.qCurrent = id; refreshMarks(); renderQuestions(); } };
