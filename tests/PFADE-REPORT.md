@@ -36,7 +36,7 @@ Testdokumente: tests/make-pfade.mjs -> tests/fixtures-pfade/ (alles erfunden). V
 - OK: pfade-hauptteil.docx: Kopfzeile, Fußzeile, Fußnote, Endnote, Kommentar in der Prüfansicht – Text, Text, Text, Tabelle, Kopfzeile, Fußzeile, Fußnote, Endnote, Kommentar
 
 ## 3. Kreislauf (rückbaufähig -> Rückbau), jeder Abschnitt exakt wie im Original
-- pfade-phase0.xlsx: Urteil passend; 9 Abschnitte, falsch zurückgebaut 0; Kommentar anonymisiert: „Kommentar B2: Rückruf bei Vorname B Nachname B, Mutter Vorname E Nachname E“
+- pfade-phase0.xlsx: Urteil passend; 9 Abschnitte, falsch zurückgebaut 0; Kommentar anonymisiert: „Kommentar B2: Rückruf bei Vorname B Nachname B, Mutter Vorname F Nachname F“
 - OK: pfade-phase0.xlsx: Kreislauf exakt (auch Kommentare)
 - pfade-ueblich.xlsx: Urteil passend; 11 Abschnitte, falsch zurückgebaut 0; Kommentar anonymisiert: „Kommentar B2: Rückruf bei Herrn Vorname E Nachname E erbeten.“, „Kommentar (Unterhaltung) B3: Bitte mit Herrn Vorname F Nachname F klären.“
 - OK: pfade-ueblich.xlsx: Kreislauf exakt (auch Kommentare)

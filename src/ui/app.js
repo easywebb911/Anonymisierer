@@ -5,7 +5,7 @@ import './lockdown.js';
 import JSZip from 'jszip';
 import {
   analyze, defaultState, replacementsByUnit, applyReplacements, leakForms, findLeaks, makeGenericReplacer,
-  metaLeakForms, makeNameTest, orgLeakPhrases, orgTermTokens, orgCoverageLeaks,
+  metaLeakForms, makeNameTest, orgLeakPhrases, orgTermTokens, orgCoverageLeaks, columnPlan, columnKeyOf, COL_KIND_LABEL,
 } from '../core/detect.js';
 import { fold } from '../core/fold.js';
 import { readTxt, writeTxt, readCsv, writeCsv, encodeText, encodeTextPlain } from '../formats/text.js';
@@ -39,6 +39,12 @@ const KI_HINT = {
   reversible: 'Der Text enthält Platzhalter wie „Vorname A“, „Nachname A“, „Name A“, „Initiale A.“, „Einrichtung A“, „[E-MAIL-1]“, „[WEBADRESSE-1]“ und „[KONTO-1]“. Diese Platzhalter bitte nie verändern, nicht beugen, nicht übersetzen und nicht trennen. Zeige mir nur die Fehler, schreibe den Text nicht neu.',
   person: 'Der Text enthält Platzhalter wie „Person A“, „Einrichtung A“, „[E-MAIL]“, „[WEBADRESSE]“ und „[KONTO]“ anstelle echter Namen, Einrichtungen, Kontaktdaten, Webadressen und Konten. Diese Platzhalter bitte unverändert lassen. Zeige mir nur die Fehler, schreibe den Text nicht neu.',
   name: 'Der Text enthält Platzhalter wie „[NAME]“, „[EINRICHTUNG]“, „[E-MAIL]“, „[WEBADRESSE]“ und „[KONTO]“ anstelle echter Namen, Einrichtungen, Kontaktdaten, Webadressen und Konten. Diese Platzhalter bitte unverändert lassen. Zeige mir nur die Fehler, schreibe den Text nicht neu.',
+};
+// Version 2.10.0: Zusatz, wenn Tabellenspalten ganz ersetzt sind (Datum und Angabe; der Inhalt fehlt der KI)
+const KI_HINT_COLS = {
+  reversible: ' Ganze Tabellenzellen stehen als „[DATUM-1]“ oder „[ANGABE-1]“ da; ihren Inhalt kennst du nicht, bitte nicht raten und nicht verändern.',
+  person: ' Ganze Tabellenzellen stehen als „[DATUM]“ oder „[ANGABE]“ da; ihren Inhalt kennst du nicht, bitte nicht raten.',
+  name: ' Ganze Tabellenzellen stehen als „[DATUM]“ oder „[ANGABE]“ da; ihren Inhalt kennst du nicht, bitte nicht raten.',
 };
 
 function h(tag, attrs, ...kids) {
@@ -121,6 +127,8 @@ const app = {
   sheetTab: 0, // Excel: gezeigtes Blatt in der Prüfansicht
   addedSinceLoad: false, // Hinweis „Diese Liste gilt nur, bis du die Seite schließt …“
   imageBig: new Set(), // Bild-Nr. groß angezeigt
+  colConfirmed: false, // Version 2.10.0: Spalten-Übersicht mit „So übernehmen“ bestätigt (je Dokument)
+  colSeq: 0, // Version 2.10.0: laufende Nummer beim Neulesen (Excel) nach einer Änderung der Spalten
 };
 
 // ---------- Speicher (nur auf ausdrücklichen Wunsch) ----------
@@ -136,6 +144,8 @@ function loadStored() {
     // Version 2.3: Einrichtungen getrennt gemerkt; ältere Merklisten ohne dieses Feld enthalten nur Personen
     app.state.orgTerms = Array.isArray(d.einrichtungen) ? d.einrichtungen.filter((x) => typeof x === 'string') : [];
     app.state.exceptions = Array.isArray(d.exceptions) ? d.exceptions.filter((x) => typeof x === 'string') : [];
+    // Version 2.10.0: gemerkte Wahl je Spaltenüberschrift (nur die Überschrift, nie Inhalte)
+    app.state.colMemory = colMemoryFrom(d.spalten);
     app.persist = true;
   } catch { storeDel(); }
 }
@@ -149,7 +159,14 @@ function listData(extra) {
   const d = { ...(extra || {}), names: app.state.manualTerms };
   if (app.state.orgTerms.length) d.einrichtungen = app.state.orgTerms;
   d.exceptions = app.state.exceptions;
+  // Version 2.10.0: Wahl je Spaltenüberschrift (nur wenn es eine gibt; ältere Merklisten ohne dieses Feld bleiben gleich)
+  if (Object.keys(app.state.colMemory || {}).length) d.spalten = app.state.colMemory;
   return d;
+}
+function colMemoryFrom(v) {
+  const out = {};
+  if (v && typeof v === 'object' && !Array.isArray(v)) for (const [k, t] of Object.entries(v)) if (typeof k === 'string' && (t === 'name' || t === 'ganz' || t === 'bisher')) out[k] = t;
+  return out;
 }
 
 // ---------- Datei erkennen und lesen ----------
@@ -186,14 +203,14 @@ async function sniff(bytes, name) {
   return 'txt';
 }
 
-async function loadBytes(bytes, name) {
+async function loadBytes(bytes, name, treat = null) {
   if (bytes.length > MAX_BYTES) throw new Error(`Die Datei ist zu groß (${(bytes.length / 1048576).toFixed(1)} MB). Grenze: ${MAX_BYTES / 1048576} MB.`);
   const kind = await sniff(bytes, name);
   let doc;
   if (kind === 'txt') doc = readTxt(bytes);
   else if (kind === 'csv') doc = readCsv(bytes);
   else if (kind === 'docx') doc = await readDocx(bytes);
-  else if (kind === 'xlsx') doc = await readXlsx(bytes);
+  else if (kind === 'xlsx') doc = await readXlsx(bytes, { treat });
   else if (kind === 'pdf') doc = await readPdf(bytes);
   // row/cell nur für die Anzeige (Tabellenzeilen als Zeilen); die Erkennung nutzt nur text/label/follows/heading
   // fixed: Stellen fester Zeichen der Vorlage (z. B. Zeilenumbruch in Word), die beim Ersetzen stehen bleiben
@@ -202,6 +219,8 @@ async function loadBytes(bytes, name) {
     row: u.row !== undefined ? (u.part || '') + '#' + u.row : null, cell: u.cell,
     // Version 2.6.0: Lage in Tabellen (Namensspalten) und linke Nachbarzellen in Excel (Anrede in der Nachbarzelle)
     ...(u.tcells ? { tcells: u.tcells } : {}), ...(u.leftUnits ? { leftUnits: u.leftUnits } : {}),
+    // Version 2.10.0: Zahl-/Datumszelle (Zelltyp und Wert), Formelergebnis, Grenzen der Textläufe (gemischte Formatierung)
+    ...(u.cellOrig ? { cellOrig: u.cellOrig } : {}), ...(u.formula ? { formula: true } : {}), ...segBoundsOf(u),
     ...(kind === 'txt' ? { joinNext: i + 1 < doc.units.length, eol: doc.eols[i] || '\n' } : {}),
     fixed: u.segments && u.segments.some((sg) => !sg.writable) ? u.segments.filter((sg) => !sg.writable).map((sg) => sg.start) : null }));
   const warnings = [...(doc.warnings || [])];
@@ -210,7 +229,130 @@ async function loadBytes(bytes, name) {
   const images = doc.imageCtx ? await listImages(kind, doc.zip, doc.docs, doc.imageCtx) : [];
   // Version 2.7.0: Link-Ziele, Link-Hinweise, Feldfunktionen (Word/Excel) für exakte Nummern im Modus „rückbaufähig“
   const linkTexts = doc.zip ? await collectLinkTexts(doc.zip, doc.docs) : [];
-  return { kind, units, warnings, bytes, info: doc.info || '', raw: doc, metaNames: doc.metaNames || [], images, linkTexts };
+  return { kind, units, warnings, bytes, info: doc.info || '', raw: doc, metaNames: doc.metaNames || [], images, linkTexts, treat, treatKey: treatKeyOf(treat) };
+}
+function segBoundsOf(u) {
+  const w = (u.segments || []).filter((sg) => sg.writable && sg.text);
+  return w.length > 1 ? { segBounds: w.slice(1).map((sg) => sg.start) } : {};
+}
+// ---------- Version 2.10.0: Spalten behandeln ----------
+// Excel: Spalten mit Behandlung „Name“ oder „ganz ersetzen“ -> Map(Blatt -> Map(Spalte -> Kopfzeile)) zum Lesen
+function treatMapOf(plan) {
+  const m = new Map();
+  for (const c of plan) {
+    if (c.treat === 'bisher' || !c.t.startsWith('x|')) continue;
+    const sh = c.t.slice(2);
+    if (!m.has(sh)) m.set(sh, new Map());
+    m.get(sh).set(c.c, c.headerRow);
+  }
+  return m.size ? m : null;
+}
+function treatKeyOf(m) { return m ? JSON.stringify([...m].map(([k, v]) => [k, [...v]])) : ''; }
+function currentPlan(units) { return columnPlan(units || app.doc.units, app.state.colTreat || {}, app.state.colMemory || {}); }
+// Excel: neu lesen, wenn sich die behandelten Spalten geändert haben (gleiche Datei, andere Abschnitte)
+async function rereadXlsx(doc) {
+  const map = treatMapOf(currentPlan(doc.units));
+  if (treatKeyOf(map) === doc.treatKey) return doc;
+  const nd = await loadBytes(doc.bytes, doc.name, map);
+  nd.name = doc.name;
+  return nd;
+}
+// Spalten in der Übersicht (je Blatt): Überschrift, gefüllte Zellen (auch Zahl- und Datumszellen), Vorschlag, Wahl
+function columnRows() {
+  const r = app.result;
+  if (!r || !r.colPlan) return [];
+  const d = app.doc;
+  return r.colPlan.map((c) => {
+    let filled = 0;
+    if (c.t.startsWith('x|') && d.raw.view) {
+      const sv = d.raw.view.find((v) => 'x|' + v.name === c.t);
+      for (const cell of sv ? sv.cells : []) {
+        const m = /^([A-Z]+)(\d+)$/.exec(cell.ref || '');
+        if (!m || colNum(m[1]) - 1 !== c.c || Number(m[2]) - 1 <= c.headerRow) continue;
+        const txt = cell.u !== undefined ? d.units[cell.u].text : cell.value;
+        if (String(txt || '').trim()) filled++;
+      }
+    } else filled = c.rows.length;
+    return { ...c, filled };
+  });
+}
+function needsColumns() { return !!(app.result && app.result.colPlan && app.result.colPlan.length); }
+const TREAT_LABEL = { name: 'Name', ganz: 'ganz ersetzen', bisher: 'wie bisher' };
+function kindText(c) {
+  if (c.treat === 'name') return 'als Person';
+  if (c.treat !== 'ganz') return '';
+  const k = c.kind || 'info';
+  return k === 'org' ? (app.state.settings.mode === 'name' ? 'als [EINRICHTUNG]' : 'als Einrichtung') : 'als ' + COL_KIND_LABEL[k];
+}
+// Wahl einer Spalte ändern: gilt wie eine Einstellung (Antworten und Umschaltungen fallen weg), Excel wird neu gelesen
+async function setColumn(id, val) {
+  const col = (app.result.colPlan || []).find((c) => c.id === id);
+  if (!col) return;
+  app.state.colTreat[id] = val;
+  if (app.persist) {
+    const k = columnKeyOf(col.header);
+    if (val === col.proposal.treat) delete app.state.colMemory[k]; else app.state.colMemory[k] = val;
+    saveStored();
+  }
+  await applyColumns();
+}
+async function applyColumns() {
+  const seq = ++app.colSeq;
+  app.state.overrides = {};
+  if (app.answers.size) app.qNote = true;
+  app.answers = new Map();
+  app.answerLog = new Map();
+  app.qCurrent = null;
+  if (app.doc.kind === 'xlsx') {
+    const nd = await rereadXlsx(app.doc);
+    if (seq !== app.colSeq) return; // eine neuere Änderung läuft schon
+    if (nd !== app.doc) app.doc = nd;
+  }
+  runAnalysis();
+}
+function renderColumns() {
+  const rows = columnRows();
+  const box = $('#qcard');
+  const tables = [...new Set(rows.map((c) => c.t))];
+  const rowEl = (c) => h('li', { class: 'colrow' + (c.treat !== 'bisher' ? ' rep' : ''), 'data-col': c.id },
+    h('span', { class: 'colh' }, h('strong', {}, c.header.replace(/\s+/g, ' ')), h('small', {}, `${c.filled} ${c.filled === 1 ? 'Zelle' : 'Zellen'} gefüllt${c.fromMemory ? ' · gemerkte Wahl' : ''}`)),
+    h('span', { class: 'colsel' },
+      h('select', { 'data-col': c.id, 'aria-label': `Behandlung der Spalte ${c.header}`, onchange: (e) => setColumn(c.id, e.target.value) },
+        ...['name', 'ganz', 'bisher'].map((v) => { const o = h('option', { value: v }, TREAT_LABEL[v]); if (v === c.treat) o.selected = true; return o; })),
+      h('small', { class: 'colkind' }, kindText(c))));
+  const kids = [h('p', { class: 'qcount' }, 'Spalten'), h('p', { class: 'qask' }, 'So behandelt das Tool die Spalten.'),
+    h('p', { class: 'hint' }, '„Name“: Jede Zelle wird als Person ersetzt. „ganz ersetzen“: Jede Zelle wird ganz durch einen Platzhalter ersetzt. „wie bisher“: Das Tool sucht Namen im Text der Zelle.')];
+  for (const t of tables) {
+    const own = rows.filter((c) => c.t === t);
+    const rep = own.filter((c) => c.treat !== 'bisher');
+    const rest = own.filter((c) => c.treat === 'bisher');
+    if (tables.length > 1 || t.startsWith('x|')) kids.push(h('p', { class: 'grouph' }, t.startsWith('x|') ? `Blatt „${t.slice(2)}“` : 'Tabelle'));
+    kids.push(h('ul', { class: 'collist' }, ...(rep.length ? rep.map(rowEl) : [h('li', { class: 'muted' }, 'Keine Spalte wird ersetzt.')])));
+    if (rest.length) {
+      // aufgeklappt bleibt aufgeklappt (auch nach einer Änderung)
+      const d = h('details', { class: 'colrest', open: !!app.colRestOpen, ontoggle: (e) => { app.colRestOpen = e.target.open; } },
+        h('summary', {}, `${rest.length === 1 ? 'Eine Spalte' : rest.length + ' Spalten'} wie bisher`), h('ul', { class: 'collist' }, ...rest.map(rowEl)));
+      kids.push(d);
+    }
+  }
+  kids.push(h('p', { class: 'hint' }, 'Ersetzte Spalten kann eine KI danach nicht mehr inhaltlich prüfen.'),
+    h('div', { class: 'qbtns' }, h('button', { type: 'button', class: 'primary', id: 'col-ok', onclick: () => { app.colConfirmed = true; app.qShown = undefined; render(); focusA2(); } }, 'So übernehmen')));
+  fill(box, ...kids);
+}
+// Zeile über den Fragen nach dem Bestätigen
+function renderColLine() {
+  const line = $('#colline');
+  if (!line) return;
+  if (!needsColumns() || !app.colConfirmed) { line.hidden = true; line.replaceChildren(); return; }
+  const n = app.result.colPlan.filter((c) => c.treat !== 'bisher').length;
+  line.hidden = false;
+  fill(line, h('span', {}, `Spalten: ${n === 1 ? 'eine wird' : n + ' werden'} ersetzt.`), ' ',
+    h('button', { type: 'button', class: 'textlink', id: 'col-change', onclick: () => { app.colConfirmed = false; render(); focusA2(); } }, 'Ändern'));
+}
+// Der geklickte Knopf ist danach weg: Fokus wie beim Öffnen von „Prüfen“ auf die Überschrift (ohne zu rollen)
+function focusA2() {
+  const h1 = document.querySelector('#scr-a2 h1');
+  if (h1) { h1.setAttribute('tabindex', '-1'); h1.focus({ preventScroll: true }); }
 }
 
 // ---------- Analyse ----------
@@ -300,7 +442,7 @@ async function buildOutput(format) {
   if (format === 'docx' && d.kind === 'docx') return { bytes: await writeDocx(d.bytes, reps, generic, { containsName, kennung }), zip: true };
   if (format === 'xlsx' && d.kind === 'xlsx') {
     const sheetIssues = [];
-    const bytes = await writeXlsx(d.bytes, reps, generic, { onSheetName: (x) => sheetIssues.push(x), containsName, kennung });
+    const bytes = await writeXlsx(d.bytes, reps, generic, { onSheetName: (x) => sheetIssues.push(x), containsName, kennung, treat: d.treat });
     return { bytes, zip: true, sheetIssues };
   }
   if (format === 'docx') return { bytes: await buildDocx(docxSections(), { kennung }), zip: true };
@@ -812,6 +954,8 @@ function qHead(text, prevOn, nextOn) {
     h('span', { class: 'qnavs' }, nav('q-prev', 'Vorige Frage', '←', prevOn, -1), nav('q-next', 'Nächste Frage', '→', nextOn, 1)));
 }
 function renderQuestions() {
+  // Version 2.10.0: Tabellen mit Kopfzeile – zuerst die Spalten-Übersicht, erst nach „So übernehmen“ die Fragen
+  if (needsColumns() && !app.colConfirmed) { renderColumns(); return; }
   const box = $('#qcard');
   const { qs, idx } = shownQuestion();
   const note = app.qNote ? h('p', { class: 'hint qnote', id: 'q-note' }, 'Du hast eine Einstellung geändert. Die Fragen sind wieder offen.') : null;
@@ -961,6 +1105,7 @@ function render() {
   renderSummary();
   renderDoc();
   renderEntities();
+  renderColLine();
   renderQuestions();
   renderA2Info();
   if (app.screen === 'a3') renderSave();
@@ -1100,16 +1245,24 @@ function gridTable(cells, ctx, colLabel, colId) {
   const rows = [...new Set(cells.map((x) => x.r))].sort((a, b) => a - b);
   const maxC = Math.max(...cells.map((x) => x.c));
   const at = new Map(cells.map((x) => [x.r + ':' + x.c, x]));
+  // Version 2.10.0: Spalten mit Behandlung „Name“ oder „ganz ersetzen“ sind sichtbar als ersetzt gekennzeichnet (Kopf und
+  // Zellen unterhalb der Kopfzeile); der Schalter „Namen“ aus 2.6.0 gilt nur noch für Spalten „wie bisher“
+  const plan = new Map(((app.result && app.result.colPlan) || []).map((c) => [c.id, c]));
+  const repOf = (i) => { const id = colId ? colId(i + 1) : null; const c = id ? plan.get(id) : null; return c && c.treat !== 'bisher' ? c : null; };
   const head = h('tr', {}, h('th', { class: 'rn' }, ''), ...Array.from({ length: maxC }, (_, i) => {
     const id = colId ? colId(i + 1) : null;
     const col = id ? columnInfo(id) : null;
+    const rep = repOf(i);
+    if (rep) return h('th', { class: 'colrep', title: `Spalte „${rep.header}“: ${TREAT_LABEL[rep.treat]} (${kindText(rep)})` }, colLabel(i + 1), h('span', { class: 'colbadge' }, rep.treat === 'name' ? 'ersetzt: Name' : 'ganz ersetzt'));
     return h('th', { class: col && col.kind ? 'namecol' : '' }, colLabel(i + 1), id ? columnToggle(id) : null);
   }));
   const body = rows.map((r) => h('tr', {}, h('th', { class: 'rn' }, String(r)), ...Array.from({ length: maxC }, (_, i) => {
     const x = at.get(r + ':' + (i + 1));
+    const rep = repOf(i);
+    const below = rep && r - 1 > rep.headerRow;
     if (!x) return h('td', {});
-    if (x.u === undefined) return h('td', { class: 'numval' }, x.value);
-    return h('td', { class: app.doc.units[x.u].text.length > 40 ? 'wrap' : '' }, unitText(x.u, ctx));
+    if (x.u === undefined) return h('td', { class: 'numval' + (below ? ' colrep' : '') }, x.value);
+    return h('td', { class: (app.doc.units[x.u].text.length > 40 ? 'wrap' : '') + (below ? ' colrep' : '') }, unitText(x.u, ctx));
   })));
   return h('div', { class: 'tscroll' }, h('table', { class: 'sheet' }, h('thead', {}, head), h('tbody', {}, ...body)));
 }
@@ -1195,8 +1348,10 @@ function renderEntities() {
     const active = en.hits.filter((x) => x.on).length;
     const open = app.openMenu === en.key;
     // Einschalten: alle Stellen außer den einzeln gefragten GROSS-Formen von Hand übernommener Namen
+    // Version 2.10.0: Einrichtung aus einer Spalte „ganz ersetzen“ – nur über die Spalten-Übersicht änderbar
+    const fixed = !!en.col;
     const row = h('div', { class: 'entity' + (active ? '' : ' muted') },
-      h('label', { class: 'switch' }, h('input', { type: 'checkbox', checked: active > 0, 'aria-label': `${en.display} an/aus`, onchange: (e) => setHits(e.target.checked ? en.hits.filter((x) => !x.capsManual) : en.hits, e.target.checked) })),
+      h('label', { class: 'switch', title: fixed ? 'Aus einer Spalte „ganz ersetzen“. Ändern in der Spalten-Übersicht.' : null }, h('input', { type: 'checkbox', checked: active > 0, disabled: fixed, 'aria-label': `${en.display} an/aus`, onchange: (e) => setHits(e.target.checked ? en.hits.filter((x) => !x.capsManual) : en.hits, e.target.checked) })),
       h('span', { class: 'ename', title: en.label }, h('strong', {}, en.display), ' ', h('small', {}, en.label)),
       h('span', { class: 'count', title: 'Stellen (ersetzt / gesamt)' }, `${active}/${en.count}`),
       h('button', { type: 'button', class: 'menubtn', 'aria-label': `Mehr zu ${en.display}`, 'aria-expanded': open ? 'true' : 'false', onclick: () => { app.openMenu = open ? null : en.key; renderEntities(); } }, icon('dots')));
@@ -1242,6 +1397,7 @@ function entityMenu(en, ents) {
 // Menü einer Einrichtung: Schreibweisen, zusammenführen (nur mit Einrichtungen), Art umstellen, nicht mehr ersetzen
 function orgMenu(en, orgs) {
   const forms = [...en.forms.entries()].map(([f, c]) => `${f} (${c})`).join(', ');
+  if (en.col) return h('div', { class: 'emenu' }, h('p', { class: 'forms' }, 'Schreibweisen: ' + forms), h('p', { class: 'forms' }, 'Aus einer Spalte „ganz ersetzen“. Ändern in der Spalten-Übersicht.'));
   const sel = h('select', { 'aria-label': 'zusammenführen mit', onchange: (e) => { if (e.target.value) { app.state.merges[en.key] = e.target.value; app.openMenu = null; runAnalysis(); } } },
     h('option', { value: '' }, 'zusammenführen mit …'),
     ...orgs.filter((o) => o !== en).map((o) => h('option', { value: o.key }, `${o.label}: ${o.display}`)));
@@ -1476,6 +1632,22 @@ function savePoints() {
     pts.push({ id: 'web:' + web.map((x) => x.unit + ':' + x.text).join('|'), text: `${web.length === 1 ? 'Eine Webadresse oder ein Konto steht' : web.length + ' Webadressen oder Konten stehen'} noch im Text.`,
       small: 'Der Schalter „Webadressen und Konten“ ist aus.', items: placeItems(web), acts: [['Ersetzen', () => setWebSwitch(true)]] });
   }
+  // Version 2.10.0: Spalten-Übersicht nicht bestätigt -> kein stilles Speichern
+  if (needsColumns() && !app.colConfirmed) {
+    pts.push({ id: 'spalten', text: 'Die Spalten sind noch nicht geprüft.', small: 'Im Moment gilt die Auswahl in der Übersicht „Spalten“.',
+      acts: [['Ansehen', () => { app.colConfirmed = false; show('a2'); }, 'btn-cols']] });
+  }
+  // Version 2.10.0: Formeln und verbundene Zellen in einer ersetzten Spalte – nicht raten, melden
+  const ci = app.doc.raw && app.doc.raw.colIssues;
+  const refItems = (list) => [...list.slice(0, 10).map((x) => ({ text: `Blatt „${x.sheet}“, Zelle ${x.ref}` })), ...(list.length > 10 ? [{ text: `und ${list.length - 10} weitere` }] : [])];
+  if (ci && ci.formulas.length) {
+    pts.push({ id: 'spformel:' + ci.formulas.map((x) => x.sheet + '!' + x.ref).join('|'), text: `In einer ersetzten Spalte ${ci.formulas.length === 1 ? 'steht eine Formel' : 'stehen ' + ci.formulas.length + ' Formeln'}. Das Tool ersetzt sie nicht.`,
+      small: 'Bitte prüfe diese Zellen in Excel und lösche die Formel, wenn darin ein Name oder eine Angabe steht.', items: refItems(ci.formulas) });
+  }
+  if (ci && ci.merged.length) {
+    pts.push({ id: 'spverb:' + ci.merged.map((x) => x.sheet + '!' + x.ref).join('|'), text: 'In einer ersetzten Spalte gibt es verbundene Zellen.',
+      small: 'Bitte prüfe, ob alles ersetzt ist.', items: refItems(ci.merged) });
+  }
   const openQs = openQuestions();
   // Version 2.9.0: die Sammelfrage hat einen eigenen Punkt (unten), sie zählt hier nicht mit
   const open = openQs.filter((q) => q.kind !== 'rest').length;
@@ -1645,8 +1817,10 @@ function renderSave() {
   const info = [];
   const spots = r.hits.filter((x) => x.on && x.type === 'person').length;
   const orgSpots = r.hits.filter((x) => x.on && x.type === 'org').length;
-  const contacts = r.hits.filter((x) => x.on && x.type !== 'person' && x.type !== 'org').length;
-  info.push(ampelRow('ok', 'Ersetzt', `${spots} Namens-Stellen${orgSpots ? `, ${orgSpots} Einrichtungs-Stellen` : ''}, ${contacts} Kontaktdaten.`));
+  const contacts = r.hits.filter((x) => x.on && x.type !== 'person' && x.type !== 'org' && !x.colHit).length;
+  // Version 2.10.0: ganz ersetzte Tabellenzellen eigens gezählt (sonst wie bisher)
+  const colCells = new Set(r.hits.filter((x) => x.on && x.colHit).map((x) => x.unit)).size;
+  info.push(ampelRow('ok', 'Ersetzt', `${spots} Namens-Stellen${orgSpots ? `, ${orgSpots} Einrichtungs-Stellen` : ''}, ${contacts} Kontaktdaten${colCells ? `, ${colCells} ganze Tabellenzellen` : ''}.`));
   const qs = questions();
   if (qs.length && !open0()) info.push(ampelRow('ok', 'Fragen', 'Alle Fragen beantwortet.'));
   if (app.doc.kind === 'docx' || app.doc.kind === 'xlsx') {
@@ -1848,7 +2022,10 @@ function exportKey() {
 }
 
 async function copyKiHint() {
-  const text = KI_HINT[app.state.settings.mode] || KI_HINT.person;
+  const mode = KI_HINT[app.state.settings.mode] ? app.state.settings.mode : 'person';
+  // Version 2.10.0: Zusatz nur, wenn ganze Tabellenzellen ersetzt sind (sonst genau der bisherige Satz)
+  const cols = app.result && app.result.hits.some((x) => x.on && x.colHit);
+  const text = KI_HINT[mode] + (cols ? KI_HINT_COLS[mode] : '');
   const ok = await copyText(text);
   const st = $('#kihint-status');
   const ta = $('#kihint-text');
@@ -1904,6 +2081,10 @@ function resetDoc() {
   app.state.merges = {};
   app.state.unlinks = [];
   app.state.nameColumns = {};
+  app.state.colTreat = {};
+  app.colConfirmed = false;
+  app.colRestOpen = false;
+  app.colSeq += 1;
   $('#docview').replaceChildren();
   $('#entities').replaceChildren();
   $('#qcard').replaceChildren();
@@ -1918,7 +2099,12 @@ function resetDoc() {
   $('#kihint-text').value = '';
 }
 async function openBytes(bytes, name) {
-  const doc = await loadBytes(bytes, name);
+  let doc = await loadBytes(bytes, name);
+  // Version 2.10.0: Excel mit behandelten Spalten neu lesen (eigene Abschnitte je Zelle dieser Spalten)
+  if (doc.kind === 'xlsx') {
+    const map = treatMapOf(columnPlan(doc.units, {}, app.state.colMemory || {}));
+    if (map) { doc = await loadBytes(bytes, name, map); }
+  }
   resetDoc();
   app.doc = doc;
   app.doc.name = name;
@@ -2005,6 +2191,8 @@ function init() {
     const m = e.target.closest('mark.hit');
     if (m) {
       const x = app.result.hits[Number(m.dataset.h)];
+      // Version 2.10.0: Zelle einer Spalte „ganz ersetzen“ – nur über die Spalten-Übersicht änderbar
+      if (x.colHit) return;
       // Regel a2: "unsicher" markiertes Wort nach Anrede und alle seine übertragenen Vorkommen gemeinsam schalten
       setHits(x.a2group ? app.result.hits.filter((y) => y.a2group === x.a2group) : [x], !x.on);
       return;
@@ -2082,6 +2270,7 @@ function init() {
     app.state.manualTerms = [];
     app.state.orgTerms = [];
     app.state.exceptions = [];
+    app.state.colMemory = {};
     storeDel();
     app.persist = false;
     runAnalysisOrRender();
@@ -2102,6 +2291,8 @@ function init() {
       // Version 2.3: Einrichtungen; ältere Merklisten ohne „einrichtungen“ laden wie bisher nur Personen
       for (const n of (Array.isArray(d.einrichtungen) ? d.einrichtungen : [])) if (typeof n === 'string' && !app.state.orgTerms.some((m) => fold(m) === fold(n))) app.state.orgTerms.push(n);
       for (const n of (d.exceptions || [])) if (typeof n === 'string' && !app.state.exceptions.some((m) => fold(m) === fold(n))) app.state.exceptions.push(n);
+      // Version 2.10.0: gemerkte Wahl je Spaltenüberschrift
+      Object.assign(app.state.colMemory, colMemoryFrom(d.spalten));
       saveStored();
       runAnalysisOrRender();
     } catch { window.alert('Die Datei ist keine gültige Merkliste.'); }
@@ -2310,7 +2501,9 @@ async function rbBuild() {
   if (f.kind === 'docx') return { bytes: await writeDocx(f.bytes, reps, restoreStr, { clean: false }), zip: true };
   if (f.kind === 'xlsx') {
     const sheetIssues = [];
-    const bytes = await writeXlsx(f.bytes, reps, restoreStr, { clean: false, onSheetName: (x) => sheetIssues.push(x) });
+    // Version 2.10.0: Zahl- und Datumszellen bekommen Zelltyp und Wert zurück (Schlüssel mit „zelle“)
+    const restoreCells = new Map([...rb.key.entries].filter(([, e]) => e.zelle).map(([ph, e]) => [ph, e.zelle]));
+    const bytes = await writeXlsx(f.bytes, reps, restoreStr, { clean: false, onSheetName: (x) => sheetIssues.push(x), restoreCells: restoreCells.size ? restoreCells : null });
     return { bytes, zip: true, sheetIssues };
   }
   if (f.kind === 'csv') return { text: writeCsv(f.raw, texts()), bom: f.raw.bom };
@@ -2413,7 +2606,7 @@ function initRestore() {
 }
 
 // Für automatische Tests (nur lesend nutzbar, kein Netzwerk)
-window.__anon = { app, openBytes, imagesPending, buildOutput, finalCheck, addManual, addOrg, KI_HINT, runAnalysis, rb, rbLoadFile, rbLoadKey, rbCheck, show, questions, newKennung, answer, answerOf, savePoints,
+window.__anon = { app, openBytes, imagesPending, buildOutput, applyColumns, finalCheck, addManual, addOrg, KI_HINT, runAnalysis, rb, rbLoadFile, rbLoadKey, rbCheck, show, questions, newKennung, answer, answerOf, savePoints,
   // Version 2.6.1 (Tests): gezeigte Frage, ihre Stellen, Fragenwechsel
   goQuestion, shownQuestion: () => { const r = shownQuestion(); return { ids: r.qs.map((q) => q.id), idx: r.idx }; },
   currentHits: () => currentHits().map((x) => x.id), showQ: (id) => { app.qCurrent = id; refreshMarks(); renderQuestions(); } };

@@ -58,10 +58,12 @@ async function download(page, clickSel, statusSel, okRe) {
 }
 // Version 2.6.0: cols = Spalte von Hand ({Spalten-Kennung: true/false}), z. B. Namensspalte ausschalten
 const setCols = (page, cols) => page.evaluate((c) => { Object.assign(window.__anon.app.state.nameColumns, c); window.__anon.runAnalysis(); }, cols);
-async function anonymize(file, manual = [], cols = null) {
+async function anonymize(file, manual = [], cols = null, bisher = false) {
   const { page, ctx, errors } = await newPage();
   await setMode(page, 'reversible');
   await loadFile(page, file);
+  // Version 2.10.0: bisher = alle Spalten „wie bisher“ (wie im Übertragungs-Test, siehe dort)
+  if (bisher) await page.evaluate(async () => { const A = window.__anon; for (const c of A.app.result.colPlan || []) A.app.state.colTreat[c.id] = 'bisher'; await A.applyColumns(); });
   if (cols) await setCols(page, cols);
   for (const m of manual) await page.evaluate((x) => window.__anon.addManual(x), m);
   await ack(page);
@@ -295,11 +297,16 @@ const summary = [];
     ss = ss.replace('>Elternzeit<', '>Elternzeit (verlängert)<').replace('>Vertrieb<', `>Vertrieb, Ansprechpartner ${v} ${n}s Team<`);
     z.file('xl/sharedStrings.xml', ss);
     let sh = await z.file('xl/worksheets/sheet1.xml').async('string');
-    // Zeilen 3 und 4 (Spalten A, B) tauschen
-    const cell = (ref) => sh.match(new RegExp(`<c r="${ref}" t="s"><v>(\\d+)</v></c>`))[1];
+    // Version 2.10.0: In der anonymisierten Datei steht „Elternzeit“ (Spalte „Bemerkung“, ganz ersetzt) als Platzhalter in
+    // der Zelle D4; die KI hängt dort „ (verlängert)“ an (im Original: in der gemeinsamen Textliste, wie bisher)
+    sh = sh.replace(/(<c r="D4"[^>]*t="inlineStr"[^>]*><is>(?:<r>)?<t(?:\s[^>]*)?>)([^<]*)(<\/t>)/, (m, x, t, y) => x + t + ' (verlängert)' + y);
+    // Zeilen 3 und 4 (Spalten A, B) tauschen. Version 2.10.0: ganze Zelle (Zelltyp und Inhalt) tauschen – in Spalten mit
+    // Behandlung „Name“ steht der Text seit 2.10.0 in der Zelle (inlineStr) statt in der gemeinsamen Liste
+    const cellRe = (ref) => new RegExp(`<c r="${ref}"((?:\\s[^>]*)?)>([\\s\\S]*?)</c>`);
+    const cell = (ref) => { const m = sh.match(cellRe(ref)); return [m[1], m[2]]; };
     const [a3, b3, a4, b4] = ['A3', 'B3', 'A4', 'B4'].map(cell);
-    const setv = (ref, v2) => { sh = sh.replace(new RegExp(`(<c r="${ref}" t="s"><v>)\\d+(</v>)`), `$1${v2}$2`); };
-    setv('A3', a4); setv('B3', b4); setv('A4', a3); setv('B4', b3);
+    const setc = (ref, c2) => { sh = sh.replace(cellRe(ref), () => `<c r="${ref}"${c2[0]}>${c2[1]}</c>`); };
+    setc('A3', a4); setc('B3', b4); setc('A4', a3); setc('B4', b3);
     z.file('xl/worksheets/sheet1.xml', sh);
     return z.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
   };
@@ -400,6 +407,9 @@ globalThis.__uebChecks = [];
     // Version 2.6.0: In der CSV ist „Name“ (Spalte 2) jetzt eine Namensspalte (starkes Kopfwort, Vorrang vor Regel a2).
     // Dieser Test prüft Regel a2 samt Übertragung; deshalb wird die Spalte hier von Hand ausgeschaltet („wie ohne Regel“).
     // Die Namensspalte selbst prüft tests/spalten-test.mjs.
+    // Version 2.10.0: Ebenso stehen hier alle Spalten der CSV auf „wie bisher“ (sonst ersetzt die Behandlung „Name“ bzw.
+    // „ganz ersetzen“ die Spalten „Name“ und „Notiz“ ganz); die Behandlung je Spalte prüft tests/spaltenwahl-test.mjs.
+    if (ext === 'csv') await page.evaluate(async () => { const A = window.__anon; for (const c of A.app.result.colPlan || []) A.app.state.colTreat[c.id] = 'bisher'; await A.applyColumns(); });
     const cols = ext === 'csv' ? { 'csv|1': false } : null;
     if (cols) await setCols(page, cols);
     await goTo(page, 'a2');
@@ -423,7 +433,7 @@ globalThis.__uebChecks = [];
     log(`  - ${okMark ? 'OK' : 'FEHLER'}: ${groupHits.length} Treffer aus „Anrede allein“ samt Übertragung, alle „unsicher, an“: ${groupHits.map((h) => h.t + (h.a2 ? '' : '*')).join(', ')} (* = übertragen)`);
     log(`  - ${okToggle ? 'OK' : 'FEHLER'}: ein „Mathematik“ angetippt → überall Klartext (${off.Mathematik}/${orig.Mathematik}), anderes Vorkommen angetippt → überall wieder ersetzt (${on2.Mathematik})`);
     // 2) Rückbau: alle übertragenen Vorkommen mit demselben Platzhalter, exakt zurück
-    const a = await anonymize(file, [], cols);
+    const a = await anonymize(file, [], cols, ext === 'csv');
     const anonText = await textOf(a.anon);
     const phH = phFor(a.key, 'Hartung');
     const phT = phFor(a.key, 'Tannheim');

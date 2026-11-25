@@ -13,7 +13,9 @@ const TOKEN_RE = /[\p{L}\p{M}]+(?:['’][\p{L}\p{M}]+)*(?:-[\p{L}\p{M}]+(?:['’
 const HYPHEN_PREFIX = new Set(['al', 'el', 'ul', 'ad', 'ar', 'as', 'ash', 'at', 'az', 'abd', 'abu', 'ben', 'bin', 'ibn']);
 const ACADEMIC = new Set(['med', 'dent', 'vet', 'rer', 'nat', 'phil', 'jur', 'oec', 'pol', 'hc', 'ing', 'habil']);
 
-export const CONTACT_LABELS = { email: '[E-MAIL]', phone: '[TELEFON]', iban: '[IBAN]', address: '[ADRESSE]', web: '[WEBADRESSE]', account: '[KONTO]' };
+export const CONTACT_LABELS = { email: '[E-MAIL]', phone: '[TELEFON]', iban: '[IBAN]', address: '[ADRESSE]', web: '[WEBADRESSE]', account: '[KONTO]',
+  // Version 2.10.0: neue Arten nur aus der Behandlung „ganz ersetzen“ von Tabellenspalten
+  date: '[DATUM]', info: '[ANGABE]' };
 
 export function defaultState() {
   return {
@@ -25,6 +27,8 @@ export function defaultState() {
     merges: {}, // entityKey -> Ziel-entityKey
     unlinks: [], // Kurzformen, die NICHT zugeordnet werden sollen (Schlüssel "S|…")
     nameColumns: {}, // Version 2.6.0: Spalte von Hand: Spalten-Kennung -> true (enthält Namen) / false (keine Namensspalte)
+    colTreat: {}, // Version 2.10.0: Behandlung je Spalte von Hand: Spalten-Kennung -> 'name' | 'ganz' | 'bisher'
+    colMemory: {}, // Version 2.10.0: gemerkte Wahl je Überschrift (Merkliste): Vergleichsform der Überschrift -> Behandlung
   };
 }
 
@@ -353,9 +357,14 @@ export function analyze(units, state, extra = {}) {
 
   // 2) Automatische Namenserkennung
   const mentions = [];
+  // Version 2.10.0: Behandlung je Spalte (Excel, CSV). „Name“ zuerst (vor der Namensspalten-Regel), „ganz ersetzen“ am
+  // Ende der Erkennung (columnWholeHits). Ohne Tabelle mit Kopfzeile oder mit „wie bisher“ überall: wie 2.9.0.
+  const colPlan = columnPlan(units, st.colTreat || {}, st.colMemory || {});
+  const ganzUnits = columnTreatRule(units, unitToks, unitStarts, covered, tokHit, hits, mentions, exceptions, colPlan);
   // Version 2.6.0: Namensspalten in Tabellen (Excel, CSV, Word) – vor allen übrigen Regeln (Vorrang vor „mehrdeutig“,
   // Regel b2 und Regel a2)
-  const columns = nameColumnRule(units, unitToks, covered, tokHit, hits, mentions, exceptions, fullText, st.nameColumns || {});
+  const columns = nameColumnRule(units, unitToks, covered, tokHit, hits, mentions, exceptions, fullText, st.nameColumns || {},
+    new Set(colPlan.filter((c) => c.treat === 'name').map((c) => c.id)));
 
   // 1c) Version 2.8.0: Einrichtungen selbst finden (orgauto.js). Nach Kontaktdaten, von Hand markierten Einrichtungen und
   // Namensspalten (die haben Vorrang), vor der Personen-Erkennung (ein Personenname in einer Einrichtung gehört zu ihr).
@@ -680,6 +689,9 @@ export function analyze(units, state, extra = {}) {
     });
   });
 
+  // Version 2.10.0: Spalten mit Behandlung „ganz ersetzen“ (nach allen Regeln und der Übertragung)
+  columnWholeHits(units, unitStarts, hits, ganzUnits, st.settings.mode === MODE_REVERSIBLE);
+
   hits.sort((a, b) => a.s - b.s || a.e - b.e);
 
   // 7) Personen und Pseudonyme (Reihenfolge des ersten Auftretens); Einrichtungen mit eigener Buchstabenfolge
@@ -688,6 +700,7 @@ export function analyze(units, state, extra = {}) {
     if (h.type !== 'org') continue;
     if (!orgs.has(h.entity)) orgs.set(h.entity, { key: h.entity, org: true, manual: !h.auto, auto: !!h.auto, hits: [], forms: new Map(), linkable: [], terms: new Set() });
     const og = orgs.get(h.entity);
+    if (h.colOrg) og.col = true; // Version 2.10.0: aus einer Spalte „ganz ersetzen“ (Einrichtung)
     if (!h.auto) { og.manual = true; og.auto = false; }
     if (h.auto && !og.autoDisplay) og.autoDisplay = h.display;
     og.hits.push(h);
@@ -759,7 +772,7 @@ export function analyze(units, state, extra = {}) {
   }
   for (const og of orgs.values()) og.count = og.hits.length;
 
-  const result = { fullText, unitStarts, hits, entities, orgs, placeholderWords, columns, orgWeak: auto.weak, autoOrgTerms: autoTerms.filter((t) => t.auto).map((t) => ({ text: t.text, entity: t.entity })) };
+  const result = { fullText, unitStarts, hits, entities, orgs, placeholderWords, columns, colPlan, orgWeak: auto.weak, autoOrgTerms: autoTerms.filter((t) => t.auto).map((t) => ({ text: t.text, entity: t.entity })) };
   // Version 2.7.0: Webadressen/Konten in Link-Zielen, Link-Hinweisen und Feldfunktionen (nur bei eingeschaltetem Schalter)
   if (st.settings.web && extra.linkTexts && extra.linkTexts.length) result.linkTexts = extra.linkTexts;
   // Modus "rückbaufähig": Platzhalter je Namensteil und nummerierte Kontaktdaten
@@ -1323,7 +1336,9 @@ function cellComps(toks, idxs, exceptions) {
       shaped: inf.shaped, allcaps: tk.allcaps, tokIdx: k };
   });
 }
-function nameColumnRule(units, unitToks, covered, tokHit, hits, mentions, exceptions, fullText, manual) {
+// Version 2.10.0: Tabellen mit Kopfzeile (dieselbe Erkennung wie die Namensspalten-Regel aus 2.6.0, nur herausgelöst,
+// damit die Spalten-Übersicht und die Behandlung je Spalte dieselben Kopfzeilen sehen)
+export function findTables(units) {
   const tables = new Map(); // t -> Map(r -> Map(c -> {units:Set, c2}))
   units.forEach((u, ui) => {
     if (!u.tcells || !u.text.trim()) return;
@@ -1336,8 +1351,7 @@ function nameColumnRule(units, unitToks, covered, tokHit, hits, mentions, except
       row.get(tc.c).units.add(ui);
     }
   });
-  const columns = [];
-  const plan = new Map(); // ui -> {kind, roles:Set, rows:[{t,r}]}
+  const out = [];
   const textOf = (cell) => [...cell.units].map((ui) => units[ui].text).join(' ').trim();
   for (const [t, tb] of tables) {
     const rnums = [...tb.keys()].sort((a, b) => a - b);
@@ -1371,13 +1385,21 @@ function nameColumnRule(units, unitToks, covered, tokHit, hits, mentions, except
     }
     const headUnits = new Set(headRows.flatMap((r) => [...tb.get(r).values()].flatMap((cell) => [...cell.units])));
     const lastHead = headRows.length ? headRows[headRows.length - 1] : -1;
+    out.push({ t, tb, rnums, head, headRows, headUnits, lastHead, allCols });
+  }
+  return out;
+}
+function nameColumnRule(units, unitToks, covered, tokHit, hits, mentions, exceptions, fullText, manual, skipCols = new Set()) {
+  const columns = [];
+  const plan = new Map(); // ui -> {kind, roles:Set, rows:[{t,r}]}
+  for (const { t, tb, rnums, head, headUnits, lastHead, allCols } of findTables(units)) {
     for (const c of [...allCols].sort((a, b) => a - b)) {
       const id = t + '|' + c;
       const hd = head.get(c) || { text: '', kind: null, role: null };
       const man = manual[id];
       const kind = man === true ? 'hand' : man === false ? null : hd.kind;
       columns.push({ id, t, c, header: hd.text, auto: hd.kind, role: hd.role, manual: man === true ? true : man === false ? false : undefined, kind, headerRow: lastHead });
-      if (!kind) continue;
+      if (!kind || skipCols.has(id)) continue;
       for (const r of rnums) {
         if (r <= lastHead) continue;
         const cell = tb.get(r).get(c);
@@ -1464,4 +1486,252 @@ function nameColumnRule(units, unitToks, covered, tokHit, hits, mentions, except
     ph.rowPerson = true;
   }
   return columns;
+}
+
+// ---------- Spalten behandeln (Version 2.10.0) ----------
+// Bei Tabellen mit Kopfzeile (Excel, CSV) gilt je Spalte eine Behandlung:
+//   'name'   – jede gefüllte Zelle ist eine Person (auch unbekannte, klein geschriebene, mehrteilige Namen); mehrere Namen
+//              in einer Zelle (getrennt durch | ; / oder „und“) einzeln; Füllwerte (NAME_FILLERS) bleiben
+//   'ganz'   – jede gefüllte Zelle wird als Ganzes durch einen Platzhalter ersetzt (Art: kind)
+//   'bisher' – die Erkennung läuft im Zelltext wie in 2.9.0 (einschließlich der Namensspalten-Regel aus 2.6.0)
+// Vorschlag anhand der Überschrift: ein Schlüsselwort steht als ganzes Wort irgendwo in der Überschrift.
+export const COL_KEYWORDS = {
+  name: ['Nachname', 'Vorname', 'Vornamen', 'Rufname', 'Familienname', 'Geburtsname', 'Name', 'Ansprechpartner', 'Wunschpartner',
+    'Erziehungsberechtigte', 'Erziehungsberechtigter'],
+  address: ['Strasse', 'Straße', 'Hausnummer', 'Hausnr', 'PLZ', 'Postleitzahl', 'Ort', 'Wohnort', 'Ortsteil', 'Stadt', 'Gemeinde', 'Anschrift', 'Adresse'],
+  phone: ['Telefon', 'Handy', 'Mobil', 'Fax', 'Notfallnummer'],
+  email: ['E-Mail', 'Mail'],
+  date: ['Geburtsdatum', 'geboren', 'Geb.-Datum', 'Zuzugsdatum'],
+  org: ['Schule', 'Grundschule', 'Übertritt von', 'Kita', 'Kindergarten', 'Arbeitgeber', 'Firma', 'Einrichtung'],
+  info: ['Erläuterung', 'Bemerkung', 'Notiz', 'Notizen', 'Anmerkung', 'Hinweis', 'Kommentar', 'Sonstiges', 'Diagnose', 'Gesundheit', 'gesundheitlich',
+    'Krankheit', 'Allergie', 'Medikament', 'Beeinträchtigung', 'Störung', 'Inklusion', 'Sorgerecht', 'Religion', 'Konfession', 'Staatsangehörigkeit',
+    'Muttersprache', 'Sprache', 'Geburtsort', 'Geburtsland', 'Zuzug', 'Schulnummer', 'GKZ', 'Kennzahl', 'Wunsch'],
+};
+// Platzhalter-Art je Gruppe (Anschrift, Telefon, E-Mail wie die Kontakt-Arten; Datum und Angabe neu)
+export const COL_KIND_LABEL = { address: '[ADRESSE]', phone: '[TELEFON]', email: '[E-MAIL]', date: '[DATUM]', org: 'Einrichtung', info: '[ANGABE]' };
+// Vergleichsform: Groß-/Kleinschreibung, Akzente, Umlaute (auch ae/oe/ue) und ss/ß egal; alles außer Buchstaben und Ziffern
+// trennt Wörter („1. Erziehungsberechtigte/r“ -> „1 erziehungsberechtigte r“, „Geb.-Datum“ -> „geb datum“)
+function colNorm(s) {
+  return fold(String(s || '').normalize('NFC')).replace(/ae/g, 'a').replace(/oe/g, 'o').replace(/ue/g, 'u')
+    .replace(/[^a-z0-9]+/g, ' ').trim();
+}
+const COL_KW_NORM = Object.fromEntries(Object.entries(COL_KEYWORDS).map(([g, l]) => [g, [...new Set(l.map(colNorm))]]));
+const hasWords = (hn, kw) => (' ' + hn + ' ').includes(' ' + kw + ' ');
+const ERZ = new Set(['erziehungsberechtigte', 'erziehungsberechtigter']);
+// Wörter, die neben „Erziehungsberechtigte“ kein Art-Wort sind (Nummer, Endung „/r“, „/in“)
+const ERZ_FILL = new Set(['r', 'n', 'in', 'innen', 'der', 'die', 'des']);
+const NAME_ROLE_WORDS = ['nachname', 'nachnamen', 'vorname', 'vornamen', 'rufname', 'rufnamen', 'familienname', 'geburtsname', 'name', 'namen'];
+// Vorschlag für eine Überschrift: {treat, kind, groups, conflict}
+export function proposeColumn(header) {
+  const hn = colNorm(header);
+  const groups = [];
+  if (!hn) return { treat: 'bisher', kind: null, groups, conflict: false };
+  for (const [g, kws] of Object.entries(COL_KW_NORM)) {
+    const hit = kws.filter((kw) => hasWords(hn, kw));
+    if (g === 'name') {
+      // „Erziehungsberechtigte“ nur, wenn sonst kein Art-Wort folgt (nur Nummer und „/r“)
+      const other = hn.split(' ').filter((w) => !ERZ.has(w) && !ERZ_FILL.has(w) && !/^\d+$/.test(w));
+      const real = hit.filter((kw) => !ERZ.has(kw) || !other.length);
+      if (real.length) groups.push(g);
+    } else if (hit.length) groups.push(g);
+  }
+  // „Name“ zählt nicht in „Name der Schule/Einrichtung/Firma“: steht ein Einrichtungs-Wort da, gilt nur die Einrichtung
+  if (groups.includes('name') && groups.includes('org')) {
+    const nameKws = COL_KW_NORM.name.filter((kw) => hasWords(hn, kw));
+    if (nameKws.every((kw) => kw === 'name')) groups.splice(groups.indexOf('name'), 1);
+  }
+  const ganz = groups.filter((g) => g !== 'name');
+  if (!ganz.length) return groups.includes('name') ? { treat: 'name', kind: null, groups, conflict: false } : { treat: 'bisher', kind: null, groups, conflict: false };
+  // Strengere Behandlung gewinnt: ganz ersetzen vor Name. Unter den Arten: „Angabe“ (Sammelart) vor allem; Anschrift,
+  // Telefon, E-Mail, Datum vor Einrichtung; zwei verschiedene davon -> Angabe
+  let kind;
+  if (ganz.includes('info')) kind = 'info';
+  else {
+    const spec = ganz.filter((g) => g !== 'org');
+    kind = spec.length === 1 ? spec[0] : spec.length > 1 ? 'info' : 'org';
+  }
+  return { treat: 'ganz', kind, groups, conflict: groups.length > 1 };
+}
+// Rolle aus der Überschrift (für Paare): Vorname, Nachname oder null; Vorspann = Text vor dem Namenswort
+function colRole(header) {
+  const ws = colNorm(header).split(' ').filter(Boolean);
+  const g = ws.some((w) => ROLE_GIVEN.has(w));
+  const sur = ws.some((w) => ROLE_SUR.has(w));
+  const role = g && !sur ? 'Vorname' : sur && !g ? 'Nachname' : null;
+  const i = ws.findIndex((w) => NAME_ROLE_WORDS.includes(w));
+  return { role, prefix: i >= 0 ? ws.slice(0, i).join(' ') : null };
+}
+// Spalten aller Tabellen mit Kopfzeile, mit Vorschlag und gültiger Behandlung (overrides: Spalten-Kennung -> Behandlung;
+// memory: Vergleichsform der Überschrift -> Behandlung aus der Merkliste)
+export function columnPlan(units, overrides = {}, memory = {}) {
+  const out = [];
+  for (const { t, tb, rnums, head, lastHead, allCols } of findTables(units)) {
+    // nur Excel und CSV (Tabellen in Word und PDF: wie bisher)
+    if (lastHead < 0 || !(t === 'csv' || t.startsWith('x|'))) continue;
+    for (const c of [...allCols].sort((a, b) => a - b)) {
+      const hd = head.get(c);
+      if (!hd || !hd.text.trim()) continue;
+      const id = t + '|' + c;
+      const prop = proposeColumn(hd.text);
+      const mem = memory[colNorm(hd.text)];
+      const ov = overrides[id];
+      const treat = ov === 'name' || ov === 'ganz' || ov === 'bisher' ? ov : mem === 'name' || mem === 'ganz' || mem === 'bisher' ? mem : prop.treat;
+      const kind = treat === 'ganz' ? (prop.kind || 'info') : null;
+      const { role, prefix } = colRole(hd.text);
+      // Zeilen unterhalb der Kopfzeile mit Inhalt (nur Zellen mit Text; Zahl- und Datumszellen zählt die Oberfläche)
+      const rows = rnums.filter((r) => r > lastHead && tb.get(r).has(c));
+      out.push({ id, t, c, header: hd.text, headerRow: lastHead, proposal: prop, treat, kind, role, prefix, rows, fromMemory: ov === undefined && mem !== undefined });
+    }
+  }
+  return out;
+}
+export function columnKeyOf(header) { return colNorm(header); }
+
+// Behandlung „Name“: Teile einer Zelle (getrennt durch | ; / „und“), je Teil Folgen von Wörtern, die noch frei sind
+function nameCellSegments(toks, covered) {
+  const parts = [[]];
+  toks.forEach((tk, k) => {
+    if (!tk.word ? /^[|;/]$/.test(tk.t) : fold(tk.t) === 'und') { parts.push([]); return; }
+    parts[parts.length - 1].push(k);
+  });
+  const segs = [];
+  for (const p of parts) {
+    let cur = [];
+    const flush = () => {
+      // Füllwert („N.N.“, „k. A.“, „–“) mit seinen Satzzeichen prüfen, bevor sie am Rand abgeschnitten werden
+      const full = cur.length ? [toks[cur[0]].s, toks[cur[cur.length - 1]].e] : null;
+      while (cur.length && !toks[cur[0]].word && !/^\p{N}/u.test(toks[cur[0]].t)) cur.shift();
+      while (cur.length && !toks[cur[cur.length - 1]].word && !/^\p{N}/u.test(toks[cur[cur.length - 1]].t)) cur.pop();
+      if (cur.length) { cur.full = full; segs.push(cur); } else if (full) segs.push(Object.assign([], { full, empty: true }));
+      cur = [];
+    };
+    for (const k of p) { if (covered[k]) flush(); else cur.push(k); }
+    flush();
+  }
+  return segs;
+}
+// Treffer für die Spalten mit Behandlung „Name“ (vor allen übrigen Regeln, wie die Namensspalten). Liefert die Abschnitte
+// mit Behandlung „ganz ersetzen“ (deren Treffer entstehen am Ende, siehe columnWholeHits).
+function columnTreatRule(units, unitToks, unitStarts, covered, tokHit, hits, mentions, exceptions, plan) {
+  const byUnit = new Map(); // ui -> {treat, kind, col, cells}
+  const tabs = new Map(findTables(units).map((x) => [x.t, x]));
+  for (const col of plan) {
+    if (col.treat === 'bisher') continue;
+    const tb = tabs.get(col.t);
+    if (!tb) continue;
+    for (const r of col.rows) {
+      const cell = tb.tb.get(r) && tb.tb.get(r).get(col.c);
+      if (!cell) continue;
+      for (const ui of cell.units) {
+        if (tb.headUnits.has(ui) || units[ui].formula) continue; // Formeln: nicht raten (Punkt auf „Speichern“)
+        const old = byUnit.get(ui);
+        const treat = units[ui].cellOrig && col.treat === 'name' ? 'ganz' : col.treat; // Zahl/Datum in einer Namensspalte
+        const kind = treat === 'ganz' ? (units[ui].cellOrig && (col.kind === 'org' || col.treat === 'name') ? 'info' : col.kind) : null;
+        if (old && (old.treat === 'ganz' || treat !== 'ganz')) { old.cells.push({ r, col }); continue; }
+        byUnit.set(ui, { treat, kind, col, cells: [...(old ? old.cells : []), { r, col }] });
+      }
+    }
+  }
+  const ganz = new Map();
+  const named = [];
+  for (const [ui, p] of byUnit) {
+    if (p.treat === 'ganz') { ganz.set(ui, p); continue; }
+    const toks = unitToks[ui];
+    const segs = nameCellSegments(toks, covered[ui]);
+    const made = [];
+    const isFill = (a, b) => FILLER_SET.has(fold(units[ui].text.slice(a - unitStarts[ui], b - unitStarts[ui])).replace(/\s+/g, ' ').trim());
+    for (const seg of segs) {
+      if (seg.empty) continue; // nur Satzzeichen („–“, „?“): bleibt
+      const s = toks[seg[0]].s;
+      const e = toks[seg[seg.length - 1]].e;
+      if (isFill(s, e) || isFill(seg.full[0], seg.full[1])) continue;
+      let wordIdx = seg.filter((k) => toks[k].word);
+      if (!wordIdx.length) { made.push({ info: true, s, e }); continue; }
+      // Anrede und Titel vorn („Frau“, „Herr Dr.“) bleiben stehen wie bei der Namensspalten-Regel (sie sind kein Name)
+      while (wordIdx.length > 1 && info(toks[wordIdx[0]], exceptions).title) wordIdx = wordIdx.slice(1);
+      const comps = wordIdx.map((k, i) => {
+        const tk = toks[k];
+        const inf = info(tk, exceptions);
+        if (inf.particle && !tk.cap && !tk.allcaps && i < wordIdx.length - 1) return { type: 'P', s: tk.s, e: tk.e, key: fold(tk.t) };
+        return { type: 'W', s: tk.s, e: tk.e, stemEnd: tk.e, suffix: '', key: fold(tk.t), F: inf.F, L: inf.L, A: inf.A, known: inf.known, shaped: inf.shaped, allcaps: tk.allcaps, tokIdx: k };
+      });
+      if (!comps.some((x) => x.type === 'W')) comps[comps.length - 1].type = 'W';
+      made.push({ s, e, comps, seg });
+    }
+    const role = made.length === 1 && p.cells.length === 1 ? p.col.role : null;
+    for (const m of made) {
+      if (m.info) {
+        hits.push({ s: m.s, e: m.e, type: 'info', cert: 'sicher', origin: 'auto', unit: ui, colHit: true, column: p.col.id });
+      } else {
+        const W = m.comps.filter((x) => x.type === 'W');
+        const mk = role ? { full: false, single: m.comps.map((x) => x.key).join(' ') } : W.length === 1 && m.comps.length === 1 ? { full: false, single: W[0].key } : mentionKey(m.comps, null);
+        const h = { s: m.comps[0].s, e: m.comps[m.comps.length - 1].e, type: 'person', cert: 'sicher', origin: 'auto', unit: ui, suffix: '', comps: m.comps, mk,
+          titled: false, defaultOff: false, column: p.col.id, columnKind: 'spalte', colName: true };
+        if (role) h.role = role;
+        hits.push(h);
+        mentions.push(h);
+        if (role) named.push({ ui, h, p });
+      }
+      const a = m.s;
+      const b = m.e;
+      toks.forEach((tk, k) => { if (tk.s < b && tk.e > a) { covered[ui][k] = true; if (!tokHit[ui][k]) tokHit[ui][k] = hits[hits.length - 1]; } });
+    }
+  }
+  // Paare: Vor- und Nachname(n) mit demselben Überschriften-Vorspann in derselben Zeile sind EINE Person
+  const groups = new Map();
+  for (const x of named) {
+    if (x.p.col.prefix === null) continue;
+    const k = x.p.col.t + '|' + x.p.cells[0].r + '|' + x.p.col.prefix;
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(x);
+  }
+  for (const g of groups.values()) {
+    const sur = g.filter((x) => x.h.role === 'Nachname');
+    const giv = g.filter((x) => x.h.role === 'Vorname').sort((a, b) => a.p.col.c - b.p.col.c);
+    if (sur.length !== 1 || !giv.length) continue;
+    const mk = { full: true, given: giv[0].h.mk.single, sur: sur[0].h.mk.single };
+    for (const x of [...sur, ...giv]) { x.h.mk = { ...mk }; x.h.rowPerson = true; }
+  }
+  return ganz;
+}
+// Behandlung „ganz ersetzen“: alle übrigen Treffer in diesen Zellen entfallen (sie haben ihre Namen schon auf andere
+// Stellen übertragen), die ganze Zelle wird EIN Treffer der Art. Rückbaufähig: Zelle mit mehreren Textläufen (Excel,
+// gemischte Formatierung) je Lauf ein Treffer, damit der Rückbau jeden Lauf exakt zurückschreibt.
+function columnWholeHits(units, unitStarts, hits, ganz, reversible) {
+  if (!ganz.size) return;
+  for (let i = hits.length - 1; i >= 0; i--) {
+    const h = hits[i];
+    if (ganz.has(h.unit) || (h.unit2 !== undefined && ganz.has(h.unit2))) hits.splice(i, 1);
+  }
+  for (const [ui, p] of ganz) {
+    const u = units[ui];
+    const base = unitStarts[ui];
+    const lead = u.text.length - u.text.trimStart().length;
+    const end = u.text.trimEnd().length;
+    if (end <= lead) continue;
+    let pieces = [[lead, end]];
+    if (reversible && u.segBounds && u.segBounds.length) {
+      const cuts = [lead, ...u.segBounds.filter((x) => x > lead && x < end), end];
+      pieces = [];
+      for (let k = 0; k + 1 < cuts.length; k++) {
+        let a = cuts[k];
+        let b = cuts[k + 1];
+        while (a < b && /\s/.test(u.text[a])) a++;
+        while (b > a && /\s/.test(u.text[b - 1])) b--;
+        if (b > a) pieces.push([a, b]);
+      }
+    }
+    for (const [a, b] of pieces) {
+      const h = { s: base + a, e: base + b, type: p.kind === 'org' ? 'org' : p.kind, cert: 'sicher', origin: 'auto', unit: ui, colHit: true, column: p.col.id, suffix: '' };
+      if (u.cellOrig && pieces.length === 1) h.cellOrig = u.cellOrig;
+      if (p.kind === 'org') {
+        const value = u.text.slice(a, b);
+        h.entity = 'C|' + fold(value).replace(/\s+/g, ' ');
+        h.origEntity = h.entity;
+        h.term = value;
+        h.colOrg = true;
+      }
+      hits.push(h);
+    }
+  }
 }

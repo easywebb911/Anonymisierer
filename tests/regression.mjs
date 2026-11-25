@@ -39,7 +39,7 @@ const FIXTURES = [['protokoll.txt', ['txt', 'docx']], ['mitarbeiter.csv', ['csv'
 const sha = (b) => crypto.createHash('sha256').update(b).digest('hex');
 
 const browser = await chromium.launch();
-async function outputs(html, file, mode, formats, orgTerms = null) {
+async function outputs(html, file, mode, formats, orgTerms = null, allBisher = false) {
   const res0 = {};
   const ctx = await browser.newContext();
   const page = await ctx.newPage();
@@ -57,6 +57,10 @@ async function outputs(html, file, mode, formats, orgTerms = null) {
   await page.setInputFiles('#file', path.join(here, 'fixtures', file));
   await page.waitForFunction(() => /Gelesen|nicht|Fehler/.test(document.querySelector('#load-status').textContent), null, { timeout: 120000 });
   const res = {};
+  // Version 2.10.0 (Nachweis): alle Spalten „wie bisher“ (nur die neue Version kennt die Behandlung je Spalte)
+  if (allBisher) await page.evaluate(async () => { const A = window.__anon; for (const c of A.app.result.colPlan || []) A.app.state.colTreat[c.id] = 'bisher'; await A.applyColumns(); });
+  // Version 2.10.0: Spalten mit Behandlung „Name“ oder „ganz ersetzen“ (für den Bericht)
+  res.cols = await page.evaluate(() => ((window.__anon.app.result && window.__anon.app.result.colPlan) || []).filter((c) => c.treat !== 'bisher').map((c) => `„${c.header}“ ${c.treat === 'name' ? 'Name' : 'ganz ersetzen (' + c.kind + ')'}`));
   // Zusammenführen gilt je Dokument (wird beim Laden zurückgesetzt): nach dem Laden setzen und neu rechnen
   if (res0.merges && Object.keys(res0.merges).length) await page.evaluate((m) => { Object.assign(window.__anon.app.state.merges, m); window.__anon.runAnalysis(); }, res0.merges);
   // Hat das Dokument Bildbeschreibungen? (nur die neue Version kennt die Abschnitte „Bildbeschreibung …“)
@@ -143,6 +147,7 @@ let onlyKennung = 0;
 let altChanged = 0;
 let v26Changed = 0;
 let v28Changed = 0;
+let v210Changed = 0;
 // Version 2.6.0 (Namensspalten, Anrede am Zeilenende, „von“): Diese Dokumente dürfen sich ändern, alle übrigen nicht
 const CHANGED_260 = {
   'a2-risiko.txt': 'Anrede am Zeilenende: „Liebe Frau⏎Vielen Dank …“ und „Gesprächspartner: Herr⏎Schulleitung“ jetzt ersetzt (unsicher, an); Buchstaben danach verschoben.',
@@ -159,6 +164,28 @@ for (const [file, formats] of FIXTURES) {
     for (const f of formats) {
       total++;
       const ok = a[f].sha === b[f].sha;
+      // Version 2.10.0: Tabellen – Spalten behandeln. Nachweis je Ausgabe: Mit allen Spalten „wie bisher“ liefert die neue
+      // Version GENAU die Ausgabe von main (bis auf die Kennung). Dann stammt jede Änderung allein von der Behandlung der
+      // genannten Spalten (Vorschlag anhand der Überschrift).
+      if (!ok && b.cols && b.cols.length) {
+        if (!b.v210ref) b.v210ref = await outputs(newHtml, file, mode, formats, null, true);
+        const c = b.v210ref[f];
+        const v210 = c.sha === a[f].sha || (mode === 'reversible' && sameParts(c.parts, a[f].parts));
+        if (v210) {
+          v210Changed++;
+          const label = `${file}, Modus ${({ person: '„Person A“', name: '„[NAME]“', reversible: '„rückbaufähig“' })[mode]}, Ausgabe .${f}`;
+          lines.push(`- ${label}: geändert durch die Spalten-Behandlung von Version 2.10.0 (Grund unten) (${a[f].sha.slice(0, 12)} / ${b[f].sha.slice(0, 12)})`);
+          let detail = '';
+          if (b[f].text !== null && a[f].text !== null) {
+            const ol = a[f].text.split('\n');
+            const nl = b[f].text.split('\n');
+            const diff = nl.map((l, i) => (l !== ol[i] ? i : -1)).filter((i) => i >= 0);
+            detail = ` ${diff.length} Zeile(n): ${diff.slice(0, 2).map((i) => `„${ol[i]}“ → „${nl[i]}“`).join('; ')}${diff.length > 2 ? '; …' : ''}.`;
+          }
+          reasons.push(`- ${label}:${detail} Grund (Version 2.10.0): Spalten ${b.cols.join(', ')}; mit allen Spalten „wie bisher“ ist die Ausgabe gleich der von main.`);
+          continue;
+        }
+      }
       // Modus rückbaufähig: Word/Excel dürfen sich NUR durch die Kennung unterscheiden
       const kOnly = !ok && mode === 'reversible' && sameParts(a[f].parts, b[f].parts);
       // Version 2.2: Dokument mit Bildbeschreibungen darf sich NUR in diesen unterscheiden
@@ -249,8 +276,8 @@ for (const [file, formats] of FIXTURES) {
   }
 }
 await browser.close();
-const bad = total - same - onlyKennung - altChanged - endingChanged - capsChanged - lowerChanged - v26Changed - v28Changed;
-const out = [`Regression: ${same} von ${total} Ausgaben byte-identisch, ${onlyKennung} gleich bis auf die Kennung, ${altChanged} nur in Bildbeschreibungen geändert, ${endingChanged} nur durch die Endungsprüfung geändert, ${capsChanged} nur durch GROSS-Formen mit Endung geändert, ${lowerChanged} nur durch kleine Endung hinter dem Platzhalter geändert, ${v26Changed} durch die Regeln von Version 2.6.0 geändert, ${v28Changed} durch die Regeln von Version 2.8.0 geändert, ${bad} unterschiedlich (Referenz ${sha(fs.readFileSync(oldHtml)).slice(0, 16)}…, neu ${sha(fs.readFileSync(newHtml)).slice(0, 16)}…)`,
+const bad = total - same - onlyKennung - altChanged - endingChanged - capsChanged - lowerChanged - v26Changed - v28Changed - v210Changed;
+const out = [`Regression: ${same} von ${total} Ausgaben byte-identisch, ${onlyKennung} gleich bis auf die Kennung, ${altChanged} nur in Bildbeschreibungen geändert, ${endingChanged} nur durch die Endungsprüfung geändert, ${capsChanged} nur durch GROSS-Formen mit Endung geändert, ${lowerChanged} nur durch kleine Endung hinter dem Platzhalter geändert, ${v26Changed} durch die Regeln von Version 2.6.0 geändert, ${v28Changed} durch die Regeln von Version 2.8.0 geändert, ${v210Changed} durch die Spalten-Behandlung von Version 2.10.0 geändert, ${bad} unterschiedlich (Referenz ${sha(fs.readFileSync(oldHtml)).slice(0, 16)}…, neu ${sha(fs.readFileSync(newHtml)).slice(0, 16)}…)`,
   ...lines, '', reasons.length ? '## Geänderte Ausgaben einzeln mit Grund' : '', ...reasons].join('\n');
 flush();
 console.log(out);

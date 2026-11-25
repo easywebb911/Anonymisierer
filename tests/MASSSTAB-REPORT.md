@@ -114,9 +114,9 @@ Neue Version: Anonymisierer/index.html; Vorversion: index-2.7.0.html. Nur Chromi
 | fixtures-traeger/anmeldung.pdf | 6 | 2 | alle | alle | alle | alle | alle | alle | 11: alle |
 | fixtures-traeger/anmeldung.txt | 8 | 2 | alle | alle | alle | alle | alle | alle | 13: alle |
 | fixtures-traeger/anmeldung.xlsx | 9 | 2 | alle | alle | alle | alle | alle | alle | 14: alle |
-| fixtures-traeger/einrichtung-person.csv | 3 | 2 | alle | alle | alle | alle | alle | alle | 4: alle |
+| fixtures-traeger/einrichtung-person.csv | 3 | 0 | alle | alle | alle | alle | alle | alle | 4: alle |
 | fixtures-traeger/einrichtung-person.txt | 9 | 3 | alle | alle | alle | alle | alle | alle | 11: alle |
-| fixtures-traeger/einrichtung-person.xlsx | 3 | 2 | alle | alle | alle | alle | alle | alle | 4: alle |
+| fixtures-traeger/einrichtung-person.xlsx | 3 | 0 | alle | alle | alle | alle | alle | alle | 4: alle |
 | fixtures-traeger/einrichtungen-auto.docx | 4 | 11 | alle | alle | alle | alle | alle | alle | 21: alle |
 | fixtures-traeger/einrichtungen-auto.txt | 4 | 11 | alle | alle | alle | alle | alle | alle | 21: alle |
 | fixtures-traeger/einrichtungen-auto.xlsx | 4 | 11 | alle | alle | alle | alle | alle | alle | 20: alle |

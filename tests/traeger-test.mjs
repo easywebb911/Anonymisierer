@@ -326,7 +326,7 @@ async function personRun(ext, how, html = HTML) {
     await A.openBytes(new Uint8Array(arr), nm);
     if (how === 'nein') for (const id of A.questions().filter((q) => q.kind === 'org').map((q) => q.id)) { const q = A.questions().find((x) => x.id === id); if (q) A.answer(q, false); }
     const res = A.app.result;
-    const orgs = [...(res.orgs || new Map()).values()].map((o) => ({ forms: [...o.forms.keys()], units: [...new Set(o.hits.map((h) => h.unit))], released: o.hits.every((h) => h.released) }));
+    const orgs = [...(res.orgs || new Map()).values()].map((o) => ({ forms: [...o.forms.keys()], units: [...new Set(o.hits.map((h) => h.unit))], released: o.hits.every((h) => h.released), col: !!o.col }));
     const x = await A.buildOutput(nm.split('.').pop());
     return { orgs, o: x.zip ? Array.from(x.bytes) : x.text, warn: ((A.savePoints ? A.savePoints() : []).find((p) => /^einr:/.test(p.id)) || { items: [] }).items.map((i) => i.text) };
   }, [[...fs.readFileSync(path.join(FXT, 'einrichtung-person.' + ext))], 'einrichtung-person.' + ext, how]);
@@ -343,7 +343,10 @@ for (const ext of ['txt', 'csv', 'xlsx']) {
   // Maßstab (Auftrag Punkt 6): nach „Nein“ ist jede Person ersetzt, die die Vorversion (2.7.0) ersetzt
   const c = OLD ? await personRun(ext, 'keine', OLD) : null;
   const leftB = PERSONS.filter((w) => b.text.includes(w) && (!c || !c.text.includes(w)));
-  check(`einrichtung-person.${ext}: nach „Nein“ auf alle Einrichtungs-Fragen ist jede Person ersetzt, die 2.7.0 ersetzt${c ? '' : ' (ohne Vorversion: alle)'}`, !leftB.length && b.orgs.every((o) => o.released), leftB.join(', ') + (c ? ` (2.7.0 lässt stehen: ${PERSONS.filter((w) => c.text.includes(w)).join(', ') || '–'})` : ''));
+  // Version 2.10.0: Einrichtungen aus einer Spalte „ganz ersetzen“ (Überschrift „Einrichtung“) haben keine Frage; sie
+  // gelten für „freigegeben nach Nein“ nicht (Liste unten)
+  if (b.orgs.some((o) => o.col)) log(`  - Spalte „ganz ersetzen“ (Einrichtung, ohne Frage): ${b.orgs.filter((o) => o.col).map((o) => o.forms.join(' / ')).join('; ')}`);
+  check(`einrichtung-person.${ext}: nach „Nein“ auf alle Einrichtungs-Fragen ist jede Person ersetzt, die 2.7.0 ersetzt${c ? '' : ' (ohne Vorversion: alle)'}`, !leftB.length && b.orgs.filter((o) => !o.col).every((o) => o.released), leftB.join(', ') + (c ? ` (2.7.0 lässt stehen: ${PERSONS.filter((w) => c.text.includes(w)).join(', ') || '–'})` : ''));
   if (ext === 'txt') {
     const inB2 = a.orgs.filter((o) => o.units.some((u) => EINR_PERSON_BEFUND2.includes(u)));
     check('einrichtung-person.txt: die Sätze aus Befund 2 ergeben 0 Einrichtungen', !inB2.length, inB2.map((o) => o.forms.join('/')).join('; '));
