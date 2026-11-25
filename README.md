@@ -565,7 +565,7 @@ Version **2.11.1**, Stand 2026-11-25 (steht auch im Fußbereich des Tools).
 SHA-256 der `index.html` dieser Version:
 
 ```
-89e519fd9cf15896dd2542010478f929dabdd9bf996bfd29a8f6f464391a6928
+e6da1f81267284a3b182c9ed02568b42e61acc8e7afd3cdc34bc0c49d53e874a
 ```
 
 Seit 2.9.0 ist die Datei rund 8 MB groß (vorher 3,7 MB): Sie enthält die gepackte Wortliste für „Diese Wörter bleiben stehen“.
