@@ -97,6 +97,10 @@ Neue Version: Anonymisierer/index.html; Vorversion: index-2.7.0.html. Nur Chromi
 | fixtures-bedienung/bedienung.docx | 5 | 0 | alle | alle | alle | alle | alle | alle | 5: alle |
 | fixtures-bedienung/bedienung.txt | 5 | 0 | alle | alle | alle | alle | alle | alle | 5: alle |
 | fixtures-bedienung/bedienung.xlsx | 6 | 0 | alle | alle | alle | alle | alle | alle | 6: alle |
+| fixtures-bildrauschen/lesbar.docx | 2 | 0 | alle | alle | alle | alle | alle | alle | 2: alle |
+| fixtures-bildrauschen/lesbar.xlsx | 2 | 0 | alle | alle | alle | alle | alle | alle | 2: alle |
+| fixtures-bildrauschen/rauschen.docx | 5 | 0 | alle | alle | alle | alle | alle | alle | 5: alle |
+| fixtures-bildrauschen/rauschen.xlsx | 5 | 0 | alle | alle | alle | alle | alle | alle | 5: alle |
 | fixtures-nummern/stammdaten-2.11.0-anonym.csv | 108 | 0 | alle | alle | alle | alle | alle | alle | 110: alle |
 | fixtures-nummern/stammdaten-2.11.0-anonym.xlsx | 108 | 0 | alle | alle | alle | alle | alle | alle | 110: alle |
 | fixtures-pfade/pfade-gegenprobe.docx | 11 | 0 | alle | alle | alle | alle | alle | alle | 11: alle |
@@ -146,8 +150,8 @@ Neue Version: Anonymisierer/index.html; Vorversion: index-2.7.0.html. Nur Chromi
 | out/massstab/korpus-kurse2.txt | 12 | 0 | alle | alle | alle | alle | alle | alle | 12: alle |
 | out/massstab/korpus-aushang.txt | 2 | 0 | alle | alle | alle | alle | alle | alle | 2: alle |
 
-Referenzen alter Versionen (tests/referenz/): gespeichert verwendet – 405 aus der Datei, 19 frisch gerechnet.
-Geprüft: 141 Dateien (Testdateien und 15 Korpus-Abschnitte), 2145 Stellen der Vorversion, je sechs Abläufe; zweiter Maßstab: 2288 Stellen von 2.8.0 (ohne Antwort).
+Referenzen alter Versionen (tests/referenz/): gespeichert verwendet – 405 aus der Datei, 31 frisch gerechnet.
+Geprüft: 145 Dateien (Testdateien und 15 Korpus-Abschnitte), 2159 Stellen der Vorversion, je sechs Abläufe; zweiter Maßstab: 2302 Stellen von 2.8.0 (ohne Antwort).
 
 Ausnahmen: 37 (seit Guardian-Lauf 5 keine Ausnahme mehr erlaubt; seit 2.11.0 genau eine Art: Kopf-Zellen nur aus Spaltenkopf-Wörtern, Regel 1)
 - fixtures/a2-risiko.csv, gegen 2.8.0: Zelle B1, „Name“ (Stelle „Name“)

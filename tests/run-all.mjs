@@ -39,6 +39,7 @@ const OLD = {
   '2.9.0': ['fc3d7e172b1c72f3e0560f45edd80fb6f0ee0d9e', 'c8117f37c68689cf'],
   '2.10.0': ['c6d74d8cfd24c5fa041f5f8d3de3a88f5224f1dc', 'f6e9546bf17ad947'],
   '2.11.0': ['a9f6b1696e08a9ba8ee7f76a08cfaac9426ee7a0', '89e519fd9cf15896'],
+  '2.11.1': ['0aec7e6cafdff096c0ef871c1cd4e543aa4979b7', 'e6da1f81267284a3'],
 };
 const SRC_234 = '479aa0af98ff3d82723c6cc7e9715a4cafa5f349'; // src/ von Version 2.3.4 (wortliste-test)
 const alt = (v) => path.join(ALT, `index-${v}.html`);
@@ -62,7 +63,8 @@ const TESTS = [
   ['pfade', 'pfade-test.mjs', [alt('2.4.0')]],
   ['bedienung', 'bedienung-test.mjs', [alt('2.4.1')]],
   ['anzeige', 'anzeige-test.mjs', []],
-  ['regression', 'regression.mjs', [alt('2.11.0')]], // Version 2.11.1: Regression gegen main (2.11.0)
+  ['regression', 'regression.mjs', [alt('2.11.1')]], // Version 2.11.2: Regression gegen main (2.11.1)
+  ['bildrauschen', 'bildrauschen-test.mjs', [alt('2.11.1')]], // Version 2.11.2: Häkchen und Bilder, Zufallstreffer in Bilddaten
   ['traeger', 'traeger-test.mjs', [alt('2.7.0')]],
   ['massstab', 'massstab-test.mjs', [alt('2.7.0'), alt('2.8.0')]],
   ['nachbarn', 'nachbarn-test.mjs', [alt('2.7.0'), alt('2.8.0')]],
@@ -71,7 +73,7 @@ const TESTS = [
   ['spaltenwahl', 'spaltenwahl-test.mjs', [alt('2.10.0')]], // Version 2.10.0/2.11.0: Spalten behandeln (Gegenprobe gegen main 2.10.0)
 ];
 // Längste zuerst (aus der Messung), damit die Gesamtzeit nicht vom Letzten abhängt
-const ORDER = ['nachbarn', 'massstab', 'bedienung', 'spaltenwahl', 'nummern', 'restwoerter', 'gross', 'run-tests', 'anzeige', 'regression', 'einrichtung', 'pfade', 'traeger', 'roundtrip', 'kollision', 'platzhalter', 'kennung', 'ui-flow', 'bilder', 'endungen', 'meta-proof', 'spalten', 'wortliste', 'korpus'];
+const ORDER = ['nachbarn', 'massstab', 'bedienung', 'spaltenwahl', 'nummern', 'bildrauschen', 'restwoerter', 'gross', 'run-tests', 'anzeige', 'regression', 'einrichtung', 'pfade', 'traeger', 'roundtrip', 'kollision', 'platzhalter', 'kennung', 'ui-flow', 'bilder', 'endungen', 'meta-proof', 'spalten', 'wortliste', 'korpus'];
 
 const sha = (p) => crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex');
 function prepareOld() {
